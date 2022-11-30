@@ -17,6 +17,11 @@
 #include <pdfgen.hpp>
 
 int main() {
-    PdfGen gen("test.pdf");
+    PdfGenerationData opts;
+    opts.page_size = Area::a4();
+    opts.mediabox.x = opts.mediabox.y = 0;
+    opts.mediabox.w = opts.page_size.w;
+    opts.mediabox.h = opts.page_size.h;
+    PdfGen gen("test.pdf", opts);
     return 0;
 }

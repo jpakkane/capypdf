@@ -21,15 +21,16 @@
 
 namespace {
 
-const char PDF_header[] = {"PDF-1.7\n\xe5\xf6\xc4\xd6\n"};
+const char PDF_header[] = {"%PDF-1.7\n\xe5\xf6\xc4\xd6\n"};
 
 }
 
-PdfGen::PdfGen(const char *ofname) {
+PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
     ofile = fopen(ofname, "wb");
     if(!ofile) {
         throw std::runtime_error(strerror(errno));
     }
+    write_header();
 }
 
 PdfGen::~PdfGen() {
@@ -58,9 +59,54 @@ void PdfGen::write_bytes(const char *buf, size_t buf_size) {
 void PdfGen::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
 
 void PdfGen::close_file() {
+    write_pages();
     const int64_t xref_offset = ftell(ofile);
+    write_catalog();
     write_cross_reference_table();
     write_trailer(xref_offset);
+}
+
+void PdfGen::write_pages() {
+    int32_t pages_obj_num = 3;
+    int32_t page_obj_num = 2;
+    int32_t content_obj_num = 1;
+    int32_t resources_obj_num = 0;
+    int32_t num_pages = 1;
+
+    std::string content("q\nQ\n");
+
+    fprintf(ofile, "%d 0 obj\n<< >>\nendobj\n", resources_obj_num);
+
+    fprintf(
+        ofile, "%d 0 obj\n<</Length %d\n>>\nstream\n", content_obj_num, (int32_t)content.size());
+    fprintf(ofile, "%s", content.c_str());
+    fprintf(ofile, "endstream\nendobj\n");
+
+    fprintf(ofile, "%d 0 obj\n", page_obj_num);
+    fprintf(ofile, "<< /Type /Page\n");
+    fprintf(ofile, "   /Parent %d\n", pages_obj_num);
+    fprintf(ofile,
+            "   /MediaBox [%.2f, %.2f, %.2f %.2f]\n",
+            opts.mediabox.x,
+            opts.mediabox.y,
+            opts.mediabox.w,
+            opts.mediabox.h);
+    fprintf(ofile, "   /Contents %d 0 R\n", content_obj_num);
+    fprintf(ofile, "   /Resources %d 0 R\n", resources_obj_num);
+
+    fprintf(ofile,
+            "%d 0 obj\n<</Type /Pages\n   /Kids [ %d 0 R ]\n   /Count %d\n>>endobj\n",
+            pages_obj_num,
+            page_obj_num,
+            num_pages);
+}
+
+void PdfGen::write_catalog() {
+    int32_t catalog_obj_num = 4;
+    int32_t pages_obj_num = 3;
+    fprintf(ofile, "%d 0 obj\n", catalog_obj_num);
+    fprintf(ofile, "<< /Type /Catalog\n   /Pages %d 0 R\n>>\n", pages_obj_num);
+    fprintf(ofile, "endobj\n");
 }
 
 void PdfGen::write_cross_reference_table() {

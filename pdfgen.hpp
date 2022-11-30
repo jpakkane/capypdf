@@ -19,12 +19,33 @@
 #include <cstdio>
 #include <cstdint>
 
+struct PdfBox {
+    double x;
+    double y;
+    double w;
+    double h;
+};
+
+struct Area {
+    double w;
+    double h;
+
+    static Area a4() { return Area{595.28, 841.89}; }
+};
+
+struct PdfGenerationData {
+    Area page_size;
+    PdfBox mediabox;
+};
+
 class PdfGen {
 public:
-    explicit PdfGen(const char *ofname);
+    explicit PdfGen(const char *ofname, const PdfGenerationData &d);
     ~PdfGen();
 
 private:
+    void write_catalog();
+    void write_pages();
     void write_header();
     void write_cross_reference_table();
     void write_trailer(int64_t xref_offset);
@@ -32,4 +53,5 @@ private:
     void close_file();
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     FILE *ofile;
+    PdfGenerationData opts;
 };
