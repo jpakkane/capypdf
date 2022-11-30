@@ -1,0 +1,16 @@
+BasedOnStyle: LLVM
+ColumnLimit: 100
+IndentWidth: 4
+AccessModifierOffset: -4
+UseTab: Never
+BreakBeforeBraces: Attach
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+Standard: Cpp11
+ReflowComments: true
+SortIncludes: false
+BinPackArguments: false
+BinPackParameters: false
+SpaceBeforeParens: Never
+SpaceAfterTemplateKeyword: false
+
