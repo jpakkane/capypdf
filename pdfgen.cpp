@@ -21,7 +21,7 @@
 
 namespace {
 
-const char PDF_header[] = {"%PDF-1.7\n\xe5\xf6\xc4\xd6\n"};
+const char PDF_header[] = "%PDF-1.7\n\xe5\xf6\xc4\xd6\n";
 
 }
 
@@ -56,76 +56,123 @@ void PdfGen::write_bytes(const char *buf, size_t buf_size) {
     }
 }
 
-void PdfGen::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
+void PdfGen::write_header() {
+    write_bytes(PDF_header, strlen(PDF_header));
+    int32_t info_num = 1;
+    start_object(info_num);
+    fprintf(ofile, "%d 0 obj\n", info_num);
+    fprintf(ofile, "<<\n");
+    if(!opts.title.empty()) {
+        fprintf(ofile, "  /Title (%s)\n", opts.title.c_str());
+    }
+    if(!opts.author.empty()) {
+        fprintf(ofile, "  /Author (%s)\n", opts.author.c_str());
+    }
+    fprintf(ofile, "  /Producer (PDF Testbed generator)\n");
+    fprintf(ofile, ">>\nendobj\n");
+    finish_object();
+}
 
 void PdfGen::close_file() {
     write_pages();
-    const int64_t xref_offset = ftell(ofile);
     write_catalog();
+    const int64_t xref_offset = ftell(ofile);
     write_cross_reference_table();
     write_trailer(xref_offset);
 }
 
 void PdfGen::write_pages() {
-    int32_t pages_obj_num = 3;
-    int32_t page_obj_num = 2;
-    int32_t content_obj_num = 1;
-    int32_t resources_obj_num = 0;
+    int32_t pages_obj_num = 5;
+    int32_t page_obj_num = 4;
+    int32_t content_obj_num = 3;
+    int32_t resources_obj_num = 2;
     int32_t num_pages = 1;
 
-    std::string content("q\nQ\n");
+    std::string content("1.0 g\n");
 
-    fprintf(ofile, "%d 0 obj\n<< >>\nendobj\n", resources_obj_num);
+    start_object(resources_obj_num);
+    fprintf(ofile,
+            "%d 0 obj\n<< /ExtGState << /a0 << /CA 1 /ca 1 >> >> >>\nendobj\n",
+            resources_obj_num);
+    finish_object();
 
+    start_object(content_obj_num);
     fprintf(
         ofile, "%d 0 obj\n<</Length %d\n>>\nstream\n", content_obj_num, (int32_t)content.size());
     fprintf(ofile, "%s", content.c_str());
     fprintf(ofile, "endstream\nendobj\n");
+    finish_object();
 
+    start_object(page_obj_num);
     fprintf(ofile, "%d 0 obj\n", page_obj_num);
     fprintf(ofile, "<< /Type /Page\n");
-    fprintf(ofile, "   /Parent %d\n", pages_obj_num);
+    fprintf(ofile, "   /Parent %d 0 R\n", pages_obj_num);
     fprintf(ofile,
-            "   /MediaBox [%.2f, %.2f, %.2f %.2f]\n",
+            "   /MediaBox [ %.2f %.2f %.2f %.2f ]\n",
             opts.mediabox.x,
             opts.mediabox.y,
             opts.mediabox.w,
             opts.mediabox.h);
     fprintf(ofile, "   /Contents %d 0 R\n", content_obj_num);
     fprintf(ofile, "   /Resources %d 0 R\n", resources_obj_num);
+    fprintf(ofile, ">>\nendobj\n");
+    finish_object();
 
+    start_object(pages_obj_num);
     fprintf(ofile,
-            "%d 0 obj\n<</Type /Pages\n   /Kids [ %d 0 R ]\n   /Count %d\n>>endobj\n",
+            "%d 0 obj\n<</Type /Pages\n   /Kids [ %d 0 R ]\n   /Count %d\n>>\nendobj\n",
             pages_obj_num,
             page_obj_num,
             num_pages);
+    finish_object();
 }
 
 void PdfGen::write_catalog() {
-    int32_t catalog_obj_num = 4;
-    int32_t pages_obj_num = 3;
+    int32_t catalog_obj_num = 6;
+    int32_t pages_obj_num = 5;
+    start_object(catalog_obj_num);
     fprintf(ofile, "%d 0 obj\n", catalog_obj_num);
     fprintf(ofile, "<< /Type /Catalog\n   /Pages %d 0 R\n>>\n", pages_obj_num);
     fprintf(ofile, "endobj\n");
+    finish_object();
 }
 
 void PdfGen::write_cross_reference_table() {
-    int32_t num_items = 10;
     fprintf(ofile, "%s\n", "xref");
-    fprintf(ofile, "0 %d\n", num_items);
-    for(int32_t i = 0; i < num_items; ++i) {
-        fprintf(ofile, "%010d 00000 f \n", i);
+    fprintf(ofile, "0 %d\n", (int32_t)object_offsets.size() + 1);
+    fprintf(ofile, "%010ld 65535 f \n", (int64_t)0);
+    for(const auto &i : object_offsets) {
+        fprintf(ofile, "%010ld 00000 n \n", i);
     }
 }
 
 void PdfGen::write_trailer(int64_t xref_offset) {
-    int32_t num_items = 42;
-    int32_t root = 1;
-    int32_t info = 2;
+    int32_t root = 6;
+    int32_t info = 1;
     fprintf(ofile, "trailer\n");
-    fprintf(ofile, "<< /Size %d\n", num_items);
+    fprintf(ofile, "<< /Size %d\n", (int32_t)object_offsets.size() + 1);
     fprintf(ofile, "   /Root %d 0 R\n", root);
     fprintf(ofile, "   /Info %d 0 R\n", info);
     fprintf(ofile, ">>\n");
-    fprintf(ofile, "startxref\n%ld\n%%EOF\n", xref_offset);
+    fprintf(ofile, "startxref\n%ld\n%%%%EOF\n", xref_offset);
+}
+
+void PdfGen::start_object(int32_t obj_num) {
+    if(obj_num != (int32_t)object_offsets.size() + 1) {
+        throw std::runtime_error("Internal error, object count confusion.");
+    }
+    if(defining_object) {
+        throw std::runtime_error(
+            "Internal error, tried to define object when one was already ongoing.");
+    }
+    defining_object = true;
+    object_offsets.push_back(ftell(ofile));
+}
+
+void PdfGen::finish_object() {
+    if(!defining_object) {
+        throw std::runtime_error(
+            "Internal error, tried to finish object when one was not ongoing.");
+    }
+    defining_object = false;
 }

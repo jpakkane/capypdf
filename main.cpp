@@ -22,6 +22,16 @@ int main() {
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = opts.page_size.w;
     opts.mediabox.h = opts.page_size.h;
-    PdfGen gen("test.pdf", opts);
+
+    opts.title = "PDF experiment";
+    opts.author = "Peter David Foster, esq";
+
+    try {
+        PdfGen gen("test.pdf", opts);
+    } catch(const std::exception &e) {
+        printf("%s\n", e.what());
+        return 1;
+    }
+
     return 0;
 }

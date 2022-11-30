@@ -19,6 +19,9 @@
 #include <cstdio>
 #include <cstdint>
 
+#include <vector>
+#include <string>
+
 struct PdfBox {
     double x;
     double y;
@@ -36,6 +39,8 @@ struct Area {
 struct PdfGenerationData {
     Area page_size;
     PdfBox mediabox;
+    std::string title;
+    std::string author;
 };
 
 class PdfGen {
@@ -50,8 +55,13 @@ private:
     void write_cross_reference_table();
     void write_trailer(int64_t xref_offset);
 
+    void start_object(int32_t obj_num);
+    void finish_object();
+
     void close_file();
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     FILE *ofile;
     PdfGenerationData opts;
+    bool defining_object = false;
+    std::vector<int64_t> object_offsets;
 };
