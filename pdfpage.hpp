@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-#include <pdfgen.hpp>
+#pragma once
 
-int main() {
-    PdfGenerationData opts;
-    opts.page_size = Area::a4();
-    opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = opts.page_size.w;
-    opts.mediabox.h = opts.page_size.h;
+class PdfGen;
 
-    opts.title = "PDF experiment";
-    opts.author = "Peter David Foster, esq";
+class PdfPage {
 
-    try {
-        PdfGen gen("test.pdf", opts);
-        auto ctx = gen.new_page();
-    } catch(const std::exception &e) {
-        printf("%s\n", e.what());
-        return 1;
-    }
+public:
+    explicit PdfPage(PdfGen *g);
+    ~PdfPage();
 
-    return 0;
-}
+private:
+    PdfGen *g;
+};

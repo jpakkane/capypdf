@@ -31,6 +31,7 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
         throw std::runtime_error(strerror(errno));
     }
     write_header();
+    write_info();
 }
 
 PdfGen::~PdfGen() {
@@ -56,21 +57,22 @@ void PdfGen::write_bytes(const char *buf, size_t buf_size) {
     }
 }
 
-void PdfGen::write_header() {
-    write_bytes(PDF_header, strlen(PDF_header));
-    int32_t info_num = 1;
-    start_object(info_num);
-    fprintf(ofile, "%d 0 obj\n", info_num);
-    fprintf(ofile, "<<\n");
+void PdfGen::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
+
+void PdfGen::write_info() {
+    std::string obj_data{"<<\n"};
     if(!opts.title.empty()) {
-        fprintf(ofile, "  /Title (%s)\n", opts.title.c_str());
+        obj_data += "  /Title (";
+        obj_data += opts.title; // FIXME, do escaping.
+        obj_data += ")\n";
     }
     if(!opts.author.empty()) {
-        fprintf(ofile, "  /Author (%s)\n", opts.author.c_str());
+        obj_data += "  /Author (";
+        obj_data += opts.author; // FIXME, here too.
+        obj_data += ")\n";
     }
-    fprintf(ofile, "  /Producer (PDF Testbed generator)\n");
-    fprintf(ofile, ">>\nendobj\n");
-    finish_object();
+    obj_data += "  /Producer (PDF Testbed generator)\n>>\n";
+    add_object(obj_data);
 }
 
 void PdfGen::close_file() {
@@ -175,4 +177,31 @@ void PdfGen::finish_object() {
             "Internal error, tried to finish object when one was not ongoing.");
     }
     defining_object = false;
+}
+
+PdfPage PdfGen::new_page() {
+    if(page_ongoing) {
+        throw std::runtime_error("Tried to open a new page without closing the previous one.");
+    }
+    page_ongoing = true;
+    return PdfPage(this);
+}
+
+void PdfGen::page_done() {
+    if(!page_ongoing) {
+        throw std::runtime_error("Tried to close a page even though one was not open.");
+    }
+    page_ongoing = false;
+}
+
+int32_t PdfGen::add_object(const std::string_view object_data) {
+    auto object_num = (int32_t)object_offsets.size() + 1;
+    object_offsets.push_back(ftell(ofile));
+    const int bufsize = 128;
+    char buf[bufsize];
+    snprintf(buf, bufsize, "%d 0 obj\n", object_num);
+    write_bytes(buf);
+    write_bytes(object_data);
+    write_bytes("endobj\n");
+    return object_num;
 }

@@ -16,10 +16,13 @@
 
 #pragma once
 
+#include <pdfpage.hpp>
+
 #include <cstdio>
 #include <cstdint>
 
 #include <vector>
+#include <string_view>
 #include <string>
 
 struct PdfBox {
@@ -48,10 +51,16 @@ public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
     ~PdfGen();
 
+    PdfPage new_page();
+    void page_done();
+
+    int32_t add_object(const std::string_view object_data);
+
 private:
     void write_catalog();
     void write_pages();
     void write_header();
+    void write_info();
     void write_cross_reference_table();
     void write_trailer(int64_t xref_offset);
 
@@ -60,8 +69,11 @@ private:
 
     void close_file();
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
+    void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
+
     FILE *ofile;
     PdfGenerationData opts;
     bool defining_object = false;
     std::vector<int64_t> object_offsets;
+    bool page_ongoing = false;
 };
