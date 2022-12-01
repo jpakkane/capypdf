@@ -86,67 +86,85 @@ void PdfGen::close_file() {
 
 void PdfGen::write_pages() {
     int32_t pages_obj_num = 5;
-    int32_t page_obj_num = 4;
-    int32_t content_obj_num = 3;
-    int32_t resources_obj_num = 2;
     int32_t num_pages = 1;
 
     std::string content("1.0 g\n");
+    std::string buf;
 
-    start_object(resources_obj_num);
-    fprintf(ofile,
-            "%d 0 obj\n<< /ExtGState << /a0 << /CA 1 /ca 1 >> >> >>\nendobj\n",
-            resources_obj_num);
-    finish_object();
+    const auto resources_obj_num = add_object("<< /ExtGState << /a0 << /CA 1 /ca 1 >> >> >>");
 
-    start_object(content_obj_num);
-    fprintf(
-        ofile, "%d 0 obj\n<</Length %d\n>>\nstream\n", content_obj_num, (int32_t)content.size());
-    fprintf(ofile, "%s", content.c_str());
-    fprintf(ofile, "endstream\nendobj\n");
-    finish_object();
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Length {}
+>>
+stream
+{}
+endstream
+endobj
+)",
+                   content.size(),
+                   content);
 
-    start_object(page_obj_num);
-    fprintf(ofile, "%d 0 obj\n", page_obj_num);
-    fprintf(ofile, "<< /Type /Page\n");
-    fprintf(ofile, "   /Parent %d 0 R\n", pages_obj_num);
-    fprintf(ofile,
-            "   /MediaBox [ %.2f %.2f %.2f %.2f ]\n",
-            opts.mediabox.x,
-            opts.mediabox.y,
-            opts.mediabox.w,
-            opts.mediabox.h);
-    fprintf(ofile, "   /Contents %d 0 R\n", content_obj_num);
-    fprintf(ofile, "   /Resources %d 0 R\n", resources_obj_num);
-    fprintf(ofile, ">>\nendobj\n");
-    finish_object();
+    const auto content_obj_num = add_object(buf);
+    buf.clear();
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /Page
+  /Parent {} 0 R
+  /MediaBox [ {} {} {} {} ]
+  /Contents {} 0 R
+  /Resources {} %d 0 R
+>>
+)",
+                   pages_obj_num,
+                   opts.mediabox.x,
+                   opts.mediabox.y,
+                   opts.mediabox.w,
+                   opts.mediabox.h,
+                   content_obj_num,
+                   resources_obj_num);
+    const auto page_obj_num = add_object(buf);
+    buf.clear();
 
-    start_object(pages_obj_num);
-    fprintf(ofile,
-            "%d 0 obj\n<</Type /Pages\n   /Kids [ %d 0 R ]\n   /Count %d\n>>\nendobj\n",
-            pages_obj_num,
-            page_obj_num,
-            num_pages);
-    finish_object();
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /Pages
+  /Kids [ {} 0 R ]
+  /Count {}
+>>
+)",
+                   page_obj_num,
+                   num_pages);
+    add_object(buf);
 }
 
 void PdfGen::write_catalog() {
-    int32_t catalog_obj_num = 6;
-    int32_t pages_obj_num = 5;
-    start_object(catalog_obj_num);
-    fprintf(ofile, "%d 0 obj\n", catalog_obj_num);
-    fprintf(ofile, "<< /Type /Catalog\n   /Pages %d 0 R\n>>\n", pages_obj_num);
-    fprintf(ofile, "endobj\n");
-    finish_object();
+    const int32_t pages_obj_num = 5;
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /Catalog
+  /Pages {} 0 R
+>>
+)",
+                   pages_obj_num);
+    add_object(buf);
 }
 
 void PdfGen::write_cross_reference_table() {
-    fprintf(ofile, "%s\n", "xref");
-    fprintf(ofile, "0 %d\n", (int32_t)object_offsets.size() + 1);
-    fprintf(ofile, "%010ld 65535 f \n", (int64_t)0);
+    std::string buf;
+    fmt::format_to(
+        std::back_inserter(buf),
+        R"(xref
+0 {}
+0000000000 65535 f{}
+)",
+        object_offsets.size() + 1,
+        " "); // Qt Creator removes whitespace at the end of lines but it is significant here.
     for(const auto &i : object_offsets) {
-        fprintf(ofile, "%010ld 00000 n \n", i);
+        fmt::format_to(std::back_inserter(buf), "{:010} 00000 n \n", i);
     }
+    write_bytes(buf);
 }
 
 void PdfGen::write_trailer(int64_t xref_offset) {
@@ -169,26 +187,6 @@ startxref
                    info,
                    xref_offset);
     write_bytes(buf);
-}
-
-void PdfGen::start_object(int32_t obj_num) {
-    if(obj_num != (int32_t)object_offsets.size() + 1) {
-        throw std::runtime_error("Internal error, object count confusion.");
-    }
-    if(defining_object) {
-        throw std::runtime_error(
-            "Internal error, tried to define object when one was already ongoing.");
-    }
-    defining_object = true;
-    object_offsets.push_back(ftell(ofile));
-}
-
-void PdfGen::finish_object() {
-    if(!defining_object) {
-        throw std::runtime_error(
-            "Internal error, tried to finish object when one was not ongoing.");
-    }
-    defining_object = false;
 }
 
 PdfPage PdfGen::new_page() {

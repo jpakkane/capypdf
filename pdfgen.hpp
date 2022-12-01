@@ -73,7 +73,6 @@ private:
 
     FILE *ofile;
     PdfGenerationData opts;
-    bool defining_object = false;
     std::vector<int64_t> object_offsets;
     bool page_ongoing = false;
 };
