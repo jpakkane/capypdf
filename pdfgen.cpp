@@ -18,6 +18,7 @@
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
+#include <fmt/core.h>
 
 namespace {
 
@@ -149,14 +150,25 @@ void PdfGen::write_cross_reference_table() {
 }
 
 void PdfGen::write_trailer(int64_t xref_offset) {
-    int32_t root = 6;
-    int32_t info = 1;
-    fprintf(ofile, "trailer\n");
-    fprintf(ofile, "<< /Size %d\n", (int32_t)object_offsets.size() + 1);
-    fprintf(ofile, "   /Root %d 0 R\n", root);
-    fprintf(ofile, "   /Info %d 0 R\n", info);
-    fprintf(ofile, ">>\n");
-    fprintf(ofile, "startxref\n%ld\n%%%%EOF\n", xref_offset);
+    const int32_t info = 1;                     // Info object is the first printed.
+    const int32_t root = object_offsets.size(); // Root object is the last one printed.
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(trailer
+<<
+  /Size {}
+  /Root {} 0 R
+  /Info {} 0 R
+>>
+startxref
+{}
+%%EOF
+)",
+                   object_offsets.size() + 1,
+                   root,
+                   info,
+                   xref_offset);
+    write_bytes(buf);
 }
 
 void PdfGen::start_object(int32_t obj_num) {
