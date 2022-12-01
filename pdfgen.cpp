@@ -85,61 +85,48 @@ void PdfGen::close_file() {
 }
 
 void PdfGen::write_pages() {
-    int32_t pages_obj_num = 5;
-    int32_t num_pages = 1;
+    const auto pages_obj_num = (int32_t)(object_offsets.size() + pages.size() + 1);
 
-    std::string content("1.0 g\n");
     std::string buf;
 
-    const auto resources_obj_num = add_object("<< /ExtGState << /a0 << /CA 1 /ca 1 >> >> >>");
-
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
-  /Length {}
->>
-stream
-{}
-endstream
-endobj
-)",
-                   content.size(),
-                   content);
-
-    const auto content_obj_num = add_object(buf);
-    buf.clear();
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
+    std::vector<int32_t> page_objects;
+    for(const auto &i : pages) {
+        buf.clear();
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
   /Type /Page
   /Parent {} 0 R
   /MediaBox [ {} {} {} {} ]
   /Contents {} 0 R
-  /Resources {} %d 0 R
+  /Resources {} 0 R
 >>
 )",
-                   pages_obj_num,
-                   opts.mediabox.x,
-                   opts.mediabox.y,
-                   opts.mediabox.w,
-                   opts.mediabox.h,
-                   content_obj_num,
-                   resources_obj_num);
-    const auto page_obj_num = add_object(buf);
-    buf.clear();
+                       pages_obj_num,
+                       opts.mediabox.x,
+                       opts.mediabox.y,
+                       opts.mediabox.w,
+                       opts.mediabox.h,
+                       i.commands_obj_num,
+                       i.resource_obj_num);
 
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
+        page_objects.push_back(add_object(buf));
+    }
+    buf = R"(<<
   /Type /Pages
-  /Kids [ {} 0 R ]
-  /Count {}
->>
-)",
-                   page_obj_num,
-                   num_pages);
-    add_object(buf);
+  /Kids [
+)";
+    for(const auto &i : page_objects) {
+        fmt::format_to(std::back_inserter(buf), "    {} 0 R\n", i);
+    }
+    fmt::format_to(std::back_inserter(buf), "  ]\n  /Count {}\n>>\n", page_objects.size());
+    const auto actual_number = add_object(buf);
+    if(actual_number != pages_obj_num) {
+        throw std::runtime_error("Buggy McBugFace!");
+    }
 }
 
 void PdfGen::write_catalog() {
-    const int32_t pages_obj_num = 5;
+    const int32_t pages_obj_num = (int32_t)object_offsets.size();
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
@@ -189,22 +176,15 @@ startxref
     write_bytes(buf);
 }
 
-PdfPage PdfGen::new_page() {
-    if(page_ongoing) {
-        throw std::runtime_error("Tried to open a new page without closing the previous one.");
-    }
-    page_ongoing = true;
-    return PdfPage(this);
+PdfPage PdfGen::new_page() { return PdfPage(this); }
+
+void PdfGen::add_page(std::string_view resource_data, std::string_view page_data) {
+    const auto resource_num = add_object(resource_data);
+    const auto page_num = add_object(page_data);
+    pages.emplace_back(PageOffsets{resource_num, page_num});
 }
 
-void PdfGen::page_done() {
-    if(!page_ongoing) {
-        throw std::runtime_error("Tried to close a page even though one was not open.");
-    }
-    page_ongoing = false;
-}
-
-int32_t PdfGen::add_object(const std::string_view object_data) {
+int32_t PdfGen::add_object(std::string_view object_data) {
     auto object_num = (int32_t)object_offsets.size() + 1;
     object_offsets.push_back(ftell(ofile));
     const int bufsize = 128;

@@ -16,7 +16,41 @@
 
 #include <pdfpage.hpp>
 #include <pdfgen.hpp>
+#include <fmt/core.h>
 
-PdfPage::PdfPage(PdfGen *g) : g(g) {}
+PdfPage::PdfPage(PdfGen *g) : g(g) {
+    resources = R"(<<
+  /ExtGState
+  <<
+    /a0
+    <<
+      /CA 1
+      /ca 1
+    >>
+  >>
+>>
+)";
+}
 
-PdfPage::~PdfPage() { g->page_done(); }
+PdfPage::~PdfPage() {
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Length {}
+>>
+stream
+{}
+endstream
+)",
+                   commands.size(),
+                   commands);
+    g->add_page(resources, buf);
+}
+
+void PdfPage::rectangle(double x, double y, double w, double h) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} {} re\n", x, y, w, h);
+}
+
+void PdfPage::fill() { commands += "f\n"; }
+
+void PdfPage::stroke() { commands += "S\n"; }

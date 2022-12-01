@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 class PdfGen;
 
 class PdfPage {
@@ -24,6 +26,12 @@ public:
     explicit PdfPage(PdfGen *g);
     ~PdfPage();
 
+    void rectangle(double x, double y, double w, double h);
+    void fill();
+    void stroke();
+
 private:
     PdfGen *g;
+    std::string resources;
+    std::string commands;
 };

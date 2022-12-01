@@ -46,15 +46,20 @@ struct PdfGenerationData {
     std::string author;
 };
 
+struct PageOffsets {
+    int32_t resource_obj_num;
+    int32_t commands_obj_num;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
     ~PdfGen();
 
     PdfPage new_page();
-    void page_done();
 
-    int32_t add_object(const std::string_view object_data);
+    int32_t add_object(std::string_view object_data);
+    void add_page(std::string_view resource_data, std::string_view page_data);
 
 private:
     void write_catalog();
@@ -74,5 +79,5 @@ private:
     FILE *ofile;
     PdfGenerationData opts;
     std::vector<int64_t> object_offsets;
-    bool page_ongoing = false;
+    std::vector<PageOffsets> pages; // Refers to object num.
 };

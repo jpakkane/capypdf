@@ -28,7 +28,16 @@ int main() {
 
     try {
         PdfGen gen("test.pdf", opts);
-        auto ctx = gen.new_page();
+        {
+            auto ctx = gen.new_page();
+            ctx.rectangle(100, 300, 200, 100);
+            ctx.fill();
+        }
+        {
+            auto ctx = gen.new_page();
+            ctx.rectangle(300, 100, 200, 100);
+            ctx.stroke();
+        }
     } catch(const std::exception &e) {
         printf("%s\n", e.what());
         return 1;
