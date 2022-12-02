@@ -57,6 +57,11 @@ struct ImageSize {
     int32_t h;
 };
 
+struct ImageInfo {
+    ImageSize s;
+    int32_t obj;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -67,11 +72,16 @@ public:
     int32_t add_object(std::string_view object_data);
     void add_page(std::string_view resource_data, std::string_view page_data);
 
-    int32_t load_image(const char *fname);
-    int32_t get_builtin_font_id(BuiltinFonts font);
-    ImageSize get_image_info(int32_t obj_id) { return image_info.at(obj_id); }
+    ImageId load_image(const char *fname);
+    FontId get_builtin_font_id(BuiltinFonts font);
+    ImageSize get_image_info(ImageId img_id) { return image_info.at(img_id.id).s; }
+
+    friend class PdfPage;
 
 private:
+    int32_t image_object_number(ImageId fid) { return image_info.at(fid.id).obj; }
+    int32_t font_object_number(FontId fid) { return font_objects.at(fid.id); }
+
     void write_catalog();
     void write_pages();
     void write_header();
@@ -90,6 +100,7 @@ private:
     PdfGenerationData opts;
     std::vector<int64_t> object_offsets;
     std::vector<PageOffsets> pages; // Refers to object num.
-    std::unordered_map<int32_t, ImageSize> image_info;
-    std::unordered_map<BuiltinFonts, int32_t> builtin_fonts;
+    std::vector<ImageInfo> image_info;
+    std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
+    std::vector<int32_t> font_objects;
 };

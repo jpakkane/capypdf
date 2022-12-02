@@ -38,11 +38,11 @@ public:
     void set_line_width(double w);
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
-    void draw_image(int32_t obj_num);
+    void draw_image(ImageId obj_num);
     void concatenate_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
-    void simple_text(const char *u8text, int32_t font_id, double pointsize, double x, double y);
+    void simple_text(const char *u8text, FontId font_id, double pointsize, double x, double y);
 
 private:
     void build_resource_dict();

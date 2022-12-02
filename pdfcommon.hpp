@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 // These enums are in the C style because they would (eventually,
 // hopefully) go to the public C API header.
 
@@ -64,6 +66,17 @@ private:
     }
 
     double value;
+};
+
+// Every resource type has its own id type to avoid
+// accidentally mixing them up.
+
+struct FontId {
+    int32_t id;
+};
+
+struct ImageId {
+    int32_t id;
 };
 
 struct DeviceRGBColor {

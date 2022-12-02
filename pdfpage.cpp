@@ -94,7 +94,8 @@ void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
     fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", c.r.v(), c.g.v(), c.b.v());
 }
 
-void PdfPage::draw_image(int32_t obj_num) {
+void PdfPage::draw_image(ImageId im_id) {
+    auto obj_num = g->image_object_number(im_id);
     used_images.insert(obj_num);
     fmt::format_to(std::back_inserter(commands), "/Image{} Do\n", obj_num);
 }
@@ -111,8 +112,9 @@ void PdfPage::translate(double xtran, double ytran) {
 }
 
 void PdfPage::simple_text(
-    const char *u8text, int32_t font_id, double pointsize, double x, double y) {
-    used_fonts.insert(font_id);
+    const char *u8text, FontId font_id, double pointsize, double x, double y) {
+    auto font_object = g->font_object_number(font_id);
+    used_fonts.insert(font_object);
     fmt::format_to(std::back_inserter(commands),
                    R"(BT
   /Font{} {} Tf
@@ -120,7 +122,7 @@ void PdfPage::simple_text(
   ({}) Tj
 ET
 )",
-                   font_id,
+                   font_object,
                    pointsize,
                    x,
                    y,

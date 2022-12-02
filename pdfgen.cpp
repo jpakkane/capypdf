@@ -210,7 +210,7 @@ int32_t PdfGen::add_object(std::string_view object_data) {
     return object_num;
 }
 
-int32_t PdfGen::load_image(const char *fname) {
+ImageId PdfGen::load_image(const char *fname) {
     auto image = load_image_file(fname);
     std::string buf;
     int32_t smask_id = -1;
@@ -259,11 +259,11 @@ stream
     buf += compressed;
     buf += "\nendstream\n";
     auto im_id = add_object(buf);
-    image_info[im_id] = ImageSize{image.w, image.h};
-    return im_id;
+    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+    return ImageId{(int32_t)image_info.size() - 1};
 }
 
-int32_t PdfGen::get_builtin_font_id(BuiltinFonts font) {
+FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
     auto it = builtin_fonts.find(font);
     if(it != builtin_fonts.end()) {
         return it->second;
@@ -277,7 +277,8 @@ int32_t PdfGen::get_builtin_font_id(BuiltinFonts font) {
 >>
 )",
                    font_names[font]);
-    auto font_obj = add_object(font_dict);
-    builtin_fonts[font] = font_obj;
-    return font_obj;
+    font_objects.push_back(add_object(font_dict));
+    auto fontid = FontId{(int32_t)font_objects.size() - 1};
+    builtin_fonts[font] = fontid;
+    return fontid;
 }
