@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <pdfcommon.hpp>
+
 #include <string>
 #include <unordered_set>
 
@@ -34,10 +36,12 @@ public:
     void fill();
     void stroke();
     void set_line_width(double w);
-    void set_stroke_color_rgb(double r, double g, double b);
-    void set_nonstroke_color_rgb(double r, double g, double b);
+    void set_stroke_color(const DeviceRGBColor &c);
+    void set_nonstroke_color(const DeviceRGBColor &c);
     void draw_image(int32_t obj_num);
-    void set_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
+    void concatenate_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
+    void scale(double xscale, double yscale);
+    void translate(double xtran, double ytran);
     void simple_text(const char *u8text, int32_t font_id, double pointsize, double x, double y);
 
 private:

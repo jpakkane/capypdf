@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
         {
             auto ctx = gen.new_page();
             ctx.set_line_width(2.0);
-            ctx.set_stroke_color_rgb(0.0, 0.3, 1.0);
+            ctx.set_stroke_color(DeviceRGBColor{0.0, 0.3, 1.0});
             ctx.rectangle(300, 100, 200, 100);
             ctx.stroke();
             ctx.simple_text("This is text in Times New Roman.",
@@ -50,19 +50,19 @@ int main(int argc, char **argv) {
         {
             auto ctx = gen.new_page();
             ctx.rectangle(100, 300, 200, 100);
-            ctx.set_nonstroke_color_rgb(1.0, 0.1, 0.2);
+            ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.1, 0.2});
             ctx.fill();
             if(argc > 1) {
                 auto image_id = gen.load_image(argv[1]);
                 auto image_size = gen.get_image_info(image_id);
                 ctx.save();
-                ctx.set_matrix(image_size.w / 5, 0, 0, image_size.h / 5, 110, 310);
+                ctx.concatenate_matrix(image_size.w / 5, 0, 0, image_size.h / 5, 110, 310);
                 ctx.draw_image(image_id);
                 ctx.restore();
             }
         }
     } catch(const std::exception &e) {
-        printf("%s\n", e.what());
+        printf("ERROR: %s\n", e.what());
         return 1;
     }
 

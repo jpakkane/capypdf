@@ -86,12 +86,12 @@ void PdfPage::set_line_width(double w) {
     fmt::format_to(std::back_inserter(commands), "{} w\n", w);
 }
 
-void PdfPage::set_stroke_color_rgb(double r, double g, double b) {
-    fmt::format_to(std::back_inserter(commands), "{} {} {} RG\n", r, g, b);
+void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} RG\n", c.r.v(), c.g.v(), c.b.v());
 }
 
-void PdfPage::set_nonstroke_color_rgb(double r, double g, double b) {
-    fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", r, g, b);
+void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", c.r.v(), c.g.v(), c.b.v());
 }
 
 void PdfPage::draw_image(int32_t obj_num) {
@@ -99,8 +99,15 @@ void PdfPage::draw_image(int32_t obj_num) {
     fmt::format_to(std::back_inserter(commands), "/Image{} Do\n", obj_num);
 }
 
-void PdfPage::set_matrix(double m1, double m2, double m3, double m4, double m5, double m6) {
+void PdfPage::concatenate_matrix(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(std::back_inserter(commands), "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
+}
+
+void PdfPage::scale(double xscale, double yscale) {
+    concatenate_matrix(xscale, 0, 0, yscale, 0, 0);
+}
+void PdfPage::translate(double xtran, double ytran) {
+    concatenate_matrix(0, 0, 0, 0, xtran, ytran);
 }
 
 void PdfPage::simple_text(

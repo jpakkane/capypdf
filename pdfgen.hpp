@@ -26,18 +26,6 @@
 #include <string>
 #include <unordered_map>
 
-enum BuiltinFonts {
-    FONT_TIMES_ROMAN,
-    FONT_HELVETICA,
-    FONT_COURIER,
-    FONT_TIMES_ROMAN_BOLD,
-    FONT_HELVETICA_BOLD,
-    FONT_COURIER_BOLD,
-    FONT_TIMES_ROMAN_ITALIC,
-    FONT_HELVETICA_OBLIQUE,
-    FONT_COURIER_OBLIQUE,
-};
-
 struct PdfBox {
     double x;
     double y;
