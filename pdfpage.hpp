@@ -38,6 +38,7 @@ public:
     void set_nonstroke_color_rgb(double r, double g, double b);
     void draw_image(int32_t obj_num);
     void set_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
+    void simple_text(const char *u8text, int32_t font_id, double pointsize, double x, double y);
 
 private:
     void build_resource_dict();
@@ -46,5 +47,6 @@ private:
     std::string resources;
     std::string commands;
     std::unordered_set<int32_t> used_images;
+    std::unordered_set<int32_t> used_fonts;
     bool is_finalized = false;
 };

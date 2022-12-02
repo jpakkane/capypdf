@@ -51,16 +51,23 @@ endstream
 }
 
 void PdfPage::build_resource_dict() {
-    resources = R"(<<
-  /XObject <<
-)";
-    for(const auto &i : used_images) {
-        fmt::format_to(std::back_inserter(resources), "    /Image{} {} 0 R\n", i, i);
-    }
+    resources = "<<\n";
+    if(!used_images.empty()) {
+        resources += "  /XObject <<\n";
+        for(const auto &i : used_images) {
+            fmt::format_to(std::back_inserter(resources), "    /Image{} {} 0 R\n", i, i);
+        }
 
-    resources += R"(  >>
->>
-)";
+        resources += "  >>";
+    }
+    if(!used_fonts.empty()) {
+        resources += "  /Font <<\n";
+        for(const auto &i : used_fonts) {
+            fmt::format_to(std::back_inserter(resources), "    /Font{} {} 0 R\n", i, i);
+        }
+        resources += "  >>\n";
+    }
+    resources += ">>\n";
 }
 
 void PdfPage::save() { commands += "q\n"; }
@@ -94,4 +101,21 @@ void PdfPage::draw_image(int32_t obj_num) {
 
 void PdfPage::set_matrix(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(std::back_inserter(commands), "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
+}
+
+void PdfPage::simple_text(
+    const char *u8text, int32_t font_id, double pointsize, double x, double y) {
+    used_fonts.insert(font_id);
+    fmt::format_to(std::back_inserter(commands),
+                   R"(BT
+  /Font{} {} Tf
+  {} {} Td
+  ({}) Tj
+ET
+)",
+                   font_id,
+                   pointsize,
+                   x,
+                   y,
+                   u8text);
 }

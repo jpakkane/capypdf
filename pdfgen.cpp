@@ -19,13 +19,26 @@
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
+#include <array>
 #include <fmt/core.h>
 
 namespace {
 
 const char PDF_header[] = "%PDF-1.7\n\xe5\xf6\xc4\xd6\n";
 
-}
+const std::array<const char *, 9> font_names{
+    "Times-Roman",
+    "Helvetica",
+    "Courier",
+    "Times-Roman-Bold",
+    "Helvetica-Bold",
+    "Courier-Bold",
+    "Times-Italic",
+    "Helvetica-Oblique",
+    "Courier-Oblique",
+};
+
+} // namespace
 
 PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
     ofile = fopen(ofname, "wb");
@@ -220,4 +233,23 @@ stream
     auto im_id = add_object(buf);
     image_info[im_id] = ImageSize{image.w, image.h};
     return im_id;
+}
+
+int32_t PdfGen::get_builtin_font_id(BuiltinFonts font) {
+    auto it = builtin_fonts.find(font);
+    if(it != builtin_fonts.end()) {
+        return it->second;
+    }
+    std::string font_dict;
+    fmt::format_to(std::back_inserter(font_dict),
+                   R"(<<
+  /Type /Font
+  /Subtype /Type1
+  /BaseFont /{}
+>>
+)",
+                   font_names[font]);
+    auto font_obj = add_object(font_dict);
+    builtin_fonts[font] = font_obj;
+    return font_obj;
 }

@@ -26,6 +26,18 @@
 #include <string>
 #include <unordered_map>
 
+enum BuiltinFonts {
+    FONT_TIMES_ROMAN,
+    FONT_HELVETICA,
+    FONT_COURIER,
+    FONT_TIMES_ROMAN_BOLD,
+    FONT_HELVETICA_BOLD,
+    FONT_COURIER_BOLD,
+    FONT_TIMES_ROMAN_ITALIC,
+    FONT_HELVETICA_OBLIQUE,
+    FONT_COURIER_OBLIQUE,
+};
+
 struct PdfBox {
     double x;
     double y;
@@ -68,7 +80,7 @@ public:
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     int32_t load_image(const char *fname);
-
+    int32_t get_builtin_font_id(BuiltinFonts font);
     ImageSize get_image_info(int32_t obj_id) { return image_info.at(obj_id); }
 
 private:
@@ -91,4 +103,5 @@ private:
     std::vector<int64_t> object_offsets;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::unordered_map<int32_t, ImageSize> image_info;
+    std::unordered_map<BuiltinFonts, int32_t> builtin_fonts;
 };

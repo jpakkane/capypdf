@@ -30,6 +30,25 @@ int main(int argc, char **argv) {
         PdfGen gen("test.pdf", opts);
         {
             auto ctx = gen.new_page();
+            ctx.set_line_width(2.0);
+            ctx.set_stroke_color_rgb(0.0, 0.3, 1.0);
+            ctx.rectangle(300, 100, 200, 100);
+            ctx.stroke();
+            ctx.simple_text("This is text in Times New Roman.",
+                            gen.get_builtin_font_id(FONT_TIMES_ROMAN),
+                            12,
+                            100,
+                            500);
+            ctx.simple_text("This is text in Helvetica.",
+                            gen.get_builtin_font_id(FONT_HELVETICA),
+                            12,
+                            100,
+                            480);
+            ctx.simple_text(
+                "This is text in Courier.", gen.get_builtin_font_id(FONT_COURIER), 12, 100, 460);
+        }
+        {
+            auto ctx = gen.new_page();
             ctx.rectangle(100, 300, 200, 100);
             ctx.set_nonstroke_color_rgb(1.0, 0.1, 0.2);
             ctx.fill();
@@ -41,13 +60,6 @@ int main(int argc, char **argv) {
                 ctx.draw_image(image_id);
                 ctx.restore();
             }
-        }
-        {
-            auto ctx = gen.new_page();
-            ctx.set_line_width(2.0);
-            ctx.set_stroke_color_rgb(0.0, 0.3, 1.0);
-            ctx.rectangle(300, 100, 200, 100);
-            ctx.stroke();
         }
     } catch(const std::exception &e) {
         printf("%s\n", e.what());
