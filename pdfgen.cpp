@@ -213,6 +213,29 @@ int32_t PdfGen::add_object(std::string_view object_data) {
 int32_t PdfGen::load_image(const char *fname) {
     auto image = load_image_file(fname);
     std::string buf;
+    int32_t smask_id = -1;
+    if(image.alpha) {
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
+  /Type /Xobject
+  /Subtype /Image
+  /Width {}
+  /Height {}
+  /ColorSpace /DeviceGray
+  /BitsPerComponent 8
+  /Length {}
+>>
+stream
+)",
+                       image.w,
+                       image.h,
+                       image.alpha->size());
+        buf += *image.alpha;
+        buf += "\nendstream\n";
+        smask_id = add_object(buf);
+        buf.clear();
+    }
+
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Type /XObject
@@ -222,12 +245,14 @@ int32_t PdfGen::load_image(const char *fname) {
   /Height {}
   /BitsPerComponent 8
   /Length {}
->>
-stream
 )",
                    image.w,
                    image.h,
                    image.pixels.size());
+    if(smask_id >= 0) {
+        fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+    }
+    buf += ">>\nstream\n";
     buf += image.pixels;
     buf += "\nendstream\n";
     auto im_id = add_object(buf);

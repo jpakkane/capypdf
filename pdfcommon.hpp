@@ -16,6 +16,9 @@
 
 #pragma once
 
+// These enums are in the C style because they would (eventually,
+// hopefully) go to the public C API header.
+
 enum BuiltinFonts {
     FONT_TIMES_ROMAN,
     FONT_HELVETICA,
@@ -28,11 +31,20 @@ enum BuiltinFonts {
     FONT_COURIER_OBLIQUE,
 };
 
+enum PdfColorSpace { PDF_DEVICE_RGB, PDF_DEVICE_GRAY, PDF_DEVICE_CMYK };
+
+enum RenderingIntent {
+    INTENT_RELATIVE_COLORIMETRIC,
+    INTENT_ABSOLUTE_COLORIMETRIC,
+    INTENT_SATURATION,
+    INTENT_PERCEPTUAL
+};
+
 class LimitDouble {
 public:
     LimitDouble() : value(minval) {}
 
-    // Not explicit, because we want the following to work for convenience:
+    // No "explicit" because we want the following to work for convenience:
     // DeviceRGBColor{0.0, 0.3, 1.0}
     LimitDouble(double new_val) : value(new_val) { clamp(); }
 
