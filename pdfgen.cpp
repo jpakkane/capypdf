@@ -215,27 +215,29 @@ int32_t PdfGen::load_image(const char *fname) {
     std::string buf;
     int32_t smask_id = -1;
     if(image.alpha) {
+        auto compressed = flate_compress(*image.alpha);
         fmt::format_to(std::back_inserter(buf),
                        R"(<<
-  /Type /Xobject
+  /Type /XObject
   /Subtype /Image
   /Width {}
   /Height {}
   /ColorSpace /DeviceGray
   /BitsPerComponent 8
   /Length {}
+  /Filter /FlateDecode
 >>
 stream
 )",
                        image.w,
                        image.h,
-                       image.alpha->size());
-        buf += *image.alpha;
+                       compressed.size());
+        buf += compressed;
         buf += "\nendstream\n";
         smask_id = add_object(buf);
         buf.clear();
     }
-
+    auto compressed = flate_compress(image.pixels);
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Type /XObject
@@ -245,15 +247,16 @@ stream
   /Height {}
   /BitsPerComponent 8
   /Length {}
+  /Filter /FlateDecode
 )",
                    image.w,
                    image.h,
-                   image.pixels.size());
+                   compressed.size());
     if(smask_id >= 0) {
         fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
     }
     buf += ">>\nstream\n";
-    buf += image.pixels;
+    buf += compressed;
     buf += "\nendstream\n";
     auto im_id = add_object(buf);
     image_info[im_id] = ImageSize{image.w, image.h};

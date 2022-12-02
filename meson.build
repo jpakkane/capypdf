@@ -2,11 +2,12 @@ project('pdfgen', 'cpp', default_options : ['cpp_std=c++20'])
 
 fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
+zlib_dep = dependency('zlib')
 
 executable('pdfgen',
   'main.cpp',
   'pdfgen.cpp',
   'pdfpage.cpp',
   'imageops.cpp',
-  dependencies: [fmt_dep, png_dep]
+  dependencies: [fmt_dep, png_dep, zlib_dep]
 )
