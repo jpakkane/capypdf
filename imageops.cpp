@@ -113,3 +113,19 @@ std::string flate_compress(std::string_view data) {
 
     return compressed;
 }
+
+std::string load_file(const char *fname) {
+    FILE *f = fopen(fname, "r");
+    if(!f) {
+        throw std::runtime_error(strerror(errno));
+    }
+    fseek(f, 0, SEEK_END);
+    auto fsize = (size_t)ftell(f);
+    std::string contents(fsize, '\0');
+    fseek(f, 0, SEEK_SET);
+    if(fread(contents.data(), 1, fsize, f) != fsize) {
+        fclose(f);
+        throw std::runtime_error("Could not load file contents.");
+    }
+    return contents;
+}

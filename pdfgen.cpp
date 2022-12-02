@@ -18,6 +18,7 @@
 #include <imageops.hpp>
 #include <cstring>
 #include <cerrno>
+#include <lcms2.h>
 #include <stdexcept>
 #include <array>
 #include <fmt/core.h>
@@ -38,7 +39,21 @@ const std::array<const char *, 9> font_names{
     "Courier-Oblique",
 };
 
+const char default_srgb_profile[] = "/usr/share/color/icc/ghostscript/srgb.icc";
+const char default_gray_profile[] = "/usr/share/color/icc/ghostscript/sgray.icc";
+const char default_cmyk_profile[] =
+    "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
+
 } // namespace
+
+LcmsHolder::~LcmsHolder() { deallocate(); }
+
+void LcmsHolder::deallocate() {
+    if(h) {
+        cmsCloseProfile(h);
+    }
+    h = nullptr;
+}
 
 PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
     ofile = fopen(ofname, "wb");
@@ -47,6 +62,7 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
     }
     write_header();
     write_info();
+    load_profiles();
 }
 
 PdfGen::~PdfGen() {
@@ -63,6 +79,46 @@ PdfGen::~PdfGen() {
     }
     if(fclose(ofile) != 0) {
         perror("Closing output file failed");
+    }
+}
+
+ICCInfo PdfGen::load_icc_profile(const char *fname) {
+    std::string contents = load_file(fname);
+    cmsHPROFILE h = cmsOpenProfileFromMem(contents.data(), contents.size());
+    if(!h) {
+        throw std::runtime_error(std::string("Could not open color profile ") + fname);
+    }
+    std::string compressed = flate_compress(contents);
+    std::string buf;
+    const auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Filter /FlateDecode
+  /Length {}
+  /N {}
+>>
+stream
+)",
+                   compressed.size(),
+                   num_channels);
+    buf += compressed;
+    buf += "\nendstream\n";
+    return ICCInfo{add_object(buf), num_channels, LcmsHolder(h)};
+}
+
+void PdfGen::load_profiles() {
+    icc_handles.reserve(10);
+    icc_handles.emplace_back(load_icc_profile(default_srgb_profile));
+    if(icc_handles.back().num_channels != 3) {
+        throw std::runtime_error("RGB profile does not have 3 color channels.");
+    }
+    icc_handles.emplace_back(load_icc_profile(default_gray_profile));
+    if(icc_handles.back().num_channels != 1) {
+        throw std::runtime_error("Gray profile does not have 1 color channel.");
+    }
+    icc_handles.emplace_back(load_icc_profile(default_cmyk_profile));
+    if(icc_handles.back().num_channels != 4) {
+        throw std::runtime_error("CMYK profile does not have 4 color channels.");
     }
 }
 
@@ -242,13 +298,14 @@ stream
                    R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace /DeviceRGB
+  /ColorSpace [/ICCBased {} 0 R]
   /Width {}
   /Height {}
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
 )",
+                   icc_handles[0].obj_num,
                    image.w,
                    image.h,
                    compressed.size());

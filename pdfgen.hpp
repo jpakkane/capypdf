@@ -26,6 +26,9 @@
 #include <string>
 #include <unordered_map>
 
+// To avoid pulling all of LittleCMS in this file.
+typedef void *cmsHPROFILE;
+
 struct PdfBox {
     double x;
     double y;
@@ -62,6 +65,33 @@ struct ImageInfo {
     int32_t obj;
 };
 
+struct LcmsHolder {
+    cmsHPROFILE h;
+
+    LcmsHolder() : h(nullptr) {}
+    explicit LcmsHolder(cmsHPROFILE h) : h(h) {}
+    explicit LcmsHolder(LcmsHolder &&o) : h(o.h) { o.h = nullptr; }
+    ~LcmsHolder();
+    void deallocate();
+
+    LcmsHolder &operator=(const LcmsHolder &) = delete;
+    LcmsHolder &operator=(LcmsHolder &&o) {
+        if(this == &o) {
+            return *this;
+        }
+        deallocate();
+        h = o.h;
+        o.h = nullptr;
+        return *this;
+    }
+};
+
+struct ICCInfo {
+    int32_t obj_num;
+    int32_t num_channels;
+    LcmsHolder lcms;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -82,6 +112,8 @@ private:
     int32_t image_object_number(ImageId fid) { return image_info.at(fid.id).obj; }
     int32_t font_object_number(FontId fid) { return font_objects.at(fid.id); }
 
+    void load_profiles();
+    ICCInfo load_icc_profile(const char *fname);
     void write_catalog();
     void write_pages();
     void write_header();
@@ -103,4 +135,5 @@ private:
     std::vector<ImageInfo> image_info;
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
     std::vector<int32_t> font_objects;
+    std::vector<ICCInfo> icc_handles;
 };

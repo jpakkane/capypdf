@@ -14,3 +14,5 @@ struct rgb_image {
 rgb_image load_image_file(const char *fname);
 
 std::string flate_compress(std::string_view data);
+
+std::string load_file(const char *fname);
