@@ -17,6 +17,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_set>
 
 class PdfGen;
 
@@ -26,12 +27,22 @@ public:
     explicit PdfPage(PdfGen *g);
     ~PdfPage();
 
+    void save();
+    void restore();
     void rectangle(double x, double y, double w, double h);
     void fill();
     void stroke();
+    void set_line_width(double w);
+    void set_stroke_color_rgb(double r, double g, double b);
+    void set_nonstroke_color_rgb(double r, double g, double b);
+    void draw_image(int32_t obj_num);
+    void set_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
 
 private:
+    void build_resource_dict();
+
     PdfGen *g;
     std::string resources;
     std::string commands;
+    std::unordered_set<int32_t> used_images;
 };

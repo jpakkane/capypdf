@@ -18,22 +18,11 @@
 #include <pdfgen.hpp>
 #include <fmt/core.h>
 
-PdfPage::PdfPage(PdfGen *g) : g(g) {
-    resources = R"(<<
-  /ExtGState
-  <<
-    /a0
-    <<
-      /CA 1
-      /ca 1
-    >>
-  >>
->>
-)";
-}
+PdfPage::PdfPage(PdfGen *g) : g(g) {}
 
 PdfPage::~PdfPage() {
     std::string buf;
+    build_resource_dict();
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Length {}
@@ -47,6 +36,23 @@ endstream
     g->add_page(resources, buf);
 }
 
+void PdfPage::build_resource_dict() {
+    resources = R"(<<
+  /XObject <<
+)";
+    for(const auto &i : used_images) {
+        fmt::format_to(std::back_inserter(resources), "    /Image{} {} 0 R\n", i, i);
+    }
+
+    resources += R"(  >>
+>>
+)";
+}
+
+void PdfPage::save() { commands += "q\n"; }
+
+void PdfPage::restore() { commands += "Q\n"; }
+
 void PdfPage::rectangle(double x, double y, double w, double h) {
     fmt::format_to(std::back_inserter(commands), "{} {} {} {} re\n", x, y, w, h);
 }
@@ -54,3 +60,24 @@ void PdfPage::rectangle(double x, double y, double w, double h) {
 void PdfPage::fill() { commands += "f\n"; }
 
 void PdfPage::stroke() { commands += "S\n"; }
+
+void PdfPage::set_line_width(double w) {
+    fmt::format_to(std::back_inserter(commands), "{} w\n", w);
+}
+
+void PdfPage::set_stroke_color_rgb(double r, double g, double b) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} RG\n", r, g, b);
+}
+
+void PdfPage::set_nonstroke_color_rgb(double r, double g, double b) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", r, g, b);
+}
+
+void PdfPage::draw_image(int32_t obj_num) {
+    used_images.insert(obj_num);
+    fmt::format_to(std::back_inserter(commands), "/Image{} Do\n", obj_num);
+}
+
+void PdfPage::set_matrix(double m1, double m2, double m3, double m4, double m5, double m6) {
+    fmt::format_to(std::back_inserter(commands), "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
+}

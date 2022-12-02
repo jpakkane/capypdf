@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "pdfgen.hpp"
+#include <pdfgen.hpp>
+#include <imageops.hpp>
 #include <cstring>
 #include <cerrno>
 #include <stdexcept>
@@ -194,4 +195,27 @@ int32_t PdfGen::add_object(std::string_view object_data) {
     write_bytes(object_data);
     write_bytes("endobj\n");
     return object_num;
+}
+
+int32_t PdfGen::load_image(const char *fname) {
+    auto image = load_image_file(fname);
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace /DeviceRGB
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+>>
+stream
+)",
+                   image.w,
+                   image.h,
+                   image.pixels.size());
+    buf += image.pixels;
+    buf += "\nendstream\n";
+    return add_object(buf);
 }

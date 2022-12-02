@@ -16,7 +16,7 @@
 
 #include <pdfgen.hpp>
 
-int main() {
+int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.page_size = Area::a4();
     opts.mediabox.x = opts.mediabox.y = 0;
@@ -31,10 +31,20 @@ int main() {
         {
             auto ctx = gen.new_page();
             ctx.rectangle(100, 300, 200, 100);
+            ctx.set_nonstroke_color_rgb(1.0, 0.1, 0.2);
             ctx.fill();
+            if(argc > 1) {
+                auto image_id = gen.load_image(argv[1]);
+                ctx.save();
+                ctx.set_matrix(132, 0, 0, 132, 45, 140);
+                ctx.draw_image(image_id);
+                ctx.restore();
+            }
         }
         {
             auto ctx = gen.new_page();
+            ctx.set_line_width(2.0);
+            ctx.set_stroke_color_rgb(0.0, 0.3, 1.0);
             ctx.rectangle(300, 100, 200, 100);
             ctx.stroke();
         }

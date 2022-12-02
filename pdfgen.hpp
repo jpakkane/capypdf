@@ -61,6 +61,8 @@ public:
     int32_t add_object(std::string_view object_data);
     void add_page(std::string_view resource_data, std::string_view page_data);
 
+    int32_t load_image(const char *fname);
+
 private:
     void write_catalog();
     void write_pages();
