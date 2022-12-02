@@ -217,5 +217,7 @@ stream
                    image.pixels.size());
     buf += image.pixels;
     buf += "\nendstream\n";
-    return add_object(buf);
+    auto im_id = add_object(buf);
+    image_info[im_id] = ImageSize{image.w, image.h};
+    return im_id;
 }

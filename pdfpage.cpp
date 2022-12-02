@@ -21,6 +21,20 @@
 PdfPage::PdfPage(PdfGen *g) : g(g) {}
 
 PdfPage::~PdfPage() {
+    try {
+        if(!is_finalized) {
+            finalize();
+        }
+    } catch(const std::exception &e) {
+        printf("FAIL: %s\n", e.what());
+    }
+}
+
+void PdfPage::finalize() {
+    if(is_finalized) {
+        throw std::runtime_error("Tried to finalize a page object twice.");
+    }
+    is_finalized = true;
     std::string buf;
     build_resource_dict();
     fmt::format_to(std::back_inserter(buf),

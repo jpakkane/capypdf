@@ -26,6 +26,7 @@ class PdfPage {
 public:
     explicit PdfPage(PdfGen *g);
     ~PdfPage();
+    void finalize();
 
     void save();
     void restore();
@@ -45,4 +46,5 @@ private:
     std::string resources;
     std::string commands;
     std::unordered_set<int32_t> used_images;
+    bool is_finalized = false;
 };

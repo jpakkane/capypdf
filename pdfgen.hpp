@@ -24,6 +24,7 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <unordered_map>
 
 struct PdfBox {
     double x;
@@ -51,6 +52,11 @@ struct PageOffsets {
     int32_t commands_obj_num;
 };
 
+struct ImageSize {
+    int32_t w;
+    int32_t h;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -62,6 +68,8 @@ public:
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     int32_t load_image(const char *fname);
+
+    ImageSize get_image_info(int32_t obj_id) { return image_info.at(obj_id); }
 
 private:
     void write_catalog();
@@ -82,4 +90,5 @@ private:
     PdfGenerationData opts;
     std::vector<int64_t> object_offsets;
     std::vector<PageOffsets> pages; // Refers to object num.
+    std::unordered_map<int32_t, ImageSize> image_info;
 };
