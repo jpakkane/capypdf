@@ -47,6 +47,12 @@ int main(int argc, char **argv) {
                             480);
             ctx.simple_text(
                 "This is text in Courier.", gen.get_builtin_font_id(FONT_COURIER), 12, 100, 460);
+            ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.9});
+            ctx.rectangle(200, 300, 200, 100);
+            ctx.fill();
+            const auto sep = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
+            ctx.set_separation_nonstroke_color(sep, 1.0);
+            ctx.simple_text("GOLD!", gen.get_builtin_font_id(FONT_HELVETICA_BOLD), 32, 250, 340);
         }
         {
             auto ctx = gen.new_page();

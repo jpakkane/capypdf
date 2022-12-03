@@ -378,3 +378,41 @@ FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
     builtin_fonts[font] = fontid;
     return fontid;
 }
+
+SeparationId PdfGen::create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
+    std::string stream = fmt::format(R"({{ dup {} mul
+exch {} exch dup {} mul
+exch {} mul
+}}
+)",
+                                     fallback.c.v(),
+                                     fallback.m.v(),
+                                     fallback.y.v(),
+                                     fallback.k.v());
+    std::string buf = fmt::format(R"(<<
+  /FunctionType 4
+  /Domain [ 0.0 1.0 ]
+  /Range [ 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 ]
+  /Length {}
+>>
+stream
+{}
+endstream
+)",
+                                  stream.length(),
+                                  stream);
+    auto fn_num = add_object(buf);
+    buf.clear();
+    fmt::format_to(std::back_inserter(buf),
+                   R"([
+  /Separation
+    /{}
+    /DeviceCMYK
+    {} 0 R
+]
+)",
+                   name,
+                   fn_num);
+    separation_objects.push_back(add_object(buf));
+    return SeparationId{(int32_t)separation_objects.size() - 1};
+}

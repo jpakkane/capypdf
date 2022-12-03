@@ -85,6 +85,10 @@ struct ImageId {
     int32_t id;
 };
 
+struct SeparationId {
+    int32_t id;
+};
+
 struct DeviceRGBColor {
     LimitDouble r;
     LimitDouble g;

@@ -68,6 +68,13 @@ void PdfPage::build_resource_dict() {
         }
         resources += "  >>\n";
     }
+    if(!used_colorspaces.empty()) {
+        resources += "  /ColorSpace <<\n";
+        for(const auto &i : used_colorspaces) {
+            fmt::format_to(std::back_inserter(resources), "    /CSpace{} {} 0 R\n", i, i);
+        }
+        resources += "  >>\n";
+    }
     resources += ">>\n";
 }
 
@@ -133,6 +140,28 @@ void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
         break;
     }
     }
+}
+
+void PdfPage::set_separation_stroke_color(SeparationId id, LimitDouble value) {
+    const auto idnum = g->separation_object_number(id);
+    used_colorspaces.insert(idnum);
+    fmt::format_to(std::back_inserter(commands),
+                   R"(/CSpace{} CS
+{} SCN
+)",
+                   idnum,
+                   value.v());
+}
+
+void PdfPage::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
+    const auto idnum = g->separation_object_number(id);
+    used_colorspaces.insert(idnum);
+    fmt::format_to(std::back_inserter(commands),
+                   R"(/CSpace{} cs
+{} scn
+)",
+                   idnum,
+                   value.v());
 }
 
 void PdfPage::draw_image(ImageId im_id) {

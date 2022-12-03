@@ -38,6 +38,8 @@ public:
     void set_line_width(double w);
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
+    void set_separation_stroke_color(SeparationId id, LimitDouble value);
+    void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void draw_image(ImageId obj_num);
     void concatenate_matrix(double m1, double m2, double m3, double m4, double m5, double m6);
     void scale(double xscale, double yscale);
@@ -53,5 +55,6 @@ private:
     std::string commands;
     std::unordered_set<int32_t> used_images;
     std::unordered_set<int32_t> used_fonts;
+    std::unordered_set<int32_t> used_colorspaces;
     bool is_finalized = false;
 };

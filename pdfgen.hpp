@@ -80,12 +80,14 @@ public:
     ImageId load_image(const char *fname);
     FontId get_builtin_font_id(BuiltinFonts font);
     ImageSize get_image_info(ImageId img_id) { return image_info.at(img_id.id).s; }
+    SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
 
     friend class PdfPage;
 
 private:
-    int32_t image_object_number(ImageId fid) { return image_info.at(fid.id).obj; }
+    int32_t image_object_number(ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(FontId fid) { return font_objects.at(fid.id); }
+    int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
     int32_t store_icc_profile(std::string_view contents, int32_t num_channels);
 
@@ -111,5 +113,6 @@ private:
     std::vector<ImageInfo> image_info;
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
     std::vector<int32_t> font_objects;
+    std::vector<int32_t> separation_objects;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
 };
