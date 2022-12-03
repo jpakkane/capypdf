@@ -293,9 +293,11 @@ stream
         smask_id = add_object(buf);
         buf.clear();
     }
-    auto compressed = flate_compress(image.pixels);
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
+    switch(opts.output_colorspace) {
+    case PDF_DEVICE_RGB: {
+        const auto compressed = flate_compress(image.pixels);
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
   /Type /XObject
   /Subtype /Image
   /ColorSpace [/ICCBased {} 0 R]
@@ -305,19 +307,62 @@ stream
   /Length {}
   /Filter /FlateDecode
 )",
-                   icc_handles[0].obj_num,
-                   image.w,
-                   image.h,
-                   compressed.size());
-    if(smask_id >= 0) {
-        fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+                       icc_handles[0].obj_num,
+                       image.w,
+                       image.h,
+                       compressed.size());
+        if(smask_id >= 0) {
+            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+        }
+        buf += ">>\nstream\n";
+        buf += compressed;
+        buf += "\nendstream\n";
+        auto im_id = add_object(buf);
+        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+        return ImageId{(int32_t)image_info.size() - 1};
     }
-    buf += ">>\nstream\n";
-    buf += compressed;
-    buf += "\nendstream\n";
-    auto im_id = add_object(buf);
-    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-    return ImageId{(int32_t)image_info.size() - 1};
+    case PDF_DEVICE_GRAY: {
+        const int32_t num_pixels = (int32_t)image.pixels.size() / 3;
+        std::string converted_pixels(num_pixels, '\0');
+        auto transform = cmsCreateTransform(icc_handles[0].lcms.h,
+                                            TYPE_RGB_8,
+                                            icc_handles[1].lcms.h,
+                                            TYPE_GRAY_8,
+                                            INTENT_RELATIVE_COLORIMETRIC,
+                                            0);
+        cmsDoTransform(transform, image.pixels.data(), converted_pixels.data(), num_pixels);
+        cmsDeleteTransform(transform);
+        const auto compressed = flate_compress(converted_pixels);
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace [/ICCBased {} 0 R]
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /FlateDecode
+)",
+                       icc_handles[1].obj_num, // FIXME, maybe this should be DeviceGray?
+                       image.w,
+                       image.h,
+                       compressed.size());
+        if(smask_id >= 0) {
+            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+        }
+        buf += ">>\nstream\n";
+        buf += compressed;
+        buf += "\nendstream\n";
+        auto im_id = add_object(buf);
+        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+        return ImageId{(int32_t)image_info.size() - 1};
+    }
+    case PDF_DEVICE_CMYK: {
+        throw std::runtime_error("Not implemented.\n");
+    }
+    }
+    throw std::runtime_error("Unreachable.");
 }
 
 FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {

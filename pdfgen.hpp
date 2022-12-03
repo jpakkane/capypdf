@@ -48,6 +48,7 @@ struct PdfGenerationData {
     PdfBox mediabox;
     std::string title;
     std::string author;
+    PdfColorSpace output_colorspace = PDF_DEVICE_RGB;
 };
 
 struct PageOffsets {

@@ -16,6 +16,7 @@
 
 #include <pdfpage.hpp>
 #include <pdfgen.hpp>
+#include <lcms2.h>
 #include <fmt/core.h>
 
 PdfPage::PdfPage(PdfGen *g) : g(g) {}
@@ -87,11 +88,53 @@ void PdfPage::set_line_width(double w) {
 }
 
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
-    fmt::format_to(std::back_inserter(commands), "{} {} {} RG\n", c.r.v(), c.g.v(), c.b.v());
+    switch(g->opts.output_colorspace) {
+    case PDF_DEVICE_RGB: {
+        fmt::format_to(std::back_inserter(commands), "{} {} {} RG\n", c.r.v(), c.g.v(), c.b.v());
+        break;
+    }
+    case PDF_DEVICE_GRAY: {
+        DeviceGrayColor gray;
+        auto transform = cmsCreateTransform(g->icc_handles[0].lcms.h,
+                                            TYPE_RGB_DBL,
+                                            g->icc_handles[1].lcms.h,
+                                            TYPE_GRAY_DBL,
+                                            INTENT_RELATIVE_COLORIMETRIC,
+                                            0);
+        cmsDoTransform(transform, &c, &gray, 1);
+        cmsDeleteTransform(transform);
+        fmt::format_to(std::back_inserter(commands), "{} G\n", gray.v.v());
+        break;
+    }
+    case PDF_DEVICE_CMYK: {
+        throw std::runtime_error("Not implemented yet.");
+    }
+    }
 }
 
 void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
-    fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", c.r.v(), c.g.v(), c.b.v());
+    switch(g->opts.output_colorspace) {
+    case PDF_DEVICE_RGB: {
+        fmt::format_to(std::back_inserter(commands), "{} {} {} rg\n", c.r.v(), c.g.v(), c.b.v());
+        break;
+    }
+    case PDF_DEVICE_GRAY: {
+        DeviceGrayColor gray;
+        auto transform = cmsCreateTransform(g->icc_handles[0].lcms.h,
+                                            TYPE_RGB_DBL,
+                                            g->icc_handles[1].lcms.h,
+                                            TYPE_GRAY_DBL,
+                                            INTENT_RELATIVE_COLORIMETRIC,
+                                            0);
+        cmsDoTransform(transform, &c, &gray, 1);
+        cmsDeleteTransform(transform);
+        fmt::format_to(std::back_inserter(commands), "{} g\n", gray.v.v());
+        break;
+    }
+    case PDF_DEVICE_CMYK: {
+        throw std::runtime_error("Not implemented yet.");
+    }
+    }
 }
 
 void PdfPage::draw_image(ImageId im_id) {
