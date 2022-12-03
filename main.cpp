@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     opts.title = "PDF experiment";
     opts.author = "Peter David Foster, esq";
-    opts.output_colorspace = PDF_DEVICE_GRAY;
+    opts.output_colorspace = PDF_DEVICE_CMYK;
 
     try {
         PdfGen gen("test.pdf", opts);

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <pdfcommon.hpp>
-
+#include <pdfcolorconverter.hpp>
 #include <string>
 #include <unordered_set>
 
@@ -26,7 +26,7 @@ class PdfGen;
 class PdfPage {
 
 public:
-    explicit PdfPage(PdfGen *g);
+    PdfPage(PdfGen *g, PdfColorConverter *cm);
     ~PdfPage();
     void finalize();
 
@@ -48,6 +48,7 @@ private:
     void build_resource_dict();
 
     PdfGen *g;
+    PdfColorConverter *cm;
     std::string resources;
     std::string commands;
     std::unordered_set<int32_t> used_images;

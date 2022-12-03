@@ -55,14 +55,17 @@ void LcmsHolder::deallocate() {
     h = nullptr;
 }
 
-PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : opts{d} {
+PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
+    : opts{d}, cm{default_srgb_profile, default_gray_profile, default_cmyk_profile} {
     ofile = fopen(ofname, "wb");
     if(!ofile) {
         throw std::runtime_error(strerror(errno));
     }
     write_header();
     write_info();
-    load_profiles();
+    rgb_profile_obj = store_icc_profile(cm.get_rgb(), 3);
+    gray_profile_obj = store_icc_profile(cm.get_gray(), 1);
+    cmyk_profile_obj = store_icc_profile(cm.get_cmyk(), 4);
 }
 
 PdfGen::~PdfGen() {
@@ -82,15 +85,9 @@ PdfGen::~PdfGen() {
     }
 }
 
-ICCInfo PdfGen::load_icc_profile(const char *fname) {
-    std::string contents = load_file(fname);
-    cmsHPROFILE h = cmsOpenProfileFromMem(contents.data(), contents.size());
-    if(!h) {
-        throw std::runtime_error(std::string("Could not open color profile ") + fname);
-    }
+int32_t PdfGen::store_icc_profile(std::string_view contents, int32_t num_channels) {
     std::string compressed = flate_compress(contents);
     std::string buf;
-    const auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Filter /FlateDecode
@@ -103,23 +100,7 @@ stream
                    num_channels);
     buf += compressed;
     buf += "\nendstream\n";
-    return ICCInfo{add_object(buf), num_channels, LcmsHolder(h)};
-}
-
-void PdfGen::load_profiles() {
-    icc_handles.reserve(10);
-    icc_handles.emplace_back(load_icc_profile(default_srgb_profile));
-    if(icc_handles.back().num_channels != 3) {
-        throw std::runtime_error("RGB profile does not have 3 color channels.");
-    }
-    icc_handles.emplace_back(load_icc_profile(default_gray_profile));
-    if(icc_handles.back().num_channels != 1) {
-        throw std::runtime_error("Gray profile does not have 1 color channel.");
-    }
-    icc_handles.emplace_back(load_icc_profile(default_cmyk_profile));
-    if(icc_handles.back().num_channels != 4) {
-        throw std::runtime_error("CMYK profile does not have 4 color channels.");
-    }
+    return add_object(buf);
 }
 
 void PdfGen::write_bytes(const char *buf, size_t buf_size) {
@@ -246,7 +227,7 @@ startxref
     write_bytes(buf);
 }
 
-PdfPage PdfGen::new_page() { return PdfPage(this); }
+PdfPage PdfGen::new_page() { return PdfPage(this, &cm); }
 
 void PdfGen::add_page(std::string_view resource_data, std::string_view page_data) {
     const auto resource_num = add_object(resource_data);
@@ -307,7 +288,7 @@ stream
   /Length {}
   /Filter /FlateDecode
 )",
-                       icc_handles[0].obj_num,
+                       rgb_profile_obj,
                        image.w,
                        image.h,
                        compressed.size());
@@ -319,19 +300,9 @@ stream
         buf += "\nendstream\n";
         auto im_id = add_object(buf);
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-        return ImageId{(int32_t)image_info.size() - 1};
     }
     case PDF_DEVICE_GRAY: {
-        const int32_t num_pixels = (int32_t)image.pixels.size() / 3;
-        std::string converted_pixels(num_pixels, '\0');
-        auto transform = cmsCreateTransform(icc_handles[0].lcms.h,
-                                            TYPE_RGB_8,
-                                            icc_handles[1].lcms.h,
-                                            TYPE_GRAY_8,
-                                            INTENT_RELATIVE_COLORIMETRIC,
-                                            0);
-        cmsDoTransform(transform, image.pixels.data(), converted_pixels.data(), num_pixels);
-        cmsDeleteTransform(transform);
+        std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
         const auto compressed = flate_compress(converted_pixels);
         fmt::format_to(std::back_inserter(buf),
                        R"(<<
@@ -344,7 +315,7 @@ stream
   /Length {}
   /Filter /FlateDecode
 )",
-                       icc_handles[1].obj_num, // FIXME, maybe this should be DeviceGray?
+                       gray_profile_obj, // FIXME, maybe this should be DeviceGray?
                        image.w,
                        image.h,
                        compressed.size());
@@ -356,13 +327,36 @@ stream
         buf += "\nendstream\n";
         auto im_id = add_object(buf);
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-        return ImageId{(int32_t)image_info.size() - 1};
     }
     case PDF_DEVICE_CMYK: {
-        throw std::runtime_error("Not implemented.\n");
+        std::string converted_pixels = cm.rgb_pixels_to_cmyk(image.pixels);
+        const auto compressed = flate_compress(converted_pixels);
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace [/ICCBased {} 0 R]
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /FlateDecode
+)",
+                       cmyk_profile_obj, // FIXME, maybe this should be DeviceGray?
+                       image.w,
+                       image.h,
+                       compressed.size());
+        if(smask_id >= 0) {
+            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+        }
+        buf += ">>\nstream\n";
+        buf += compressed;
+        buf += "\nendstream\n";
+        auto im_id = add_object(buf);
+        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
     }
     }
-    throw std::runtime_error("Unreachable.");
+    return ImageId{(int32_t)image_info.size() - 1};
 }
 
 FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {

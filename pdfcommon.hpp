@@ -52,6 +52,12 @@ public:
 
     double v() const { return value; }
 
+    LimitDouble &operator=(double d) {
+        value = d;
+        clamp();
+        return *this;
+    }
+
 private:
     constexpr static double maxval = 1.0;
     constexpr static double minval = 0.0;

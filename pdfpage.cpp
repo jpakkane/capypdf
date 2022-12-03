@@ -19,7 +19,7 @@
 #include <lcms2.h>
 #include <fmt/core.h>
 
-PdfPage::PdfPage(PdfGen *g) : g(g) {}
+PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm) {}
 
 PdfPage::~PdfPage() {
     try {
@@ -94,20 +94,19 @@ void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
         break;
     }
     case PDF_DEVICE_GRAY: {
-        DeviceGrayColor gray;
-        auto transform = cmsCreateTransform(g->icc_handles[0].lcms.h,
-                                            TYPE_RGB_DBL,
-                                            g->icc_handles[1].lcms.h,
-                                            TYPE_GRAY_DBL,
-                                            INTENT_RELATIVE_COLORIMETRIC,
-                                            0);
-        cmsDoTransform(transform, &c, &gray, 1);
-        cmsDeleteTransform(transform);
+        DeviceGrayColor gray = cm->to_gray(c);
         fmt::format_to(std::back_inserter(commands), "{} G\n", gray.v.v());
         break;
     }
     case PDF_DEVICE_CMYK: {
-        throw std::runtime_error("Not implemented yet.");
+        DeviceCMYKColor cmyk = cm->to_cmyk(c);
+        fmt::format_to(std::back_inserter(commands),
+                       "{} {} {} {} K\n",
+                       cmyk.c.v(),
+                       cmyk.m.v(),
+                       cmyk.y.v(),
+                       cmyk.k.v());
+        break;
     }
     }
 }
@@ -119,20 +118,19 @@ void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
         break;
     }
     case PDF_DEVICE_GRAY: {
-        DeviceGrayColor gray;
-        auto transform = cmsCreateTransform(g->icc_handles[0].lcms.h,
-                                            TYPE_RGB_DBL,
-                                            g->icc_handles[1].lcms.h,
-                                            TYPE_GRAY_DBL,
-                                            INTENT_RELATIVE_COLORIMETRIC,
-                                            0);
-        cmsDoTransform(transform, &c, &gray, 1);
-        cmsDeleteTransform(transform);
+        DeviceGrayColor gray = cm->to_gray(c);
         fmt::format_to(std::back_inserter(commands), "{} g\n", gray.v.v());
         break;
     }
     case PDF_DEVICE_CMYK: {
-        throw std::runtime_error("Not implemented yet.");
+        DeviceCMYKColor cmyk = cm->to_cmyk(c);
+        fmt::format_to(std::back_inserter(commands),
+                       "{} {} {} {} k\n",
+                       cmyk.c.v(),
+                       cmyk.m.v(),
+                       cmyk.y.v(),
+                       cmyk.k.v());
+        break;
     }
     }
 }
