@@ -53,6 +53,7 @@ private:
     PdfColorConverter *cm;
     std::string resources;
     std::string commands;
+    std::back_insert_iterator<std::string> cmd_appender;
     std::unordered_set<int32_t> used_images;
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
