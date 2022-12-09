@@ -44,6 +44,10 @@ const char default_gray_profile[] = "/usr/share/color/icc/ghostscript/sgray.icc"
 const char default_cmyk_profile[] =
     "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
+void write_box(auto &appender, const char *boxname, const PdfBox &box) {
+    fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
+}
+
 } // namespace
 
 LcmsHolder::~LcmsHolder() { deallocate(); }
@@ -141,22 +145,34 @@ void PdfGen::write_pages() {
     std::string buf;
 
     std::vector<int32_t> page_objects;
+    auto buf_append = std::back_inserter(buf);
     for(const auto &i : pages) {
         buf.clear();
-        fmt::format_to(std::back_inserter(buf),
+        fmt::format_to(buf_append,
                        R"(<<
   /Type /Page
   /Parent {} 0 R
-  /MediaBox [ {} {} {} {} ]
-  /Contents {} 0 R
+)",
+                       pages_obj_num);
+        write_box(buf_append, "MediaBox", opts.mediabox);
+
+        if(opts.cropbox) {
+            write_box(buf_append, "CropBox", *opts.cropbox);
+        }
+        if(opts.bleedbox) {
+            write_box(buf_append, "BleedBox", *opts.bleedbox);
+        }
+        if(opts.trimbox) {
+            write_box(buf_append, "TrimBox", *opts.trimbox);
+        }
+        if(opts.artbox) {
+            write_box(buf_append, "ArtBox", *opts.artbox);
+        }
+        fmt::format_to(buf_append,
+                       R"(/Contents {} 0 R
   /Resources {} 0 R
 >>
 )",
-                       pages_obj_num,
-                       opts.mediabox.x,
-                       opts.mediabox.y,
-                       opts.mediabox.w,
-                       opts.mediabox.h,
                        i.commands_obj_num,
                        i.resource_obj_num);
 
@@ -167,9 +183,9 @@ void PdfGen::write_pages() {
   /Kids [
 )";
     for(const auto &i : page_objects) {
-        fmt::format_to(std::back_inserter(buf), "    {} 0 R\n", i);
+        fmt::format_to(buf_append, "    {} 0 R\n", i);
     }
-    fmt::format_to(std::back_inserter(buf), "  ]\n  /Count {}\n>>\n", page_objects.size());
+    fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", page_objects.size());
     const auto actual_number = add_object(buf);
     if(actual_number != pages_obj_num) {
         throw std::runtime_error("Buggy McBugFace!");

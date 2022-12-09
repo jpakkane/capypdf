@@ -26,6 +26,7 @@
 #include <string_view>
 #include <string>
 #include <unordered_map>
+#include <optional>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -47,6 +48,11 @@ struct Area {
 struct PdfGenerationData {
     Area page_size;
     PdfBox mediabox;
+    std::optional<PdfBox> cropbox;
+    std::optional<PdfBox> bleedbox;
+    std::optional<PdfBox> trimbox;
+    std::optional<PdfBox> artbox;
+
     std::string title;
     std::string author;
     PdfColorSpace output_colorspace = PDF_DEVICE_RGB;
