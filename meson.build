@@ -5,11 +5,20 @@ png_dep = dependency('libpng')
 zlib_dep = dependency('zlib')
 lcms_dep = dependency('lcms2')
 
-executable('pdfgen',
-  'main.cpp',
+pdflib = static_library('mypdf',
   'pdfgen.cpp',
   'pdfpage.cpp',
   'imageops.cpp',
   'pdfcolorconverter.cpp',
   dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep]
+)
+
+executable('pdfgen',
+  'main.cpp',
+  link_with: pdflib,
+)
+
+executable('covergen',
+  'cover.cpp',
+  link_with: pdflib,
 )

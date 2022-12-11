@@ -79,7 +79,7 @@ void PdfPage::build_resource_dict() {
     resources += ">>\n";
 }
 
-void PdfPage::cmd_q() { commands = "q\n"; }
+void PdfPage::cmd_q() { commands += "q\n"; }
 
 void PdfPage::cmd_Q() { commands += "Q\n"; }
 
@@ -91,7 +91,17 @@ void PdfPage::cmd_f() { commands += "f\n"; }
 
 void PdfPage::cmd_S() { commands += "S\n"; }
 
+void PdfPage::cmd_h() { commands += "h\n"; }
+
+void PdfPage::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
+
+void PdfPage::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }
+
 void PdfPage::cmd_w(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
+
+void PdfPage::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
+    fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
+}
 
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
     switch(g->opts.output_colorspace) {
@@ -130,6 +140,8 @@ void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
             cmd_appender, "{} {} {} {} k\n", cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         break;
     }
+    default:
+        throw std::runtime_error("Unreachable!");
     }
 }
 
@@ -165,12 +177,8 @@ void PdfPage::cmd_cm(double m1, double m2, double m3, double m4, double m5, doub
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
 }
 
-void PdfPage::scale(double xscale, double yscale) {
-    cmd_cm(xscale, 0, 0, yscale, 0, 0);
-}
-void PdfPage::translate(double xtran, double ytran) {
-    cmd_cm(0, 0, 0, 0, xtran, ytran);
-}
+void PdfPage::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
+void PdfPage::translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
 
 void PdfPage::simple_text(
     const char *u8text, FontId font_id, double pointsize, double x, double y) {
@@ -188,4 +196,12 @@ ET
                    x,
                    y,
                    u8text);
+}
+
+void PdfPage::draw_unit_circle() {
+    cmd_m(0, 1);
+    cmd_c(.5523, 1, 1, .5523, 1, 0);
+    cmd_c(1, -.5523, .5523, -1, 0, -1);
+    cmd_c(-.5523, -1, -1, -.5523, -1, 0);
+    cmd_c(-1, .5523, -.5523, 1, 0, 1);
 }
