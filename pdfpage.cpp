@@ -18,6 +18,7 @@
 #include <pdfgen.hpp>
 #include <lcms2.h>
 #include <fmt/core.h>
+#include <cmath>
 
 PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm), cmd_appender(commands) {}
 
@@ -191,11 +192,17 @@ void PdfPage::draw_image(ImageId im_id) {
 }
 
 void PdfPage::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    fmt::format_to(cmd_appender, "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
+    fmt::format_to(
+        cmd_appender, "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n", m1, m2, m3, m4, m5, m6);
 }
 
 void PdfPage::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
+
 void PdfPage::translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
+
+void PdfPage::rotate(double angle) {
+    cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
+}
 
 void PdfPage::simple_text(
     const char *u8text, FontId font_id, double pointsize, double x, double y) {

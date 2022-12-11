@@ -15,14 +15,14 @@
  */
 
 #include <pdfgen.hpp>
-
+#include <cmath>
 namespace {
 
 constexpr double mm2pt(const double x) { return x * 2.8346456693; }
 
 const double page_w = mm2pt(130);
 const double page_h = mm2pt(210);
-const double spine_w = mm2pt(10);
+const double spine_w = mm2pt(20);
 const double bleed = mm2pt(10);
 const double margin = mm2pt(20);
 
@@ -116,7 +116,7 @@ void draw_trim_marks(PdfPage &ctx) {
 
 } // namespace
 
-int main(int argc, char **argv) {
+int main(int, char **) {
     PdfGenerationData opts;
     opts.page_size.h = paper_height;
     opts.page_size.w = paper_width;
@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.page_size.w;
     opts.mediabox.h = opts.page_size.h;
 
+    opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = "Book cover generation experiment";
     opts.author = "G. R. Aphicdesigner";
     opts.output_colorspace = PDF_DEVICE_CMYK;
@@ -152,7 +153,31 @@ int main(int argc, char **argv) {
             draw_colorbar(ctx);
             draw_graybar(ctx);
             draw_trim_marks(ctx);
+            auto helvetica = gen.get_builtin_font_id(FONT_HELVETICA_BOLD);
+            auto times = gen.get_builtin_font_id(FONT_TIMES_ROMAN);
+            ctx.simple_text(
+                "Front Cover", helvetica, 48, paper_width / 2 + page_w / 5, 2 * paper_height / 3);
+            ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
+            ctx.simple_text("Lorem ipsum dolor sit amet,",
+                            times,
+                            12,
+                            margin + page_w / 6,
+                            2 * paper_height / 3);
+            ctx.simple_text("consectetur adipiscing elit",
+                            times,
+                            12,
+                            margin + page_w / 6,
+                            2 * paper_height / 3 - 12);
+            ctx.cmd_q();
+            ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
+            ctx.translate(paper_width / 2, 3 * paper_height / 4);
+            ctx.rotate(-M_PI / 2.0);
+            ctx.simple_text("Name of Book", helvetica, 12, 0, 0);
+            // ctx.cmd_re(0, 0, 10, 10);
+            ctx.cmd_f();
+            ctx.cmd_Q();
         }
+
     } catch(const std::exception &e) {
         printf("ERROR: %s\n", e.what());
         return 1;
