@@ -89,6 +89,31 @@ void draw_printer_marks(PdfPage &ctx) {
     draw_registration_cross(ctx, paper_width / 2, paper_height - margin / 2);
 }
 
+void draw_trim_marks(PdfPage &ctx) {
+    const auto len = margin / 2;
+    ctx.cmd_m(margin, 0);
+    ctx.cmd_l(margin, len);
+    ctx.cmd_m(0, margin);
+    ctx.cmd_l(len, margin);
+
+    ctx.cmd_m(0, paper_height - margin);
+    ctx.cmd_l(len, paper_height - margin);
+    ctx.cmd_m(margin, paper_height);
+    ctx.cmd_l(margin, paper_height - len);
+
+    ctx.cmd_m(paper_width, paper_height - margin);
+    ctx.cmd_l(paper_width - len, paper_height - margin);
+    ctx.cmd_m(paper_width - margin, paper_height);
+    ctx.cmd_l(paper_width - margin, paper_height - len);
+
+    ctx.cmd_m(paper_width - margin, 0);
+    ctx.cmd_l(paper_width - margin, len);
+    ctx.cmd_m(paper_width - 0, margin);
+    ctx.cmd_l(paper_width - len, margin);
+
+    ctx.cmd_S();
+}
+
 } // namespace
 
 int main(int argc, char **argv) {
@@ -109,13 +134,24 @@ int main(int argc, char **argv) {
         {
             auto ctx = gen.new_page();
             ctx.cmd_w(1.0);
+            ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
+            ctx.cmd_re(margin - bleed,
+                       margin - bleed,
+                       opts.page_size.w - 2 * (margin - bleed),
+                       opts.page_size.h - 2 * (margin - bleed));
+            ctx.cmd_f();
+            ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.2, 0.2});
+            ctx.cmd_re(
+                margin, margin, opts.page_size.w - 2 * (margin), opts.page_size.h - 2 * (margin));
+            ctx.cmd_f();
+            ctx.set_nonstroke_color(DeviceRGBColor{0.2, 0.9, 0.2});
+            ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);
+            ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
             draw_printer_marks(ctx);
             draw_colorbar(ctx);
             draw_graybar(ctx);
-            ctx.cmd_re(
-                margin, margin, opts.page_size.w - 2 * margin, opts.page_size.h - 2 * margin);
-            ctx.cmd_S();
+            draw_trim_marks(ctx);
         }
     } catch(const std::exception &e) {
         printf("ERROR: %s\n", e.what());
