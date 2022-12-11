@@ -30,6 +30,7 @@ public:
     ~PdfPage();
     void finalize();
 
+    // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
     void cmd_q(); // Save
     void cmd_Q(); // Restore
     void cmd_re(double x, double y, double w, double h);
@@ -42,6 +43,16 @@ public:
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     void cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
 
+    // Stroke.
+    void cmd_RG(double r, double g, double b);
+    void cmd_G(double gray);
+    void cmd_K(double c, double m, double y, double k);
+
+    // Nonstroke
+    void cmd_rg(double r, double g, double b);
+    void cmd_g(double gray);
+    void cmd_k(double c, double m, double y, double k);
+
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
     void set_separation_stroke_color(SeparationId id, LimitDouble value);
@@ -52,6 +63,7 @@ public:
     void simple_text(const char *u8text, FontId font_id, double pointsize, double x, double y);
 
     void draw_unit_circle();
+    void draw_unit_box();
 
 private:
     void build_resource_dict();

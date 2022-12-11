@@ -30,20 +30,56 @@ const double paper_height = page_h + 2 * margin;
 const double paper_width = 2 * (margin + page_w) + spine_w;
 
 void draw_registration_cross(PdfPage &ctx, double x, double y) {
-    const double cross_size = mm2pt(5);
+    const double cross_size = mm2pt(10); // diameter, not radius
     const double circle_size = 0.6 * cross_size;
     ctx.cmd_q();
     ctx.translate(x, y);
-    ctx.cmd_m(-cross_size, 0);
-    ctx.cmd_l(cross_size, 0);
-    ctx.cmd_m(0, -cross_size);
-    ctx.cmd_l(0, cross_size);
+    ctx.cmd_m(-cross_size / 2, 0);
+    ctx.cmd_l(cross_size / 2, 0);
+    ctx.cmd_m(0, -cross_size / 2);
+    ctx.cmd_l(0, cross_size / 2);
     ctx.cmd_S();
     ctx.cmd_w(1 / circle_size);
     ctx.scale(circle_size, circle_size);
     ctx.draw_unit_circle();
     ctx.cmd_S();
     ctx.cmd_Q();
+}
+
+void draw_colorbox(PdfPage &ctx,
+                   double box_size,
+                   double xloc,
+                   double yloc,
+                   double c,
+                   double m,
+                   double y,
+                   double k) {
+    ctx.cmd_q();
+    ctx.translate(xloc, yloc);
+    ctx.scale(box_size, box_size);
+    ctx.cmd_k(c, m, y, k);
+    ctx.draw_unit_box();
+    ctx.cmd_f();
+    ctx.cmd_Q();
+}
+
+void draw_colorbar(PdfPage &ctx) {
+    const double box_size = mm2pt(5);
+    draw_colorbox(ctx, box_size, 2 * margin, margin / 2, 1.0, 0.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + box_size, margin / 2, 0.0, 1.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 2 * box_size, margin / 2, 0.0, 0.0, 1.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 3 * box_size, margin / 2, 1.0, 1.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 4 * box_size, margin / 2, 1.0, 0.0, 1.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 5 * box_size, margin / 2, 0.0, 1.0, 1.0, 0.0);
+}
+
+void draw_graybar(PdfPage &ctx) {
+    const double box_size = mm2pt(5);
+    const double xloc = paper_width / 2 + margin;
+    const double yloc = paper_height - margin / 2;
+    for(int i = 1; i < 11; ++i) {
+        draw_colorbox(ctx, box_size, xloc + i * box_size, yloc, 0.0, 0.0, 0.0, i / 10.0);
+    }
 }
 
 void draw_printer_marks(PdfPage &ctx) {
@@ -75,6 +111,8 @@ int main(int argc, char **argv) {
             ctx.cmd_w(1.0);
             ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
             draw_printer_marks(ctx);
+            draw_colorbar(ctx);
+            draw_graybar(ctx);
             ctx.cmd_re(
                 margin, margin, opts.page_size.w - 2 * margin, opts.page_size.h - 2 * margin);
             ctx.cmd_S();

@@ -103,21 +103,38 @@ void PdfPage::cmd_c(double x1, double y1, double x2, double y2, double x3, doubl
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
 }
 
+void PdfPage::cmd_RG(double r, double g, double b) {
+    fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
+}
+void PdfPage::cmd_G(double gray) { fmt::format_to(cmd_appender, "{} G\n", gray); }
+
+void PdfPage::cmd_K(double c, double m, double y, double k) {
+    fmt::format_to(cmd_appender, "{} {} {} {} K\n", c, m, y, k);
+}
+
+void PdfPage::cmd_rg(double r, double g, double b) {
+    fmt::format_to(cmd_appender, "{} {} {} rg\n", r, g, b);
+}
+void PdfPage::cmd_g(double gray) { fmt::format_to(cmd_appender, "{} g\n", gray); }
+
+void PdfPage::cmd_k(double c, double m, double y, double k) {
+    fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
+}
+
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
     switch(g->opts.output_colorspace) {
     case PDF_DEVICE_RGB: {
-        fmt::format_to(cmd_appender, "{} {} {} RG\n", c.r.v(), c.g.v(), c.b.v());
+        cmd_RG(c.r.v(), c.g.v(), c.b.v());
         break;
     }
     case PDF_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        fmt::format_to(cmd_appender, "{} G\n", gray.v.v());
+        cmd_G(gray.v.v());
         break;
     }
     case PDF_DEVICE_CMYK: {
         DeviceCMYKColor cmyk = cm->to_cmyk(c);
-        fmt::format_to(
-            cmd_appender, "{} {} {} {} K\n", cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         break;
     }
     }
@@ -199,9 +216,12 @@ ET
 }
 
 void PdfPage::draw_unit_circle() {
-    cmd_m(0, 1);
-    cmd_c(.5523, 1, 1, .5523, 1, 0);
-    cmd_c(1, -.5523, .5523, -1, 0, -1);
-    cmd_c(-.5523, -1, -1, -.5523, -1, 0);
-    cmd_c(-1, .5523, -.5523, 1, 0, 1);
+    const double control = 0.5523 / 2;
+    cmd_m(0, 0.5);
+    cmd_c(control, 0.5, 0.5, control, 0.5, 0);
+    cmd_c(0.5, -control, control, -0.5, 0, -0.5);
+    cmd_c(-control, -0.5, -0.5, -control, -0.5, 0);
+    cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
 }
+
+void PdfPage::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
