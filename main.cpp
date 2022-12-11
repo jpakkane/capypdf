@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
         PdfGen gen("test.pdf", opts);
         {
             auto ctx = gen.new_page();
-            ctx.set_line_width(2.0);
+            ctx.cmd_w(2.0);
             ctx.set_stroke_color(DeviceRGBColor{0.0, 0.3, 1.0});
-            ctx.rectangle(300, 100, 200, 100);
-            ctx.stroke();
+            ctx.cmd_re(300, 100, 200, 100);
+            ctx.cmd_S();
             ctx.simple_text("This is text in Times New Roman.",
                             gen.get_builtin_font_id(FONT_TIMES_ROMAN),
                             12,
@@ -48,24 +48,24 @@ int main(int argc, char **argv) {
             ctx.simple_text(
                 "This is text in Courier.", gen.get_builtin_font_id(FONT_COURIER), 12, 100, 460);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.9});
-            ctx.rectangle(200, 300, 200, 100);
-            ctx.fill();
+            ctx.cmd_re(200, 300, 200, 100);
+            ctx.cmd_f();
             const auto sep = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
             ctx.set_separation_nonstroke_color(sep, 1.0);
             ctx.simple_text("GOLD!", gen.get_builtin_font_id(FONT_HELVETICA_BOLD), 32, 250, 340);
         }
         {
             auto ctx = gen.new_page();
-            ctx.rectangle(100, 300, 200, 100);
+            ctx.cmd_re(100, 300, 200, 100);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.1, 0.2});
-            ctx.fill();
+            ctx.cmd_f();
             if(argc > 1) {
                 auto image_id = gen.load_image(argv[1]);
                 auto image_size = gen.get_image_info(image_id);
-                ctx.save();
-                ctx.concatenate_matrix(image_size.w / 5, 0, 0, image_size.h / 5, 110, 310);
+                ctx.cmd_q();
+                ctx.cmd_cm(image_size.w / 5, 0, 0, image_size.h / 5, 110, 310);
                 ctx.draw_image(image_id);
-                ctx.restore();
+                ctx.cmd_Q();
             }
         }
     } catch(const std::exception &e) {

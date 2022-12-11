@@ -79,19 +79,19 @@ void PdfPage::build_resource_dict() {
     resources += ">>\n";
 }
 
-void PdfPage::save() { commands = "q\n"; }
+void PdfPage::cmd_q() { commands = "q\n"; }
 
-void PdfPage::restore() { commands += "Q\n"; }
+void PdfPage::cmd_Q() { commands += "Q\n"; }
 
-void PdfPage::rectangle(double x, double y, double w, double h) {
+void PdfPage::cmd_re(double x, double y, double w, double h) {
     fmt::format_to(cmd_appender, "{} {} {} {} re\n", x, y, w, h);
 }
 
-void PdfPage::fill() { commands += "f\n"; }
+void PdfPage::cmd_f() { commands += "f\n"; }
 
-void PdfPage::stroke() { commands += "S\n"; }
+void PdfPage::cmd_S() { commands += "S\n"; }
 
-void PdfPage::set_line_width(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
+void PdfPage::cmd_w(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
 
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
     switch(g->opts.output_colorspace) {
@@ -161,15 +161,15 @@ void PdfPage::draw_image(ImageId im_id) {
     fmt::format_to(cmd_appender, "/Image{} Do\n", obj_num);
 }
 
-void PdfPage::concatenate_matrix(double m1, double m2, double m3, double m4, double m5, double m6) {
+void PdfPage::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} cm\n", m1, m2, m3, m4, m5, m6);
 }
 
 void PdfPage::scale(double xscale, double yscale) {
-    concatenate_matrix(xscale, 0, 0, yscale, 0, 0);
+    cmd_cm(xscale, 0, 0, yscale, 0, 0);
 }
 void PdfPage::translate(double xtran, double ytran) {
-    concatenate_matrix(0, 0, 0, 0, xtran, ytran);
+    cmd_cm(0, 0, 0, 0, xtran, ytran);
 }
 
 void PdfPage::simple_text(
