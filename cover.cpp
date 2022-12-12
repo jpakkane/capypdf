@@ -29,8 +29,7 @@ const double margin = mm2pt(20);
 const double paper_height = page_h + 2 * margin;
 const double paper_width = 2 * (margin + page_w) + spine_w;
 
-void draw_registration_cross(PdfPage &ctx, double x, double y) {
-    const double cross_size = mm2pt(10); // diameter, not radius
+void draw_registration_cross(PdfPage &ctx, double x, double y, const double cross_size) {
     const double circle_size = 0.6 * cross_size;
     ctx.cmd_q();
     ctx.translate(x, y);
@@ -65,28 +64,30 @@ void draw_colorbox(PdfPage &ctx,
 
 void draw_colorbar(PdfPage &ctx) {
     const double box_size = mm2pt(5);
-    draw_colorbox(ctx, box_size, 2 * margin, margin / 2, 1.0, 0.0, 0.0, 0.0);
-    draw_colorbox(ctx, box_size, 2 * margin + box_size, margin / 2, 0.0, 1.0, 0.0, 0.0);
-    draw_colorbox(ctx, box_size, 2 * margin + 2 * box_size, margin / 2, 0.0, 0.0, 1.0, 0.0);
-    draw_colorbox(ctx, box_size, 2 * margin + 3 * box_size, margin / 2, 1.0, 1.0, 0.0, 0.0);
-    draw_colorbox(ctx, box_size, 2 * margin + 4 * box_size, margin / 2, 1.0, 0.0, 1.0, 0.0);
-    draw_colorbox(ctx, box_size, 2 * margin + 5 * box_size, margin / 2, 0.0, 1.0, 1.0, 0.0);
+    const double yloc = (margin - bleed) / 2;
+    draw_colorbox(ctx, box_size, 2 * margin, yloc, 1.0, 0.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + box_size, yloc, 0.0, 1.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 2 * box_size, yloc, 0.0, 0.0, 1.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 3 * box_size, yloc, 1.0, 1.0, 0.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 4 * box_size, yloc, 1.0, 0.0, 1.0, 0.0);
+    draw_colorbox(ctx, box_size, 2 * margin + 5 * box_size, yloc, 0.0, 1.0, 1.0, 0.0);
 }
 
 void draw_graybar(PdfPage &ctx) {
     const double box_size = mm2pt(5);
     const double xloc = paper_width / 2 + margin;
-    const double yloc = paper_height - margin / 2;
+    const double yloc = paper_height - (margin - bleed) / 2;
     for(int i = 1; i < 11; ++i) {
         draw_colorbox(ctx, box_size, xloc + i * box_size, yloc, 0.0, 0.0, 0.0, i / 10.0);
     }
 }
 
-void draw_printer_marks(PdfPage &ctx) {
-    draw_registration_cross(ctx, margin / 2, paper_height / 2);
-    draw_registration_cross(ctx, paper_width - margin / 2, paper_height / 2);
-    draw_registration_cross(ctx, paper_width / 2, margin / 2);
-    draw_registration_cross(ctx, paper_width / 2, paper_height - margin / 2);
+void draw_registration_marks(PdfPage &ctx) {
+    const double cross_size = mm2pt(10); // diameter, not radius
+    draw_registration_cross(ctx, cross_size / 2, paper_height / 2, cross_size);
+    draw_registration_cross(ctx, paper_width - cross_size / 2, paper_height / 2, cross_size);
+    draw_registration_cross(ctx, paper_width / 2, cross_size / 2, cross_size);
+    draw_registration_cross(ctx, paper_width / 2, paper_height - cross_size / 2, cross_size);
 }
 
 void draw_trim_marks(PdfPage &ctx) {
@@ -149,10 +150,6 @@ int main(int, char **) {
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
-            draw_printer_marks(ctx);
-            draw_colorbar(ctx);
-            draw_graybar(ctx);
-            draw_trim_marks(ctx);
             auto helvetica = gen.get_builtin_font_id(FONT_HELVETICA_BOLD);
             auto times = gen.get_builtin_font_id(FONT_TIMES_ROMAN);
             ctx.simple_text(
@@ -176,6 +173,14 @@ int main(int, char **) {
             // ctx.cmd_re(0, 0, 10, 10);
             ctx.cmd_f();
             ctx.cmd_Q();
+            ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
+            ctx.simple_text(
+                "PDF created: YYYY-MM-DD HH:MM", times, 10, paper_width / 2 + page_w / 5, 10);
+            draw_colorbar(ctx);
+            draw_graybar(ctx);
+            // Set separation color All.
+            draw_registration_marks(ctx);
+            draw_trim_marks(ctx);
         }
 
     } catch(const std::exception &e) {
