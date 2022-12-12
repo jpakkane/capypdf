@@ -62,6 +62,7 @@ public:
     void set_nonstroke_color(const DeviceRGBColor &c);
     void set_separation_stroke_color(SeparationId id, LimitDouble value);
     void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
+    void set_all_stroke_color();
     void draw_image(ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
@@ -83,4 +84,5 @@ private:
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
     bool is_finalized = false;
+    bool uses_all_colorspace = false;
 };

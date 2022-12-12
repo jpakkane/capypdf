@@ -67,6 +67,7 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
     }
     write_header();
     write_info();
+    create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     rgb_profile_obj = store_icc_profile(cm.get_rgb(), 3);
     gray_profile_obj = store_icc_profile(cm.get_gray(), 1);
     cmyk_profile_obj = store_icc_profile(cm.get_cmyk(), 4);

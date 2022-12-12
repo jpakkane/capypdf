@@ -178,7 +178,7 @@ int main(int, char **) {
                 "PDF created: YYYY-MM-DD HH:MM", times, 10, paper_width / 2 + page_w / 5, 10);
             draw_colorbar(ctx);
             draw_graybar(ctx);
-            // Set separation color All.
+            ctx.set_all_stroke_color();
             draw_registration_marks(ctx);
             draw_trim_marks(ctx);
         }

@@ -70,8 +70,11 @@ void PdfPage::build_resource_dict() {
         }
         resources += "  >>\n";
     }
-    if(!used_colorspaces.empty()) {
+    if(!used_colorspaces.empty() || uses_all_colorspace) {
         resources += "  /ColorSpace <<\n";
+        if(uses_all_colorspace) {
+            fmt::format_to(resource_appender, "    /All {} 0 R\n", g->separation_objects.at(0));
+        }
         for(const auto &i : used_colorspaces) {
             fmt::format_to(resource_appender, "    /CSpace{} {} 0 R\n", i, i);
         }
@@ -189,6 +192,12 @@ void PdfPage::set_separation_nonstroke_color(SeparationId id, LimitDouble value)
     std::string csname = fmt::format("/CSpace{}", idnum);
     cmd_cs(csname);
     cmd_scn(value.v());
+}
+
+void PdfPage::set_all_stroke_color() {
+    uses_all_colorspace = true;
+    cmd_CS("/All");
+    cmd_SCN(1.0);
 }
 
 void PdfPage::draw_image(ImageId im_id) {
