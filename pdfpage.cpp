@@ -104,6 +104,18 @@ void PdfPage::cmd_c(double x1, double y1, double x2, double y2, double x3, doubl
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
 }
 
+void PdfPage::cmd_cs(std::string_view cspace_name) {
+    fmt::format_to(cmd_appender, "{} cs\n", cspace_name);
+}
+
+void PdfPage::cmd_scn(double value) { fmt::format_to(cmd_appender, "{} scn\n", value); }
+
+void PdfPage::cmd_CS(std::string_view cspace_name) {
+    fmt::format_to(cmd_appender, "{} CS\n", cspace_name);
+}
+
+void PdfPage::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
+
 void PdfPage::cmd_RG(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
 }
@@ -166,23 +178,17 @@ void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
 void PdfPage::set_separation_stroke_color(SeparationId id, LimitDouble value) {
     const auto idnum = g->separation_object_number(id);
     used_colorspaces.insert(idnum);
-    fmt::format_to(cmd_appender,
-                   R"(/CSpace{} CS
-{} SCN
-)",
-                   idnum,
-                   value.v());
+    std::string csname = fmt::format("/CSpace{}", idnum);
+    cmd_CS(csname);
+    cmd_SCN(value.v());
 }
 
 void PdfPage::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
     const auto idnum = g->separation_object_number(id);
     used_colorspaces.insert(idnum);
-    fmt::format_to(cmd_appender,
-                   R"(/CSpace{} cs
-{} scn
-)",
-                   idnum,
-                   value.v());
+    std::string csname = fmt::format("/CSpace{}", idnum);
+    cmd_cs(csname);
+    cmd_scn(value.v());
 }
 
 void PdfPage::draw_image(ImageId im_id) {

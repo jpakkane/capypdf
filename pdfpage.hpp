@@ -43,6 +43,11 @@ public:
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     void cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
 
+    void cmd_cs(std::string_view cspace_name);
+    void cmd_scn(double value);
+    void cmd_CS(std::string_view cspace_name);
+    void cmd_SCN(double value);
+
     // Stroke.
     void cmd_RG(double r, double g, double b);
     void cmd_G(double gray);
