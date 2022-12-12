@@ -159,23 +159,28 @@ void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
 void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(g->opts.output_colorspace) {
     case PDF_DEVICE_RGB: {
-        fmt::format_to(cmd_appender, "{} {} {} rg\n", c.r.v(), c.g.v(), c.b.v());
+        cmd_rg(c.r.v(), c.g.v(), c.b.v());
         break;
     }
     case PDF_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        fmt::format_to(cmd_appender, "{} g\n", gray.v.v());
+        cmd_g(gray.v.v());
         break;
     }
     case PDF_DEVICE_CMYK: {
         DeviceCMYKColor cmyk = cm->to_cmyk(c);
-        fmt::format_to(
-            cmd_appender, "{} {} {} {} k\n", cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         break;
     }
     default:
         throw std::runtime_error("Unreachable!");
     }
+}
+
+void PdfPage::set_nonstroke_color(const DeviceGrayColor &c) {
+    // Assumes that switching to the gray colorspace is always ok.
+    // If it is not, fix to do the same switch() as above.
+    cmd_g(c.v.v());
 }
 
 void PdfPage::set_separation_stroke_color(SeparationId id, LimitDouble value) {

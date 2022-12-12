@@ -133,6 +133,7 @@ int main(int, char **) {
 
     try {
         PdfGen gen("cover.pdf", opts);
+        auto image_id = gen.load_image("gradient.png");
         {
             auto ctx = gen.new_page();
             ctx.cmd_w(1.0);
@@ -150,6 +151,11 @@ int main(int, char **) {
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
+            ctx.cmd_q();
+            ctx.translate((paper_width + spine_w + page_w - 100) / 2, paper_height / 2 - 100);
+            ctx.scale(100, 100);
+            ctx.draw_image(image_id);
+            ctx.cmd_Q();
             auto helvetica = gen.get_builtin_font_id(FONT_HELVETICA_BOLD);
             auto times = gen.get_builtin_font_id(FONT_TIMES_ROMAN);
             ctx.simple_text(
@@ -173,7 +179,7 @@ int main(int, char **) {
             // ctx.cmd_re(0, 0, 10, 10);
             ctx.cmd_f();
             ctx.cmd_Q();
-            ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
+            ctx.set_nonstroke_color(DeviceGrayColor{0});
             ctx.simple_text(
                 "PDF created: YYYY-MM-DD HH:MM", times, 10, paper_width / 2 + page_w / 5, 10);
             draw_colorbar(ctx);

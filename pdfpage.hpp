@@ -60,6 +60,7 @@ public:
 
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
+    void set_nonstroke_color(const DeviceGrayColor &c);
     void set_separation_stroke_color(SeparationId id, LimitDouble value);
     void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
