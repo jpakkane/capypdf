@@ -134,6 +134,7 @@ int main(int, char **) {
     try {
         PdfGen gen("cover.pdf", opts);
         auto image_id = gen.load_image("gradient.png");
+        auto sep_id = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
         {
             auto ctx = gen.new_page();
             ctx.cmd_w(1.0);
@@ -158,6 +159,7 @@ int main(int, char **) {
             ctx.cmd_Q();
             auto helvetica = gen.get_builtin_font_id(FONT_HELVETICA_BOLD);
             auto times = gen.get_builtin_font_id(FONT_TIMES_ROMAN);
+            ctx.set_separation_nonstroke_color(sep_id, 1.0);
             ctx.simple_text(
                 "Front Cover", helvetica, 48, paper_width / 2 + page_w / 5, 2 * paper_height / 3);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
