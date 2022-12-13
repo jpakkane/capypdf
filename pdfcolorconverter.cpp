@@ -15,7 +15,7 @@
  */
 
 #include <pdfcolorconverter.hpp>
-#include <imageops.hpp>
+#include <utils.hpp>
 #include <lcms2.h>
 #include <cassert>
 #include <stdexcept>

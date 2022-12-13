@@ -1,8 +1,23 @@
+/*
+ * Copyright 2022 Jussi Pakkanen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <imageops.hpp>
 #include <png.h>
 #include <cstring>
 #include <cassert>
-#include <zlib.h>
 #include <stdexcept>
 #include <vector>
 #include <memory>
@@ -75,57 +90,4 @@ rgb_image load_image_file(const char *fname) {
         throw std::runtime_error(std::move(msg));
     }
     throw std::runtime_error("Unreachable code.");
-}
-
-// Not the right place for this, but it'll do for now.
-std::string flate_compress(std::string_view data) {
-    std::string compressed;
-    const int CHUNK = 1024 * 1024;
-    std::string buf;
-    z_stream strm;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-
-    auto ret = deflateInit(&strm, Z_BEST_COMPRESSION);
-    if(ret != Z_OK) {
-        throw std::runtime_error("Zlib init failed.");
-    }
-    std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
-    strm.avail_in = data.size();
-    strm.next_in = (Bytef *)(data.data()); // Very unsafe.
-
-    do {
-        buf.resize(CHUNK);
-        strm.avail_out = CHUNK;
-        strm.next_out = (Bytef *)buf.data();
-        ret = deflate(&strm, Z_FINISH); /* no bad return value */
-        assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
-        int write_size = CHUNK - strm.avail_out;
-        assert(write_size <= (int)buf.size());
-        buf.resize(write_size);
-        compressed += buf;
-    } while(strm.avail_out == 0);
-    assert(strm.avail_in == 0); /* all input will be used */
-
-    /* done when last data in file processed */
-    assert(ret == Z_STREAM_END); /* stream will be complete */
-
-    return compressed;
-}
-
-std::string load_file(const char *fname) {
-    FILE *f = fopen(fname, "r");
-    if(!f) {
-        throw std::runtime_error(strerror(errno));
-    }
-    fseek(f, 0, SEEK_END);
-    auto fsize = (size_t)ftell(f);
-    std::string contents(fsize, '\0');
-    fseek(f, 0, SEEK_SET);
-    if(fread(contents.data(), 1, fsize, f) != fsize) {
-        fclose(f);
-        throw std::runtime_error("Could not load file contents.");
-    }
-    return contents;
 }

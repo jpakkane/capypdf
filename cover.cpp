@@ -127,7 +127,7 @@ int main(int, char **) {
     opts.mediabox.h = opts.page_size.h;
 
     opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
-    opts.title = "Book cover generation experiment";
+    opts.title = "Book cover generation experiment with utf-8 (ö).";
     opts.author = "G. R. Aphicdesigner";
     opts.output_colorspace = PDF_DEVICE_CMYK;
 

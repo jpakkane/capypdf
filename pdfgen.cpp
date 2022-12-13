@@ -16,6 +16,7 @@
 
 #include <pdfgen.hpp>
 #include <imageops.hpp>
+#include <utils.hpp>
 #include <cstring>
 #include <cerrno>
 #include <lcms2.h>
@@ -119,14 +120,14 @@ void PdfGen::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
 void PdfGen::write_info() {
     std::string obj_data{"<<\n"};
     if(!opts.title.empty()) {
-        obj_data += "  /Title (";
-        obj_data += opts.title; // FIXME, do escaping.
-        obj_data += ")\n";
+        obj_data += "  /Title ";
+        obj_data += utf8_to_pdfstr(opts.title);
+        obj_data += "\n";
     }
     if(!opts.author.empty()) {
-        obj_data += "  /Author (";
-        obj_data += opts.author; // FIXME, here too.
-        obj_data += ")\n";
+        obj_data += "  /Author ";
+        obj_data += utf8_to_pdfstr(opts.author);
+        obj_data += "\n";
     }
     obj_data += "  /Producer (PDF Testbed generator)\n>>\n";
     add_object(obj_data);

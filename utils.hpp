@@ -16,15 +16,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
-#include <optional>
 
-struct rgb_image {
-    int32_t w;
-    int32_t h;
-    std::string pixels;
-    std::optional<std::string> alpha;
-};
+std::string flate_compress(std::string_view data);
 
-rgb_image load_image_file(const char *fname);
+std::string load_file(const char *fname);
+
+std::string utf8_to_pdfstr(std::string_view input);
