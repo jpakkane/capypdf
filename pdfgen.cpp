@@ -129,7 +129,11 @@ void PdfGen::write_info() {
         obj_data += utf8_to_pdfstr(opts.author);
         obj_data += "\n";
     }
-    obj_data += "  /Producer (PDF Testbed generator)\n>>\n";
+    obj_data += "  /Producer (PDF Testbed generator)\n";
+    obj_data += "  /CreationDate ";
+    obj_data += current_date_string();
+    obj_data += '\n';
+    obj_data += ">>\n";
     add_object(obj_data);
 }
 

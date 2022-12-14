@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstring>
 #include <iconv.h>
+#include <sys/time.h>
 
 #include <fmt/core.h>
 #include <memory>
@@ -106,4 +107,21 @@ std::string utf8_to_pdfstr(std::string_view input) {
     }
     encoded += '>';
     return encoded;
+}
+
+std::string current_date_string() {
+    const int bufsize = 128;
+    char buf[bufsize];
+    time_t timepoint;
+    struct tm utctime;
+    struct timespec tp;
+    if(clock_gettime(CLOCK_REALTIME, &tp) != 0) {
+        throw std::runtime_error(strerror(errno));
+    }
+    timepoint = tp.tv_sec;
+    if(gmtime_r(&timepoint, &utctime) == nullptr) {
+        throw std::runtime_error(strerror(errno));
+    }
+    strftime(buf, bufsize, "(D:%Y%m%d%H%M%SZ)", &utctime);
+    return std::string(buf);
 }

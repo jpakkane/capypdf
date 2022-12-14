@@ -23,3 +23,5 @@ std::string flate_compress(std::string_view data);
 std::string load_file(const char *fname);
 
 std::string utf8_to_pdfstr(std::string_view input);
+
+std::string current_date_string();
