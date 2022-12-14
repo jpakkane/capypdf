@@ -84,13 +84,13 @@ public:
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     ImageId load_image(const char *fname);
-    FontId get_builtin_font_id(BuiltinFonts font);
     ImageSize get_image_info(ImageId img_id) { return image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
 
     friend class PdfPage;
 
 private:
+    FontId get_builtin_font_id(BuiltinFonts font);
     int32_t image_object_number(ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(FontId fid) { return font_objects.at(fid.id); }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }

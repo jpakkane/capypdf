@@ -224,10 +224,24 @@ void PdfPage::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
-void PdfPage::simple_text(
-    const char *u8text, FontId font_id, double pointsize, double x, double y) {
-    auto font_object = g->font_object_number(font_id);
+void PdfPage::simple_ascii_text(
+    const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y) {
+    auto font_object = g->font_object_number(g->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
+    std::string cleaned_text;
+    for(const auto c : std::string_view(ascii_text)) {
+        if((unsigned char)c > 127) {
+            cleaned_text += ' ';
+        } else if(c == '(') {
+            cleaned_text += "\\(";
+        } else if(c == '\\') {
+            cleaned_text += "\\\\";
+        } else if(c == ')') {
+            cleaned_text += "\\)";
+        } else {
+            cleaned_text += c;
+        }
+    }
     fmt::format_to(cmd_appender,
                    R"(BT
   /Font{} {} Tf
@@ -239,7 +253,7 @@ ET
                    pointsize,
                    x,
                    y,
-                   u8text);
+                   cleaned_text);
 }
 
 void PdfPage::draw_unit_circle() {

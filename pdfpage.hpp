@@ -68,7 +68,8 @@ public:
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    void simple_text(const char *u8text, FontId font_id, double pointsize, double x, double y);
+    void simple_ascii_text(
+        const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y);
 
     void draw_unit_circle();
     void draw_unit_box();

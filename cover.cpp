@@ -157,33 +157,37 @@ int main(int, char **) {
             ctx.scale(100, 100);
             ctx.draw_image(image_id);
             ctx.cmd_Q();
-            auto helvetica = gen.get_builtin_font_id(FONT_HELVETICA_BOLD);
-            auto times = gen.get_builtin_font_id(FONT_TIMES_ROMAN);
             ctx.set_separation_nonstroke_color(sep_id, 1.0);
-            ctx.simple_text(
-                "Front Cover", helvetica, 48, paper_width / 2 + page_w / 5, 2 * paper_height / 3);
+            ctx.simple_ascii_text("Front Cover",
+                                  FONT_HELVETICA_BOLD,
+                                  48,
+                                  paper_width / 2 + page_w / 5,
+                                  2 * paper_height / 3);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
-            ctx.simple_text("Lorem ipsum dolor sit amet,",
-                            times,
-                            12,
-                            margin + page_w / 6,
-                            2 * paper_height / 3);
-            ctx.simple_text("consectetur adipiscing elit",
-                            times,
-                            12,
-                            margin + page_w / 6,
-                            2 * paper_height / 3 - 12);
+            ctx.simple_ascii_text("Lorem ipsum dolor sit amet,",
+                                  FONT_TIMES_ROMAN,
+                                  12,
+                                  margin + page_w / 6,
+                                  2 * paper_height / 3);
+            ctx.simple_ascii_text("consectetur adipiscing elit",
+                                  FONT_TIMES_ROMAN,
+                                  12,
+                                  margin + page_w / 6,
+                                  2 * paper_height / 3 - 12);
             ctx.cmd_q();
             ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
             ctx.translate(paper_width / 2, 3 * paper_height / 4);
             ctx.rotate(-M_PI / 2.0);
-            ctx.simple_text("Name of Book", helvetica, 12, 0, 0);
+            ctx.simple_ascii_text("Name of Book", FONT_HELVETICA_BOLD, 12, 0, 0);
             // ctx.cmd_re(0, 0, 10, 10);
             ctx.cmd_f();
             ctx.cmd_Q();
             ctx.set_nonstroke_color(DeviceGrayColor{0});
-            ctx.simple_text(
-                "PDF created: YYYY-MM-DD HH:MM", times, 10, paper_width / 2 + page_w / 5, 10);
+            ctx.simple_ascii_text("PDF created: YYYY-MM-DD HH:MM",
+                                  FONT_TIMES_ROMAN,
+                                  10,
+                                  paper_width / 2 + page_w / 5,
+                                  10);
             draw_colorbar(ctx);
             draw_graybar(ctx);
             ctx.set_all_stroke_color();
