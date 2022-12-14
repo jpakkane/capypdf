@@ -20,8 +20,11 @@
 #include <cstring>
 #include <cerrno>
 #include <lcms2.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include <stdexcept>
 #include <array>
+#include <memory>
 #include <fmt/core.h>
 
 namespace {
@@ -66,6 +69,10 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
     if(!ofile) {
         throw std::runtime_error(strerror(errno));
     }
+    auto error = FT_Init_FreeType(&ft);
+    if(error) {
+        throw std::runtime_error(FT_Error_String(error));
+    }
     write_header();
     write_info();
     create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
@@ -75,12 +82,20 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
 }
 
 PdfGen::~PdfGen() {
+    auto error = FT_Done_FreeType(ft);
+    if(error) {
+        fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
+    }
+    ft = nullptr;
     try {
         close_file();
     } catch(const std::exception &e) {
         fprintf(stderr, "%s", e.what());
         fclose(ofile);
         return;
+    } catch(...) {
+        fprintf(stderr, "Unexpected error.\n");
+        fclose(ofile);
     }
 
     if(fflush(ofile) != 0) {
@@ -379,6 +394,31 @@ stream
     }
     }
     return ImageId{(int32_t)image_info.size() - 1};
+}
+
+FontId PdfGen::load_font(const char *fname) {
+    FT_Face face;
+    auto error = FT_New_Face(ft, fname, 0, &face);
+    if(error) {
+        throw std::runtime_error(FT_Error_String(error));
+    }
+    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> fcloser(face, FT_Done_Face);
+    auto bytes = load_file(fname);
+    auto compressed_bytes = flate_compress(bytes);
+    std::string objbuf = fmt::format(R"(<<
+  /Length {}
+  /Length1 {}
+  /Filter /FlateDecode
+>>
+stream
+)",
+                                     compressed_bytes.size(),
+                                     bytes.size());
+    objbuf += compressed_bytes;
+    objbuf += "\nendstream\nendobj";
+    auto fontobjid = add_object(objbuf);
+    font_objects.push_back(fontobjid);
+    return FontId((int32_t)font_objects.size() - 1);
 }
 
 FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {

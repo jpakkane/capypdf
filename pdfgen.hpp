@@ -30,6 +30,8 @@
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
+// Ditto for Freetype
+typedef struct FT_LibraryRec_ *FT_Library;
 
 struct PdfBox {
     double x;
@@ -84,6 +86,7 @@ public:
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     ImageId load_image(const char *fname);
+    FontId load_font(const char *fname);
     ImageSize get_image_info(ImageId img_id) { return image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
 
@@ -114,6 +117,7 @@ private:
     FILE *ofile;
     PdfGenerationData opts;
     PdfColorConverter cm;
+    FT_Library ft;
     std::vector<int64_t> object_offsets;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;

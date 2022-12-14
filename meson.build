@@ -4,6 +4,7 @@ fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
 zlib_dep = dependency('zlib')
 lcms_dep = dependency('lcms2')
+freetype_dep = dependency('freetype2')
 
 pdflib = static_library('mypdf',
   'pdfgen.cpp',
@@ -11,7 +12,7 @@ pdflib = static_library('mypdf',
   'imageops.cpp',
   'utils.cpp',
   'pdfcolorconverter.cpp',
-  dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep]
+  dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep, freetype_dep]
 )
 
 executable('pdfgen',
@@ -23,3 +24,7 @@ executable('covergen',
   'cover.cpp',
   link_with: pdflib,
 )
+
+executable('fontgen',
+  'fontgen.cpp',
+  link_with: pdflib)
