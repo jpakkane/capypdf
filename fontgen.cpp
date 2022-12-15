@@ -16,16 +16,21 @@
 
 #include <pdfgen.hpp>
 
-int main() {
+int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.page_size.h = 100;
     opts.page_size.w = 100;
-
+    const char *fontfile;
+    if(argc > 1) {
+        fontfile = argv[1];
+    } else {
+        fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
+    }
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = opts.page_size.w;
     opts.mediabox.h = opts.page_size.h;
     PdfGen gen("fonttest.pdf", opts);
     auto ctx = gen.new_page();
-    gen.load_font("/home/jpakkane/.fonts/IBMPlexMono-Regular.otf");
+    gen.load_font(fontfile);
     return 0;
 }

@@ -22,6 +22,8 @@
 #include <lcms2.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_FONT_FORMATS_H
+#include FT_OPENTYPE_VALIDATE_H
 #include <stdexcept>
 #include <array>
 #include <memory>
@@ -400,9 +402,29 @@ FontId PdfGen::load_font(const char *fname) {
     FT_Face face;
     auto error = FT_New_Face(ft, fname, 0, &face);
     if(error) {
-        throw std::runtime_error(FT_Error_String(error));
+        // By default Freetype is compiled without error strings. Yay!
+        throw std::runtime_error(fmt::format("Freetype error {}.", error));
     }
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> fcloser(face, FT_Done_Face);
+    const char *font_format = FT_Get_Font_Format(face);
+    if(!font_format) {
+        throw std::runtime_error(fmt::format("Could not determine format of font file {}.", fname));
+    }
+    if(strcmp(font_format, "TrueType")) { // != 0 && strcmp(font_format, "CFF") != 0) {
+        throw std::runtime_error(
+            fmt::format("Only TrueType fonts are supported. {} is a {} font.", fname, font_format));
+    }
+    FT_Bytes base = nullptr;
+    error = FT_OpenType_Validate(face, FT_VALIDATE_BASE, &base, nullptr, nullptr, nullptr, nullptr);
+    if(base) {
+        FT_OpenType_Free(face, base);
+    }
+    if(!error) {
+        throw std::runtime_error(fmt::format("Font file {} is an OpenType font. Only TrueType "
+                                             "fonts are supported. Freetype error {}.",
+                                             fname,
+                                             error));
+    }
     auto bytes = load_file(fname);
     auto compressed_bytes = flate_compress(bytes);
     std::string objbuf = fmt::format(R"(<<
@@ -418,7 +440,7 @@ stream
     objbuf += "\nendstream\nendobj";
     auto fontobjid = add_object(objbuf);
     font_objects.push_back(fontobjid);
-    return FontId((int32_t)font_objects.size() - 1);
+    return FontId{(int32_t)font_objects.size() - 1};
 }
 
 FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
