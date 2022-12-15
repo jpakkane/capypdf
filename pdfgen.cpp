@@ -54,6 +54,22 @@ void write_box(auto &appender, const char *boxname, const PdfBox &box) {
     fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
 }
 
+std::string fontname2pdfname(std::string_view original) {
+    std::string out;
+    out.reserve(original.size());
+    for(const auto c : original) {
+        if(c == ' ') {
+            continue;
+        }
+        if(c == '\\') {
+            continue;
+        }
+        out += c;
+    }
+    // FIXME: might need to escape other special characters as well.
+    return out;
+}
+
 } // namespace
 
 LcmsHolder::~LcmsHolder() { deallocate(); }
@@ -440,7 +456,27 @@ stream
     objbuf += "\nendstream\nendobj";
     auto fontobjid = add_object(objbuf);
     font_objects.push_back(fontobjid);
-    return FontId{(int32_t)font_objects.size() - 1};
+    FontId fid{(int32_t)font_objects.size() - 1};
+    objbuf = fmt::format(R"(<<
+  /Type /FontDescriptor
+  /FontName /{}
+  /FontFamily ({})
+  /Flags {}
+  /FontBBox [ {} {} {} {} ]
+  /FontFile2 {} 0 R
+>>
+)",
+                         fontname2pdfname(face->style_name),
+                         face->family_name,
+                         32,
+                         0,
+                         0,
+                         0,
+                         0,
+                         font_objects[fid.id]);
+    add_object(objbuf);
+
+    return fid;
 }
 
 FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
