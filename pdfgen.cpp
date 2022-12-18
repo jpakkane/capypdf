@@ -208,7 +208,7 @@ void PdfGen::write_pages() {
             write_box(buf_append, "ArtBox", *opts.artbox);
         }
         fmt::format_to(buf_append,
-                       R"(/Contents {} 0 R
+                       R"(  /Contents {} 0 R
   /Resources {} 0 R
 >>
 )",
@@ -348,7 +348,7 @@ stream
                        image.h,
                        compressed.size());
         if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
         buf += ">>\nstream\n";
         buf += compressed;
@@ -375,7 +375,7 @@ stream
                        image.h,
                        compressed.size());
         if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
         buf += ">>\nstream\n";
         buf += compressed;
@@ -402,7 +402,7 @@ stream
                        image.h,
                        compressed.size());
         if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "/SMask {} 0 R\n", smask_id);
+            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
         buf += ">>\nstream\n";
         buf += compressed;
@@ -457,22 +457,33 @@ stream
     auto fontobjid = add_object(objbuf);
     font_objects.push_back(fontobjid);
     FontId fid{(int32_t)font_objects.size() - 1};
+    const uint32_t fflags = 32;
     objbuf = fmt::format(R"(<<
   /Type /FontDescriptor
   /FontName /{}
   /FontFamily ({})
   /Flags {}
   /FontBBox [ {} {} {} {} ]
+  /ItalicAngle {}
+  /Ascent {}
+  /Descent {}
+  /StemH {}
+  /StemV {}
   /FontFile2 {} 0 R
 >>
 )",
                          fontname2pdfname(face->style_name),
                          face->family_name,
-                         32,
-                         0,
-                         0,
-                         0,
-                         0,
+                         fflags,
+                         face->bbox.xMin,
+                         face->bbox.yMin,
+                         face->bbox.xMax,
+                         face->bbox.yMax,
+                         0, // Cairo always sets this to zero.
+                         face->ascender,
+                         face->descender,
+                         80, // Cairo always sets these to 80.
+                         80,
                          font_objects[fid.id]);
     add_object(objbuf);
 
