@@ -224,7 +224,25 @@ void PdfPage::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
-void PdfPage::simple_ascii_text(
+void PdfPage::render_ascii_text(
+    std::string_view text, FontId fid, double pointsize, double x, double y) {
+    auto font_data = g->font_objects.at(fid.id);
+    used_fonts.insert(font_data.font_obj);
+    fmt::format_to(cmd_appender,
+                   R"(BT
+  /Font{} {} Tf
+  {} {} Td
+  ({}) Tj
+ET
+)",
+                   font_data.font_obj,
+                   pointsize,
+                   x,
+                   y,
+                   text);
+}
+
+void PdfPage::render_ascii_text_builtin(
     const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y) {
     auto font_object = g->font_object_number(g->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);

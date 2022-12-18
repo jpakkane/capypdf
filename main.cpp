@@ -35,16 +35,17 @@ int main(int argc, char **argv) {
             ctx.set_stroke_color(DeviceRGBColor{0.0, 0.3, 1.0});
             ctx.cmd_re(300, 100, 200, 100);
             ctx.cmd_S();
-            ctx.simple_ascii_text(
+            ctx.render_ascii_text_builtin(
                 "This is text in Times New Roman.", FONT_TIMES_ROMAN, 12, 100, 500);
-            ctx.simple_ascii_text("This is text in Helvetica.", FONT_HELVETICA, 12, 100, 480);
-            ctx.simple_ascii_text("This is text in Courier.", FONT_COURIER, 12, 100, 460);
+            ctx.render_ascii_text_builtin(
+                "This is text in Helvetica.", FONT_HELVETICA, 12, 100, 480);
+            ctx.render_ascii_text_builtin("This is text in Courier.", FONT_COURIER, 12, 100, 460);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.9});
             ctx.cmd_re(200, 300, 200, 100);
             ctx.cmd_f();
             const auto sep = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
             ctx.set_separation_nonstroke_color(sep, 1.0);
-            ctx.simple_ascii_text("GOLD!", FONT_HELVETICA_BOLD, 32, 250, 340);
+            ctx.render_ascii_text_builtin("GOLD!", FONT_HELVETICA_BOLD, 32, 250, 340);
         }
         {
             auto ctx = gen.new_page();

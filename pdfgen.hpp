@@ -75,6 +75,12 @@ struct ImageInfo {
     int32_t obj;
 };
 
+struct FontInfo {
+    int32_t font_file_obj;
+    int32_t font_descriptor_obj;
+    int32_t font_obj;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -95,7 +101,7 @@ public:
 private:
     FontId get_builtin_font_id(BuiltinFonts font);
     int32_t image_object_number(ImageId iid) { return image_info.at(iid.id).obj; }
-    int32_t font_object_number(FontId fid) { return font_objects.at(fid.id); }
+    int32_t font_object_number(FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
     int32_t store_icc_profile(std::string_view contents, int32_t num_channels);
@@ -122,7 +128,7 @@ private:
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
-    std::vector<int32_t> font_objects;
+    std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
 };

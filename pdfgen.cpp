@@ -19,6 +19,7 @@
 #include <utils.hpp>
 #include <cstring>
 #include <cerrno>
+#include <cassert>
 #include <lcms2.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -68,6 +69,27 @@ std::string fontname2pdfname(std::string_view original) {
     }
     // FIXME: might need to escape other special characters as well.
     return out;
+}
+
+std::string
+build_width_array(FT_Face face, const int start_char, const int one_past_the_end_end_char) {
+    std::string arr{"[ "};
+    assert(one_past_the_end_end_char > start_char);
+    arr.reserve((one_past_the_end_end_char - start_char) * 10);
+    auto bi = std::back_inserter(arr);
+    const auto load_flags =
+        FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
+    //    static_assert(load_flags == 522);
+    for(int i = start_char; i < one_past_the_end_end_char; ++i) {
+        auto glyph_index = FT_Get_Char_Index(face, i);
+        auto error = FT_Load_Glyph(face, glyph_index, load_flags);
+        if(error != 0) {
+            throw std::runtime_error(FT_Error_String(error));
+        }
+        fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
+    }
+    arr += "]";
+    return arr;
 }
 
 } // namespace
@@ -453,10 +475,8 @@ stream
                                      compressed_bytes.size(),
                                      bytes.size());
     objbuf += compressed_bytes;
-    objbuf += "\nendstream\nendobj";
-    auto fontobjid = add_object(objbuf);
-    font_objects.push_back(fontobjid);
-    FontId fid{(int32_t)font_objects.size() - 1};
+    objbuf += "\nendstream\n";
+    auto font_file_obj = add_object(objbuf);
     const uint32_t fflags = 32;
     objbuf = fmt::format(R"(<<
   /Type /FontDescriptor
@@ -467,12 +487,13 @@ stream
   /ItalicAngle {}
   /Ascent {}
   /Descent {}
+  /CapHeight {}
   /StemH {}
   /StemV {}
   /FontFile2 {} 0 R
 >>
 )",
-                         fontname2pdfname(face->style_name),
+                         fontname2pdfname(FT_Get_Postscript_Name(face)),
                          face->family_name,
                          fflags,
                          face->bbox.xMin,
@@ -482,11 +503,34 @@ stream
                          0, // Cairo always sets this to zero.
                          face->ascender,
                          face->descender,
-                         80, // Cairo always sets these to 80.
+                         face->bbox.yMax, // Copying what Cairo does.
+                         80,              // Cairo always sets these to 80.
                          80,
-                         font_objects[fid.id]);
-    add_object(objbuf);
+                         font_file_obj);
+    auto font_descriptor_obj = add_object(objbuf);
 
+    const int start_char = 32;
+    const int end_char = 122;
+    auto width_arr = build_width_array(face, start_char, end_char + 1);
+    objbuf = fmt::format(R"(<<
+  /Type /Font
+  /Subtype /TrueType
+  /BaseFont /{}
+  /Encoding /WinAnsiEncoding
+  /FirstChar {}
+  /LastChar {}
+  /Widths {}
+  /FontDescriptor {} 0 R
+>>
+)",
+                         FT_Get_Postscript_Name(face),
+                         start_char,
+                         end_char,
+                         width_arr,
+                         font_descriptor_obj);
+    auto fontobj = add_object(objbuf);
+    font_objects.push_back(FontInfo{font_file_obj, font_descriptor_obj, fontobj});
+    FontId fid{(int32_t)font_objects.size() - 1};
     return fid;
 }
 
@@ -504,7 +548,7 @@ FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
 >>
 )",
                    font_names[font]);
-    font_objects.push_back(add_object(font_dict));
+    font_objects.push_back(FontInfo{-1, -1, add_object(font_dict)});
     auto fontid = FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;

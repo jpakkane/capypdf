@@ -19,7 +19,7 @@
 int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.page_size.h = 100;
-    opts.page_size.w = 100;
+    opts.page_size.w = 400;
     const char *fontfile;
     if(argc > 1) {
         fontfile = argv[1];
@@ -31,6 +31,8 @@ int main(int argc, char **argv) {
     opts.mediabox.h = opts.page_size.h;
     PdfGen gen("fonttest.pdf", opts);
     auto ctx = gen.new_page();
-    gen.load_font(fontfile);
+    auto fid = gen.load_font(fontfile);
+    ctx.render_ascii_text("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", fid, 10, 5, 10);
+    ctx.render_ascii_text("0123456789", fid, 12, 25, 32);
     return 0;
 }
