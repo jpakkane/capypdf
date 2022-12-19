@@ -28,3 +28,7 @@ executable('covergen',
 executable('fontgen',
   'fontgen.cpp',
   link_with: pdflib)
+
+executable('gstategen',
+  'gstategen.cpp',
+  link_with: pdflib)

@@ -18,7 +18,34 @@
 #include <pdfgen.hpp>
 #include <lcms2.h>
 #include <fmt/core.h>
+#include <array>
 #include <cmath>
+
+namespace {
+
+const std::array<const char *, 12> blend_mode_names{
+    "Normal",
+    "Multiply",
+    "Screen",
+    "Overlay",
+    "Darken",
+    "Lighten",
+    "ColorDodge",
+    "ColorBurn",
+    "HardLight",
+    "SoftLight",
+    "Difference",
+    "Exclusion",
+};
+
+const std::array<const char *, 4> intent_names{
+    "RelativeColorimetric",
+    "AbsoluteColorimetric",
+    "Saturation",
+    "Perceptual",
+};
+
+} // namespace
 
 PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm), cmd_appender(commands) {}
 
@@ -80,6 +107,24 @@ void PdfPage::build_resource_dict() {
         }
         resources += "  >>\n";
     }
+    if(!gstates.empty()) {
+        resources += "  /ExtGState <<\n";
+        for(const auto &s : gstates) {
+            fmt::format_to(resource_appender, "    /{} <<\n", s.name);
+            if(s.state.blend_mode) {
+                fmt::format_to(resource_appender,
+                               "      /BlendMode /{}\n",
+                               blend_mode_names.at(*s.state.blend_mode));
+            }
+            if(s.state.intent) {
+                fmt::format_to(resource_appender,
+                               "      /RenderingIntent /{}\n",
+                               intent_names.at(*s.state.intent));
+            }
+            fmt::format_to(resource_appender, "    >>\n");
+        }
+        resources += "  >>\n";
+    }
     resources += ">>\n";
 }
 
@@ -135,6 +180,10 @@ void PdfPage::cmd_g(double gray) { fmt::format_to(cmd_appender, "{} g\n", gray);
 
 void PdfPage::cmd_k(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
+}
+
+void PdfPage::cmd_gs(std::string_view gs_name) {
+    fmt::format_to(cmd_appender, "/{} gs\n", gs_name);
 }
 
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
@@ -284,3 +333,7 @@ void PdfPage::draw_unit_circle() {
 }
 
 void PdfPage::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
+
+void PdfPage::add_graphics_state(std::string_view name, const GraphicsState &gs) {
+    gstates.emplace_back(GsEntries{std::string{name}, gs});
+}

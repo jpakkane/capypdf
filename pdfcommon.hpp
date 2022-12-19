@@ -42,6 +42,21 @@ enum RenderingIntent {
     RI_PERCEPTUAL
 };
 
+enum BlendMode {
+    BM_NORMAL,
+    BM_MULTIPLY,
+    BM_SCREEN,
+    BM_OVERLAY,
+    BM_DARKEN,
+    BM_LIGHTEN,
+    BM_COLORDODGE,
+    BM_COLORBURN,
+    BM_HARDLIGHT,
+    BM_SOFTLIGHT,
+    BM_DIFFERENCE,
+    BM_EXCLUSION,
+};
+
 class LimitDouble {
 public:
     LimitDouble() : value(minval) {}

@@ -20,8 +20,20 @@
 #include <pdfcolorconverter.hpp>
 #include <string>
 #include <unordered_set>
+#include <vector>
+#include <optional>
 
 class PdfGen;
+
+struct GraphicsState {
+    std::optional<RenderingIntent> intent;
+    std::optional<BlendMode> blend_mode;
+};
+
+struct GsEntries {
+    std::string name;
+    GraphicsState state;
+};
 
 class PdfPage {
 
@@ -58,6 +70,8 @@ public:
     void cmd_g(double gray);
     void cmd_k(double c, double m, double y, double k);
 
+    void cmd_gs(std::string_view gs_name);
+
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
@@ -75,6 +89,8 @@ public:
     void draw_unit_circle();
     void draw_unit_box();
 
+    void add_graphics_state(std::string_view name, const GraphicsState &gs);
+
 private:
     void build_resource_dict();
 
@@ -86,6 +102,7 @@ private:
     std::unordered_set<int32_t> used_images;
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
+    std::vector<GsEntries> gstates;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
 };
