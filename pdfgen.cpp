@@ -377,6 +377,7 @@ stream
         buf += "\nendstream\n";
         auto im_id = add_object(buf);
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+        break;
     }
     case PDF_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
@@ -404,6 +405,7 @@ stream
         buf += "\nendstream\n";
         auto im_id = add_object(buf);
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+        break;
     }
     case PDF_DEVICE_CMYK: {
         std::string converted_pixels = cm.rgb_pixels_to_cmyk(image.pixels);
@@ -431,7 +433,10 @@ stream
         buf += "\nendstream\n";
         auto im_id = add_object(buf);
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+        break;
     }
+    default:
+        throw std::runtime_error("Not implemented.");
     }
     return ImageId{(int32_t)image_info.size() - 1};
 }

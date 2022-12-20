@@ -55,6 +55,10 @@ enum BlendMode {
     BM_SOFTLIGHT,
     BM_DIFFERENCE,
     BM_EXCLUSION,
+    BM_HUE,
+    BM_SATURATION,
+    BM_COLOR,
+    BM_LUMINOSITY,
 };
 
 class LimitDouble {

@@ -23,7 +23,7 @@
 
 namespace {
 
-const std::array<const char *, 12> blend_mode_names{
+const std::array<const char *, 16> blend_mode_names{
     "Normal",
     "Multiply",
     "Screen",
@@ -36,6 +36,10 @@ const std::array<const char *, 12> blend_mode_names{
     "SoftLight",
     "Difference",
     "Exclusion",
+    "Hue",
+    "Saturation",
+    "Color",
+    "Luminosity",
 };
 
 const std::array<const char *, 4> intent_names{
@@ -82,13 +86,25 @@ endstream
 void PdfPage::build_resource_dict() {
     auto resource_appender = std::back_inserter(resources);
     resources = "<<\n";
+    resources += "  /ColorSpace ";
+    switch(g->opts.output_colorspace) {
+    case PDF_DEVICE_RGB:
+        resources += "/DeviceRGB\n";
+        break;
+    case PDF_DEVICE_GRAY:
+        resources += "/DeviceGray\n";
+        break;
+    case PDF_DEVICE_CMYK:
+        resources += "/DeviceCMYK\n";
+        break;
+    }
     if(!used_images.empty()) {
         resources += "  /XObject <<\n";
         for(const auto &i : used_images) {
             fmt::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
         }
 
-        resources += "  >>";
+        resources += "  >>\n";
     }
     if(!used_fonts.empty()) {
         resources += "  /Font <<\n";
@@ -112,9 +128,8 @@ void PdfPage::build_resource_dict() {
         for(const auto &s : gstates) {
             fmt::format_to(resource_appender, "    /{} <<\n", s.name);
             if(s.state.blend_mode) {
-                fmt::format_to(resource_appender,
-                               "      /BlendMode /{}\n",
-                               blend_mode_names.at(*s.state.blend_mode));
+                fmt::format_to(
+                    resource_appender, "      /BM /{}\n", blend_mode_names.at(*s.state.blend_mode));
             }
             if(s.state.intent) {
                 fmt::format_to(resource_appender,
