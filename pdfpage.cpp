@@ -17,9 +17,12 @@
 #include <pdfpage.hpp>
 #include <pdfgen.hpp>
 #include <lcms2.h>
+#include <iconv.h>
 #include <fmt/core.h>
 #include <array>
 #include <cmath>
+#include <cassert>
+#include <memory>
 
 namespace {
 
@@ -288,8 +291,34 @@ void PdfPage::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
+struct IconvCloser {
+    iconv_t t;
+    ~IconvCloser() { iconv_close(t); }
+};
+
 void PdfPage::render_ascii_text(
     std::string_view text, FontId fid, double pointsize, double x, double y) {
+    auto cd = iconv_open("UCS-4LE", "UTF-8");
+    if(errno != 0) {
+        throw std::runtime_error(strerror(errno));
+    }
+    IconvCloser ic{cd};
+    uint32_t codepoint = 0;
+    auto in_ptr = (char *)text.data();
+    auto in_bytes = text.length();
+    while(in_ptr < text.data() + text.size()) {
+        auto out_ptr = (char *)&codepoint;
+        auto out_bytes = sizeof(codepoint);
+        errno = 0;
+        auto iconv_result = iconv(cd, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+        if(iconv_result == (size_t)-1 && errno != E2BIG) {
+            throw std::runtime_error(strerror(errno));
+        }
+        if(codepoint > 127) {
+            throw std::runtime_error("Non ASCII input character found.");
+        }
+    }
+    assert(in_bytes == 0);
     auto font_data = g->font_objects.at(fid.id);
     used_fonts.insert(font_data.font_obj);
     fmt::format_to(cmd_appender,
