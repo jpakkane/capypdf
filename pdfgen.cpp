@@ -176,12 +176,12 @@ void PdfGen::write_info() {
     std::string obj_data{"<<\n"};
     if(!opts.title.empty()) {
         obj_data += "  /Title ";
-        obj_data += utf8_to_pdfstr(opts.title);
+        obj_data += utf8_to_pdfstr(opts.title, true);
         obj_data += "\n";
     }
     if(!opts.author.empty()) {
         obj_data += "  /Author ";
-        obj_data += utf8_to_pdfstr(opts.author);
+        obj_data += utf8_to_pdfstr(opts.author, true);
         obj_data += "\n";
     }
     obj_data += "  /Producer (PDF Testbed generator)\n";
@@ -514,8 +514,8 @@ stream
                          font_file_obj);
     auto font_descriptor_obj = add_object(objbuf);
 
-    const int start_char = 32;
-    const int end_char = 122;
+    const int start_char = 0;
+    const int end_char = 0xFFFD; // Unicode replacement character.
     auto width_arr = build_width_array(face, start_char, end_char + 1);
     objbuf = fmt::format(R"(<<
   /Type /Font

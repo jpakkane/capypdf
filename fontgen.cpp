@@ -29,10 +29,12 @@ int main(int argc, char **argv) {
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = opts.page_size.w;
     opts.mediabox.h = opts.page_size.h;
+    opts.title = "Font layout test";
     PdfGen gen("fonttest.pdf", opts);
     auto ctx = gen.new_page();
     auto fid = gen.load_font(fontfile);
-    ctx.render_ascii_text("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz", fid, 10, 5, 10);
-    ctx.render_ascii_text("0123456789", fid, 12, 25, 32);
+    ctx.render_utf8_text(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ abcdefghijklmnopqrstuvwxyzåäö", fid, 10, 5, 10);
+    ctx.render_utf8_text("0123456789", fid, 12, 25, 32);
     return 0;
 }

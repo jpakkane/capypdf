@@ -16,6 +16,7 @@
 
 #include <pdfpage.hpp>
 #include <pdfgen.hpp>
+#include <utils.hpp>
 #include <lcms2.h>
 #include <iconv.h>
 #include <fmt/core.h>
@@ -296,13 +297,15 @@ struct IconvCloser {
     ~IconvCloser() { iconv_close(t); }
 };
 
-void PdfPage::render_ascii_text(
+void PdfPage::render_utf8_text(
     std::string_view text, FontId fid, double pointsize, double x, double y) {
-    auto cd = iconv_open("UCS-4LE", "UTF-8");
+    // PDF text code requires us to keep track of the highest
+    // codepoint used thus far in order to generate the widths array.
+    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
         throw std::runtime_error(strerror(errno));
     }
-    IconvCloser ic{cd};
+    IconvCloser ic{to_codepoint};
     uint32_t codepoint = 0;
     auto in_ptr = (char *)text.data();
     auto in_bytes = text.length();
@@ -310,14 +313,13 @@ void PdfPage::render_ascii_text(
         auto out_ptr = (char *)&codepoint;
         auto out_bytes = sizeof(codepoint);
         errno = 0;
-        auto iconv_result = iconv(cd, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             throw std::runtime_error(strerror(errno));
         }
-        if(codepoint > 127) {
-            throw std::runtime_error("Non ASCII input character found.");
-        }
+        // Store codepoint here.
     }
+    const auto u16s = utf8_to_pdfstr(text, false);
     assert(in_bytes == 0);
     auto font_data = g->font_objects.at(fid.id);
     used_fonts.insert(font_data.font_obj);
@@ -325,14 +327,14 @@ void PdfPage::render_ascii_text(
                    R"(BT
   /Font{} {} Tf
   {} {} Td
-  ({}) Tj
+  {} Tj
 ET
 )",
                    font_data.font_obj,
                    pointsize,
                    x,
                    y,
-                   text);
+                   u16s);
 }
 
 void PdfPage::render_ascii_text_builtin(

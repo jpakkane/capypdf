@@ -76,9 +76,10 @@ std::string load_file(const char *fname) {
     return contents;
 }
 
-std::string utf8_to_pdfstr(std::string_view input) {
+std::string utf8_to_pdfstr(std::string_view input, bool add_bom) {
     // For now put everything into UTF-16 bracketstrings.
-    std::string encoded("<FEFF"); // BOM is mandatory
+    std::string encoded = add_bom ? "<FEFF" : "<";
+
     std::string u16buf(input.length() * 4 + 10, '\0');
     errno = 0;
     auto cd = iconv_open("UTF-16BE", "UTF-8"); // PDF 1.7 spec 7.9.2.2

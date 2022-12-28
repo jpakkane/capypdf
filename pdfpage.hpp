@@ -82,7 +82,7 @@ public:
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    void render_ascii_text(std::string_view text, FontId fid, double pointsize, double x, double y);
+    void render_utf8_text(std::string_view text, FontId fid, double pointsize, double x, double y);
     void render_ascii_text_builtin(
         const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y);
 
