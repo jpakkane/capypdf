@@ -17,6 +17,8 @@
 #include <gtk/gtk.h>
 #include <sys/mman.h>
 #include <filesystem>
+#include <optional>
+#include <vector>
 
 struct App {
     GtkApplication *app;
@@ -30,17 +32,101 @@ enum { OBJNUM_COLUMN, DICT_COLUMN, STREAM_COLUMN, N_OBJ_COLUMNS };
 
 namespace {
 
+const int xref_entry_size = 20;
+const int free_generation = 65535;
+
 struct MMapCloser {
     void *addr;
     size_t length;
     ~MMapCloser() { munmap(addr, length); }
 };
 
+struct XrefEntry {
+    int32_t obj_generation;
+    size_t offset;
+};
+
+std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
+    std::vector<XrefEntry> refs;
+    if(xref.find("xref\n") != 0) {
+        printf("Xref table is not valid.\n");
+        return {};
+    }
+    const char *data_in = xref.data() + 5;
+    char *tmp;
+    const long first_obj = strtol(data_in, &tmp, 10);
+    if(first_obj != 0) {
+        printf("Xref entries must start with object 0.\n");
+        return {};
+    }
+    data_in = tmp;
+    const long num_objects = strtol(data_in, &tmp, 10);
+    if(num_objects <= 0) {
+        printf("Invalid number of entries in xref table.");
+        return {};
+    }
+    data_in = tmp + 1;
+    refs.reserve(num_objects);
+    for(long i = 0; i < num_objects; ++i) {
+        auto obj_offset = strtol(data_in, nullptr, 10);
+        auto obj_generation = strtol(data_in + 11, nullptr, 10);
+        auto type = data_in[17];
+        switch(type) {
+        case 'n': {
+            if(obj_generation != 0) {
+                printf("Can not handle multi-generation PDF files.\n");
+                return {};
+            }
+        } break;
+        case 'f': {
+            if(obj_generation != free_generation) {
+                printf("Can not handle multipart indexes yet.\n");
+                return {};
+            }
+        } break;
+        default: {
+            printf("Cross reference entry type is invalid.\n");
+            return {};
+        }
+        }
+        refs.push_back(XrefEntry{(int32_t)obj_generation, size_t(obj_offset)});
+        data_in += xref_entry_size;
+    }
+    return refs;
+}
+
 void parse_pdf(App &a, std::string_view data) {
     if(data.find("%PDF-1.") != 0) {
         printf("Not a valid PDF file.\n");
         return;
     }
+    const auto i1 = data.rfind('\n', data.size() - 2);
+    const auto i2 = data.rfind('\n', i1 - 2);
+    const auto i3 = data.rfind('\n', i2 - 2);
+    if(i3 == std::string_view::npos) {
+        printf("Very invalid PDF file.\n");
+        return;
+    }
+    const auto trailer_off = data.rfind("trailer", i3);
+    if(trailer_off == std::string::npos) {
+        printf("Trailer dictionary is missing.\n");
+        return;
+    }
+    auto xref = data.substr(i3 + 1, i2 - i3 - 1);
+    if(xref != "startxref") {
+        printf("Cross reference table missing.\n");
+        return;
+    }
+    const auto xrefstart = strtol(data.data() + i2 + 1, nullptr, 10);
+    if(xrefstart <= 0 || (size_t)xrefstart >= data.size()) {
+        printf("Cross reference offset incorrect.\n");
+        return;
+    }
+    auto xreftable_maybe = parse_xreftable(data.substr(xrefstart));
+    if(!xreftable_maybe) {
+        return;
+    }
+    auto &xreftable = *xreftable_maybe;
 }
 
 void load_file(App &a, const std::filesystem::path &ifile) {
