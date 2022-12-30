@@ -20,7 +20,7 @@
 #include <optional>
 #include <vector>
 
-enum { OBJNUM_COLUMN, OFFSET_COLUMN, N_OBJ_COLUMNS };
+enum { OBJNUM_COLUMN, OFFSET_COLUMN, STREAM_SIZE_COLUMN, TYPE_COLUMN, N_OBJ_COLUMNS };
 
 namespace {
 
@@ -55,14 +55,34 @@ struct App {
     std::vector<XrefEntry> objects;
 };
 
+std::string detect_type(std::string_view odict) {
+    auto typeloc = odict.find("/Type ");
+    if(typeloc == std::string::npos) {
+        return "";
+    }
+    auto typeend = odict.find_first_not_of("/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+                                           typeloc + 6);
+    return std::string{odict.substr(typeloc + 7, typeend - typeloc - 7)};
+}
+
 void reload_object_view(App &a) {
     gtk_tree_store_clear(a.objectstore);
     GtkTreeIter iter;
     size_t i = 0;
     for(const auto &object : a.objects) {
+        auto type = detect_type(object.bd.dict);
         gtk_tree_store_append(a.objectstore, &iter, nullptr);
-        gtk_tree_store_set(
-            a.objectstore, &iter, OBJNUM_COLUMN, (int)i, OFFSET_COLUMN, (int64_t)object.offset, -1);
+        gtk_tree_store_set(a.objectstore,
+                           &iter,
+                           OBJNUM_COLUMN,
+                           (int)i,
+                           OFFSET_COLUMN,
+                           (int64_t)object.offset,
+                           STREAM_SIZE_COLUMN,
+                           (int)object.bd.stream.size(),
+                           TYPE_COLUMN,
+                           type.c_str(),
+                           -1);
         ++i;
     }
 }
@@ -228,38 +248,66 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     }
     int32_t index;
     gtk_tree_model_get(model, &iter, OBJNUM_COLUMN, &index, -1);
+
     auto buf = gtk_text_view_get_buffer(a->obj_text);
     gtk_text_buffer_set_text(
         buf, a->objects[index].bd.dict.c_str(), a->objects[index].bd.dict.size());
+    buf = gtk_text_view_get_buffer(a->stream_text);
+    // FIXME, do deflate here.
+    const auto &streamtext = a->objects[index].bd.stream;
+    gtk_text_buffer_set_text(buf, streamtext.c_str(), streamtext.length());
 }
 
 void build_gui(App &a) {
     a.win = GTK_WINDOW(gtk_application_window_new(a.app));
     gtk_window_set_title(a.win, "PDF browser");
-    gtk_window_set_default_size(a.win, 1024, 800);
+    gtk_window_set_default_size(a.win, 1600, 800);
 
-    a.objectstore = gtk_tree_store_new(N_OBJ_COLUMNS, G_TYPE_INT, G_TYPE_INT64);
+    a.objectstore =
+        gtk_tree_store_new(N_OBJ_COLUMNS, G_TYPE_INT, G_TYPE_INT64, G_TYPE_INT, G_TYPE_STRING);
     a.objectview = GTK_TREE_VIEW(gtk_tree_view_new_with_model(GTK_TREE_MODEL(a.objectstore)));
     GtkCellRenderer *r = gtk_cell_renderer_text_new();
-    GtkTreeViewColumn *c = gtk_tree_view_column_new_with_attributes(
-        "Object number", r, "text", OBJNUM_COLUMN, nullptr);
+    GtkTreeViewColumn *c =
+        gtk_tree_view_column_new_with_attributes("Number", r, "text", OBJNUM_COLUMN, nullptr);
+    gtk_tree_view_append_column(a.objectview, c);
+    r = gtk_cell_renderer_text_new();
+    c = gtk_tree_view_column_new_with_attributes("Type", r, "text", TYPE_COLUMN, nullptr);
     gtk_tree_view_append_column(a.objectview, c);
     r = gtk_cell_renderer_text_new();
     c = gtk_tree_view_column_new_with_attributes("Offset", r, "text", OFFSET_COLUMN, nullptr);
     gtk_tree_view_append_column(a.objectview, c);
+    r = gtk_cell_renderer_text_new();
+    c = gtk_tree_view_column_new_with_attributes(
+        "Stream size", r, "text", STREAM_SIZE_COLUMN, nullptr);
+    gtk_tree_view_append_column(a.objectview, c);
+
     auto select = gtk_tree_view_get_selection(a.objectview);
     gtk_tree_selection_set_mode(select, GTK_SELECTION_SINGLE);
     g_signal_connect(G_OBJECT(select), "changed", G_CALLBACK(selection_changed_cb), &a);
 
+    GtkNotebook *note = GTK_NOTEBOOK(gtk_notebook_new());
     GtkGrid *grid = GTK_GRID(gtk_grid_new());
     auto *scroll = gtk_scrolled_window_new();
-    gtk_widget_set_size_request(scroll, 400, -1);
+    gtk_widget_set_size_request(scroll, 600, -1);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(a.objectview));
     gtk_grid_attach(grid, scroll, 0, 0, 1, 1);
     a.obj_text = GTK_TEXT_VIEW(gtk_text_view_new());
+    a.stream_text = GTK_TEXT_VIEW(gtk_text_view_new());
     gtk_widget_set_vexpand(GTK_WIDGET(a.obj_text), 1);
     gtk_widget_set_hexpand(GTK_WIDGET(a.obj_text), 1);
-    gtk_grid_attach(grid, GTK_WIDGET(a.obj_text), 1, 0, 1, 1);
+    gtk_widget_set_vexpand(GTK_WIDGET(a.stream_text), 1);
+    gtk_widget_set_hexpand(GTK_WIDGET(a.stream_text), 1);
+    scroll = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(scroll, 1);
+    gtk_widget_set_hexpand(scroll, 1);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(a.obj_text));
+    gtk_notebook_append_page(note, scroll, gtk_label_new("Dictionary"));
+    scroll = gtk_scrolled_window_new();
+    gtk_widget_set_vexpand(scroll, 1);
+    gtk_widget_set_hexpand(scroll, 1);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(a.stream_text));
+    gtk_notebook_append_page(note, scroll, gtk_label_new("Stream"));
+    gtk_grid_attach(grid, GTK_WIDGET(note), 1, 0, 1, 1);
     gtk_window_set_child(GTK_WINDOW(a.win), GTK_WIDGET(grid));
 }
 
