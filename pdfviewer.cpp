@@ -16,6 +16,7 @@
 
 #include <gtk/gtk.h>
 #include <sys/mman.h>
+#include <cassert>
 #include <filesystem>
 #include <optional>
 #include <vector>
@@ -23,6 +24,8 @@
 enum { OBJNUM_COLUMN, OFFSET_COLUMN, STREAM_SIZE_COLUMN, TYPE_COLUMN, N_OBJ_COLUMNS };
 
 namespace {
+
+const char appname[] = "PDF browser";
 
 const int xref_entry_size = 20;
 const int free_generation = 65535;
@@ -170,7 +173,7 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
     return refs;
 }
 
-std::optional<std::vector<XrefEntry>> parse_pdf(App &a, std::string_view data) {
+std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
     if(data.find("%PDF-1.") != 0) {
         printf("Not a valid PDF file.\n");
         return {};
@@ -232,10 +235,14 @@ void load_file(App &a, const std::filesystem::path &ifile) {
     }
     MMapCloser mc{addr, (size_t)file_size};
     std::string_view data{(const char *)addr, (size_t)file_size};
-    auto new_entries_maybe = parse_pdf(a, data);
+    auto new_entries_maybe = parse_pdf(data);
     if(new_entries_maybe) {
         a.objects = std::move(*new_entries_maybe);
         reload_object_view(a);
+        std::string title{appname};
+        title += " - ";
+        title += ifile.filename().c_str();
+        gtk_window_set_title(a.win, title.c_str());
     }
 }
 
@@ -250,6 +257,8 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     gtk_tree_model_get(model, &iter, OBJNUM_COLUMN, &index, -1);
 
     auto buf = gtk_text_view_get_buffer(a->obj_text);
+    assert(index >= 0);
+    assert((size_t)index < a->objects.size());
     gtk_text_buffer_set_text(
         buf, a->objects[index].bd.dict.c_str(), a->objects[index].bd.dict.size());
     buf = gtk_text_view_get_buffer(a->stream_text);
@@ -258,10 +267,56 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     gtk_text_buffer_set_text(buf, streamtext.c_str(), streamtext.length());
 }
 
+void file_open_cb(GtkDialog *dialog, int response, gpointer data) {
+    App *a = static_cast<App *>(data);
+    if(response == GTK_RESPONSE_ACCEPT) {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser);
+        std::filesystem::path infile(g_file_get_path(file));
+        load_file(*a, infile);
+    }
+
+    gtk_window_destroy(GTK_WINDOW(dialog));
+}
+
+void load_cb(GtkButton *, gpointer data) {
+    App *a = static_cast<App *>(data);
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+
+    dialog = gtk_file_chooser_dialog_new("Open File",
+                                         a->win,
+                                         action,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "_Open",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
+    gtk_window_present(GTK_WINDOW(dialog));
+
+    g_signal_connect(dialog, "response", G_CALLBACK(file_open_cb), data);
+}
+
+void save_stream_cb(GtkButton *, gpointer) { printf("Not implemented yet.\n"); }
+
+void quit_cb(GtkButton *, gpointer) { g_main_loop_quit(nullptr); }
+
 void build_gui(App &a) {
     a.win = GTK_WINDOW(gtk_application_window_new(a.app));
-    gtk_window_set_title(a.win, "PDF browser");
+    gtk_window_set_title(a.win, appname);
     gtk_window_set_default_size(a.win, 1600, 800);
+
+    // I could not decipher how to create a menumodel, ergo this.
+    auto *bbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    auto *b = gtk_button_new_with_label("Load");
+    g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(load_cb), &a);
+    gtk_box_append(GTK_BOX(bbox), b);
+    b = gtk_button_new_with_label("Save stream");
+    g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(save_stream_cb), &a);
+    gtk_box_append(GTK_BOX(bbox), b);
+    b = gtk_button_new_with_label("Quit");
+    g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(quit_cb), &a);
+    gtk_box_append(GTK_BOX(bbox), b);
 
     a.objectstore =
         gtk_tree_store_new(N_OBJ_COLUMNS, G_TYPE_INT, G_TYPE_INT64, G_TYPE_INT, G_TYPE_STRING);
@@ -287,10 +342,11 @@ void build_gui(App &a) {
 
     GtkNotebook *note = GTK_NOTEBOOK(gtk_notebook_new());
     GtkGrid *grid = GTK_GRID(gtk_grid_new());
+    gtk_grid_attach(grid, bbox, 0, 0, 2, 1);
     auto *scroll = gtk_scrolled_window_new();
     gtk_widget_set_size_request(scroll, 600, -1);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(a.objectview));
-    gtk_grid_attach(grid, scroll, 0, 0, 1, 1);
+    gtk_grid_attach(grid, scroll, 0, 1, 1, 1);
     a.obj_text = GTK_TEXT_VIEW(gtk_text_view_new());
     a.stream_text = GTK_TEXT_VIEW(gtk_text_view_new());
     gtk_widget_set_vexpand(GTK_WIDGET(a.obj_text), 1);
@@ -307,7 +363,8 @@ void build_gui(App &a) {
     gtk_widget_set_hexpand(scroll, 1);
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), GTK_WIDGET(a.stream_text));
     gtk_notebook_append_page(note, scroll, gtk_label_new("Stream"));
-    gtk_grid_attach(grid, GTK_WIDGET(note), 1, 0, 1, 1);
+    gtk_grid_attach(grid, GTK_WIDGET(note), 1, 1, 1, 1);
+
     gtk_window_set_child(GTK_WINDOW(a.win), GTK_WIDGET(grid));
 }
 
