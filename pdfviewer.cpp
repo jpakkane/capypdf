@@ -59,13 +59,20 @@ struct App {
 };
 
 std::string detect_type(std::string_view odict) {
+    const char active_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     auto typeloc = odict.find("/Type ");
-    if(typeloc == std::string::npos) {
-        return "";
+    if(typeloc != std::string::npos) {
+        auto typeend = odict.find_first_not_of(active_chars, typeloc + 7);
+        return std::string{odict.substr(typeloc + 7, typeend - typeloc - 7)};
     }
-    auto typeend = odict.find_first_not_of("/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-                                           typeloc + 6);
-    return std::string{odict.substr(typeloc + 7, typeend - typeloc - 7)};
+    typeloc = odict.find("/Type");
+    if(typeloc != std::string::npos) {
+        std::string bob{odict};
+        auto typeview = odict.substr(typeloc + 6);
+        auto typeend = typeview.find_first_not_of(active_chars);
+        return std::string{typeview.substr(0, typeend)};
+    }
+    return "";
 }
 
 void reload_object_view(App &a) {
@@ -248,6 +255,9 @@ void load_file(App &a, const std::filesystem::path &ifile) {
 
 void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     App *a = static_cast<App *>(data);
+    if(a->objects.empty()) {
+        return;
+    }
     GtkTreeIter iter;
     GtkTreeModel *model;
     if(!gtk_tree_selection_get_selected(selection, &model, &iter)) {
