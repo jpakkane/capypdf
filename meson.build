@@ -35,4 +35,4 @@ executable('gstategen',
   link_with: pdflib)
 
 executable('pdfviewer', 'pdfviewer.cpp',
-  dependencies: gtk_dep)
+  dependencies: [zlib_dep, gtk_dep])

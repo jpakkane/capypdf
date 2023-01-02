@@ -521,7 +521,6 @@ stream
   /Type /Font
   /Subtype /TrueType
   /BaseFont /{}
-  /Encoding /WinAnsiEncoding
   /FirstChar {}
   /LastChar {}
   /Widths {}

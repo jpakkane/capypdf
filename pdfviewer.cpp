@@ -16,6 +16,7 @@
 
 #include <gtk/gtk.h>
 #include <sys/mman.h>
+#include <zlib.h>
 #include <cassert>
 #include <filesystem>
 #include <optional>
@@ -24,6 +25,62 @@
 enum { OBJNUM_COLUMN, OFFSET_COLUMN, STREAM_SIZE_COLUMN, TYPE_COLUMN, N_OBJ_COLUMNS };
 
 namespace {
+
+std::string inflate(std::string_view compressed) {
+    std::string inflated;
+    const int CHUNK = 1024 * 1024;
+    int ret;
+    unsigned have;
+    z_stream strm;
+    const unsigned char *current = (const unsigned char *)compressed.data();
+    std::unique_ptr<unsigned char[]> out(new unsigned char[CHUNK]);
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if(ret != Z_OK) {
+        printf("Could not init zlib.");
+        return "";
+    }
+
+    /* decompress until deflate stream ends or end of file */
+    strm.avail_in = compressed.size();
+    strm.next_in = const_cast<unsigned char *>(current); // zlib header is const-broken
+    do {
+        if(strm.total_in >= compressed.size()) {
+            break;
+        }
+
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out.get();
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR); /* state not clobbered */
+            switch(ret) {
+            case Z_NEED_DICT:
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                printf("Zlib error: %s\n", strm.msg);
+                return "";
+            }
+            have = CHUNK - strm.avail_out;
+
+            inflated += std::string_view((const char *)out.get(), have);
+        } while(strm.avail_out == 0);
+        /* done when inflate() says it's done */
+    } while(ret != Z_STREAM_END);
+    /*
+        if(Z_STREAM_END != Z_OK) {
+            throw std::runtime_error("Decompression failed.");
+        }
+    */
+    return inflated;
+}
 
 const char appname[] = "PDF browser";
 
@@ -272,9 +329,13 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     gtk_text_buffer_set_text(
         buf, a->objects[index].bd.dict.c_str(), a->objects[index].bd.dict.size());
     buf = gtk_text_view_get_buffer(a->stream_text);
-    // FIXME, do deflate here.
     const auto &streamtext = a->objects[index].bd.stream;
-    gtk_text_buffer_set_text(buf, streamtext.c_str(), streamtext.length());
+    if(a->objects[index].bd.dict.find("FlateDecode") != std::string::npos) {
+        auto inflated = inflate(streamtext);
+        gtk_text_buffer_set_text(buf, inflated.c_str(), inflated.length());
+    } else {
+        gtk_text_buffer_set_text(buf, streamtext.c_str(), streamtext.length());
+    }
 }
 
 void file_open_cb(GtkDialog *dialog, int response, gpointer data) {
