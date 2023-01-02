@@ -310,6 +310,42 @@ void load_file(App &a, const std::filesystem::path &ifile) {
     }
 }
 
+void write_file(std::filesystem::path ofile, std::string_view data) {
+    FILE *f = fopen(ofile.c_str(), "w");
+    if(!f) {
+        printf("Could not open file %s: %s.\n", ofile.c_str(), strerror(errno));
+        return;
+    }
+    fwrite(data.data(), 1, data.size(), f);
+    fclose(f);
+}
+
+void save_stream(App &a, const std::filesystem::path &ofile) {
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(a.objectview);
+    if(!gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        return;
+    }
+    int32_t index;
+    gtk_tree_model_get(model, &iter, OBJNUM_COLUMN, &index, -1);
+    if(index < 0 || (size_t)index >= a.objects.size()) {
+        printf("Invalid selection.\n");
+        return;
+    }
+    const auto &outobj = a.objects[index];
+    if(outobj.bd.stream.empty()) {
+        printf("Object stream is empty");
+        return;
+    }
+    if(outobj.bd.dict.find("/FlateDecode") == std::string::npos) {
+        write_file(ofile, outobj.bd.stream);
+    } else {
+        auto inflated = inflate(outobj.bd.stream);
+        write_file(ofile, inflated);
+    }
+}
+
 void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     App *a = static_cast<App *>(data);
     if(a->objects.empty()) {
@@ -368,7 +404,37 @@ void load_cb(GtkButton *, gpointer data) {
     g_signal_connect(dialog, "response", G_CALLBACK(file_open_cb), data);
 }
 
-void save_stream_cb(GtkButton *, gpointer) { printf("Not implemented yet.\n"); }
+void stream_save_cb(GtkDialog *dialog, int response, gpointer data) {
+    App *a = static_cast<App *>(data);
+    if(response == GTK_RESPONSE_ACCEPT) {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        g_autoptr(GFile) file = gtk_file_chooser_get_file(chooser);
+        std::filesystem::path infile(g_file_get_path(file));
+        gtk_window_destroy(GTK_WINDOW(dialog));
+        save_stream(*a, infile); // Might show a dialog.
+    } else {
+
+        gtk_window_destroy(GTK_WINDOW(dialog));
+    }
+}
+
+void file_save_cb(GtkButton *, gpointer data) {
+    App *a = static_cast<App *>(data);
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+
+    dialog = gtk_file_chooser_dialog_new("Save stream",
+                                         a->win,
+                                         action,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "_Save",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
+    gtk_window_present(GTK_WINDOW(dialog));
+
+    g_signal_connect(dialog, "response", G_CALLBACK(stream_save_cb), data);
+}
 
 void quit_cb(GtkButton *, gpointer) { g_main_loop_quit(nullptr); }
 
@@ -383,7 +449,7 @@ void build_gui(App &a) {
     g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(load_cb), &a);
     gtk_box_append(GTK_BOX(bbox), b);
     b = gtk_button_new_with_label("Save stream");
-    g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(save_stream_cb), &a);
+    g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(file_save_cb), &a);
     gtk_box_append(GTK_BOX(bbox), b);
     b = gtk_button_new_with_label("Quit");
     g_signal_connect(G_OBJECT(b), "clicked", G_CALLBACK(quit_cb), &a);
