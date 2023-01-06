@@ -36,3 +36,6 @@ executable('gstategen',
 
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])
+
+executable('fontsubset', 'fontsubset.cpp',
+  dependencies: freetype_dep)
