@@ -76,9 +76,9 @@ std::string load_file(const char *fname) {
     return contents;
 }
 
-std::string utf8_to_pdfstr(std::string_view input, bool add_bom) {
+std::string utf8_to_pdfmetastr(std::string_view input) {
     // For now put everything into UTF-16 bracketstrings.
-    std::string encoded = add_bom ? "<FEFF" : "<";
+    std::string encoded = "<FEFF";
 
     std::string u16buf(input.length() * 4 + 10, '\0');
     errno = 0;

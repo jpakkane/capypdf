@@ -306,6 +306,27 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(strerror(errno));
     }
     IconvCloser ic{to_codepoint};
+    auto to_utf16 = iconv_open("UTF-16BE", "UCS-4LE");
+    if(errno != 0) {
+        throw std::runtime_error(strerror(errno));
+    }
+    IconvCloser ic2{to_utf16};
+    FT_Face face = g->font_objects.at(fid.id).font.get();
+    if(!face) {
+        throw std::runtime_error(
+            "Tried to use builtin font to render UTF-8. They only support ASCII.");
+    }
+    auto &font_data = g->font_objects.at(fid.id);
+    used_fonts.insert(font_data.font_obj);
+    fmt::format_to(cmd_appender,
+                   R"(BT
+  /Font{} {} Tf
+  {} {} Td
+  <)",
+                   font_data.font_obj,
+                   pointsize,
+                   x,
+                   y);
     uint32_t codepoint = 0;
     auto in_ptr = (char *)text.data();
     auto in_bytes = text.length();
@@ -317,24 +338,26 @@ void PdfPage::render_utf8_text(
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             throw std::runtime_error(strerror(errno));
         }
-        // Store codepoint here.
+        errno = 0;
+        // Font subsetting would happen at this point.
+
+        // auto glyph_index = g->glyph_for_codepoint(face, codepoint);
+        auto glyph_index = codepoint;
+        char *ucs4_in = (char *)&glyph_index;
+        char u16buf[4];
+        char *u16_out = u16buf;
+        size_t in_ucs4_size = 4;
+        size_t out_u16_size = sizeof(u16buf);
+        iconv_result = iconv(to_utf16, &ucs4_in, &in_ucs4_size, &u16_out, &out_u16_size);
+        if(errno) {
+            throw std::runtime_error(strerror(errno));
+        }
+        for(const char *iterator = u16buf; iterator != u16_out; ++iterator) {
+            fmt::format_to(cmd_appender, "{:02X}", (unsigned char)(*iterator));
+        }
     }
-    const auto u16s = utf8_to_pdfstr(text, false);
+    fmt::format_to(cmd_appender, "> Tj\nET\n");
     assert(in_bytes == 0);
-    auto font_data = g->font_objects.at(fid.id);
-    used_fonts.insert(font_data.font_obj);
-    fmt::format_to(cmd_appender,
-                   R"(BT
-  /Font{} {} Tf
-  {} {} Td
-  {} Tj
-ET
-)",
-                   font_data.font_obj,
-                   pointsize,
-                   x,
-                   y,
-                   u16s);
 }
 
 void PdfPage::render_ascii_text_builtin(

@@ -27,11 +27,16 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
+#include <memory>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
 // Ditto for Freetype
 typedef struct FT_LibraryRec_ *FT_Library;
+typedef struct FT_FaceRec_ *FT_Face;
+typedef int FT_Error;
+
+FT_Error guarded_face_close(FT_Face face);
 
 struct PdfBox {
     double x;
@@ -79,6 +84,7 @@ struct FontInfo {
     int32_t font_file_obj;
     int32_t font_descriptor_obj;
     int32_t font_obj;
+    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> font;
 };
 
 class PdfGen {
@@ -105,6 +111,8 @@ private:
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
     int32_t store_icc_profile(std::string_view contents, int32_t num_channels);
+
+    uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
 
     void write_catalog();
     void write_pages();

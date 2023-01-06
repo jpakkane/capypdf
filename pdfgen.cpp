@@ -94,6 +94,14 @@ build_width_array(FT_Face face, const int start_char, const int one_past_the_end
 
 } // namespace
 
+FT_Error guarded_face_close(FT_Face face) {
+    // Freetype segfaults if you give it a null pointer.
+    if(face) {
+        return FT_Done_Face(face);
+    }
+    return 0;
+}
+
 LcmsHolder::~LcmsHolder() { deallocate(); }
 
 void LcmsHolder::deallocate() {
@@ -122,6 +130,7 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
 }
 
 PdfGen::~PdfGen() {
+    font_objects.clear();
     auto error = FT_Done_FreeType(ft);
     if(error) {
         fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
@@ -176,12 +185,12 @@ void PdfGen::write_info() {
     std::string obj_data{"<<\n"};
     if(!opts.title.empty()) {
         obj_data += "  /Title ";
-        obj_data += utf8_to_pdfstr(opts.title, true);
+        obj_data += utf8_to_pdfmetastr(opts.title);
         obj_data += "\n";
     }
     if(!opts.author.empty()) {
         obj_data += "  /Author ";
-        obj_data += utf8_to_pdfstr(opts.author, true);
+        obj_data += utf8_to_pdfmetastr(opts.author);
         obj_data += "\n";
     }
     obj_data += "  /Producer (PDF Testbed generator)\n";
@@ -448,7 +457,7 @@ FontId PdfGen::load_font(const char *fname) {
         // By default Freetype is compiled without error strings. Yay!
         throw std::runtime_error(fmt::format("Freetype error {}.", error));
     }
-    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> fcloser(face, FT_Done_Face);
+    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> fcloser(face, guarded_face_close);
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
         throw std::runtime_error(fmt::format("Could not determine format of font file {}.", fname));
@@ -533,7 +542,8 @@ stream
                          width_arr,
                          font_descriptor_obj);
     auto fontobj = add_object(objbuf);
-    font_objects.push_back(FontInfo{font_file_obj, font_descriptor_obj, fontobj});
+    font_objects.push_back(
+        FontInfo{font_file_obj, font_descriptor_obj, fontobj, std::move(fcloser)});
     FontId fid{(int32_t)font_objects.size() - 1};
     return fid;
 }
@@ -552,7 +562,7 @@ FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
 >>
 )",
                    font_names[font]);
-    font_objects.push_back(FontInfo{-1, -1, add_object(font_dict)});
+    font_objects.push_back(FontInfo{-1, -1, add_object(font_dict), {nullptr, guarded_face_close}});
     auto fontid = FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
@@ -594,4 +604,9 @@ endstream
                    fn_num);
     separation_objects.push_back(add_object(buf));
     return SeparationId{(int32_t)separation_objects.size() - 1};
+}
+
+uint32_t PdfGen::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
+    assert(face);
+    return FT_Get_Char_Index(face, ucs4);
 }
