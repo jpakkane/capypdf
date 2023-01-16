@@ -52,6 +52,12 @@ struct Area {
     static Area a4() { return Area{595.28, 841.89}; }
 };
 
+struct ColorProfiles {
+    const char *rgb_profile_file = nullptr;
+    const char *gray_profile_file = nullptr;
+    const char *cmyk_profile_file = nullptr;
+};
+
 struct PdfGenerationData {
     Area page_size;
     PdfBox mediabox;
@@ -63,6 +69,7 @@ struct PdfGenerationData {
     std::string title;
     std::string author;
     PdfColorSpace output_colorspace = PDF_DEVICE_RGB;
+    ColorProfiles prof;
 };
 
 struct PageOffsets {

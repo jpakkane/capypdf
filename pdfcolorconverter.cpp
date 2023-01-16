@@ -33,44 +33,55 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 PdfColorConverter::PdfColorConverter(const char *rgb_profile_fname,
                                      const char *gray_profile_fname,
                                      const char *cmyk_profile_fname) {
-    rgb_profile_data = load_file(rgb_profile_fname);
-    gray_profile_data = load_file(gray_profile_fname);
-    cmyk_profile_data = load_file(cmyk_profile_fname);
-    cmsHPROFILE h = cmsOpenProfileFromMem(rgb_profile_data.data(), rgb_profile_data.size());
-    if(!h) {
-        throw std::runtime_error(std::string("Could not open RGB color profile ") +
-                                 rgb_profile_fname);
+    if(rgb_profile_fname) {
+        rgb_profile_data = load_file(rgb_profile_fname);
+        cmsHPROFILE h = cmsOpenProfileFromMem(rgb_profile_data.data(), rgb_profile_data.size());
+        if(!h) {
+            throw std::runtime_error(std::string("Could not open RGB color profile ") +
+                                     rgb_profile_fname);
+        }
+        auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
+        if(num_channels != 3) {
+            cmsCloseProfile(h);
+            throw std::runtime_error("RGB profile does not have exactly 3 channels.");
+        }
+        rgb_profile.h = h;
+    } else {
+        rgb_profile.h = cmsCreate_sRGBProfile();
     }
-    auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
-    if(num_channels != 3) {
-        cmsCloseProfile(h);
-        throw std::runtime_error("RGB profile does not have exactly 3 channels.");
+    if(gray_profile_fname) {
+        gray_profile_data = load_file(gray_profile_fname);
+        auto h = cmsOpenProfileFromMem(gray_profile_data.data(), gray_profile_data.size());
+        if(!h) {
+            throw std::runtime_error(std::string("Could not open gray color profile ") +
+                                     gray_profile_fname);
+        }
+        auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
+        if(num_channels != 1) {
+            cmsCloseProfile(h);
+            throw std::runtime_error("Gray profile does not have exactly 1 channels.");
+        }
+        gray_profile.h = h;
+    } else {
+        auto curve = cmsBuildGamma(nullptr, 1.0);
+        gray_profile.h = cmsCreateGrayProfile(cmsD50_xyY(), curve);
+        cmsFreeToneCurve(curve);
     }
-    rgb_profile.h = h;
-
-    h = cmsOpenProfileFromMem(gray_profile_data.data(), gray_profile_data.size());
-    if(!h) {
-        throw std::runtime_error(std::string("Could not open gray color profile ") +
-                                 gray_profile_fname);
+    if(cmyk_profile_fname) {
+        cmyk_profile_data = load_file(cmyk_profile_fname);
+        auto h = cmsOpenProfileFromMem(cmyk_profile_data.data(), cmyk_profile_data.size());
+        if(!h) {
+            throw std::runtime_error(std::string("Could not open cmyk color profile ") +
+                                     cmyk_profile_fname);
+        }
+        auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
+        if(num_channels != 4) {
+            cmsCloseProfile(h);
+            throw std::runtime_error("CMYK profile does not have exactly 4 channels.");
+        }
+        cmyk_profile.h = h;
+    } else {
     }
-    num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
-    if(num_channels != 1) {
-        cmsCloseProfile(h);
-        throw std::runtime_error("Gray profile does not have exactly 1 channels.");
-    }
-    gray_profile.h = h;
-
-    h = cmsOpenProfileFromMem(cmyk_profile_data.data(), cmyk_profile_data.size());
-    if(!h) {
-        throw std::runtime_error(std::string("Could not open cmyk color profile ") +
-                                 cmyk_profile_fname);
-    }
-    num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
-    if(num_channels != 4) {
-        cmsCloseProfile(h);
-        throw std::runtime_error("CMYK profile does not have exactly 4 channels.");
-    }
-    cmyk_profile.h = h;
 }
 
 PdfColorConverter::~PdfColorConverter() {}
@@ -89,6 +100,9 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
 }
 
 DeviceCMYKColor PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
+    if(!cmyk_profile.h) {
+        throw std::runtime_error("Tried to convert to CMYK without a CMYK profile.");
+    }
     DeviceCMYKColor cmyk;
     double buf[4]; // PDF uses values [0, 1] but littlecms seems to use [0, 100].
     auto transform = cmsCreateTransform(rgb_profile.h,
@@ -122,6 +136,9 @@ std::string PdfColorConverter::rgb_pixels_to_gray(std::string_view rgb_data) {
 }
 
 std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
+    if(!cmyk_profile.h) {
+        throw std::runtime_error("Tried to convert to CMYK without a CMYK profile.");
+    }
     assert(rgb_data.size() % 3 == 0);
     const int32_t num_pixels = (int32_t)rgb_data.size() / 3;
     std::string converted_pixels(num_pixels * 4, '\0');

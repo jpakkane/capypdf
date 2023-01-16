@@ -130,6 +130,8 @@ int main(int, char **) {
     opts.title = "Book cover generation experiment with utf-8 (ö).";
     opts.author = "G. R. Aphicdesigner";
     opts.output_colorspace = PDF_DEVICE_CMYK;
+    opts.prof.cmyk_profile_file =
+        "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
     try {
         PdfGen gen("cover.pdf", opts);

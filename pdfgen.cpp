@@ -47,11 +47,6 @@ const std::array<const char *, 9> font_names{
     "Courier-Oblique",
 };
 
-const char default_srgb_profile[] = "/usr/share/color/icc/ghostscript/srgb.icc";
-const char default_gray_profile[] = "/usr/share/color/icc/ghostscript/sgray.icc";
-const char default_cmyk_profile[] =
-    "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
-
 void write_box(auto &appender, const char *boxname, const PdfBox &box) {
     fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
 }
@@ -128,7 +123,7 @@ endcodespacerange
     auto buf_app = std::back_inserter(buf);
     for(const auto &[glyph_id, unicode_point] : mapping) {
         if(num_entries == 100) {
-            fmt::format_to(cmap_app, "{} beginbfchar", num_entries);
+            fmt::format_to(cmap_app, "{} beginbfchar\n", num_entries);
             cmap += buf;
             buf.clear();
             num_entries = 0;
@@ -173,7 +168,7 @@ void LcmsHolder::deallocate() {
 }
 
 PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
-    : opts{d}, cm{default_srgb_profile, default_gray_profile, default_cmyk_profile} {
+    : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
     ofile = fopen(ofname, "wb");
     if(!ofile) {
         throw std::runtime_error(strerror(errno));
@@ -184,7 +179,9 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
     }
     write_header();
     write_info();
-    create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
+    if(d.output_colorspace == PDF_DEVICE_CMYK) {
+        create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
+    }
     rgb_profile_obj = store_icc_profile(cm.get_rgb(), 3);
     gray_profile_obj = store_icc_profile(cm.get_gray(), 1);
     cmyk_profile_obj = store_icc_profile(cm.get_cmyk(), 4);
@@ -217,6 +214,9 @@ PdfGen::~PdfGen() {
 }
 
 int32_t PdfGen::store_icc_profile(std::string_view contents, int32_t num_channels) {
+    if(contents.empty()) {
+        return -1;
+    }
     std::string compressed = flate_compress(contents);
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
