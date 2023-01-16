@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <array>
 #include <memory>
+#include <map>
 #include <fmt/core.h>
 
 namespace {
@@ -90,6 +91,66 @@ build_width_array(FT_Face face, const int start_char, const int one_past_the_end
     }
     arr += "]";
     return arr;
+}
+
+std::map<uint32_t, uint32_t> build_cmap_entries(FT_Face face) {
+    const int first_id = 1;
+    const int last_id = 1024;
+    std::map<uint32_t, uint32_t> glyph_mapping;
+    for(uint32_t i = first_id; i < last_id; ++i) {
+        auto glyph_id = FT_Get_Char_Index(face, i);
+        if(glyph_id != i) {
+            glyph_mapping[glyph_id] = i;
+        }
+    }
+    return glyph_mapping;
+}
+
+std::string create_cmap(FT_Face face) {
+    const auto mapping = build_cmap_entries(face);
+    std::string cmap{R"(12 dict begin
+begincmap
+/CIDSystemInfo<<
+  /Registry (Adobe)
+  /Ordering (UCS)
+  /Supplement 0
+>> def
+/CMapName/Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<0000> <FFFF>
+endcodespacerange
+)"};
+
+    int num_entries = 0;
+    std::string buf;
+    auto cmap_app = std::back_inserter(cmap);
+    auto buf_app = std::back_inserter(buf);
+    for(const auto &[glyph_id, unicode_point] : mapping) {
+        if(num_entries == 100) {
+            fmt::format_to(cmap_app, "{} beginbfchar", num_entries);
+            cmap += buf;
+            buf.clear();
+            num_entries = 0;
+            cmap += "endbfchar\n";
+        }
+        ++num_entries;
+        fmt::format_to(buf_app, "<{:04X}> <{:04X}>\n", glyph_id, unicode_point);
+    }
+    fmt::format_to(cmap_app,
+                   R"({} beginbfchar
+{}
+endbfchar
+)",
+                   num_entries,
+                   buf);
+
+    cmap += R"(endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+)";
+    return cmap;
 }
 
 } // namespace
@@ -523,6 +584,17 @@ stream
                          font_file_obj);
     auto font_descriptor_obj = add_object(objbuf);
 
+    auto cmap = create_cmap(face);
+
+    auto tounicode_obj = add_object(fmt::format(R"(<<
+  /Length {}
+>>
+stream
+{}
+endstream
+)",
+                                                cmap.size(),
+                                                cmap));
     const int start_char = 0;
     const int end_char = 0xFFFD; // Unicode replacement character.
     auto width_arr = build_width_array(face, start_char, end_char + 1);
@@ -534,13 +606,15 @@ stream
   /LastChar {}
   /Widths {}
   /FontDescriptor {} 0 R
+  /ToUnicode {} 0 R
 >>
 )",
                          FT_Get_Postscript_Name(face),
                          start_char,
                          end_char,
                          width_arr,
-                         font_descriptor_obj);
+                         font_descriptor_obj,
+                         tounicode_obj);
     auto fontobj = add_object(objbuf);
     font_objects.push_back(
         FontInfo{font_file_obj, font_descriptor_obj, fontobj, std::move(fcloser)});

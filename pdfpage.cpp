@@ -376,7 +376,7 @@ ET
                    pointsize,
                    x,
                    y,
-                   glyph);
+                   font_glyph_id);
 }
 
 void PdfPage::render_ascii_text_builtin(
