@@ -360,6 +360,24 @@ void PdfPage::render_utf8_text(
     assert(in_bytes == 0);
 }
 
+void PdfPage::render_raw_glyph(uint16_t glyph, FontId fid, double pointsize, double x, double y) {
+    auto &font_data = g->font_objects.at(fid.id);
+    used_fonts.insert(font_data.font_obj);
+
+    fmt::format_to(cmd_appender,
+                   R"(BT
+  /Font{} {} Tf
+  {} {} Td
+  (\{:o}) Tj
+ET
+)",
+                   font_data.font_obj,
+                   pointsize,
+                   x,
+                   y,
+                   glyph);
+}
+
 void PdfPage::render_ascii_text_builtin(
     const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y) {
     auto font_object = g->font_object_number(g->get_builtin_font_id(font_id));
