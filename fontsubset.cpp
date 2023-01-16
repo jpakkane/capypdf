@@ -40,6 +40,8 @@ void byte_swap(uint64_t &val) { val = bswap_64(val); }
 
 } // namespace
 
+#pragma pack(push, r1, 1)
+
 struct TTOffsetTable {
     int32_t scaler = 0x10000;
     int16_t num_tables;
@@ -80,8 +82,8 @@ struct TTHead {
     uint32_t magic;
     uint16_t flags;
     uint16_t units_per_em;
-    int64_t created;
-    int64_t modified;
+    uint64_t created;
+    uint64_t modified;
     int16_t x_min;
     int16_t y_min;
     int16_t x_max;
@@ -112,6 +114,7 @@ struct TTHead {
         byte_swap(glyph_data_format);
     }
 };
+static_assert(sizeof(TTHead) == 54);
 
 struct TTDirEntry {
     char tag[4];
@@ -126,6 +129,9 @@ struct TTDirEntry {
         byte_swap(length);
     }
 };
+#pragma pack(pop, r1)
+
+static_assert(sizeof(TTDirEntry) == 4 * 4);
 
 struct SubsetFont {
     TTOffsetTable offset;
