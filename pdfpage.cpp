@@ -360,10 +360,11 @@ void PdfPage::render_utf8_text(
     assert(in_bytes == 0);
 }
 
-void PdfPage::render_raw_glyph(uint16_t glyph, FontId fid, double pointsize, double x, double y) {
+void PdfPage::render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y) {
     auto &font_data = g->font_objects.at(fid.id);
     used_fonts.insert(font_data.font_obj);
 
+    const auto font_glyph_id = g->glyph_for_codepoint(font_data.font.get(), glyph);
     fmt::format_to(cmd_appender,
                    R"(BT
   /Font{} {} Tf

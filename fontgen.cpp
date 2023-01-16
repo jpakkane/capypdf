@@ -31,18 +31,18 @@ int main(int argc, char **argv) {
     opts.mediabox.h = opts.page_size.h;
     opts.title = "Font layout test";
     PdfGen gen("fonttest.pdf", opts);
-    auto ctx = gen.new_page();
     auto fid = gen.load_font(fontfile);
-    for(int i = 0; i < 16; ++i) {
-        for(int j = 0; j < 16; ++j) {
-            char buf[10];
-            const int cur_char = 16 * i + j;
-            snprintf(buf, 10, "0x%X", cur_char);
-            ctx.render_utf8_text(buf, fid, 8, 10 + 45 * i, opts.page_size.h - (10 + 10 * j));
-            buf[0] = (char)cur_char;
-            buf[1] = '\0';
-            ctx.render_raw_glyph(
-                (uint16_t)cur_char, fid, 8, 10 + 30 + 45 * i, opts.page_size.h - (10 + 10 * j));
+    for(int page_num = 0; page_num < 2; ++page_num) {
+        auto ctx = gen.new_page();
+        for(int i = 0; i < 16; ++i) {
+            for(int j = 0; j < 16; ++j) {
+                char buf[10];
+                const uint32_t cur_char = 256 * page_num + 16 * i + j;
+                snprintf(buf, 10, "0x%04X", cur_char);
+                ctx.render_utf8_text(buf, fid, 8, 10 + 45 * i, opts.page_size.h - (10 + 10 * j));
+                ctx.render_raw_glyph(
+                    (uint32_t)cur_char, fid, 8, 10 + 30 + 45 * i, opts.page_size.h - (10 + 10 * j));
+            }
         }
     }
     return 0;
