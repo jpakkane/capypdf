@@ -122,6 +122,8 @@ struct TTDirEntry {
     uint32_t offset;
     uint32_t length;
 
+    bool tag_is(const char *txt) const { return strncmp(tag, txt, 4) == 0; }
+
     void swap_endian() {
         // byte_swap(tag);
         byte_swap(checksum);
@@ -129,6 +131,20 @@ struct TTDirEntry {
         byte_swap(length);
     }
 };
+
+struct TTDsig {
+    uint32_t version;
+    uint16_t num_signatures;
+    uint16_t flags;
+    // Signature array follows
+
+    void swap_endian() {
+        byte_swap(version);
+        byte_swap(num_signatures);
+        byte_swap(flags);
+    }
+};
+
 #pragma pack(pop, r1)
 
 static_assert(sizeof(TTDirEntry) == 4 * 4);
@@ -202,13 +218,23 @@ void debug_font(const char *ifile) {
         tagbuf[4] = 0;
         memcpy(tagbuf, e.tag, 4);
         printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
-        if(strncmp(e.tag, "head", 4) == 0) {
+        if(e.tag_is("head")) {
             TTHead head;
             memcpy(&head, buf.data() + e.offset, sizeof(head));
             head.swap_endian();
             assert(head.magic == 0x5f0f3cf5);
+        } else if(e.tag_is("DSIG")) {
+            TTDsig sig;
+            memcpy(&sig, buf.data() + e.offset, sizeof(sig));
+            sig.swap_endian();
+            assert(sig.version == 1);
+            assert(sig.num_signatures == 0);
+        } else {
+            printf("Unknown tag %s.\n", tagbuf);
+            std::abort();
         }
     }
+
     fclose(f);
 }
 

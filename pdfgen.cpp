@@ -103,7 +103,8 @@ std::map<uint32_t, uint32_t> build_cmap_entries(FT_Face face) {
 
 std::string create_cmap(FT_Face face) {
     const auto mapping = build_cmap_entries(face);
-    std::string cmap{R"(12 dict begin
+    std::string cmap{R"(/CIDInit/ProcSet findresource begin
+12 dict begin
 begincmap
 /CIDSystemInfo<<
   /Registry (Adobe)
