@@ -145,6 +145,74 @@ struct TTDsig {
     }
 };
 
+struct TTGDEF {
+    uint16_t major;
+    uint16_t minor;
+    uint16_t glyph_class_offset;
+    uint16_t attach_list_offset;
+    uint16_t lig_caret_offset;
+    uint16_t mark_attach_offset;
+    uint16_t mark_glyph_sets_offset = -1; // Since version 1.2
+    uint32_t item_var_offset = -1;        // Since version 1.3
+
+    void swap_endian() {
+        byte_swap(major);
+        byte_swap(minor);
+        byte_swap(glyph_class_offset);
+        byte_swap(attach_list_offset);
+        byte_swap(lig_caret_offset);
+        byte_swap(mark_attach_offset);
+    }
+};
+
+struct TTClassRangeRecord {
+    uint16_t start_glyph_id;
+    uint16_t end_glyph_id;
+    uint16_t gclass;
+
+    void swap_endian() {
+        byte_swap(start_glyph_id);
+        byte_swap(end_glyph_id);
+        byte_swap(gclass);
+    }
+};
+
+struct TTMaxp10 {
+    uint32_t version;
+    uint16_t num_glyphs;
+    uint16_t max_points;
+    uint16_t max_contours;
+    uint16_t max_composite_points;
+    uint16_t max_composite_contours;
+    uint16_t max_zones;
+    uint16_t max_twilight_points;
+    uint16_t max_storage;
+    uint16_t max_function_defs;
+    uint16_t max_instruction_defs;
+    uint16_t max_stack_elements;
+    uint16_t max_sizeof_instructions;
+    uint16_t max_component_elements;
+    uint16_t max_component_depth;
+
+    void swap_endian() {
+        byte_swap(version);
+        byte_swap(num_glyphs);
+        byte_swap(max_points);
+        byte_swap(max_contours);
+        byte_swap(max_composite_points);
+        byte_swap(max_composite_contours);
+        byte_swap(max_zones);
+        byte_swap(max_twilight_points);
+        byte_swap(max_storage);
+        byte_swap(max_function_defs);
+        byte_swap(max_instruction_defs);
+        byte_swap(max_stack_elements);
+        byte_swap(max_sizeof_instructions);
+        byte_swap(max_component_elements);
+        byte_swap(max_component_depth);
+    }
+};
+
 #pragma pack(pop, r1)
 
 static_assert(sizeof(TTDirEntry) == 4 * 4);
@@ -170,6 +238,23 @@ uint32_t str2tag(const unsigned char *txt) {
 }
 
 uint32_t str2tag(const char *txt) { return str2tag((const unsigned char *)txt); }
+
+TTMaxp10 get_maxes(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+    for(const auto &e : dir) {
+        if(e.tag_is("maxp")) {
+            uint32_t version;
+            memcpy(&version, buf.data() + e.offset, sizeof(uint32_t));
+            byte_swap(version);
+            assert(version == 1 << 16);
+            TTMaxp10 maxp;
+            assert(e.length >= sizeof(maxp));
+            memcpy(&maxp, buf.data() + e.offset, sizeof(maxp));
+            maxp.swap_endian();
+            return maxp;
+        }
+    }
+    std::abort();
+}
 
 void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &glyphs) {
     SubsetFont sf;
@@ -213,6 +298,7 @@ void debug_font(const char *ifile) {
         e.swap_endian();
         directory.emplace_back(std::move(e));
     }
+    const auto maxes = get_maxes(directory, buf);
     for(const auto &e : directory) {
         char tagbuf[5];
         tagbuf[4] = 0;
@@ -224,11 +310,43 @@ void debug_font(const char *ifile) {
             head.swap_endian();
             assert(head.magic == 0x5f0f3cf5);
         } else if(e.tag_is("DSIG")) {
+            // Not actually needed for subsetting.
             TTDsig sig;
             memcpy(&sig, buf.data() + e.offset, sizeof(sig));
             sig.swap_endian();
             assert(sig.version == 1);
             assert(sig.num_signatures == 0);
+        } else if(e.tag_is("GDEF")) {
+            // This neither.
+            TTGDEF gdef;
+            assert(e.length > sizeof(gdef));
+            memcpy(&gdef, buf.data() + e.offset, sizeof(gdef));
+            gdef.swap_endian();
+            assert(gdef.major == 1);
+            assert(gdef.minor == 2);
+            gdef.item_var_offset = -1;
+            uint16_t classdef_version;
+            memcpy(&classdef_version,
+                   buf.data() + e.offset + gdef.glyph_class_offset,
+                   sizeof(classdef_version));
+            byte_swap(classdef_version);
+            assert(classdef_version == 2);
+            uint16_t num_records;
+            memcpy(&num_records,
+                   buf.data() + e.offset + gdef.glyph_class_offset + sizeof(classdef_version),
+                   sizeof(num_records));
+            byte_swap(num_records);
+            const char *array_start = buf.data() + e.offset + gdef.glyph_class_offset +
+                                      sizeof(classdef_version) + sizeof(num_records);
+            for(uint16_t i = 0; i < num_records; ++i) {
+                TTClassRangeRecord range;
+                memcpy(&range, array_start + i * sizeof(range), sizeof(range));
+                range.swap_endian();
+            }
+        } else if(e.tag_is("cvt ")) {
+            // Store as bytes, I guess?
+        } else if(e.tag_is("fpgm")) {
+            // Store as bytes, I guess?
         } else {
             printf("Unknown tag %s.\n", tagbuf);
             std::abort();
@@ -240,10 +358,16 @@ void debug_font(const char *ifile) {
 
 } // namespace
 
-int main(int, char **) {
-    const char *fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
+int main(int argc, char **argv) {
+    const char *fontfile;
+    if(argc > 1) {
+        fontfile = argv[1];
+    } else {
+        fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
+    }
     //  const char *fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf";
-    //   const char *fontfile = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
+    //   const char *fontfile =
+    //   "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
     // const char *fontfile = "font2.ttf";
     const char *outfile = "font_dump.ttf";
     FT_Library ft;
