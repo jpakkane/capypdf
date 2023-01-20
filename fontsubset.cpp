@@ -487,6 +487,8 @@ void debug_font(const char *ifile) {
                 memcpy(&range, array_start + i * sizeof(range), sizeof(range));
                 range.swap_endian();
             }
+        } else if(e.tag_is("prep")) {
+            std::string prep(buf.data() + e.offset, e.length);
         } else if(e.tag_is("cvt ")) {
             // Store as bytes, I guess?
         } else if(e.tag_is("fpgm")) {
