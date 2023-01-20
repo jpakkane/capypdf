@@ -230,6 +230,46 @@ struct TTGlyphHeader {
     }
 };
 
+struct TTHhea {
+    uint32_t version;
+    int16_t ascender;
+    int16_t descender;
+    int16_t linegap;
+    uint16_t advance_width_max;
+    int16_t min_left_side_bearing;
+    int16_t min_right_side_bearing;
+    int16_t x_max_extent;
+    int16_t caret_slope_rise;
+    int16_t caret_slope_run;
+    int16_t caret_offset;
+    int16_t reserved0 = 0;
+    int16_t reserved1 = 0;
+    int16_t reserved2 = 0;
+    int16_t reserved3 = 0;
+    int16_t metric_data_format;
+    uint16_t num_hmetrics;
+
+    void swap_endian() {
+        byte_swap(version);
+        byte_swap(ascender);
+        byte_swap(descender);
+        byte_swap(linegap);
+        byte_swap(advance_width_max);
+        byte_swap(min_left_side_bearing);
+        byte_swap(min_right_side_bearing);
+        byte_swap(x_max_extent);
+        byte_swap(caret_slope_rise);
+        byte_swap(caret_slope_run);
+        byte_swap(caret_offset);
+        byte_swap(reserved0);
+        byte_swap(reserved1);
+        byte_swap(reserved2);
+        byte_swap(reserved3);
+        byte_swap(metric_data_format);
+        byte_swap(num_hmetrics);
+    }
+};
+
 #pragma pack(pop, r1)
 
 typedef std::variant<uint8_t, int16_t> CoordInfo;
@@ -350,6 +390,19 @@ void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &g
     fclose(f);
 }
 
+/* Mandatory TTF tables.
+ *
+ * 'cmap' character to glyph mapping
+ * 'glyf' glyph data
+ * 'head' font header
+ * 'hhea' horizontal header
+ * 'hmtx' horizontal metrics
+ * 'loca' index to location
+ * 'maxp' maximum profile
+ * 'name' naming
+ * 'post' postscript
+ */
+
 void debug_font(const char *ifile) {
     FILE *f = fopen(ifile, "r");
     fseek(f, 0, SEEK_END);
@@ -425,6 +478,13 @@ void debug_font(const char *ifile) {
                 byte_swap(num_contours);
                 assert(num_contours > 0 || num_contours == -1);
             }
+        } else if(e.tag_is("hhea")) {
+            TTHhea hhea;
+            assert(sizeof(TTHhea) == e.length);
+            memcpy(&hhea, buf.data() + e.offset, sizeof(hhea));
+            hhea.swap_endian();
+            assert(hhea.version == 1 << 16);
+            assert(hhea.metric_data_format == 0);
         } else {
             printf("Unknown tag %s.\n", tagbuf);
             std::abort();
