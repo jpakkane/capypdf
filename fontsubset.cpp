@@ -270,6 +270,16 @@ struct TTHhea {
     }
 };
 
+struct TTLongHorMetric {
+    uint16_t advance_width;
+    int16_t lsb;
+
+    void swap_endian() {
+        byte_swap(advance_width);
+        byte_swap(lsb);
+    }
+};
+
 #pragma pack(pop, r1)
 
 typedef std::variant<uint8_t, int16_t> CoordInfo;
@@ -365,6 +375,18 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
     return offsets;
 }
 
+TTHhea load_hhea(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+    auto e = find_entry(dir, "hhea");
+
+    TTHhea hhea;
+    assert(sizeof(TTHhea) == e->length);
+    memcpy(&hhea, buf.data() + e->offset, sizeof(hhea));
+    hhea.swap_endian();
+    assert(hhea.version == 1 << 16);
+    assert(hhea.metric_data_format == 0);
+    return hhea;
+}
+
 void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &glyphs) {
     SubsetFont sf;
     FT_ULong bufsize = 0; // sizeof(sf.head);
@@ -423,6 +445,7 @@ void debug_font(const char *ifile) {
     const auto head = load_head(directory, buf);
     const auto maxes = get_maxes(directory, buf);
     const auto loca = load_loca(directory, buf, head.index_to_loc_format, maxes.num_glyphs);
+    const auto hhea = load_hhea(directory, buf);
     for(const auto &e : directory) {
         char tagbuf[5];
         tagbuf[4] = 0;
@@ -479,12 +502,31 @@ void debug_font(const char *ifile) {
                 assert(num_contours > 0 || num_contours == -1);
             }
         } else if(e.tag_is("hhea")) {
-            TTHhea hhea;
-            assert(sizeof(TTHhea) == e.length);
-            memcpy(&hhea, buf.data() + e.offset, sizeof(hhea));
-            hhea.swap_endian();
-            assert(hhea.version == 1 << 16);
-            assert(hhea.metric_data_format == 0);
+
+        } else if(e.tag_is("maxp")) {
+
+        } else if(e.tag_is("loca")) {
+
+        } else if(e.tag_is("hmtx")) {
+            std::vector<TTLongHorMetric> longhor;
+            std::vector<int16_t> left_side_bearings;
+            for(uint16_t i = 0; i < hhea.num_hmetrics; ++i) {
+                TTLongHorMetric hm;
+                memcpy(&hm,
+                       buf.data() + e.offset + i * sizeof(TTLongHorMetric),
+                       sizeof(TTLongHorMetric));
+                hm.swap_endian();
+                longhor.push_back(hm);
+            }
+            for(int i = 0; i < maxes.num_glyphs - hhea.num_hmetrics; ++i) {
+                int16_t lsb;
+                memcpy(&lsb,
+                       buf.data() + hhea.num_hmetrics * sizeof(TTLongHorMetric) +
+                           i * sizeof(int16_t),
+                       sizeof(int16_t));
+                byte_swap(lsb);
+                left_side_bearings.push_back(lsb);
+            }
         } else {
             printf("Unknown tag %s.\n", tagbuf);
             std::abort();
