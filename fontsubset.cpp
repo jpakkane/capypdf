@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <string>
+#include <variant>
 
 #include <cassert>
 #include <byteswap.h>
@@ -213,7 +214,34 @@ struct TTMaxp10 {
     }
 };
 
+struct TTGlyphHeader {
+    int16_t num_contours;
+    int16_t x_min;
+    int16_t y_min;
+    int16_t x_max;
+    int16_t y_max;
+
+    void swap_endian() {
+        byte_swap(num_contours);
+        byte_swap(x_min);
+        byte_swap(y_min);
+        byte_swap(x_max);
+        byte_swap(y_max);
+    }
+};
+
 #pragma pack(pop, r1)
+
+typedef std::variant<uint8_t, int16_t> CoordInfo;
+
+struct SimpleGlyph {
+    std::vector<uint16_t> contour_end_points;
+    uint16_t instruction_length;
+    std::vector<uint8_t> instructions;
+    std::vector<uint8_t> flags;
+    std::vector<CoordInfo> xcoord;
+    std::vector<CoordInfo> ycoord;
+};
 
 static_assert(sizeof(TTDirEntry) == 4 * 4);
 
@@ -239,21 +267,62 @@ uint32_t str2tag(const unsigned char *txt) {
 
 uint32_t str2tag(const char *txt) { return str2tag((const unsigned char *)txt); }
 
-TTMaxp10 get_maxes(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag) {
     for(const auto &e : dir) {
-        if(e.tag_is("maxp")) {
-            uint32_t version;
-            memcpy(&version, buf.data() + e.offset, sizeof(uint32_t));
-            byte_swap(version);
-            assert(version == 1 << 16);
-            TTMaxp10 maxp;
-            assert(e.length >= sizeof(maxp));
-            memcpy(&maxp, buf.data() + e.offset, sizeof(maxp));
-            maxp.swap_endian();
-            return maxp;
+        if(e.tag_is(tag)) {
+            return &e;
         }
     }
+    return nullptr;
+}
+
+TTMaxp10 get_maxes(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+    auto e = find_entry(dir, "maxp");
+    uint32_t version;
+    memcpy(&version, buf.data() + e->offset, sizeof(uint32_t));
+    byte_swap(version);
+    assert(version == 1 << 16);
+    TTMaxp10 maxp;
+    assert(e->length >= sizeof(maxp));
+    memcpy(&maxp, buf.data() + e->offset, sizeof(maxp));
+    maxp.swap_endian();
+    return maxp;
     std::abort();
+}
+
+TTHead load_head(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+    auto e = find_entry(dir, "head");
+    TTHead head;
+    memcpy(&head, buf.data() + e->offset, sizeof(head));
+    head.swap_endian();
+    assert(head.magic == 0x5f0f3cf5);
+    return head;
+}
+
+std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
+                               const std::vector<char> &buf,
+                               uint16_t index_to_loc_format,
+                               uint16_t num_glyphs) {
+    auto loca = find_entry(dir, "loca");
+    std::vector<int32_t> offsets;
+    offsets.reserve(num_glyphs);
+    if(index_to_loc_format == 0) {
+        for(uint16_t i = 0; i <= num_glyphs; ++i) {
+            uint16_t offset;
+            memcpy(&offset, buf.data() + loca->offset + i * sizeof(uint16_t), sizeof(uint16_t));
+            byte_swap(offset);
+            offsets.push_back(offset);
+        }
+    } else {
+        assert(index_to_loc_format == 1);
+        for(uint16_t i = 0; i <= num_glyphs; ++i) {
+            int32_t offset;
+            memcpy(&offset, buf.data() + loca->offset + i * sizeof(int32_t), sizeof(int32_t));
+            byte_swap(offset);
+            offsets.push_back(offset);
+        }
+    }
+    return offsets;
 }
 
 void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &glyphs) {
@@ -298,17 +367,16 @@ void debug_font(const char *ifile) {
         e.swap_endian();
         directory.emplace_back(std::move(e));
     }
+    const auto head = load_head(directory, buf);
     const auto maxes = get_maxes(directory, buf);
+    const auto loca = load_loca(directory, buf, head.index_to_loc_format, maxes.num_glyphs);
     for(const auto &e : directory) {
         char tagbuf[5];
         tagbuf[4] = 0;
         memcpy(tagbuf, e.tag, 4);
         printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
         if(e.tag_is("head")) {
-            TTHead head;
-            memcpy(&head, buf.data() + e.offset, sizeof(head));
-            head.swap_endian();
-            assert(head.magic == 0x5f0f3cf5);
+            //
         } else if(e.tag_is("DSIG")) {
             // Not actually needed for subsetting.
             TTDsig sig;
@@ -347,6 +415,16 @@ void debug_font(const char *ifile) {
             // Store as bytes, I guess?
         } else if(e.tag_is("fpgm")) {
             // Store as bytes, I guess?
+        } else if(e.tag_is("glyf")) {
+            std::vector<std::string> glyph_data;
+            const char *glyf_start = buf.data() + e.offset;
+            for(uint16_t i = 0; i < maxes.num_glyphs; ++i) {
+                glyph_data.emplace_back(std::string(glyf_start + loca[i], loca[i + 1] - loca[i]));
+                int16_t num_contours;
+                memcpy(&num_contours, glyph_data.back().data(), sizeof(num_contours));
+                byte_swap(num_contours);
+                assert(num_contours > 0 || num_contours == -1);
+            }
         } else {
             printf("Unknown tag %s.\n", tagbuf);
             std::abort();
