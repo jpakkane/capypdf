@@ -501,7 +501,29 @@ void debug_font(const char *ifile) {
                 int16_t num_contours;
                 memcpy(&num_contours, glyph_data.back().data(), sizeof(num_contours));
                 byte_swap(num_contours);
-                assert(num_contours > 0 || num_contours == -1);
+                if(num_contours >= 0) {
+
+                } else {
+                    const char *composite_data = glyph_data.back().data() + sizeof(int16_t);
+                    const uint16_t MORE_COMPONENTS = 0x20;
+                    const uint16_t ARGS_ARE_WORDS = 0x01;
+                    uint16_t component_flag;
+                    uint16_t glyph_index;
+                    do {
+                        memcpy(&component_flag, composite_data, sizeof(uint16_t));
+                        byte_swap(component_flag);
+                        composite_data += sizeof(uint16_t);
+                        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+                        byte_swap(glyph_index);
+                        composite_data += sizeof(uint16_t);
+                        if(component_flag & ARGS_ARE_WORDS) {
+                            composite_data += 2 * sizeof(int16_t);
+                        } else {
+                            composite_data += 2 * sizeof(int8_t);
+                        }
+                    } while(component_flag & MORE_COMPONENTS);
+                    // Instruction data would be here, but we don't need to parse it.
+                }
             }
         } else if(e.tag_is("hhea")) {
 
@@ -530,8 +552,11 @@ void debug_font(const char *ifile) {
                 left_side_bearings.push_back(lsb);
             }
         } else {
-            printf("Unknown tag %s.\n", tagbuf);
-            std::abort();
+            // printf("Unknown tag %s.\n", tagbuf);
+            // std::abort();
+
+            // TT fonts contain a ton of additional data tables.
+            // We ignore all of them.
         }
     }
 
