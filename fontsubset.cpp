@@ -280,6 +280,32 @@ struct TTLongHorMetric {
     }
 };
 
+struct TTPost {
+    uint16_t version_major;
+    uint16_t version_minor;
+    int32_t italic_angle;
+    int16_t underline_position;
+    int16_t underline_thickness;
+    uint32_t is_fixed_pitch;
+    uint32_t min_mem_type_42;
+    uint32_t max_mem_type_42;
+    uint32_t min_mem_type_1;
+    uint32_t max_mem_type_1;
+
+    void swap_endian() {
+        byte_swap(version_major);
+        byte_swap(version_minor);
+        byte_swap(italic_angle);
+        byte_swap(underline_position);
+        byte_swap(underline_thickness);
+        byte_swap(is_fixed_pitch);
+        byte_swap(min_mem_type_42);
+        byte_swap(max_mem_type_42);
+        byte_swap(min_mem_type_1);
+        byte_swap(max_mem_type_1);
+    }
+};
+
 #pragma pack(pop, r1)
 
 typedef std::variant<uint8_t, int16_t> CoordInfo;
@@ -422,7 +448,7 @@ void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &g
  * 'loca' index to location
  * 'maxp' maximum profile
  * 'name' naming
- * 'post' postscript
+ * 'post' postscript <-Cairo and LO do not create this table, so it is not actually mandatory.
  */
 
 void debug_font(const char *ifile) {
@@ -551,9 +577,23 @@ void debug_font(const char *ifile) {
                 byte_swap(lsb);
                 left_side_bearings.push_back(lsb);
             }
+        } else if(e.tag_is("post")) {
+            TTPost post;
+            memcpy(&post, buf.data() + e.offset, sizeof(TTPost));
+            post.swap_endian();
+            assert(post.is_fixed_pitch == 0);
+        } else if(e.tag_is("cmap")) {
+            // Maybe we don't need to parse this table, but
+            // instead get it from Freetype as needed
+            // when generating output?
+        } else if(e.tag_is("GPOS")) {
+        } else if(e.tag_is("GSUB")) {
+        } else if(e.tag_is("OS/2")) {
+        } else if(e.tag_is("gasp")) {
+        } else if(e.tag_is("name")) {
         } else {
-            // printf("Unknown tag %s.\n", tagbuf);
-            // std::abort();
+            printf("Unknown tag %s.\n", tagbuf);
+            std::abort();
 
             // TT fonts contain a ton of additional data tables.
             // We ignore all of them.
