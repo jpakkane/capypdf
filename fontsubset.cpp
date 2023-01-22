@@ -36,7 +36,7 @@ void byte_swap(int16_t &val) { val = bswap_16(val); }
 void byte_swap(uint16_t &val) { val = bswap_16(val); }
 void byte_swap(int32_t &val) { val = bswap_32(val); }
 void byte_swap(uint32_t &val) { val = bswap_32(val); }
-void byte_swap(int64_t &val) { val = bswap_64(val); }
+// void byte_swap(int64_t &val) { val = bswap_64(val); }
 void byte_swap(uint64_t &val) { val = bswap_64(val); }
 
 } // namespace
@@ -123,7 +123,14 @@ struct TTDirEntry {
     uint32_t offset;
     uint32_t length;
 
+    void clear() { memset(this, 0, sizeof(TTDirEntry)); }
+
     bool tag_is(const char *txt) const { return strncmp(tag, txt, 4) == 0; }
+
+    void set_tag(const char *txt) {
+        memset(tag, ' ', 4);
+        strncpy(tag, txt, 4);
+    }
 
     void swap_endian() {
         // byte_swap(tag);
@@ -280,6 +287,18 @@ struct TTLongHorMetric {
     }
 };
 
+struct TTEncodingRecord {
+    uint16_t platform_id;
+    uint16_t encoding_id;
+    int32_t subtable_offset;
+
+    void swap_endian() {
+        byte_swap(platform_id);
+        byte_swap(encoding_id);
+        byte_swap(subtable_offset);
+    }
+};
+
 struct TTPost {
     uint16_t version_major;
     uint16_t version_minor;
@@ -342,11 +361,13 @@ struct SubsetFont {
 
 namespace {
 
+/*
 uint32_t str2tag(const unsigned char *txt) {
     return (txt[0] << 24) + (txt[1] << 16) + (txt[2] << 8) + txt[3];
 }
 
 uint32_t str2tag(const char *txt) { return str2tag((const unsigned char *)txt); }
+*/
 
 const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag) {
     for(const auto &e : dir) {
@@ -492,17 +513,17 @@ load_raw_table(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf,
     return std::string(buf.data() + e->offset, buf.data() + e->offset + e->length);
 }
 
-/* Mandatory TTF tables.
+/* Mandatory TTF tables according to The Internet.
  *
- * 'cmap' character to glyph mapping
+ * 'cmap' character to glyph mapping <- LO does not create this table.
  * 'glyf' glyph data
  * 'head' font header
  * 'hhea' horizontal header
  * 'hmtx' horizontal metrics
  * 'loca' index to location
  * 'maxp' maximum profile
- * 'name' naming     <-Cairo and LO do not create this table
- * 'post' postscript <-Cairo and LO do not create this table
+ * 'name' naming                     <-Cairo and LO do not create this table
+ * 'post' postscript                 <-Cairo and LO do not create this table
  */
 
 /* In addition, the following may be in files created by Cairo and LO:
@@ -524,7 +545,7 @@ struct TrueTypeFont {
     std::string prep;
 
     int num_directory_entries() const {
-        int entries = 9;
+        int entries = 6;
         if(!cvt.empty()) {
             ++entries;
         }
@@ -566,6 +587,23 @@ TrueTypeFont load_truetype_font(const char *ifile) {
     tf.cvt = load_raw_table(directory, buf, "cvt ");
     tf.fpgm = load_raw_table(directory, buf, "fpgm");
     tf.prep = load_raw_table(directory, buf, "prep");
+    auto cmap = load_raw_table(directory, buf, "cmap");
+    uint16_t cmap_version, num_tables;
+    memcpy(&cmap_version, cmap.data(), sizeof(uint16_t));
+    memcpy(&num_tables, cmap.data() + sizeof(uint16_t), sizeof(uint16_t));
+    byte_swap(cmap_version);
+    byte_swap(num_tables);
+    for(uint16_t table_num = 0; table_num < num_tables; ++table_num) {
+        TTEncodingRecord enc;
+        memcpy(&enc,
+               cmap.data() + 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord),
+               sizeof(TTEncodingRecord));
+        enc.swap_endian();
+        uint16_t subtable_format;
+        memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
+        byte_swap(subtable_format);
+        assert(subtable_format < 15);
+    }
     /*
     for(const auto &e : directory) {
         char tagbuf[5];
@@ -631,15 +669,37 @@ TrueTypeFont load_truetype_font(const char *ifile) {
 std::vector<std::string>
 subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32_t> glyphs) {
     std::vector<std::string> subset;
-    subset.push_back(source.glyphs[0]);
-    assert(subset.size() < 255);
+    assert(glyphs[0] == 0);
+    assert(glyphs.size() < 255);
     for(const auto &c : glyphs) {
         const auto gid = FT_Get_Char_Index(face, c);
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
+        int16_t num_contours;
+        memcpy(&num_contours, subset.back().data(), sizeof(int16_t));
+        if(num_contours < 0) {
+            printf("Composite glyphs not supported yet.\n");
+            std::abort();
+        }
     }
 
     return subset;
+}
+
+TTHmtx subset_hmtx(FT_Face face, const TrueTypeFont &source, const std::vector<uint32_t> &glyphs) {
+    TTHmtx subset;
+    assert(source.hmtx.longhor.size() + 1 == source.maxp.num_glyphs);
+    for(const auto &g : glyphs) {
+        const auto gid = FT_Get_Char_Index(face, g);
+        assert(gid < source.hmtx.longhor.size());
+        subset.longhor.push_back(source.hmtx.longhor[gid]);
+    }
+    subset.left_side_bearings.push_back(source.hmtx.left_side_bearings.front());
+    return subset;
+}
+
+template<typename T> void append_bytes(std::string &s, const T &val) {
+    s.append((char *)&val, (char *)&val + sizeof(val));
 }
 
 void write_font(const char *ofname,
@@ -648,9 +708,37 @@ void write_font(const char *ofname,
                 const std::vector<uint32_t> &glyphs) {
     std::string odata;
     TrueTypeFont dest;
+    TTOffsetTable off;
+    assert(glyphs[0] == 0);
     dest.glyphs = subset_glyphs(face, source, glyphs);
+    off.num_tables = source.num_directory_entries();
+    // Add the other crap to off.
+
     FILE *f = fopen(ofname, "w");
-    // dump
+    TTDirEntry e;
+    off.swap_endian();
+    append_bytes(odata, off);
+    e.clear();
+    for(int i = 0; i < off.num_tables; ++i) {
+        append_bytes(odata, e);
+    }
+    dest.head = source.head;
+    dest.hhea = source.hhea;
+    dest.maxp = source.maxp;
+    dest.maxp.num_glyphs = dest.glyphs.size();
+    std::vector<int32_t> loca;
+    int32_t cumulative = 0;
+    for(const auto &g : dest.glyphs) {
+        loca.push_back(cumulative);
+        cumulative += g.size();
+    }
+    loca.push_back(cumulative);
+    dest.hmtx = subset_hmtx(face, source, glyphs);
+    dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
+    dest.head.index_to_loc_format = 1;
+    dest.cvt = source.cvt;
+    dest.fpgm = source.fpgm;
+    dest.prep = source.prep;
     fclose(f);
 }
 
@@ -681,7 +769,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     printf("Font opened successfully.\n");
-    std::vector<uint32_t> glyphs{'A'};
+    std::vector<uint32_t> glyphs{0, 'A'};
     auto tt = load_truetype_font(fontfile);
     write_font(outfile, face, tt, glyphs);
 
