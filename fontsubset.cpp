@@ -310,6 +310,11 @@ struct TTPost {
 
 typedef std::variant<uint8_t, int16_t> CoordInfo;
 
+struct TTHmtx {
+    std::vector<TTLongHorMetric> longhor;
+    std::vector<int16_t> left_side_bearings;
+};
+
 struct SimpleGlyph {
     std::vector<uint16_t> contour_end_points;
     uint16_t instruction_length;
@@ -352,7 +357,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-TTMaxp10 get_maxes(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
     auto e = find_entry(dir, "maxp");
     uint32_t version;
     memcpy(&version, buf.data() + e->offset, sizeof(uint32_t));
@@ -413,29 +418,78 @@ TTHhea load_hhea(const std::vector<TTDirEntry> &dir, const std::vector<char> &bu
     return hhea;
 }
 
-void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &glyphs) {
-    SubsetFont sf;
-    FT_ULong bufsize = 0; // sizeof(sf.head);
-    TT_Header *tmp = static_cast<TT_Header *>(FT_Get_Sfnt_Table(face, FT_SFNT_HEAD));
-    // static_assert(sizeof(TT_Header) == sizeof(TTHead));
-    static_assert(sizeof(TT_Header) == 96);
-    printf("Sizeof TT_HEADER: %d\n", (int)sizeof(TT_Header));
-    printf("Sizeof TTHead: %d\n", (int)sizeof(TTHead));
-    printf("Sizeof long: %d\n", (int)sizeof(long));
-    auto ec =
-        FT_Load_Sfnt_Table(face, TTAG_head, 0, reinterpret_cast<FT_Byte *>(&sf.head), nullptr);
-    assert(ec == 0);
-    sf.head.swap_endian();
-    assert(sf.head.magic == 0x5f0f3cf5);
-    sf.offset.set_table_size(0xa);
-    sf.directory.emplace_back(TTDirEntry{{'c', 'm', 'a', 'p'}, 0, 0, 0});
-    FILE *f = fopen(ofname, "w");
-    sf.swap_endian();
-    fwrite(&sf.offset, 1, sizeof(TTOffsetTable), f);
-    for(const auto &e : sf.directory) {
-        fwrite(&e, 1, sizeof(TTDirEntry), f);
+TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
+                 const std::vector<char> &buf,
+                 uint16_t num_glyphs,
+                 uint16_t num_hmetrics) {
+    auto e = find_entry(dir, "hmtx");
+    TTHmtx hmtx;
+    for(uint16_t i = 0; i < num_hmetrics; ++i) {
+        TTLongHorMetric hm;
+        memcpy(&hm, buf.data() + e->offset + i * sizeof(TTLongHorMetric), sizeof(TTLongHorMetric));
+        hm.swap_endian();
+        hmtx.longhor.push_back(hm);
     }
-    fclose(f);
+    for(int i = 0; i < num_glyphs - num_hmetrics; ++i) {
+        int16_t lsb;
+        memcpy(&lsb,
+               buf.data() + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t),
+               sizeof(int16_t));
+        byte_swap(lsb);
+        hmtx.left_side_bearings.push_back(lsb);
+    }
+    return hmtx;
+}
+
+std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                     const std::vector<char> &buf,
+                                     uint16_t num_glyphs,
+                                     const std::vector<int32_t> &loca) {
+    std::vector<std::string> glyph_data;
+    auto e = find_entry(dir, "glyf");
+    assert(e);
+    const char *glyf_start = buf.data() + e->offset;
+    for(uint16_t i = 0; i < num_glyphs; ++i) {
+        glyph_data.emplace_back(std::string(glyf_start + loca.at(i), loca.at(i + 1) - loca.at(i)));
+        // Eventually unpack to normal glyph or composite.
+        /*
+        int16_t num_contours;
+        memcpy(&num_contours, glyph_data.back().data(), sizeof(num_contours));
+        byte_swap(num_contours);
+        if(num_contours >= 0) {
+        } else {
+            const char *composite_data = glyph_data.back().data() + sizeof(int16_t);
+            const uint16_t MORE_COMPONENTS = 0x20;
+            const uint16_t ARGS_ARE_WORDS = 0x01;
+            uint16_t component_flag;
+            uint16_t glyph_index;
+            do {
+                memcpy(&component_flag, composite_data, sizeof(uint16_t));
+                byte_swap(component_flag);
+                composite_data += sizeof(uint16_t);
+                memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+                byte_swap(glyph_index);
+                composite_data += sizeof(uint16_t);
+                if(component_flag & ARGS_ARE_WORDS) {
+                    composite_data += 2 * sizeof(int16_t);
+                } else {
+                    composite_data += 2 * sizeof(int8_t);
+                }
+            } while(component_flag & MORE_COMPONENTS);
+            // Instruction data would be here, but we don't need to parse it.
+        }
+        */
+    }
+    return glyph_data;
+}
+
+std::string
+load_raw_table(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf, const char *tag) {
+    auto e = find_entry(dir, tag);
+    if(!e) {
+        return "";
+    }
+    return std::string(buf.data() + e->offset, buf.data() + e->offset + e->length);
 }
 
 /* Mandatory TTF tables.
@@ -458,7 +512,34 @@ void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &g
  * prep
  */
 
-void debug_font(const char *ifile) {
+struct TrueTypeFont {
+    std::vector<std::string> glyphs; // should be variant<basicfont, compositefont> or smth
+    TTHead head;
+    TTHhea hhea;
+    TTHmtx hmtx;
+    // std::vector<int32_t> loca;
+    TTMaxp10 maxp;
+    std::string cvt;
+    std::string fpgm;
+    std::string prep;
+
+    int num_directory_entries() const {
+        int entries = 9;
+        if(!cvt.empty()) {
+            ++entries;
+        }
+        if(!fpgm.empty()) {
+            ++entries;
+        }
+        if(!prep.empty()) {
+            ++entries;
+        }
+        return entries;
+    }
+};
+
+TrueTypeFont load_truetype_font(const char *ifile) {
+    TrueTypeFont tf;
     FILE *f = fopen(ifile, "r");
     fseek(f, 0, SEEK_END);
     const auto fsize = ftell(f);
@@ -475,18 +556,23 @@ void debug_font(const char *ifile) {
         e.swap_endian();
         directory.emplace_back(std::move(e));
     }
-    const auto head = load_head(directory, buf);
-    const auto maxes = get_maxes(directory, buf);
-    const auto loca = load_loca(directory, buf, head.index_to_loc_format, maxes.num_glyphs);
-    const auto hhea = load_hhea(directory, buf);
+    tf.head = load_head(directory, buf);
+    tf.maxp = load_maxp(directory, buf);
+    const auto loca = load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs);
+    tf.hhea = load_hhea(directory, buf);
+    tf.hmtx = load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics);
+    tf.glyphs = load_glyphs(directory, buf, tf.maxp.num_glyphs, loca);
+
+    tf.cvt = load_raw_table(directory, buf, "cvt ");
+    tf.fpgm = load_raw_table(directory, buf, "fpgm");
+    tf.prep = load_raw_table(directory, buf, "prep");
+    /*
     for(const auto &e : directory) {
         char tagbuf[5];
         tagbuf[4] = 0;
         memcpy(tagbuf, e.tag, 4);
         printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
-        if(e.tag_is("head")) {
-            //
-        } else if(e.tag_is("DSIG")) {
+        if(e.tag_is("DSIG")) {
             // Not actually needed for subsetting.
             TTDsig sig;
             memcpy(&sig, buf.data() + e.offset, sizeof(sig));
@@ -520,75 +606,6 @@ void debug_font(const char *ifile) {
                 memcpy(&range, array_start + i * sizeof(range), sizeof(range));
                 range.swap_endian();
             }
-        } else if(e.tag_is("prep")) {
-            std::string prep(buf.data() + e.offset, e.length);
-        } else if(e.tag_is("cvt ")) {
-            // Store as bytes, I guess?
-        } else if(e.tag_is("fpgm")) {
-            // Store as bytes, I guess?
-        } else if(e.tag_is("glyf")) {
-            std::vector<std::string> glyph_data;
-            const char *glyf_start = buf.data() + e.offset;
-            for(uint16_t i = 0; i < maxes.num_glyphs; ++i) {
-                glyph_data.emplace_back(std::string(glyf_start + loca[i], loca[i + 1] - loca[i]));
-                int16_t num_contours;
-                memcpy(&num_contours, glyph_data.back().data(), sizeof(num_contours));
-                byte_swap(num_contours);
-                if(num_contours >= 0) {
-
-                } else {
-                    const char *composite_data = glyph_data.back().data() + sizeof(int16_t);
-                    const uint16_t MORE_COMPONENTS = 0x20;
-                    const uint16_t ARGS_ARE_WORDS = 0x01;
-                    uint16_t component_flag;
-                    uint16_t glyph_index;
-                    do {
-                        memcpy(&component_flag, composite_data, sizeof(uint16_t));
-                        byte_swap(component_flag);
-                        composite_data += sizeof(uint16_t);
-                        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
-                        byte_swap(glyph_index);
-                        composite_data += sizeof(uint16_t);
-                        if(component_flag & ARGS_ARE_WORDS) {
-                            composite_data += 2 * sizeof(int16_t);
-                        } else {
-                            composite_data += 2 * sizeof(int8_t);
-                        }
-                    } while(component_flag & MORE_COMPONENTS);
-                    // Instruction data would be here, but we don't need to parse it.
-                }
-            }
-        } else if(e.tag_is("hhea")) {
-
-        } else if(e.tag_is("maxp")) {
-
-        } else if(e.tag_is("loca")) {
-
-        } else if(e.tag_is("hmtx")) {
-            std::vector<TTLongHorMetric> longhor;
-            std::vector<int16_t> left_side_bearings;
-            for(uint16_t i = 0; i < hhea.num_hmetrics; ++i) {
-                TTLongHorMetric hm;
-                memcpy(&hm,
-                       buf.data() + e.offset + i * sizeof(TTLongHorMetric),
-                       sizeof(TTLongHorMetric));
-                hm.swap_endian();
-                longhor.push_back(hm);
-            }
-            for(int i = 0; i < maxes.num_glyphs - hhea.num_hmetrics; ++i) {
-                int16_t lsb;
-                memcpy(&lsb,
-                       buf.data() + hhea.num_hmetrics * sizeof(TTLongHorMetric) +
-                           i * sizeof(int16_t),
-                       sizeof(int16_t));
-                byte_swap(lsb);
-                left_side_bearings.push_back(lsb);
-            }
-        } else if(e.tag_is("post")) {
-            TTPost post;
-            memcpy(&post, buf.data() + e.offset, sizeof(TTPost));
-            post.swap_endian();
-            assert(post.is_fixed_pitch == 0);
         } else if(e.tag_is("cmap")) {
             // Maybe we don't need to parse this table, but
             // instead get it from Freetype as needed
@@ -606,7 +623,34 @@ void debug_font(const char *ifile) {
             // We ignore all of them.
         }
     }
+    */
+    fclose(f);
+    return tf;
+}
 
+std::vector<std::string>
+subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32_t> glyphs) {
+    std::vector<std::string> subset;
+    subset.push_back(source.glyphs[0]);
+    assert(subset.size() < 255);
+    for(const auto &c : glyphs) {
+        const auto gid = FT_Get_Char_Index(face, c);
+        assert(gid < source.glyphs.size());
+        subset.push_back(source.glyphs[gid]);
+    }
+
+    return subset;
+}
+
+void write_font(const char *ofname,
+                FT_Face face,
+                const TrueTypeFont &source,
+                const std::vector<uint32_t> &glyphs) {
+    std::string odata;
+    TrueTypeFont dest;
+    dest.glyphs = subset_glyphs(face, source, glyphs);
+    FILE *f = fopen(ofname, "w");
+    // dump
     fclose(f);
 }
 
@@ -638,8 +682,8 @@ int main(int argc, char **argv) {
     }
     printf("Font opened successfully.\n");
     std::vector<uint32_t> glyphs{'A'};
-    debug_font(fontfile);
-    write_font(outfile, face, glyphs);
+    auto tt = load_truetype_font(fontfile);
+    write_font(outfile, face, tt, glyphs);
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
