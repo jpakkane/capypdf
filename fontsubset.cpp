@@ -699,29 +699,61 @@ TTHmtx subset_hmtx(FT_Face face, const TrueTypeFont &source, const std::vector<u
 }
 
 template<typename T> void append_bytes(std::string &s, const T &val) {
-    s.append((char *)&val, (char *)&val + sizeof(val));
+    if constexpr(std::is_same_v<T, std::string_view>) {
+        s += val;
+    } else if constexpr(std::is_same_v<T, std::string>) {
+        s += val;
+    } else {
+        s.append((char *)&val, (char *)&val + sizeof(val));
+    }
+}
+
+TTDirEntry write_raw_table(std::string &odata, const char *tag, std::string_view bytes) {
+    TTDirEntry e;
+    e.set_tag(tag);
+    e.offset = odata.size();
+    e.length = bytes.length();
+    e.checksum = 0;
+    append_bytes(odata, bytes);
+    return e;
+}
+
+std::string serialize_font(TrueTypeFont &tf) {
+    std::string odata;
+    odata.reserve(100 * 1024 * 1024);
+    TTDirEntry e;
+    TTOffsetTable off;
+    off.num_tables = tf.num_directory_entries();
+    std::vector<TTDirEntry> directory;
+    // Dummy header data so that offset calculations are correct.
+    append_bytes(odata, off);
+    e.clear();
+    for(int i = 0; i < off.num_tables; ++i) {
+        append_bytes(odata, e);
+    }
+    if(!tf.cvt.empty()) {
+        directory.push_back(write_raw_table(odata, "cvt ", tf.cvt));
+    }
+    if(!tf.prep.empty()) {
+        directory.push_back(write_raw_table(odata, "prep", tf.prep));
+    }
+    if(!tf.fpgm.empty()) {
+        directory.push_back(write_raw_table(odata, "fpgm", tf.fpgm));
+    }
+    return odata;
 }
 
 void write_font(const char *ofname,
                 FT_Face face,
                 const TrueTypeFont &source,
                 const std::vector<uint32_t> &glyphs) {
-    std::string odata;
     TrueTypeFont dest;
-    TTOffsetTable off;
     assert(glyphs[0] == 0);
     dest.glyphs = subset_glyphs(face, source, glyphs);
-    off.num_tables = source.num_directory_entries();
+
     // Add the other crap to off.
 
     FILE *f = fopen(ofname, "w");
-    TTDirEntry e;
-    off.swap_endian();
-    append_bytes(odata, off);
-    e.clear();
-    for(int i = 0; i < off.num_tables; ++i) {
-        append_bytes(odata, e);
-    }
     dest.head = source.head;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
@@ -739,7 +771,17 @@ void write_font(const char *ofname,
     dest.cvt = source.cvt;
     dest.fpgm = source.fpgm;
     dest.prep = source.prep;
-    fclose(f);
+
+    auto bytes = serialize_font(dest);
+    if(fwrite(bytes.data(), 1, bytes.length(), f) != bytes.length()) {
+        printf("Writing to file failed: %s\n", strerror(errno));
+        std::abort();
+    }
+
+    if(fclose(f) != 0) {
+        printf("Closing output file failed: %s\n", strerror(errno));
+        std::abort();
+    }
 }
 
 } // namespace
