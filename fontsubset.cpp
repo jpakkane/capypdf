@@ -447,8 +447,15 @@ void write_font(const char *ofname, FT_Face face, const std::vector<uint32_t> &g
  * 'hmtx' horizontal metrics
  * 'loca' index to location
  * 'maxp' maximum profile
- * 'name' naming
- * 'post' postscript <-Cairo and LO do not create this table, so it is not actually mandatory.
+ * 'name' naming     <-Cairo and LO do not create this table
+ * 'post' postscript <-Cairo and LO do not create this table
+ */
+
+/* In addition, the following may be in files created by Cairo and LO:
+ *
+ * cvt
+ * fpgm
+ * prep
  */
 
 void debug_font(const char *ifile) {
