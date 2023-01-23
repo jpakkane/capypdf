@@ -413,7 +413,7 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
             uint16_t offset;
             memcpy(&offset, buf.data() + loca->offset + i * sizeof(uint16_t), sizeof(uint16_t));
             byte_swap(offset);
-            offsets.push_back(offset);
+            offsets.push_back(offset * 2);
         }
     } else {
         assert(index_to_loc_format == 1);
@@ -723,9 +723,10 @@ std::string serialize_font(TrueTypeFont &tf) {
     odata.reserve(100 * 1024 * 1024);
     TTDirEntry e;
     TTOffsetTable off;
-    off.num_tables = tf.num_directory_entries();
     std::vector<TTDirEntry> directory;
-    // Dummy header data so that offset calculations are correct.
+
+    off.set_table_size(tf.num_directory_entries());
+    off.swap_endian();
     append_bytes(odata, off);
     e.clear();
     for(int i = 0; i < off.num_tables; ++i) {
@@ -739,6 +740,63 @@ std::string serialize_font(TrueTypeFont &tf) {
     }
     if(!tf.fpgm.empty()) {
         directory.push_back(write_raw_table(odata, "fpgm", tf.fpgm));
+    }
+
+    tf.head.checksum_adjustment = 0;
+    // const auto start_of_head = odata.length(); // For checksum adjustment.
+    tf.head.swap_endian();
+    directory.push_back(
+        write_raw_table(odata, "head", std::string_view((char *)&tf.head, sizeof(tf.head))));
+
+    tf.hhea.swap_endian();
+    directory.push_back(
+        write_raw_table(odata, "hhea", std::string_view((char *)&tf.hhea, sizeof(tf.hhea))));
+
+    tf.maxp.swap_endian();
+    directory.push_back(
+        write_raw_table(odata, "maxp", std::string_view((char *)&tf.maxp, sizeof(tf.maxp))));
+    // glyph time
+    std::vector<int32_t> loca;
+    size_t glyphs_start = odata.size();
+    for(const auto &g : tf.glyphs) {
+        const auto offset = (int32_t)(odata.size() - glyphs_start);
+        loca.push_back(offset);
+        append_bytes(odata, g);
+    }
+    loca.push_back((int32_t)(odata.size() - glyphs_start));
+    e.set_tag("glyf");
+    e.offset = glyphs_start;
+    e.length = odata.size() - glyphs_start;
+    directory.push_back(e);
+
+    e.set_tag("loca");
+    e.offset = odata.size();
+    for(auto offset : loca) {
+        byte_swap(offset);
+        append_bytes(odata, offset);
+    }
+    e.length = odata.size() - e.offset;
+    directory.push_back(e);
+
+    e.set_tag("hmtx");
+    e.offset = odata.size();
+    for(auto &hm : tf.hmtx.longhor) {
+        hm.swap_endian();
+        append_bytes(odata, hm);
+    }
+    for(auto lsb : tf.hmtx.left_side_bearings) {
+        byte_swap(lsb);
+        append_bytes(odata, lsb);
+    }
+    e.length = odata.size() - e.offset;
+    directory.push_back(e);
+
+    assert(directory.size() == (size_t)tf.num_directory_entries());
+    char *directory_start = odata.data() + sizeof(TTOffsetTable);
+    for(int i = 0; i < (int)directory.size(); ++i) {
+        // Compute checksum here.
+        directory[i].swap_endian();
+        memcpy(directory_start + i * sizeof(TTDirEntry), &directory[i], sizeof(TTDirEntry));
     }
     return odata;
 }
@@ -758,13 +816,6 @@ void write_font(const char *ofname,
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
     dest.maxp.num_glyphs = dest.glyphs.size();
-    std::vector<int32_t> loca;
-    int32_t cumulative = 0;
-    for(const auto &g : dest.glyphs) {
-        loca.push_back(cumulative);
-        cumulative += g.size();
-    }
-    loca.push_back(cumulative);
     dest.hmtx = subset_hmtx(face, source, glyphs);
     dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
     dest.head.index_to_loc_format = 1;
@@ -805,14 +856,17 @@ int main(int argc, char **argv) {
         return 1;
     }
     FT_Face face;
+
     ec = FT_New_Face(ft, fontfile, 0, &face);
     if(ec) {
         printf("Font opening failed.\n");
         return 1;
     }
     printf("Font opened successfully.\n");
-    std::vector<uint32_t> glyphs{0, 'A'};
+
+    std::vector<uint32_t> glyphs{0, 'A', 'B', '0', '&', '+', 'z'};
     auto tt = load_truetype_font(fontfile);
+    // std::abort();
     write_font(outfile, face, tt, glyphs);
 
     FT_Done_Face(face);
