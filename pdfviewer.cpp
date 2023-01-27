@@ -190,11 +190,15 @@ BinaryData load_binary_data(std::string_view data) {
 
 std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
     std::vector<XrefEntry> refs;
-    if(xref.find("xref\n") != 0) {
+    const char *data_in;
+    if(xref.find("xref\n") == 0) {
+        data_in = xref.data() + 5;
+    } else if(xref.find("xref\r\n") == 0) {
+        data_in = xref.data() + 6;
+    } else {
         printf("Xref table is not valid.\n");
         return {};
     }
-    const char *data_in = xref.data() + 5;
     char *tmp;
     const long first_obj = strtol(data_in, &tmp, 10);
     if(first_obj != 0) {
@@ -207,7 +211,11 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
         printf("Invalid number of entries in xref table.");
         return {};
     }
-    data_in = tmp + 1;
+    data_in = tmp;
+    if(*data_in == '\r') {
+        ++data_in;
+    }
+    ++data_in;
     refs.reserve(num_objects);
     for(long i = 0; i < num_objects; ++i) {
         auto obj_offset = strtol(data_in, nullptr, 10);
@@ -254,7 +262,10 @@ std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
         printf("Trailer dictionary is missing.\n");
         return {};
     }
-    auto xref = data.substr(i3 + 1, i2 - i3 - 1);
+    auto xref = std::string{data.substr(i3 + 1, i2 - i3 - 1)};
+    if(xref.back() == '\r') {
+        xref.pop_back();
+    }
     if(xref != "startxref") {
         printf("Cross reference table missing.\n");
         return {};
