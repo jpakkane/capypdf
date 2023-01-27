@@ -16,6 +16,9 @@
 
 #include <pdfpage.hpp>
 #include <pdfgen.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_IMAGE_H
 #include <utils.hpp>
 #include <lcms2.h>
 #include <iconv.h>
@@ -306,11 +309,6 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(strerror(errno));
     }
     IconvCloser ic{to_codepoint};
-    auto to_utf16 = iconv_open("UTF-16BE", "UCS-4LE");
-    if(errno != 0) {
-        throw std::runtime_error(strerror(errno));
-    }
-    IconvCloser ic2{to_utf16};
     FT_Face face = g->fonts.at(g->font_objects.at(fid.id).font_index_tmp).face.get();
     if(!face) {
         throw std::runtime_error(
@@ -322,14 +320,16 @@ void PdfPage::render_utf8_text(
                    R"(BT
   /Font{} {} Tf
   {} {} Td
-  <)",
+  [ ()",
                    font_data.font_obj,
                    pointsize,
                    x,
                    y);
+    uint32_t previous_codepoint = -1;
     uint32_t codepoint = 0;
     auto in_ptr = (char *)text.data();
     auto in_bytes = text.length();
+    // assert(FT_HAS_KERNING(face));
     while(in_ptr < text.data() + text.size()) {
         auto out_ptr = (char *)&codepoint;
         auto out_bytes = sizeof(codepoint);
@@ -338,25 +338,28 @@ void PdfPage::render_utf8_text(
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             throw std::runtime_error(strerror(errno));
         }
-        errno = 0;
-        // Font subsetting would happen at this point.
 
-        // auto glyph_index = g->glyph_for_codepoint(face, codepoint);
-        auto glyph_index = codepoint;
-        char *ucs4_in = (char *)&glyph_index;
-        char u16buf[4];
-        char *u16_out = u16buf;
-        size_t in_ucs4_size = 4;
-        size_t out_u16_size = sizeof(u16buf);
-        iconv_result = iconv(to_utf16, &ucs4_in, &in_ucs4_size, &u16_out, &out_u16_size);
-        if(errno) {
-            throw std::runtime_error(strerror(errno));
+        if(previous_codepoint != (uint32_t)-1) {
+            // Freetype does not support GPOS kerning because it is context-sensitive.
+            FT_Vector kerning;
+            auto ec =
+                FT_Get_Kerning(face, previous_codepoint, codepoint, FT_KERNING_DEFAULT, &kerning);
+            if(ec != 0) {
+                throw std::runtime_error("Getting kerning data failed.");
+            }
+            if(kerning.x != 0) {
+                // The value might be a integer, fraction or something else.
+                // None of the fonts I tested had kerning that Freetype recognized,
+                // so don't know if this actually works.
+                fmt::format_to(cmd_appender, ") {} (", int(kerning.x));
+            }
         }
-        for(const char *iterator = u16buf; iterator != u16_out; ++iterator) {
-            fmt::format_to(cmd_appender, "{:02X}", (unsigned char)(*iterator));
-        }
+
+        // FIXME, convert to font subset here.
+        fmt::format_to(cmd_appender, "{}", (char)codepoint);
+        previous_codepoint = codepoint;
     }
-    fmt::format_to(cmd_appender, "> Tj\nET\n");
+    fmt::format_to(cmd_appender, ") ] TJ\nET\n");
     assert(in_bytes == 0);
 }
 
