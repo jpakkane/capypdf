@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
     opts.title = "PDF experiment";
     opts.author = "Peter David Foster, esq";
     opts.output_colorspace = PDF_DEVICE_CMYK;
+    opts.prof.cmyk_profile_file =
+        "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
     try {
         PdfGen gen("test.pdf", opts);

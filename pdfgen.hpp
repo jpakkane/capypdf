@@ -94,6 +94,11 @@ struct FontInfo {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> font;
 };
 
+struct FullPDFObject {
+    std::string dictionary;
+    std::string stream;
+};
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -101,7 +106,7 @@ public:
 
     PdfPage new_page();
 
-    int32_t add_object(std::string_view object_data);
+    int32_t add_object(FullPDFObject object);
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     ImageId load_image(const char *fname);
@@ -121,11 +126,11 @@ private:
 
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
 
-    void write_catalog();
+    void create_catalog();
     void write_pages();
     void write_header();
     void write_info();
-    void write_cross_reference_table();
+    void write_cross_reference_table(const std::vector<uint64_t> object_offsets);
     void write_trailer(int64_t xref_offset);
 
     void start_object(int32_t obj_num);
@@ -135,11 +140,13 @@ private:
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
 
+    std::vector<uint64_t> write_objects();
+
     FILE *ofile;
     PdfGenerationData opts;
     PdfColorConverter cm;
     FT_Library ft;
-    std::vector<int64_t> object_offsets;
+    std::vector<FullPDFObject> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;

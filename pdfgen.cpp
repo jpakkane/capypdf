@@ -214,6 +214,36 @@ PdfGen::~PdfGen() {
     }
 }
 
+std::vector<uint64_t> PdfGen::write_objects() {
+    std::vector<uint64_t> object_offsets;
+    std::string buf;
+    auto appender = std::back_inserter(buf);
+    for(size_t i = 0; i < document_objects.size(); ++i) {
+        const auto &obj = document_objects[i];
+        buf.clear();
+        object_offsets.push_back(ftell(ofile));
+        fmt::format_to(appender, "{} 0 obj\n", i + 1);
+        buf += obj.dictionary;
+        if(!obj.stream.empty()) {
+            if(buf.back() != '\n') {
+                buf += '\n';
+            }
+            buf += "stream\n";
+            buf += obj.stream;
+            if(buf.back() != '\n') {
+                buf += '\n';
+            }
+            buf += "endstream\n";
+        }
+        if(buf.back() != '\n') {
+            buf += '\n';
+        }
+        buf += "endobj\n";
+        write_bytes(buf);
+    }
+    return object_offsets;
+}
+
 int32_t PdfGen::store_icc_profile(std::string_view contents, int32_t num_channels) {
     if(contents.empty()) {
         return -1;
@@ -226,13 +256,10 @@ int32_t PdfGen::store_icc_profile(std::string_view contents, int32_t num_channel
   /Length {}
   /N {}
 >>
-stream
 )",
                    compressed.size(),
                    num_channels);
-    buf += compressed;
-    buf += "\nendstream\n";
-    return add_object(buf);
+    return add_object(FullPDFObject{std::move(buf), std::move(compressed)});
 }
 
 void PdfGen::write_bytes(const char *buf, size_t buf_size) {
@@ -244,35 +271,37 @@ void PdfGen::write_bytes(const char *buf, size_t buf_size) {
 void PdfGen::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
 
 void PdfGen::write_info() {
-    std::string obj_data{"<<\n"};
+    FullPDFObject obj_data;
+    obj_data.dictionary = "<<\n";
     if(!opts.title.empty()) {
-        obj_data += "  /Title ";
-        obj_data += utf8_to_pdfmetastr(opts.title);
-        obj_data += "\n";
+        obj_data.dictionary += "  /Title ";
+        obj_data.dictionary += utf8_to_pdfmetastr(opts.title);
+        obj_data.dictionary += "\n";
     }
     if(!opts.author.empty()) {
-        obj_data += "  /Author ";
-        obj_data += utf8_to_pdfmetastr(opts.author);
-        obj_data += "\n";
+        obj_data.dictionary += "  /Author ";
+        obj_data.dictionary += utf8_to_pdfmetastr(opts.author);
+        obj_data.dictionary += "\n";
     }
-    obj_data += "  /Producer (PDF Testbed generator)\n";
-    obj_data += "  /CreationDate ";
-    obj_data += current_date_string();
-    obj_data += '\n';
-    obj_data += ">>\n";
-    add_object(obj_data);
+    obj_data.dictionary += "  /Producer (PDF Testbed generator)\n";
+    obj_data.dictionary += "  /CreationDate ";
+    obj_data.dictionary += current_date_string();
+    obj_data.dictionary += '\n';
+    obj_data.dictionary += ">>\n";
+    add_object(std::move(obj_data));
 }
 
 void PdfGen::close_file() {
     write_pages();
-    write_catalog();
+    create_catalog();
+    auto object_offsets = write_objects();
     const int64_t xref_offset = ftell(ofile);
-    write_cross_reference_table();
+    write_cross_reference_table(object_offsets);
     write_trailer(xref_offset);
 }
 
 void PdfGen::write_pages() {
-    const auto pages_obj_num = (int32_t)(object_offsets.size() + pages.size() + 1);
+    const auto pages_obj_num = (int32_t)(document_objects.size() + pages.size() + 1);
 
     std::string buf;
 
@@ -308,7 +337,7 @@ void PdfGen::write_pages() {
                        i.commands_obj_num,
                        i.resource_obj_num);
 
-        page_objects.push_back(add_object(buf));
+        page_objects.push_back(add_object(FullPDFObject{buf, ""}));
     }
     buf = R"(<<
   /Type /Pages
@@ -318,14 +347,14 @@ void PdfGen::write_pages() {
         fmt::format_to(buf_append, "    {} 0 R\n", i);
     }
     fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", page_objects.size());
-    const auto actual_number = add_object(buf);
+    const auto actual_number = add_object(FullPDFObject{buf, ""});
     if(actual_number != pages_obj_num) {
         throw std::runtime_error("Buggy McBugFace!");
     }
 }
 
-void PdfGen::write_catalog() {
-    const int32_t pages_obj_num = (int32_t)object_offsets.size();
+void PdfGen::create_catalog() {
+    const int32_t pages_obj_num = (int32_t)document_objects.size();
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
@@ -334,10 +363,10 @@ void PdfGen::write_catalog() {
 >>
 )",
                    pages_obj_num);
-    add_object(buf);
+    add_object(FullPDFObject{buf, ""});
 }
 
-void PdfGen::write_cross_reference_table() {
+void PdfGen::write_cross_reference_table(const std::vector<uint64_t> object_offsets) {
     std::string buf;
     fmt::format_to(
         std::back_inserter(buf),
@@ -354,8 +383,8 @@ void PdfGen::write_cross_reference_table() {
 }
 
 void PdfGen::write_trailer(int64_t xref_offset) {
-    const int32_t info = 1;                     // Info object is the first printed.
-    const int32_t root = object_offsets.size(); // Root object is the last one printed.
+    const int32_t info = 1;                       // Info object is the first printed.
+    const int32_t root = document_objects.size(); // Root object is the last one printed.
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(trailer
@@ -368,7 +397,7 @@ startxref
 {}
 %%EOF
 )",
-                   object_offsets.size() + 1,
+                   document_objects.size() + 1,
                    root,
                    info,
                    xref_offset);
@@ -378,20 +407,14 @@ startxref
 PdfPage PdfGen::new_page() { return PdfPage(this, &cm); }
 
 void PdfGen::add_page(std::string_view resource_data, std::string_view page_data) {
-    const auto resource_num = add_object(resource_data);
-    const auto page_num = add_object(page_data);
+    const auto resource_num = add_object(FullPDFObject{std::string{resource_data}, ""});
+    const auto page_num = add_object(FullPDFObject{std::string{page_data}, ""});
     pages.emplace_back(PageOffsets{resource_num, page_num});
 }
 
-int32_t PdfGen::add_object(std::string_view object_data) {
-    auto object_num = (int32_t)object_offsets.size() + 1;
-    object_offsets.push_back(ftell(ofile));
-    const int bufsize = 128;
-    char buf[bufsize];
-    snprintf(buf, bufsize, "%d 0 obj\n", object_num);
-    write_bytes(buf);
-    write_bytes(object_data);
-    write_bytes("endobj\n");
+int32_t PdfGen::add_object(FullPDFObject object) {
+    auto object_num = (int32_t)document_objects.size() + 1;
+    document_objects.push_back(std::move(object));
     return object_num;
 }
 
@@ -419,7 +442,7 @@ stream
                        compressed.size());
         buf += compressed;
         buf += "\nendstream\n";
-        smask_id = add_object(buf);
+        smask_id = add_object(FullPDFObject{std::move(buf), ""});
         buf.clear();
     }
     switch(opts.output_colorspace) {
@@ -443,10 +466,7 @@ stream
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
-        buf += ">>\nstream\n";
-        buf += compressed;
-        buf += "\nendstream\n";
-        auto im_id = add_object(buf);
+        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
@@ -471,10 +491,7 @@ stream
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
-        buf += ">>\nstream\n";
-        buf += compressed;
-        buf += "\nendstream\n";
-        auto im_id = add_object(buf);
+        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
@@ -499,10 +516,7 @@ stream
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
-        buf += ">>\nstream\n";
-        buf += compressed;
-        buf += "\nendstream\n";
-        auto im_id = add_object(buf);
+        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
@@ -546,13 +560,10 @@ FontId PdfGen::load_font(const char *fname) {
   /Length1 {}
   /Filter /FlateDecode
 >>
-stream
 )",
                                      compressed_bytes.size(),
                                      bytes.size());
-    objbuf += compressed_bytes;
-    objbuf += "\nendstream\n";
-    auto font_file_obj = add_object(objbuf);
+    auto font_file_obj = add_object(FullPDFObject{std::move(objbuf), compressed_bytes});
     const uint32_t fflags = 32;
     objbuf = fmt::format(R"(<<
   /Type /FontDescriptor
@@ -583,19 +594,16 @@ stream
                          80,              // Cairo always sets these to 80.
                          80,
                          font_file_obj);
-    auto font_descriptor_obj = add_object(objbuf);
+    auto font_descriptor_obj = add_object(FullPDFObject{std::move(objbuf), ""});
 
     auto cmap = create_cmap(face);
 
-    auto tounicode_obj = add_object(fmt::format(R"(<<
+    auto tounicode_obj = add_object(FullPDFObject{fmt::format(R"(<<
   /Length {}
 >>
-stream
-{}
-endstream
 )",
-                                                cmap.size(),
-                                                cmap));
+                                                              cmap.size()),
+                                                  cmap});
     const int start_char = 0;
     const int end_char = 0xFFFD; // Unicode replacement character.
     auto width_arr = build_width_array(face, start_char, end_char + 1);
@@ -616,7 +624,7 @@ endstream
                          width_arr,
                          font_descriptor_obj,
                          tounicode_obj);
-    auto fontobj = add_object(objbuf);
+    auto fontobj = add_object(FullPDFObject{std::move(objbuf), ""});
     font_objects.push_back(
         FontInfo{font_file_obj, font_descriptor_obj, fontobj, std::move(fcloser)});
     FontId fid{(int32_t)font_objects.size() - 1};
@@ -637,7 +645,8 @@ FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
 >>
 )",
                    font_names[font]);
-    font_objects.push_back(FontInfo{-1, -1, add_object(font_dict), {nullptr, guarded_face_close}});
+    font_objects.push_back(
+        FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), {nullptr, guarded_face_close}});
     auto fontid = FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
@@ -659,13 +668,10 @@ exch {} mul
   /Range [ 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 ]
   /Length {}
 >>
-stream
-{}
-endstream
 )",
                                   stream.length(),
                                   stream);
-    auto fn_num = add_object(buf);
+    auto fn_num = add_object(FullPDFObject{buf, std::move(stream)});
     buf.clear();
     fmt::format_to(std::back_inserter(buf),
                    R"([
@@ -677,7 +683,7 @@ endstream
 )",
                    name,
                    fn_num);
-    separation_objects.push_back(add_object(buf));
+    separation_objects.push_back(add_object(FullPDFObject{buf, ""}));
     return SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
