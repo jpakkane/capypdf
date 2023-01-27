@@ -38,6 +38,11 @@ typedef int FT_Error;
 
 FT_Error guarded_face_close(FT_Face face);
 
+struct TtfFont {
+    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
+    std::string fontdata;
+};
+
 struct PdfBox {
     double x;
     double y;
@@ -91,7 +96,7 @@ struct FontInfo {
     int32_t font_file_obj;
     int32_t font_descriptor_obj;
     int32_t font_obj;
-    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> font;
+    size_t font_index_tmp;
 };
 
 struct FullPDFObject {
@@ -152,5 +157,6 @@ private:
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
+    std::vector<TtfFont> fonts;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
 };

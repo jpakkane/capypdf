@@ -311,7 +311,7 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(strerror(errno));
     }
     IconvCloser ic2{to_utf16};
-    FT_Face face = g->font_objects.at(fid.id).font.get();
+    FT_Face face = g->fonts.at(g->font_objects.at(fid.id).font_index_tmp).face.get();
     if(!face) {
         throw std::runtime_error(
             "Tried to use builtin font to render UTF-8. They only support ASCII.");
@@ -364,7 +364,8 @@ void PdfPage::render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, dou
     auto &font_data = g->font_objects.at(fid.id);
     used_fonts.insert(font_data.font_obj);
 
-    const auto font_glyph_id = g->glyph_for_codepoint(font_data.font.get(), glyph);
+    const auto font_glyph_id =
+        g->glyph_for_codepoint(g->fonts.at(font_data.font_index_tmp).face.get(), glyph);
     fmt::format_to(cmd_appender,
                    R"(BT
   /Font{} {} Tf

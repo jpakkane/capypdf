@@ -190,11 +190,6 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
 
 PdfGen::~PdfGen() {
     font_objects.clear();
-    auto error = FT_Done_FreeType(ft);
-    if(error) {
-        fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
-    }
-    ft = nullptr;
     try {
         close_file();
     } catch(const std::exception &e) {
@@ -206,11 +201,13 @@ PdfGen::~PdfGen() {
         fclose(ofile);
     }
 
-    if(fflush(ofile) != 0) {
-        perror("Flushing file contents failed");
-    }
     if(fclose(ofile) != 0) {
         perror("Closing output file failed");
+    }
+    fonts.clear();
+    auto error = FT_Done_FreeType(ft);
+    if(error) {
+        fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
     }
 }
 
@@ -298,6 +295,9 @@ void PdfGen::close_file() {
     const int64_t xref_offset = ftell(ofile);
     write_cross_reference_table(object_offsets);
     write_trailer(xref_offset);
+    if(fflush(ofile) != 0) {
+        throw std::runtime_error(fmt::format("Flushing file contents failed: {}", strerror(errno)));
+    }
 }
 
 void PdfGen::write_pages() {
@@ -527,13 +527,15 @@ stream
 }
 
 FontId PdfGen::load_font(const char *fname) {
+    TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
+                load_file(fname)};
     FT_Face face;
     auto error = FT_New_Face(ft, fname, 0, &face);
     if(error) {
         // By default Freetype is compiled without error strings. Yay!
         throw std::runtime_error(fmt::format("Freetype error {}.", error));
     }
-    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> fcloser(face, guarded_face_close);
+    ttf.face.reset(face);
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
         throw std::runtime_error(fmt::format("Could not determine format of font file {}.", fname));
@@ -544,9 +546,6 @@ FontId PdfGen::load_font(const char *fname) {
     }
     FT_Bytes base = nullptr;
     error = FT_OpenType_Validate(face, FT_VALIDATE_BASE, &base, nullptr, nullptr, nullptr, nullptr);
-    if(base) {
-        FT_OpenType_Free(face, base);
-    }
     if(!error) {
         throw std::runtime_error(fmt::format("Font file {} is an OpenType font. Only TrueType "
                                              "fonts are supported. Freetype error {}.",
@@ -625,8 +624,8 @@ FontId PdfGen::load_font(const char *fname) {
                          font_descriptor_obj,
                          tounicode_obj);
     auto fontobj = add_object(FullPDFObject{std::move(objbuf), ""});
-    font_objects.push_back(
-        FontInfo{font_file_obj, font_descriptor_obj, fontobj, std::move(fcloser)});
+    fonts.emplace_back(std::move(ttf));
+    font_objects.push_back(FontInfo{font_file_obj, font_descriptor_obj, fontobj, fonts.size() - 1});
     FontId fid{(int32_t)font_objects.size() - 1};
     return fid;
 }
@@ -645,8 +644,7 @@ FontId PdfGen::get_builtin_font_id(BuiltinFonts font) {
 >>
 )",
                    font_names[font]);
-    font_objects.push_back(
-        FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), {nullptr, guarded_face_close}});
+    font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), size_t(-1)});
     auto fontid = FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
