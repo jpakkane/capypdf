@@ -227,6 +227,15 @@ std::vector<uint64_t> PdfGen::write_objects() {
             const auto &fdobj = std::get<DelayedFontDescriptor>(obj);
             write_font_descriptor(
                 object_number, fonts.at(fdobj.font_offset), fdobj.font_file_object);
+        } else if(std::holds_alternative<DelayedFont>(obj)) {
+            const auto &fobj = std::get<DelayedFont>(obj);
+            write_font(object_number,
+                       fonts.at(fobj.font_offset),
+                       fobj.to_unicode_obj,
+                       fobj.font_descriptor_obj);
+        } else if(std::holds_alternative<DelayedCmap>(obj)) {
+            const auto &cmap = std::get<DelayedCmap>(obj);
+            write_cmap(object_number, fonts.at(cmap.font_offset));
         } else {
             throw std::runtime_error("Unreachable code");
         }
@@ -280,6 +289,46 @@ void PdfGen::write_font_descriptor(int32_t object_num, const TtfFont &font, int3
                               80,              // Cairo always sets these to 80.
                               80,
                               font_file_obj);
+    write_finished_object(object_num, objbuf, "");
+}
+
+void PdfGen::write_font(int32_t object_num,
+                        const TtfFont &font,
+                        int32_t tounicode_obj,
+                        int32_t font_descriptor_obj) {
+    auto face = font.face.get();
+    const int start_char = 0;
+    const int end_char = 0xFFFD; // Unicode replacement character.
+    auto width_arr = build_width_array(face, start_char, end_char + 1);
+    auto objbuf = fmt::format(R"(<<
+  /Type /Font
+  /Subtype /TrueType
+  /BaseFont /{}
+  /FirstChar {}
+  /LastChar {}
+  /Widths {}
+  /FontDescriptor {} 0 R
+  /ToUnicode {} 0 R
+>>
+)",
+                              FT_Get_Postscript_Name(face),
+                              start_char,
+                              end_char,
+                              width_arr,
+                              font_descriptor_obj,
+                              tounicode_obj);
+    write_finished_object(object_num, objbuf, "");
+}
+
+void PdfGen::write_cmap(int32_t object_number, const TtfFont &font) {
+    auto face = font.face.get();
+    auto cmap = create_cmap(face);
+    auto dict = fmt::format(R"(<<
+  /Length {}
+>>
+)",
+                            cmap.length());
+    write_finished_object(object_number, dict, cmap);
 }
 
 void PdfGen::write_finished_object(int32_t object_number,
@@ -619,39 +668,13 @@ FontId PdfGen::load_font(const char *fname) {
     auto font_source_id = fonts.size();
     fonts.emplace_back(std::move(ttf));
 
-    auto font_file_obj = add_object(DelayedFontData{font_source_id});
-    auto font_descriptor_obj = add_object(DelayedFontDescriptor{font_source_id, font_file_obj});
+    auto font_data_obj = add_object(DelayedFontData{font_source_id});
+    auto tounicode_obj = add_object(DelayedCmap{font_source_id});
+    auto font_descriptor_obj = add_object(DelayedFontDescriptor{font_source_id, font_data_obj});
+    auto font_obj = add_object(DelayedFont{font_source_id, tounicode_obj, font_descriptor_obj});
 
-    auto cmap = create_cmap(face);
-
-    auto tounicode_obj = add_object(FullPDFObject{fmt::format(R"(<<
-  /Length {}
->>
-)",
-                                                              cmap.size()),
-                                                  cmap});
-    const int start_char = 0;
-    const int end_char = 0xFFFD; // Unicode replacement character.
-    auto width_arr = build_width_array(face, start_char, end_char + 1);
-    auto objbuf = fmt::format(R"(<<
-  /Type /Font
-  /Subtype /TrueType
-  /BaseFont /{}
-  /FirstChar {}
-  /LastChar {}
-  /Widths {}
-  /FontDescriptor {} 0 R
-  /ToUnicode {} 0 R
->>
-)",
-                              FT_Get_Postscript_Name(face),
-                              start_char,
-                              end_char,
-                              width_arr,
-                              font_descriptor_obj,
-                              tounicode_obj);
-    auto fontobj = add_object(FullPDFObject{std::move(objbuf), ""});
-    font_objects.push_back(FontInfo{font_file_obj, font_descriptor_obj, fontobj, fonts.size() - 1});
+    font_objects.push_back(
+        FontInfo{font_data_obj, font_descriptor_obj, font_obj, fonts.size() - 1});
     FontId fid{(int32_t)font_objects.size() - 1};
     return fid;
 }
