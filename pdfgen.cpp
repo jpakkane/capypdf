@@ -463,14 +463,11 @@ ImageId PdfGen::load_image(const char *fname) {
   /Length {}
   /Filter /FlateDecode
 >>
-stream
 )",
                        image.w,
                        image.h,
                        compressed.size());
-        buf += compressed;
-        buf += "\nendstream\n";
-        smask_id = add_object(FullPDFObject{std::move(buf), ""});
+        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         buf.clear();
     }
     switch(opts.output_colorspace) {
