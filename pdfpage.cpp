@@ -326,11 +326,14 @@ void PdfPage::render_utf8_text(
                    x,
                    y);
     uint32_t previous_codepoint = -1;
-    uint32_t codepoint = 0;
     auto in_ptr = (char *)text.data();
     auto in_bytes = text.length();
-    // assert(FT_HAS_KERNING(face));
+    // Freetype does not support GPOS kerning because it is context-sensitive.
+    // So this method might produce incorrect kerning. Users that need precision
+    // need to use the glyph based rendering method.
+    const bool has_kerning = FT_HAS_KERNING(face);
     while(in_ptr < text.data() + text.size()) {
+        uint32_t codepoint{0};
         auto out_ptr = (char *)&codepoint;
         auto out_bytes = sizeof(codepoint);
         errno = 0;
@@ -339,11 +342,11 @@ void PdfPage::render_utf8_text(
             throw std::runtime_error(strerror(errno));
         }
 
-        if(previous_codepoint != (uint32_t)-1) {
-            // Freetype does not support GPOS kerning because it is context-sensitive.
+        if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
-            auto ec =
-                FT_Get_Kerning(face, previous_codepoint, codepoint, FT_KERNING_DEFAULT, &kerning);
+            const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
+            const auto index_right = FT_Get_Char_Index(face, codepoint);
+            auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
                 throw std::runtime_error("Getting kerning data failed.");
             }
