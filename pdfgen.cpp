@@ -738,3 +738,15 @@ uint32_t PdfGen::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     assert(face);
     return FT_Get_Char_Index(face, ucs4);
 }
+
+SubsetGlyph PdfGen::get_subset_glyph(FontId fid, uint32_t glyph) {
+    SubsetGlyph fss;
+    fss.ss.fid = fid;
+    fss.ss.subset_id = 0;
+    if(glyph > 255) {
+        fprintf(stderr, "Glyph ids larger than 255 not supported yet.\n");
+        std::abort();
+    }
+    fss.glyph_id = glyph;
+    return fss;
+}

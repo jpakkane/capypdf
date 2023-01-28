@@ -302,8 +302,9 @@ struct IconvCloser {
 
 void PdfPage::render_utf8_text(
     std::string_view text, FontId fid, double pointsize, double x, double y) {
-    // PDF text code requires us to keep track of the highest
-    // codepoint used thus far in order to generate the widths array.
+    if(text.empty()) {
+        return;
+    }
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
         throw std::runtime_error(strerror(errno));
@@ -316,18 +317,13 @@ void PdfPage::render_utf8_text(
     }
     auto &font_data = g->font_objects.at(fid.id);
     used_fonts.insert(font_data.font_obj);
-    fmt::format_to(cmd_appender,
-                   R"(BT
-  /Font{} {} Tf
-  {} {} Td
-  [ ()",
-                   font_data.font_obj,
-                   pointsize,
-                   x,
-                   y);
+
     uint32_t previous_codepoint = -1;
     auto in_ptr = (char *)text.data();
     auto in_bytes = text.length();
+    FontSubset previous_subset;
+    previous_subset.fid.id = -1;
+    previous_subset.subset_id = -1;
     // Freetype does not support GPOS kerning because it is context-sensitive.
     // So this method might produce incorrect kerning. Users that need precision
     // need to use the glyph based rendering method.
@@ -340,6 +336,30 @@ void PdfPage::render_utf8_text(
         auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             throw std::runtime_error(strerror(errno));
+        }
+        // Need to change font subset?
+        auto current_subset_glyph = g->get_subset_glyph(fid, codepoint);
+        if(previous_subset.subset_id == -1) {
+            fmt::format_to(cmd_appender,
+                           R"(BT
+  /Font{} {} Tf
+  {} {} Td
+  [ ()",
+                           font_data.font_obj,
+                           pointsize,
+                           x,
+                           y);
+            previous_subset = current_subset_glyph.ss;
+            // Add to used fonts.
+        } else if(current_subset_glyph.ss != previous_subset) {
+            fmt::format_to(cmd_appender,
+                           R"() ] TJ
+  /Font{} {} Tf
+  [ ()",
+                           font_data.font_obj,
+                           pointsize);
+            previous_subset = current_subset_glyph.ss;
+            // Add to used fonts.
         }
 
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
@@ -357,9 +377,7 @@ void PdfPage::render_utf8_text(
                 fmt::format_to(cmd_appender, ") {} (", int(kerning.x));
             }
         }
-
-        // FIXME, convert to font subset here.
-        fmt::format_to(cmd_appender, "{}", (char)codepoint);
+        fmt::format_to(cmd_appender, "{}", (char)current_subset_glyph.glyph_id);
         previous_codepoint = codepoint;
     }
     fmt::format_to(cmd_appender, ") ] TJ\nET\n");

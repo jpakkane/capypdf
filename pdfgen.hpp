@@ -124,6 +124,30 @@ struct DelayedFont {
     int32_t font_descriptor_obj;
 };
 
+struct FontSubset {
+    FontId fid;
+    int32_t subset_id;
+
+    bool operator==(const FontSubset &other) const {
+        return fid.id == other.fid.id && subset_id == other.subset_id;
+    }
+
+    bool operator!=(const FontSubset &other) const { return !(*this == other); }
+
+    FontSubset &operator=(const FontSubset &other) {
+        if(this != &other) {
+            fid = other.fid;
+            subset_id = other.subset_id;
+        }
+        return *this;
+    }
+};
+
+struct SubsetGlyph {
+    FontSubset ss;
+    uint8_t glyph_id;
+};
+
 typedef std::
     variant<FullPDFObject, DelayedFontData, DelayedFontDescriptor, DelayedFont, DelayedCmap>
         ObjectType;
@@ -142,6 +166,8 @@ public:
     FontId load_font(const char *fname);
     ImageSize get_image_info(ImageId img_id) { return image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
+
+    SubsetGlyph get_subset_glyph(FontId fid, uint32_t glyph);
 
     friend class PdfPage;
 
