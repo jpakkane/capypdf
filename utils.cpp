@@ -65,6 +65,11 @@ std::string load_file(const char *fname) {
     if(!f) {
         throw std::runtime_error(strerror(errno));
     }
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    return load_file(f);
+}
+
+std::string load_file(FILE *f) {
     fseek(f, 0, SEEK_END);
     auto fsize = (size_t)ftell(f);
     std::string contents(fsize, '\0');

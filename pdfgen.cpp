@@ -213,32 +213,60 @@ PdfGen::~PdfGen() {
 
 std::vector<uint64_t> PdfGen::write_objects() {
     std::vector<uint64_t> object_offsets;
-    std::string buf;
-    auto appender = std::back_inserter(buf);
     for(size_t i = 0; i < document_objects.size(); ++i) {
         const auto &obj = document_objects[i];
-        buf.clear();
         object_offsets.push_back(ftell(ofile));
-        fmt::format_to(appender, "{} 0 obj\n", i + 1);
-        buf += obj.dictionary;
-        if(!obj.stream.empty()) {
-            if(buf.back() != '\n') {
-                buf += '\n';
-            }
-            buf += "stream\n";
-            buf += obj.stream;
-            if(buf.back() != '\n') {
-                buf += '\n';
-            }
-            buf += "endstream\n";
+        const int32_t object_number = (int32_t)(i + 1);
+        if(std::holds_alternative<FullPDFObject>(obj)) {
+            const auto &pobj = std::get<FullPDFObject>(obj);
+            write_finished_object(object_number, pobj.dictionary, pobj.stream);
+        } else if(std::holds_alternative<DelayedFontData>(obj)) {
+            const auto &fobj = std::get<DelayedFontData>(obj);
+            write_font_file(object_number, fonts.at(fobj.font_offset));
+        } else {
+            throw std::runtime_error("Unreachable code");
         }
+    }
+    return object_offsets;
+}
+
+void PdfGen::write_font_file(int32_t object_num, const TtfFont &font) {
+    // Full font, not a generated subset.
+    auto compressed_bytes = flate_compress(font.fontdata);
+    std::string dictbuf = fmt::format(R"(<<
+  /Length {}
+  /Length1 {}
+  /Filter /FlateDecode
+>>
+)",
+                                      compressed_bytes.size(),
+                                      font.fontdata.size());
+    write_finished_object(object_num, dictbuf, compressed_bytes);
+}
+
+void PdfGen::write_finished_object(int32_t object_number,
+                                   std::string_view dict_data,
+                                   std::string_view stream_data) {
+    std::string buf;
+    auto appender = std::back_inserter(buf);
+    fmt::format_to(appender, "{} 0 obj\n", object_number);
+    buf += dict_data;
+    if(!stream_data.empty()) {
         if(buf.back() != '\n') {
             buf += '\n';
         }
-        buf += "endobj\n";
-        write_bytes(buf);
+        buf += "stream\n";
+        buf += stream_data;
+        if(buf.back() != '\n') {
+            buf += '\n';
+        }
+        buf += "endstream\n";
     }
-    return object_offsets;
+    if(buf.back() != '\n') {
+        buf += '\n';
+    }
+    buf += "endobj\n";
+    write_bytes(buf);
 }
 
 int32_t PdfGen::store_icc_profile(std::string_view contents, int32_t num_channels) {
@@ -412,7 +440,7 @@ void PdfGen::add_page(std::string_view resource_data, std::string_view page_data
     pages.emplace_back(PageOffsets{resource_num, page_num});
 }
 
-int32_t PdfGen::add_object(FullPDFObject object) {
+int32_t PdfGen::add_object(ObjectType object) {
     auto object_num = (int32_t)document_objects.size() + 1;
     document_objects.push_back(std::move(object));
     return object_num;
@@ -536,6 +564,7 @@ FontId PdfGen::load_font(const char *fname) {
         throw std::runtime_error(fmt::format("Freetype error {}.", error));
     }
     ttf.face.reset(face);
+
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
         throw std::runtime_error(fmt::format("Could not determine format of font file {}.", fname));
@@ -552,19 +581,12 @@ FontId PdfGen::load_font(const char *fname) {
                                              fname,
                                              error));
     }
-    auto bytes = load_file(fname);
-    auto compressed_bytes = flate_compress(bytes);
-    std::string objbuf = fmt::format(R"(<<
-  /Length {}
-  /Length1 {}
-  /Filter /FlateDecode
->>
-)",
-                                     compressed_bytes.size(),
-                                     bytes.size());
-    auto font_file_obj = add_object(FullPDFObject{std::move(objbuf), compressed_bytes});
+    auto font_source_id = fonts.size();
+    fonts.emplace_back(std::move(ttf));
+
+    auto font_file_obj = add_object(DelayedFontData{font_source_id});
     const uint32_t fflags = 32;
-    objbuf = fmt::format(R"(<<
+    auto objbuf = fmt::format(R"(<<
   /Type /FontDescriptor
   /FontName /{}
   /FontFamily ({})
@@ -579,20 +601,20 @@ FontId PdfGen::load_font(const char *fname) {
   /FontFile2 {} 0 R
 >>
 )",
-                         fontname2pdfname(FT_Get_Postscript_Name(face)),
-                         face->family_name,
-                         fflags,
-                         face->bbox.xMin,
-                         face->bbox.yMin,
-                         face->bbox.xMax,
-                         face->bbox.yMax,
-                         0, // Cairo always sets this to zero.
-                         face->ascender,
-                         face->descender,
-                         face->bbox.yMax, // Copying what Cairo does.
-                         80,              // Cairo always sets these to 80.
-                         80,
-                         font_file_obj);
+                              fontname2pdfname(FT_Get_Postscript_Name(face)),
+                              face->family_name,
+                              fflags,
+                              face->bbox.xMin,
+                              face->bbox.yMin,
+                              face->bbox.xMax,
+                              face->bbox.yMax,
+                              0, // Cairo always sets this to zero.
+                              face->ascender,
+                              face->descender,
+                              face->bbox.yMax, // Copying what Cairo does.
+                              80,              // Cairo always sets these to 80.
+                              80,
+                              font_file_obj);
     auto font_descriptor_obj = add_object(FullPDFObject{std::move(objbuf), ""});
 
     auto cmap = create_cmap(face);
@@ -624,7 +646,6 @@ FontId PdfGen::load_font(const char *fname) {
                          font_descriptor_obj,
                          tounicode_obj);
     auto fontobj = add_object(FullPDFObject{std::move(objbuf), ""});
-    fonts.emplace_back(std::move(ttf));
     font_objects.push_back(FontInfo{font_file_obj, font_descriptor_obj, fontobj, fonts.size() - 1});
     FontId fid{(int32_t)font_objects.size() - 1};
     return fid;

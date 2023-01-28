@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <optional>
 #include <memory>
+#include <variant>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -104,6 +105,12 @@ struct FullPDFObject {
     std::string stream;
 };
 
+struct DelayedFontData {
+    size_t font_offset;
+};
+
+typedef std::variant<FullPDFObject, DelayedFontData> ObjectType;
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -111,7 +118,7 @@ public:
 
     PdfPage new_page();
 
-    int32_t add_object(FullPDFObject object);
+    int32_t add_object(ObjectType object);
     void add_page(std::string_view resource_data, std::string_view page_data);
 
     ImageId load_image(const char *fname);
@@ -138,12 +145,13 @@ private:
     void write_cross_reference_table(const std::vector<uint64_t> object_offsets);
     void write_trailer(int64_t xref_offset);
 
-    void start_object(int32_t obj_num);
-    void finish_object();
-
     void close_file();
+    void write_finished_object(int32_t object_number,
+                               std::string_view dict_data,
+                               std::string_view stream_data);
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
+    void write_font_file(int32_t object_num, const TtfFont &font);
 
     std::vector<uint64_t> write_objects();
 
@@ -151,7 +159,7 @@ private:
     PdfGenerationData opts;
     PdfColorConverter cm;
     FT_Library ft;
-    std::vector<FullPDFObject> document_objects;
+    std::vector<ObjectType> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;

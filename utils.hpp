@@ -17,10 +17,13 @@
 #pragma once
 
 #include <string>
+#include <cstdio>
 
 std::string flate_compress(std::string_view data);
 
 std::string load_file(const char *fname);
+
+std::string load_file(FILE *f);
 
 std::string utf8_to_pdfmetastr(std::string_view input);
 
