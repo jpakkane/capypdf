@@ -109,7 +109,12 @@ struct DelayedFontData {
     size_t font_offset;
 };
 
-typedef std::variant<FullPDFObject, DelayedFontData> ObjectType;
+struct DelayedFontDescriptor {
+    size_t font_offset;
+    int32_t font_file_object;
+};
+
+typedef std::variant<FullPDFObject, DelayedFontData, DelayedFontDescriptor> ObjectType;
 
 class PdfGen {
 public:
@@ -151,7 +156,9 @@ private:
                                std::string_view stream_data);
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
+
     void write_font_file(int32_t object_num, const TtfFont &font);
+    void write_font_descriptor(int32_t object_num, const TtfFont &font, int32_t font_file_obj);
 
     std::vector<uint64_t> write_objects();
 
