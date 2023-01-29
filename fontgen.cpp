@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
         auto ctx = gen.new_page();
         ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 50);
     }
+    /*
     for(int page_num = 0; page_num < 2; ++page_num) {
         auto ctx = gen.new_page();
         for(int i = 0; i < 16; ++i) {
@@ -50,5 +51,6 @@ int main(int argc, char **argv) {
             }
         }
     }
+    */
     return 0;
 }

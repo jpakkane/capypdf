@@ -67,6 +67,19 @@ std::string fontname2pdfname(std::string_view original) {
     return out;
 }
 
+std::string subsetfontname2pdfname(std::string_view original, const int32_t subset_number) {
+    std::string out;
+    const int bufsize = 10;
+    char buf[bufsize];
+    snprintf(buf, bufsize, "%06d", subset_number);
+    for(int i = 0; i < 6; ++i) {
+        out += 'A' + (buf[i] - '0');
+    }
+    out += "+";
+    out += fontname2pdfname(original);
+    return out;
+}
+
 std::string
 build_width_array(FT_Face face, const int start_char, const int one_past_the_end_end_char) {
     std::string arr{"[ "};
@@ -78,6 +91,24 @@ build_width_array(FT_Face face, const int start_char, const int one_past_the_end
     //    static_assert(load_flags == 522);
     for(int i = start_char; i < one_past_the_end_end_char; ++i) {
         auto glyph_index = FT_Get_Char_Index(face, i);
+        auto error = FT_Load_Glyph(face, glyph_index, load_flags);
+        if(error != 0) {
+            throw std::runtime_error(FT_Error_String(error));
+        }
+        fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
+    }
+    arr += "]";
+    return arr;
+}
+
+std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &glyphs) {
+    std::string arr{"[ "};
+    auto bi = std::back_inserter(arr);
+    const auto load_flags =
+        FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
+    //    static_assert(load_flags == 522);
+    for(const auto glyph : glyphs) {
+        auto glyph_index = FT_Get_Char_Index(face, glyph);
         auto error = FT_Load_Glyph(face, glyph_index, load_flags);
         if(error != 0) {
             throw std::runtime_error(FT_Error_String(error));
@@ -222,25 +253,112 @@ std::vector<uint64_t> PdfGen::write_objects() {
             write_finished_object(object_number, pobj.dictionary, pobj.stream);
         } else if(std::holds_alternative<DelayedFontData>(obj)) {
             const auto &fobj = std::get<DelayedFontData>(obj);
-            write_font_file(object_number, fonts.at(fobj.font_offset));
+            write_font_file(object_number, fonts.at(fobj.font_offset).fontdata);
         } else if(std::holds_alternative<DelayedFontDescriptor>(obj)) {
             const auto &fdobj = std::get<DelayedFontDescriptor>(obj);
             write_font_descriptor(
-                object_number, fonts.at(fdobj.font_offset), fdobj.font_file_object);
+                object_number, fonts.at(fdobj.font_offset).fontdata, fdobj.font_file_object);
         } else if(std::holds_alternative<DelayedFont>(obj)) {
             const auto &fobj = std::get<DelayedFont>(obj);
             write_font(object_number,
-                       fonts.at(fobj.font_offset),
+                       fonts.at(fobj.font_offset).fontdata,
                        fobj.to_unicode_obj,
                        fobj.font_descriptor_obj);
         } else if(std::holds_alternative<DelayedCmap>(obj)) {
             const auto &cmap = std::get<DelayedCmap>(obj);
-            write_cmap(object_number, fonts.at(cmap.font_offset));
+            write_cmap(object_number, fonts.at(cmap.font_offset).fontdata);
+        } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
+            const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
+            write_subset_font_data(object_number, ssfont);
+        } else if(std::holds_alternative<DelayedSubsetFontDescriptor>(obj)) {
+            const auto &ssfontd = std::get<DelayedSubsetFontDescriptor>(obj);
+            write_subset_font_descriptor(object_number, fonts.at(ssfontd.fid.id).fontdata);
+        } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
+            const auto &ssfont = std::get<DelayedSubsetFont>(obj);
+            write_subset_font(object_number, fonts.at(ssfont.fid.id), 0);
         } else {
-            throw std::runtime_error("Unreachable code");
+            throw std::runtime_error("Unreachable code.");
         }
     }
     return object_offsets;
+}
+
+void PdfGen::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
+    std::string subset_font = "GET THIS BY CALLING THE SUBSETTER";
+    auto compressed_bytes = flate_compress(subset_font);
+    std::string dictbuf = fmt::format(R"(<<
+  /Length {}
+  /Length1 {}
+  /Filter /FlateDecode
+>>
+)",
+                                      compressed_bytes.size(),
+                                      subset_font.size());
+    write_finished_object(object_num, dictbuf, compressed_bytes);
+}
+
+void PdfGen::write_subset_font_descriptor(int32_t object_num, const TtfFont &font) {
+    const int32_t subset_number = 0;
+    const int32_t font_data_obj = 69;
+    auto face = font.face.get();
+    const uint32_t fflags = 32;
+    auto objbuf = fmt::format(R"(<<
+  /Type /FontDescriptor
+  /FontName /{}
+  /FontFamily ({})
+  /Flags {}
+  /FontBBox [ {} {} {} {} ]
+  /ItalicAngle {}
+  /Ascent {}
+  /Descent {}
+  /CapHeight {}
+  /StemH {}
+  /StemV {}
+  /FontFile2 {} 0 R
+>>
+)",
+                              subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset_number),
+                              face->family_name,
+                              fflags,
+                              face->bbox.xMin,
+                              face->bbox.yMin,
+                              face->bbox.xMax,
+                              face->bbox.yMax,
+                              0, // Cairo always sets this to zero.
+                              face->ascender,
+                              face->descender,
+                              face->bbox.yMax, // Copying what Cairo does.
+                              80,              // Cairo always sets these to 80.
+                              80,
+                              font_data_obj);
+    write_finished_object(object_num, objbuf, "");
+}
+
+void PdfGen::write_subset_font(int32_t object_num, const FontThingy &font, int32_t subset) {
+    const int32_t font_descriptor_obj = 69;
+    auto face = font.fontdata.face.get();
+    const std::vector<uint32_t> &subset_glyphs = font.subsets.get_subset(subset);
+    int32_t start_char = 0;
+    int32_t end_char = subset_glyphs.size() - 1;
+    auto width_arr = build_subset_width_array(face, subset_glyphs);
+    auto objbuf = fmt::format(R"(<<
+  /Type /Font
+  /Subtype /TrueType
+  /BaseFont /{}
+  /FirstChar {}
+  /LastChar {}
+  /Widths {}
+  /FontDescriptor {} 0 R
+>>
+)",
+                              FT_Get_Postscript_Name(face),
+                              start_char,
+                              end_char,
+                              width_arr,
+                              font_descriptor_obj
+                              //                              tounicode_obj
+    );
+    write_finished_object(object_num, objbuf, "");
 }
 
 void PdfGen::write_font_file(int32_t object_num, const TtfFont &font) {
@@ -666,7 +784,7 @@ FontId PdfGen::load_font(const char *fname) {
                                              error));
     }
     auto font_source_id = fonts.size();
-    fonts.emplace_back(std::move(ttf));
+    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter("blub.blub")});
 
     auto font_data_obj = add_object(DelayedFontData{font_source_id});
     auto tounicode_obj = add_object(DelayedCmap{font_source_id});
@@ -676,6 +794,9 @@ FontId PdfGen::load_font(const char *fname) {
     font_objects.push_back(
         FontInfo{font_data_obj, font_descriptor_obj, font_obj, fonts.size() - 1});
     FontId fid{(int32_t)font_objects.size() - 1};
+    add_object(DelayedSubsetFontData{FontId{(int32_t)font_source_id}});
+    add_object(DelayedSubsetFontDescriptor{FontId{(int32_t)font_source_id}});
+    add_object(DelayedSubsetFont{FontId{(int32_t)font_source_id}});
     return fid;
 }
 
@@ -741,12 +862,18 @@ uint32_t PdfGen::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
 
 SubsetGlyph PdfGen::get_subset_glyph(FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
+    auto blub = fonts.at(fid.id).subsets.get_glyph_subset(glyph);
     fss.ss.fid = fid;
-    fss.ss.subset_id = 0;
-    if(glyph > 255) {
-        fprintf(stderr, "Glyph ids larger than 255 not supported yet.\n");
-        std::abort();
+    if(false) {
+        fss.ss.subset_id = blub.subset;
+        fss.glyph_id = blub.offset;
+    } else {
+        fss.ss.subset_id = 0;
+        if(glyph > 255) {
+            fprintf(stderr, "Glyph ids larger than 255 not supported yet.\n");
+            std::abort();
+        }
+        fss.glyph_id = glyph;
     }
-    fss.glyph_id = glyph;
     return fss;
 }

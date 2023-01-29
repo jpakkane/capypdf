@@ -18,6 +18,7 @@
 
 #include <pdfpage.hpp>
 #include <pdfcolorconverter.hpp>
+#include <fontsubsetter.hpp>
 
 #include <cstdio>
 #include <cstdint>
@@ -124,23 +125,16 @@ struct DelayedFont {
     int32_t font_descriptor_obj;
 };
 
-struct FontSubset {
+struct DelayedSubsetFontData {
     FontId fid;
-    int32_t subset_id;
+};
 
-    bool operator==(const FontSubset &other) const {
-        return fid.id == other.fid.id && subset_id == other.subset_id;
-    }
+struct DelayedSubsetFontDescriptor {
+    FontId fid;
+};
 
-    bool operator!=(const FontSubset &other) const { return !(*this == other); }
-
-    FontSubset &operator=(const FontSubset &other) {
-        if(this != &other) {
-            fid = other.fid;
-            subset_id = other.subset_id;
-        }
-        return *this;
-    }
+struct DelayedSubsetFont {
+    FontId fid;
 };
 
 struct SubsetGlyph {
@@ -148,9 +142,20 @@ struct SubsetGlyph {
     uint8_t glyph_id;
 };
 
-typedef std::
-    variant<FullPDFObject, DelayedFontData, DelayedFontDescriptor, DelayedFont, DelayedCmap>
-        ObjectType;
+struct FontThingy {
+    TtfFont fontdata;
+    FontSubsetter subsets;
+};
+
+typedef std::variant<FullPDFObject,
+                     DelayedFontData,
+                     DelayedFontDescriptor,
+                     DelayedFont,
+                     DelayedCmap,
+                     DelayedSubsetFontData,
+                     DelayedSubsetFontDescriptor,
+                     DelayedSubsetFont>
+    ObjectType;
 
 class PdfGen {
 public:
@@ -203,6 +208,10 @@ private:
                     int32_t font_descriptor_obj);
     void write_cmap(int32_t object_number, const TtfFont &font);
 
+    void write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
+    void write_subset_font_descriptor(int32_t object_num, const TtfFont &font);
+    void write_subset_font(int32_t object_num, const FontThingy &font, int32_t subset);
+
     std::vector<uint64_t> write_objects();
 
     FILE *ofile;
@@ -215,6 +224,6 @@ private:
     std::unordered_map<BuiltinFonts, FontId> builtin_fonts;
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
-    std::vector<TtfFont> fonts;
+    std::vector<FontThingy> fonts;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
 };

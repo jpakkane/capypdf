@@ -22,7 +22,7 @@
 
 static const std::size_t max_glyphs = 255;
 
-struct FontSubset {
+struct FontSubsetInfo {
     int32_t subset;
     int32_t offset;
 };
@@ -31,10 +31,14 @@ class FontSubsetter {
 public:
     explicit FontSubsetter(const char *fname);
 
-    FontSubset get_glyph_subset(uint32_t glyph);
+    FontSubsetInfo get_glyph_subset(uint32_t glyph);
+
+    const std::vector<uint32_t> &get_subset(int32_t subset_number) const {
+        return subsets.at(subset_number);
+    }
 
 private:
-    std::optional<FontSubset> find_glyph(uint32_t glyph) const;
+    std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
 
     std::vector<std::vector<uint32_t>> subsets;
 };

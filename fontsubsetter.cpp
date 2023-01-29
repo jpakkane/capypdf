@@ -19,7 +19,7 @@
 
 FontSubsetter::FontSubsetter(const char *fname) { subsets.emplace_back(std::vector<uint32_t>{}); }
 
-FontSubset FontSubsetter::get_glyph_subset(uint32_t glyph) {
+FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     auto trial = find_glyph(glyph);
     if(trial) {
         return trial.value();
@@ -28,14 +28,14 @@ FontSubset FontSubsetter::get_glyph_subset(uint32_t glyph) {
         subsets.emplace_back(std::vector<uint32_t>{});
     }
     subsets.back().push_back(glyph);
-    return FontSubset{int32_t(subsets.size() - 1), int32_t(subsets.back().size() - 1)};
+    return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().size() - 1)};
 }
 
-std::optional<FontSubset> FontSubsetter::find_glyph(uint32_t glyph) const {
+std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
     for(size_t subset = 0; subset < subsets.size(); ++subset) {
         auto loc = std::find(subsets.at(subset).cbegin(), subsets.at(subset).cend(), glyph);
         if(loc != subsets[subset].cend()) {
-            return FontSubset{int32_t(subset), int32_t(loc - subsets.at(subset).cbegin())};
+            return FontSubsetInfo{int32_t(subset), int32_t(loc - subsets.at(subset).cbegin())};
         }
     }
     return {};

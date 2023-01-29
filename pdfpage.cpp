@@ -113,10 +113,14 @@ void PdfPage::build_resource_dict() {
 
         resources += "  >>\n";
     }
-    if(!used_fonts.empty()) {
+    if(!used_fonts.empty() || !used_subset_fonts.empty()) {
         resources += "  /Font <<\n";
         for(const auto &i : used_fonts) {
             fmt::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
+        }
+        for(const auto &i : used_subset_fonts) {
+            fmt::format_to(
+                resource_appender, "    /SFont{}-{} {} 0 R\n", i.fid.id, i.subset_id, i.fid.id);
         }
         resources += "  >>\n";
     }
@@ -310,7 +314,7 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(strerror(errno));
     }
     IconvCloser ic{to_codepoint};
-    FT_Face face = g->fonts.at(g->font_objects.at(fid.id).font_index_tmp).face.get();
+    FT_Face face = g->fonts.at(g->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
         throw std::runtime_error(
             "Tried to use builtin font to render UTF-8. They only support ASCII.");
@@ -339,6 +343,7 @@ void PdfPage::render_utf8_text(
         }
         // Need to change font subset?
         auto current_subset_glyph = g->get_subset_glyph(fid, codepoint);
+        used_subset_fonts.insert(current_subset_glyph.ss);
         if(previous_subset.subset_id == -1) {
             fmt::format_to(cmd_appender,
                            R"(BT
@@ -389,7 +394,7 @@ void PdfPage::render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, dou
     used_fonts.insert(font_data.font_obj);
 
     const auto font_glyph_id =
-        g->glyph_for_codepoint(g->fonts.at(font_data.font_index_tmp).face.get(), glyph);
+        g->glyph_for_codepoint(g->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
     fmt::format_to(cmd_appender,
                    R"(BT
   /Font{} {} Tf
