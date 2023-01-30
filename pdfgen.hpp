@@ -130,6 +130,11 @@ struct DelayedSubsetFontData {
     int32_t subset_id;
 };
 
+struct DelayedSubsetCMap {
+    FontId fid;
+    int32_t subset_id;
+};
+
 struct DelayedSubsetFontDescriptor {
     FontId fid;
     int32_t subfont_data_obj;
@@ -139,6 +144,7 @@ struct DelayedSubsetFontDescriptor {
 struct DelayedSubsetFont {
     FontId fid;
     int32_t subfont_descriptor_obj;
+    int32_t subfont_cmap_obj;
 };
 
 struct SubsetGlyph {
@@ -158,6 +164,7 @@ typedef std::variant<FullPDFObject,
                      DelayedCmap,
                      DelayedSubsetFontData,
                      DelayedSubsetFontDescriptor,
+                     DelayedSubsetCMap,
                      DelayedSubsetFont>
     ObjectType;
 
@@ -213,12 +220,16 @@ private:
     void write_cmap(int32_t object_number, const TtfFont &font);
 
     void write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
-    void
-    write_subset_font_descriptor(int32_t object_num, const TtfFont &font, int32_t font_data_obj, int32_t subset_number);
+    void write_subset_font_descriptor(int32_t object_num,
+                                      const TtfFont &font,
+                                      int32_t font_data_obj,
+                                      int32_t subset_number);
+    void write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
     void write_subset_font(int32_t object_num,
                            const FontThingy &font,
                            int32_t subset,
-                           int32_t font_descriptor_obj);
+                           int32_t font_descriptor_obj,
+                           int32_t tounicode_obj);
 
     std::vector<uint64_t> write_objects();
 

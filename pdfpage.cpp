@@ -119,8 +119,12 @@ void PdfPage::build_resource_dict() {
             fmt::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
         }
         for(const auto &i : used_subset_fonts) {
-            fmt::format_to(
-                resource_appender, "    /SFont{}-{} {} 0 R\n", i.fid.id, i.subset_id, i.fid.id);
+            const auto &bob = g->font_objects.at(i.fid.id);
+            fmt::format_to(resource_appender,
+                           "    /SFont{}-{} {} 0 R\n",
+                           bob.font_obj,
+                           i.subset_id,
+                           bob.font_obj);
         }
         resources += "  >>\n";
     }
@@ -319,8 +323,6 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(
             "Tried to use builtin font to render UTF-8. They only support ASCII.");
     }
-    auto &font_data = g->font_objects.at(fid.id);
-    used_fonts.insert(font_data.font_obj);
 
     uint32_t previous_codepoint = -1;
     auto in_ptr = (char *)text.data();
@@ -343,14 +345,16 @@ void PdfPage::render_utf8_text(
         }
         // Need to change font subset?
         auto current_subset_glyph = g->get_subset_glyph(fid, codepoint);
+        const auto &bob = g->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         if(previous_subset.subset_id == -1) {
             fmt::format_to(cmd_appender,
                            R"(BT
-  /Font{} {} Tf
+  /SFont{}-{} {} Tf
   {} {} Td
   [ ()",
-                           font_data.font_obj,
+                           bob.font_obj,
+                           current_subset_glyph.ss.subset_id,
                            pointsize,
                            x,
                            y);
@@ -359,9 +363,10 @@ void PdfPage::render_utf8_text(
         } else if(current_subset_glyph.ss != previous_subset) {
             fmt::format_to(cmd_appender,
                            R"() ] TJ
-  /Font{} {} Tf
+  /SFont{}-{} {} Tf
   [ ()",
-                           font_data.font_obj,
+                           bob.font_obj,
+                           current_subset_glyph.ss.subset_id,
                            pointsize);
             previous_subset = current_subset_glyph.ss;
             // Add to used fonts.
@@ -382,7 +387,7 @@ void PdfPage::render_utf8_text(
                 fmt::format_to(cmd_appender, ") {} (", int(kerning.x));
             }
         }
-        fmt::format_to(cmd_appender, "{}", (char)current_subset_glyph.glyph_id);
+        fmt::format_to(cmd_appender, "\\{:o}", (unsigned char)current_subset_glyph.glyph_id);
         previous_codepoint = codepoint;
     }
     fmt::format_to(cmd_appender, ") ] TJ\nET\n");
@@ -391,7 +396,7 @@ void PdfPage::render_utf8_text(
 
 void PdfPage::render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y) {
     auto &font_data = g->font_objects.at(fid.id);
-    used_fonts.insert(font_data.font_obj);
+    // used_fonts.insert(font_data.font_obj);
 
     const auto font_glyph_id =
         g->glyph_for_codepoint(g->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);

@@ -180,6 +180,37 @@ end
     return cmap;
 }
 
+std::string create_subset_cmap(const std::vector<uint32_t> &glyphs) {
+    std::string buf = fmt::format(R"(/CIDInit/ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo<<
+/Registry (Adobe)
+/Ordering (UCS)
+/Supplement 0
+>> def
+/CMapName/Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<00> <FF>
+endcodespacerange
+{} beginbfchar
+)",
+                                  glyphs.size() - 1);
+    // Glyph zero is not mapped.
+    auto appender = std::back_inserter(buf);
+    for(size_t i = 1; i < glyphs.size(); ++i) {
+        fmt::format_to(appender, "<{:02X}> <{:04X}>\n", i, glyphs[i]);
+    }
+    buf += R"(endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+)";
+    return buf;
+}
+
 } // namespace
 
 FT_Error guarded_face_close(FT_Face face) {
@@ -276,10 +307,16 @@ std::vector<uint64_t> PdfGen::write_objects() {
                                          fonts.at(ssfontd.fid.id).fontdata,
                                          ssfontd.subfont_data_obj,
                                          ssfontd.subset_num);
+        } else if(std::holds_alternative<DelayedSubsetCMap>(obj)) {
+            const auto &sscmap = std::get<DelayedSubsetCMap>(obj);
+            write_subset_cmap(object_number, fonts.at(sscmap.fid.id), sscmap.subset_id);
         } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFont>(obj);
-            write_subset_font(
-                object_number, fonts.at(ssfont.fid.id), 0, ssfont.subfont_descriptor_obj);
+            write_subset_font(object_number,
+                              fonts.at(ssfont.fid.id),
+                              0,
+                              ssfont.subfont_descriptor_obj,
+                              ssfont.subfont_cmap_obj);
         } else {
             throw std::runtime_error("Unreachable code.");
         }
@@ -341,10 +378,21 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num,
     write_finished_object(object_num, objbuf, "");
 }
 
+void PdfGen::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
+    auto cmap = create_subset_cmap(font.subsets.get_subset(subset_number));
+    auto dict = fmt::format(R"(<<
+  /Length {}
+>>
+)",
+                            cmap.length());
+    write_finished_object(object_num, dict, cmap);
+}
+
 void PdfGen::write_subset_font(int32_t object_num,
                                const FontThingy &font,
                                int32_t subset,
-                               int32_t font_descriptor_obj) {
+                               int32_t font_descriptor_obj,
+                               int32_t tounicode_obj) {
     auto face = font.fontdata.face.get();
     const std::vector<uint32_t> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
@@ -358,15 +406,15 @@ void PdfGen::write_subset_font(int32_t object_num,
   /LastChar {}
   /Widths {}
   /FontDescriptor {} 0 R
+  /ToUnicode {} 0 R
 >>
 )",
                               FT_Get_Postscript_Name(face),
                               start_char,
                               end_char,
                               width_arr,
-                              font_descriptor_obj
-                              // tounicode_obj
-    );
+                              font_descriptor_obj,
+                              tounicode_obj);
     write_finished_object(object_num, objbuf, "");
 }
 
@@ -795,6 +843,7 @@ FontId PdfGen::load_font(const char *fname) {
     auto font_source_id = fonts.size();
     fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter()});
 
+    /*
     auto font_data_obj = add_object(DelayedFontData{font_source_id});
     auto tounicode_obj = add_object(DelayedCmap{font_source_id});
     auto font_descriptor_obj = add_object(DelayedFontDescriptor{font_source_id, font_data_obj});
@@ -802,15 +851,20 @@ FontId PdfGen::load_font(const char *fname) {
 
     font_objects.push_back(
         FontInfo{font_data_obj, font_descriptor_obj, font_obj, fonts.size() - 1});
-    FontId fid{(int32_t)font_objects.size() - 1};
+        */
     const int32_t subset_num = 0;
     auto subfont_data_obj =
         add_object(DelayedSubsetFontData{FontId{(int32_t)font_source_id}, subset_num});
     auto subfont_descriptor_obj = add_object(
         DelayedSubsetFontDescriptor{FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
-    auto subfont_obj =
-        add_object(DelayedSubsetFont{FontId{(int32_t)font_source_id}, subfont_descriptor_obj});
+    auto subfont_cmap_obj =
+        add_object(DelayedSubsetCMap{FontId{(int32_t)font_source_id}, subset_num});
+    auto subfont_obj = add_object(DelayedSubsetFont{
+        FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
     (void)subfont_obj;
+    FontId fid{(int32_t)fonts.size() - 1};
+    font_objects.push_back(
+        FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
     return fid;
 }
 
@@ -878,7 +932,7 @@ SubsetGlyph PdfGen::get_subset_glyph(FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
     auto blub = fonts.at(fid.id).subsets.get_glyph_subset(glyph);
     fss.ss.fid = fid;
-    if(false) {
+    if(true) {
         fss.ss.subset_id = blub.subset;
         fss.glyph_id = blub.offset;
     } else {
