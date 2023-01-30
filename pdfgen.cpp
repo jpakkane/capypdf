@@ -784,7 +784,7 @@ FontId PdfGen::load_font(const char *fname) {
                                              error));
     }
     auto font_source_id = fonts.size();
-    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter("blub.blub")});
+    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter()});
 
     auto font_data_obj = add_object(DelayedFontData{font_source_id});
     auto tounicode_obj = add_object(DelayedCmap{font_source_id});

@@ -17,10 +17,13 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <optional>
 #include <cstdint>
 
 static const std::size_t max_glyphs = 255;
+
+typedef struct FT_FaceRec_ *FT_Face;
 
 struct FontSubsetInfo {
     int32_t subset;
@@ -29,13 +32,15 @@ struct FontSubsetInfo {
 
 class FontSubsetter {
 public:
-    explicit FontSubsetter(const char *fname);
+    FontSubsetter();
 
     FontSubsetInfo get_glyph_subset(uint32_t glyph);
 
     const std::vector<uint32_t> &get_subset(int32_t subset_number) const {
         return subsets.at(subset_number);
     }
+
+    std::string generate_subset(FT_Face face, std::vector<char> &data, int32_t subset_number) const;
 
 private:
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
