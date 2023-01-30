@@ -356,7 +356,7 @@ void PdfGen::write_subset_font(int32_t object_num, const FontThingy &font, int32
                               end_char,
                               width_arr,
                               font_descriptor_obj
-                              //                              tounicode_obj
+                              // tounicode_obj
     );
     write_finished_object(object_num, objbuf, "");
 }

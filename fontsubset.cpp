@@ -559,14 +559,8 @@ struct TrueTypeFont {
     }
 };
 
-TrueTypeFont load_truetype_font(const char *ifile) {
+TrueTypeFont parse_truetype_font(const std::vector<char> &buf) {
     TrueTypeFont tf;
-    FILE *f = fopen(ifile, "r");
-    fseek(f, 0, SEEK_END);
-    const auto fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    std::vector<char> buf(fsize, 0);
-    fread(buf.data(), 1, fsize, f);
     TTOffsetTable off;
     memcpy(&off, buf.data(), sizeof(off));
     off.swap_endian();
@@ -662,7 +656,6 @@ TrueTypeFont load_truetype_font(const char *ifile) {
         }
     }
     */
-    fclose(f);
     return tf;
 }
 
@@ -801,17 +794,13 @@ std::string serialize_font(TrueTypeFont &tf) {
     return odata;
 }
 
-void write_font(const char *ofname,
-                FT_Face face,
-                const TrueTypeFont &source,
-                const std::vector<uint32_t> &glyphs) {
+std::string
+generate_font(FT_Face face, const std::vector<char> &buf, const std::vector<uint32_t> &glyphs) {
+    auto source = parse_truetype_font(buf);
     TrueTypeFont dest;
     assert(glyphs[0] == 0);
     dest.glyphs = subset_glyphs(face, source, glyphs);
 
-    // Add the other crap to off.
-
-    FILE *f = fopen(ofname, "w");
     dest.head = source.head;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
@@ -824,6 +813,15 @@ void write_font(const char *ofname,
     dest.prep = source.prep;
 
     auto bytes = serialize_font(dest);
+    return bytes;
+}
+
+void write_font(const char *ofname,
+                FT_Face face,
+                const std::vector<char> &source,
+                const std::vector<uint32_t> &glyphs) {
+    auto bytes = generate_font(face, source, glyphs);
+    FILE *f = fopen(ofname, "w");
     if(fwrite(bytes.data(), 1, bytes.length(), f) != bytes.length()) {
         printf("Writing to file failed: %s\n", strerror(errno));
         std::abort();
@@ -864,10 +862,17 @@ int main(int argc, char **argv) {
     }
     printf("Font opened successfully.\n");
 
+    FILE *f = fopen(fontfile, "r");
+    fseek(f, 0, SEEK_END);
+    const auto fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    std::vector<char> buf(fsize, 0);
+    fread(buf.data(), 1, fsize, f);
+    fclose(f);
+
     std::vector<uint32_t> glyphs{0, 'A', 'B', '0', '&', '+', 'z'};
-    auto tt = load_truetype_font(fontfile);
     // std::abort();
-    write_font(outfile, face, tt, glyphs);
+    write_font(outfile, face, buf, glyphs);
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
