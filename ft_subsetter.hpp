@@ -22,5 +22,4 @@
 #include <string>
 #include <vector>
 
-std::string
-generate_font(FT_Face face, const std::vector<char> &buf, const std::vector<uint32_t> &glyphs);
+std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs);

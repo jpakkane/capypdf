@@ -370,7 +370,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "maxp");
     uint32_t version;
     memcpy(&version, buf.data() + e->offset, sizeof(uint32_t));
@@ -384,7 +384,7 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, const std::vector<char> &
     std::abort();
 }
 
-TTHead load_head(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
     TTHead head;
     memcpy(&head, buf.data() + e->offset, sizeof(head));
@@ -394,7 +394,7 @@ TTHead load_head(const std::vector<TTDirEntry> &dir, const std::vector<char> &bu
 }
 
 std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
-                               const std::vector<char> &buf,
+                               std::string_view buf,
                                uint16_t index_to_loc_format,
                                uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
@@ -419,7 +419,7 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
     return offsets;
 }
 
-TTHhea load_hhea(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf) {
+TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "hhea");
 
     TTHhea hhea;
@@ -432,7 +432,7 @@ TTHhea load_hhea(const std::vector<TTDirEntry> &dir, const std::vector<char> &bu
 }
 
 TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
-                 const std::vector<char> &buf,
+                 std::string_view buf,
                  uint16_t num_glyphs,
                  uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
@@ -455,7 +455,7 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
 }
 
 std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                     const std::vector<char> &buf,
+                                     std::string_view buf,
                                      uint16_t num_glyphs,
                                      const std::vector<int32_t> &loca) {
     std::vector<std::string> glyph_data;
@@ -497,7 +497,7 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
 }
 
 std::string
-load_raw_table(const std::vector<TTDirEntry> &dir, const std::vector<char> &buf, const char *tag) {
+load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const char *tag) {
     auto e = find_entry(dir, tag);
     if(!e) {
         return "";
@@ -551,7 +551,7 @@ struct TrueTypeFont {
     }
 };
 
-TrueTypeFont parse_truetype_font(const std::vector<char> &buf) {
+TrueTypeFont parse_truetype_font(std::string_view buf) {
     TrueTypeFont tf;
     TTOffsetTable off;
     memcpy(&off, buf.data(), sizeof(off));
@@ -788,8 +788,7 @@ std::string serialize_font(TrueTypeFont &tf) {
 
 } // namespace
 
-std::string
-generate_font(FT_Face face, const std::vector<char> &buf, const std::vector<uint32_t> &glyphs) {
+std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs) {
     auto source = parse_truetype_font(buf);
     TrueTypeFont dest;
     assert(glyphs[0] == 0);

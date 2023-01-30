@@ -15,9 +15,10 @@
  */
 
 #include <fontsubsetter.hpp>
+#include <ft_subsetter.hpp>
 #include <algorithm>
 
-FontSubsetter::FontSubsetter() { subsets.emplace_back(std::vector<uint32_t>{}); }
+FontSubsetter::FontSubsetter() { subsets.emplace_back(std::vector<uint32_t>{0}); }
 
 FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     auto trial = find_glyph(glyph);
@@ -25,7 +26,7 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
         return trial.value();
     }
     if(subsets.back().size() == max_glyphs) {
-        subsets.emplace_back(std::vector<uint32_t>{});
+        subsets.emplace_back(std::vector<uint32_t>{0});
     }
     subsets.back().push_back(glyph);
     return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().size() - 1)};
@@ -42,6 +43,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
 }
 
 std::string
-FontSubsetter::generate_subset(FT_Face face, std::vector<char> &data, int32_t subset_number) const {
+FontSubsetter::generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
+    return generate_font(face, data, glyphs);
 }

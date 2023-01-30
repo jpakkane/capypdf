@@ -35,7 +35,7 @@ namespace {
 
 void write_font(const char *ofname,
                 FT_Face face,
-                const std::vector<char> &source,
+                std::string_view source,
                 const std::vector<uint32_t> &glyphs) {
     auto bytes = generate_font(face, source, glyphs);
     FILE *f = fopen(ofname, "w");
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
     std::vector<uint32_t> glyphs{0, 'A', 'B', '0', '&', '+', 'z'};
     // std::abort();
-    write_font(outfile, face, buf, glyphs);
+    write_font(outfile, face, std::string_view{buf.data(), buf.size()}, glyphs);
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);

@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
 #include <optional>
 #include <cstdint>
 
@@ -40,7 +41,7 @@ public:
         return subsets.at(subset_number);
     }
 
-    std::string generate_subset(FT_Face face, std::vector<char> &data, int32_t subset_number) const;
+    std::string generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const;
 
 private:
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;

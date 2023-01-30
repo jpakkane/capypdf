@@ -272,10 +272,14 @@ std::vector<uint64_t> PdfGen::write_objects() {
             write_subset_font_data(object_number, ssfont);
         } else if(std::holds_alternative<DelayedSubsetFontDescriptor>(obj)) {
             const auto &ssfontd = std::get<DelayedSubsetFontDescriptor>(obj);
-            write_subset_font_descriptor(object_number, fonts.at(ssfontd.fid.id).fontdata);
+            write_subset_font_descriptor(object_number,
+                                         fonts.at(ssfontd.fid.id).fontdata,
+                                         ssfontd.subfont_data_obj,
+                                         ssfontd.subset_num);
         } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFont>(obj);
-            write_subset_font(object_number, fonts.at(ssfont.fid.id), 0);
+            write_subset_font(
+                object_number, fonts.at(ssfont.fid.id), 0, ssfont.subfont_descriptor_obj);
         } else {
             throw std::runtime_error("Unreachable code.");
         }
@@ -284,7 +288,9 @@ std::vector<uint64_t> PdfGen::write_objects() {
 }
 
 void PdfGen::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
-    std::string subset_font = "GET THIS BY CALLING THE SUBSETTER";
+    const auto &font = fonts.at(ssfont.fid.id);
+    std::string subset_font = font.subsets.generate_subset(
+        font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id);
     auto compressed_bytes = flate_compress(subset_font);
     std::string dictbuf = fmt::format(R"(<<
   /Length {}
@@ -297,9 +303,10 @@ void PdfGen::write_subset_font_data(int32_t object_num, const DelayedSubsetFontD
     write_finished_object(object_num, dictbuf, compressed_bytes);
 }
 
-void PdfGen::write_subset_font_descriptor(int32_t object_num, const TtfFont &font) {
-    const int32_t subset_number = 0;
-    const int32_t font_data_obj = 69;
+void PdfGen::write_subset_font_descriptor(int32_t object_num,
+                                          const TtfFont &font,
+                                          int32_t font_data_obj,
+                                          int32_t subset_number) {
     auto face = font.face.get();
     const uint32_t fflags = 32;
     auto objbuf = fmt::format(R"(<<
@@ -334,8 +341,10 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num, const TtfFont &fon
     write_finished_object(object_num, objbuf, "");
 }
 
-void PdfGen::write_subset_font(int32_t object_num, const FontThingy &font, int32_t subset) {
-    const int32_t font_descriptor_obj = 69;
+void PdfGen::write_subset_font(int32_t object_num,
+                               const FontThingy &font,
+                               int32_t subset,
+                               int32_t font_descriptor_obj) {
     auto face = font.fontdata.face.get();
     const std::vector<uint32_t> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
@@ -794,9 +803,14 @@ FontId PdfGen::load_font(const char *fname) {
     font_objects.push_back(
         FontInfo{font_data_obj, font_descriptor_obj, font_obj, fonts.size() - 1});
     FontId fid{(int32_t)font_objects.size() - 1};
-    add_object(DelayedSubsetFontData{FontId{(int32_t)font_source_id}});
-    add_object(DelayedSubsetFontDescriptor{FontId{(int32_t)font_source_id}});
-    add_object(DelayedSubsetFont{FontId{(int32_t)font_source_id}});
+    const int32_t subset_num = 0;
+    auto subfont_data_obj =
+        add_object(DelayedSubsetFontData{FontId{(int32_t)font_source_id}, subset_num});
+    auto subfont_descriptor_obj = add_object(
+        DelayedSubsetFontDescriptor{FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
+    auto subfont_obj =
+        add_object(DelayedSubsetFont{FontId{(int32_t)font_source_id}, subfont_descriptor_obj});
+    (void)subfont_obj;
     return fid;
 }
 

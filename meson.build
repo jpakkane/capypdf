@@ -14,6 +14,7 @@ pdflib = static_library('mypdf',
   'utils.cpp',
   'pdfcolorconverter.cpp',
   'fontsubsetter.cpp',
+  'ft_subsetter.cpp',
   dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep, freetype_dep]
 )
 
