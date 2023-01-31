@@ -742,10 +742,11 @@ std::string serialize_font(TrueTypeFont &tf) {
     std::vector<TTDirEntry> directory;
 
     off.set_table_size(tf.num_directory_entries());
+    const auto num_tables = off.num_tables;
     off.swap_endian();
     append_bytes(odata, off);
     e.clear();
-    for(int i = 0; i < off.num_tables; ++i) {
+    for(int i = 0; i < num_tables; ++i) {
         append_bytes(odata, e);
     }
     if(!tf.cmap.empty()) {
@@ -809,7 +810,6 @@ std::string serialize_font(TrueTypeFont &tf) {
     }
     e.length = odata.size() - e.offset;
     directory.push_back(e);
-
     assert(directory.size() == (size_t)tf.num_directory_entries());
     char *directory_start = odata.data() + sizeof(TTOffsetTable);
     for(int i = 0; i < (int)directory.size(); ++i) {

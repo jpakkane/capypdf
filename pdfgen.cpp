@@ -345,11 +345,10 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num,
                                           int32_t font_data_obj,
                                           int32_t subset_number) {
     auto face = font.face.get();
-    const uint32_t fflags = 32;
+    const uint32_t fflags = 4;
     auto objbuf = fmt::format(R"(<<
   /Type /FontDescriptor
   /FontName /{}
-  /FontFamily ({})
   /Flags {}
   /FontBBox [ {} {} {} {} ]
   /ItalicAngle {}
@@ -362,7 +361,7 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num,
 >>
 )",
                               subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset_number),
-                              face->family_name,
+                              // face->family_name,
                               fflags,
                               face->bbox.xMin,
                               face->bbox.yMin,
@@ -409,7 +408,7 @@ void PdfGen::write_subset_font(int32_t object_num,
   /ToUnicode {} 0 R
 >>
 )",
-                              FT_Get_Postscript_Name(face),
+                              subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset),
                               start_char,
                               end_char,
                               width_arr,
