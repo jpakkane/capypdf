@@ -279,6 +279,16 @@ struct TTLongHorMetric {
     }
 };
 
+struct TTCmapHeader {
+    uint16_t version;
+    uint16_t num_tables;
+
+    void swap_endian() {
+        byte_swap(version);
+        byte_swap(num_tables);
+    }
+};
+
 struct TTEncodingRecord {
     uint16_t platform_id;
     uint16_t encoding_id;
@@ -288,6 +298,19 @@ struct TTEncodingRecord {
         byte_swap(platform_id);
         byte_swap(encoding_id);
         byte_swap(subtable_offset);
+    }
+};
+
+struct TTEncodingSubtable0 {
+    uint16_t format;
+    uint16_t length;
+    uint16_t language;
+    uint8_t glyphids[256];
+
+    void swap_endian() {
+        byte_swap(format);
+        byte_swap(length);
+        byte_swap(language);
     }
 };
 
@@ -535,9 +558,13 @@ struct TrueTypeFont {
     std::string cvt;
     std::string fpgm;
     std::string prep;
+    std::string cmap;
 
     int num_directory_entries() const {
         int entries = 6;
+        if(!cmap.empty()) {
+            ++entries;
+        }
         if(!cvt.empty()) {
             ++entries;
         }
@@ -574,12 +601,10 @@ TrueTypeFont parse_truetype_font(std::string_view buf) {
     tf.fpgm = load_raw_table(directory, buf, "fpgm");
     tf.prep = load_raw_table(directory, buf, "prep");
     auto cmap = load_raw_table(directory, buf, "cmap");
-    uint16_t cmap_version, num_tables;
-    memcpy(&cmap_version, cmap.data(), sizeof(uint16_t));
-    memcpy(&num_tables, cmap.data() + sizeof(uint16_t), sizeof(uint16_t));
-    byte_swap(cmap_version);
-    byte_swap(num_tables);
-    for(uint16_t table_num = 0; table_num < num_tables; ++table_num) {
+    TTCmapHeader cmap_head;
+    memcpy(&cmap_head, cmap.data(), sizeof(TTCmapHeader));
+    cmap_head.swap_endian();
+    for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
         TTEncodingRecord enc;
         memcpy(&enc,
                cmap.data() + 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord),
@@ -589,6 +614,12 @@ TrueTypeFont parse_truetype_font(std::string_view buf) {
         memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
         byte_swap(subtable_format);
         assert(subtable_format < 15);
+        if(subtable_format == 0) {
+            TTEncodingSubtable0 enctable;
+            memcpy(&enctable, cmap.data() + enc.subtable_offset, sizeof(TTEncodingSubtable0));
+            enctable.swap_endian();
+            assert(enctable.format == 0);
+        }
     }
     /*
     for(const auto &e : directory) {
@@ -717,6 +748,9 @@ std::string serialize_font(TrueTypeFont &tf) {
     for(int i = 0; i < off.num_tables; ++i) {
         append_bytes(odata, e);
     }
+    if(!tf.cmap.empty()) {
+        directory.push_back(write_raw_table(odata, "cmap", tf.cmap));
+    }
     if(!tf.cvt.empty()) {
         directory.push_back(write_raw_table(odata, "cvt ", tf.cvt));
     }
@@ -786,6 +820,38 @@ std::string serialize_font(TrueTypeFont &tf) {
     return odata;
 }
 
+std::string gen_cmap(const std::vector<uint32_t> &glyphs) {
+    TTEncodingSubtable0 glyphencoding;
+    glyphencoding.format = 0;
+    glyphencoding.language = 0;
+    glyphencoding.length = sizeof(glyphencoding);
+    for(size_t i = 0; i < 256; ++i) {
+        if(i < glyphs.size()) {
+            glyphencoding.glyphids[i] = i;
+        } else {
+            glyphencoding.glyphids[i] = 0;
+        }
+    }
+    TTEncodingRecord enc;
+    enc.platform_id = 1;
+    enc.encoding_id = 0;
+    enc.subtable_offset = sizeof(TTEncodingRecord) + sizeof(TTCmapHeader);
+    TTCmapHeader cmap_head;
+    cmap_head.num_tables = 1;
+    cmap_head.version = 0;
+
+    enc.swap_endian();
+    glyphencoding.swap_endian();
+    cmap_head.swap_endian();
+
+    std::string buf;
+    append_bytes(buf, cmap_head);
+    append_bytes(buf, enc);
+    append_bytes(buf, glyphencoding);
+
+    return buf;
+}
+
 } // namespace
 
 std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs) {
@@ -804,6 +870,7 @@ std::string generate_font(FT_Face face, std::string_view buf, const std::vector<
     dest.cvt = source.cvt;
     dest.fpgm = source.fpgm;
     dest.prep = source.prep;
+    dest.cmap = gen_cmap(glyphs);
 
     auto bytes = serialize_font(dest);
     return bytes;
