@@ -16,6 +16,24 @@
 
 #include <pdfgen.hpp>
 #include <fmt/core.h>
+#include <array>
+
+const std::array<const char *, 16> gstate_names{"NORMAL",
+                                                "MULTIPLY",
+                                                "SCREEN",
+                                                "OVERLAY",
+                                                "DARKEN",
+                                                "LIGHTEN",
+                                                "COLORDODGE",
+                                                "COLORBURN",
+                                                "HARDLIGHT",
+                                                "SOFTLIGHT",
+                                                "DIFFERENCE",
+                                                "EXCLUSION",
+                                                "HUE",
+                                                "SATURATION",
+                                                "COLOR",
+                                                "LUMINOSITY"};
 
 int main(int argc, char **argv) {
     if(argc != 3) {
@@ -54,6 +72,10 @@ int main(int argc, char **argv) {
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.5) * 1.5 * imsize);
             ctx.scale(imsize, imsize);
             ctx.draw_image(fg_img);
+            ctx.cmd_Q();
+            ctx.cmd_q();
+            ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.3) * 1.5 * imsize);
+            ctx.render_ascii_text_builtin(gstate_names.at(bm), FONT_HELVETICA, 8, 0, 0);
             ctx.cmd_Q();
             bm = (BlendMode)((int)bm + 1);
         }

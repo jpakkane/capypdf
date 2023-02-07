@@ -737,25 +737,25 @@ ImageId PdfGen::load_image(const char *fname) {
     switch(opts.output_colorspace) {
     case PDF_DEVICE_RGB: {
         const auto compressed = flate_compress(image.pixels);
+        // FIXME, use ICC colorspace, if one was defined.
         fmt::format_to(std::back_inserter(buf),
                        R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace [/ICCBased {} 0 R]
+  /ColorSpace /DeviceRGB
   /Width {}
   /Height {}
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
->>
 )",
-                       rgb_profile_obj,
                        image.w,
                        image.h,
                        compressed.size());
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
+        buf += ">>\n";
         auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
@@ -763,30 +763,33 @@ ImageId PdfGen::load_image(const char *fname) {
     case PDF_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
         const auto compressed = flate_compress(converted_pixels);
+        // FIXME also ICC here.
         fmt::format_to(std::back_inserter(buf),
                        R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace [/ICCBased {} 0 R]
+  /ColorSpace /DeviceGray
   /Width {}
   /Height {}
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
->>
 )",
-                       gray_profile_obj, // FIXME, maybe this should be DeviceGray?
                        image.w,
                        image.h,
                        compressed.size());
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
+        buf += ">>\n";
         auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
     case PDF_DEVICE_CMYK: {
+        if(cmyk_profile_obj == -1) {
+            throw std::runtime_error("Tried to convert image to CMYK without a CMYK profile.");
+        }
         std::string converted_pixels = cm.rgb_pixels_to_cmyk(image.pixels);
         const auto compressed = flate_compress(converted_pixels);
         fmt::format_to(std::back_inserter(buf),
@@ -799,7 +802,6 @@ ImageId PdfGen::load_image(const char *fname) {
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
->>
 )",
                        cmyk_profile_obj, // FIXME, maybe this should be DeviceGray?
                        image.w,
@@ -808,6 +810,7 @@ ImageId PdfGen::load_image(const char *fname) {
         if(smask_id >= 0) {
             fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
         }
+        buf += ">>\n";
         auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
