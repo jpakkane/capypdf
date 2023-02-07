@@ -795,6 +795,7 @@ std::string serialize_font(TrueTypeFont &tf) {
     tf.head.checksum_adjustment = 0;
     // const auto start_of_head = odata.length(); // For checksum adjustment.
     tf.head.swap_endian();
+    const auto head_offset = odata.size();
     directory.push_back(
         write_raw_table(odata, "head", std::string_view((char *)&tf.head, sizeof(tf.head))));
 
@@ -842,11 +843,20 @@ std::string serialize_font(TrueTypeFont &tf) {
     directory.push_back(e);
     assert(directory.size() == (size_t)tf.num_directory_entries());
     char *directory_start = odata.data() + sizeof(TTOffsetTable);
+    std::string_view full_view(odata);
     for(int i = 0; i < (int)directory.size(); ++i) {
-        // Compute checksum here.
+        e.checksum = ttf_checksum(full_view.substr(e.offset, e.length));
         directory[i].swap_endian();
         memcpy(directory_start + i * sizeof(TTDirEntry), &directory[i], sizeof(TTDirEntry));
     }
+    const uint32_t magic = 0xB1B0AFBA;
+    const uint32_t full_checksum = ttf_checksum(full_view);
+    uint32_t adjustment = magic - full_checksum;
+    byte_swap(adjustment);
+    memcpy(odata.data() + head_offset + offsetof(TTHead, checksum_adjustment),
+           &adjustment,
+           sizeof(uint32_t));
+
     return odata;
 }
 
@@ -891,7 +901,8 @@ std::string generate_font(FT_Face face, std::string_view buf, const std::vector<
     dest.glyphs = subset_glyphs(face, source, glyphs);
 
     dest.head = source.head;
-    dest.head.checksum_adjustment = 0; // Required for checksum calculation.
+    // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
+    dest.head.checksum_adjustment = 0;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
     dest.maxp.num_glyphs = dest.glyphs.size();
