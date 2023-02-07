@@ -108,12 +108,16 @@ std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &
         FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
     //    static_assert(load_flags == 522);
     for(const auto glyph : glyphs) {
-        auto glyph_index = glyph != 0 ? FT_Get_Char_Index(face, glyph) : 0;
-        auto error = FT_Load_Glyph(face, glyph_index, load_flags);
-        if(error != 0) {
-            throw std::runtime_error(FT_Error_String(error));
+        if(glyph == 0) {
+            fmt::format_to(bi, "{} ", 0);
+        } else {
+            auto glyph_index = FT_Get_Char_Index(face, glyph);
+            auto error = FT_Load_Glyph(face, glyph_index, load_flags);
+            if(error != 0) {
+                throw std::runtime_error(FT_Error_String(error));
+            }
+            fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
         }
-        fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
     }
     arr += "]";
     return arr;
@@ -328,6 +332,8 @@ void PdfGen::write_subset_font_data(int32_t object_num, const DelayedSubsetFontD
     const auto &font = fonts.at(ssfont.fid.id);
     std::string subset_font = font.subsets.generate_subset(
         font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id);
+
+    subset_font = load_file("gsfont.ttf");
     auto compressed_bytes = flate_compress(subset_font);
     std::string dictbuf = fmt::format(R"(<<
   /Length {}
@@ -355,7 +361,6 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num,
   /Ascent {}
   /Descent {}
   /CapHeight {}
-  /StemH {}
   /StemV {}
   /FontFile2 {} 0 R
 >>
@@ -367,12 +372,11 @@ void PdfGen::write_subset_font_descriptor(int32_t object_num,
                               face->bbox.yMin,
                               face->bbox.xMax,
                               face->bbox.yMax,
-                              0, // Cairo always sets this to zero.
-                              face->ascender,
-                              face->descender,
+                              0,               // Cairo always sets this to zero.
+                              0,               // face->ascender,
+                              0,               // face->descender,
                               face->bbox.yMax, // Copying what Cairo does.
                               80,              // Cairo always sets these to 80.
-                              80,
                               font_data_obj);
     write_finished_object(object_num, objbuf, "");
 }

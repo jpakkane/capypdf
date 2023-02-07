@@ -19,7 +19,7 @@
 int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.page_size.h = 200;
-    opts.page_size.w = 800;
+    opts.page_size.w = 200;
     opts.output_colorspace = PDF_DEVICE_GRAY;
     const char *fontfile;
     if(argc > 1) {
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     auto fid = gen.load_font(fontfile);
     {
         auto ctx = gen.new_page();
-        ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 50);
+        ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 150);
     }
     /*
     for(int page_num = 0; page_num < 2; ++page_num) {

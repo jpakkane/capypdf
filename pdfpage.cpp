@@ -352,7 +352,7 @@ void PdfPage::render_utf8_text(
                            R"(BT
   /SFont{}-{} {} Tf
   {} {} Td
-  [ ()",
+  [ <)",
                            bob.font_obj,
                            current_subset_glyph.ss.subset_id,
                            pointsize,
@@ -364,7 +364,7 @@ void PdfPage::render_utf8_text(
             fmt::format_to(cmd_appender,
                            R"() ] TJ
   /SFont{}-{} {} Tf
-  [ ()",
+  [ <)",
                            bob.font_obj,
                            current_subset_glyph.ss.subset_id,
                            pointsize);
@@ -384,13 +384,14 @@ void PdfPage::render_utf8_text(
                 // The value might be a integer, fraction or something else.
                 // None of the fonts I tested had kerning that Freetype recognized,
                 // so don't know if this actually works.
-                fmt::format_to(cmd_appender, ") {} (", int(kerning.x));
+                fmt::format_to(cmd_appender, ">{}<", int(kerning.x));
             }
         }
-        fmt::format_to(cmd_appender, "\\{:o}", (unsigned char)current_subset_glyph.glyph_id);
+        fmt::format_to(cmd_appender, "{:02x}", (unsigned char)current_subset_glyph.glyph_id);
+        // fmt::format_to(cmd_appender, "<{:02x}>", (unsigned char)current_subset_glyph.glyph_id);
         previous_codepoint = codepoint;
     }
-    fmt::format_to(cmd_appender, ") ] TJ\nET\n");
+    fmt::format_to(cmd_appender, "> ] TJ\nET\n");
     assert(in_bytes == 0);
 }
 
