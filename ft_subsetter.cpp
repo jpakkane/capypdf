@@ -766,7 +766,7 @@ TTDirEntry write_raw_table(std::string &odata, const char *tag, std::string_view
 
 std::string serialize_font(TrueTypeFont &tf) {
     std::string odata;
-    odata.reserve(100 * 1024 * 1024);
+    odata.reserve(1024 * 1024);
     TTDirEntry e;
     TTOffsetTable off;
     std::vector<TTDirEntry> directory;
