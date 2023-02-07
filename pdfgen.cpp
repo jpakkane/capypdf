@@ -108,7 +108,7 @@ std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &
         FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
     //    static_assert(load_flags == 522);
     for(const auto glyph : glyphs) {
-        auto glyph_index = FT_Get_Char_Index(face, glyph);
+        auto glyph_index = glyph != 0 ? FT_Get_Char_Index(face, glyph) : 0;
         auto error = FT_Load_Glyph(face, glyph_index, load_flags);
         if(error != 0) {
             throw std::runtime_error(FT_Error_String(error));
@@ -124,7 +124,7 @@ std::map<uint32_t, uint32_t> build_cmap_entries(FT_Face face) {
     const int last_id = 1024;
     std::map<uint32_t, uint32_t> glyph_mapping;
     for(uint32_t i = first_id; i < last_id; ++i) {
-        auto glyph_id = FT_Get_Char_Index(face, i);
+        auto glyph_id = i != 0 ? FT_Get_Char_Index(face, i) : 0;
         if(glyph_id != i) {
             glyph_mapping[glyph_id] = i;
         }

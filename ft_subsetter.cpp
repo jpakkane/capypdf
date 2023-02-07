@@ -20,6 +20,7 @@
 #include <byteswap.h>
 #include <cmath>
 
+#include <stdexcept>
 #include <variant>
 
 namespace {
@@ -30,6 +31,25 @@ void byte_swap(int32_t &val) { val = bswap_32(val); }
 void byte_swap(uint32_t &val) { val = bswap_32(val); }
 // void byte_swap(int64_t &val) { val = bswap_64(val); }
 void byte_swap(uint64_t &val) { val = bswap_64(val); }
+
+uint32_t ttf_checksum(std::string_view data) {
+    uint32_t checksum = 0;
+    uint32_t current;
+    uint32_t offset = 0;
+    for(; (offset + sizeof(uint32_t)) <= data.size(); offset += sizeof(uint32_t)) {
+        memcpy(&current, data.data() + offset, sizeof(uint32_t));
+        byte_swap(current);
+        checksum += current;
+    }
+    current = 0;
+    const auto tail_size = data.size() % sizeof(uint32_t);
+    if(tail_size != 0) {
+        memcpy(&current, data.data() + offset, tail_size);
+        byte_swap(current);
+        checksum += current;
+    }
+    return checksum;
+}
 
 } // namespace
 
@@ -525,7 +545,12 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     if(!e) {
         return "";
     }
-    return std::string(buf.data() + e->offset, buf.data() + e->offset + e->length);
+    auto end_offset = e->offset + e->length;
+    if(end_offset >= buf.size()) {
+        fprintf(stderr, "Directory entry points past the end of file.\n");
+        std::abort();
+    }
+    return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
 
 /* Mandatory TTF tables according to The Internet.
@@ -588,6 +613,11 @@ TrueTypeFont parse_truetype_font(std::string_view buf) {
         TTDirEntry e;
         memcpy(&e, buf.data() + sizeof(off) + i * sizeof(e), sizeof(e));
         e.swap_endian();
+        if(e.offset + e.length > buf.length()) {
+            throw std::runtime_error("TTF directory entry points outside of file.");
+        }
+        auto checksum = ttf_checksum(buf.substr(e.offset, e.length));
+        (void)checksum;
         directory.emplace_back(std::move(e));
     }
     tf.head = load_head(directory, buf);
@@ -688,7 +718,7 @@ subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32
     assert(glyphs[0] == 0);
     assert(glyphs.size() < 255);
     for(const auto &c : glyphs) {
-        const auto gid = FT_Get_Char_Index(face, c);
+        const auto gid = c != 0 ? FT_Get_Char_Index(face, c) : 0;
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
         int16_t num_contours;
@@ -706,7 +736,7 @@ TTHmtx subset_hmtx(FT_Face face, const TrueTypeFont &source, const std::vector<u
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + 1 == source.maxp.num_glyphs);
     for(const auto &g : glyphs) {
-        const auto gid = FT_Get_Char_Index(face, g);
+        const auto gid = g != 0 ? FT_Get_Char_Index(face, g) : 0;
         assert(gid < source.hmtx.longhor.size());
         subset.longhor.push_back(source.hmtx.longhor[gid]);
     }
@@ -861,6 +891,7 @@ std::string generate_font(FT_Face face, std::string_view buf, const std::vector<
     dest.glyphs = subset_glyphs(face, source, glyphs);
 
     dest.head = source.head;
+    dest.head.checksum_adjustment = 0; // Required for checksum calculation.
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
     dest.maxp.num_glyphs = dest.glyphs.size();
