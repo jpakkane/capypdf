@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Jussi Pakkanen
+ * Copyright 2022-2023 Jussi Pakkanen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,9 @@
 
 #pragma once
 
+#include <pdfcapi.h>
+
 #include <cstdint>
-
-// These enums are in the C style because they would (eventually,
-// hopefully) go to the public C API header.
-
-enum BuiltinFonts {
-    FONT_TIMES_ROMAN,
-    FONT_HELVETICA,
-    FONT_COURIER,
-    FONT_TIMES_ROMAN_BOLD,
-    FONT_HELVETICA_BOLD,
-    FONT_COURIER_BOLD,
-    FONT_TIMES_ROMAN_ITALIC,
-    FONT_HELVETICA_OBLIQUE,
-    FONT_COURIER_OBLIQUE,
-};
-
-enum PdfColorSpace { PDF_DEVICE_RGB, PDF_DEVICE_GRAY, PDF_DEVICE_CMYK };
-
-enum RenderingIntent {
-    RI_RELATIVE_COLORIMETRIC,
-    RI_ABSOLUTE_COLORIMETRIC,
-    RI_SATURATION,
-    RI_PERCEPTUAL
-};
-
-enum BlendMode {
-    BM_NORMAL,
-    BM_MULTIPLY,
-    BM_SCREEN,
-    BM_OVERLAY,
-    BM_DARKEN,
-    BM_LIGHTEN,
-    BM_COLORDODGE,
-    BM_COLORBURN,
-    BM_HARDLIGHT,
-    BM_SOFTLIGHT,
-    BM_DIFFERENCE,
-    BM_EXCLUSION,
-    BM_HUE,
-    BM_SATURATION,
-    BM_COLOR,
-    BM_LUMINOSITY,
-};
 
 class LimitDouble {
 public:

@@ -698,6 +698,8 @@ startxref
 
 PdfPage PdfGen::new_page() { return PdfPage(this, &cm); }
 
+PdfPage *PdfGen::new_page_capihack() { return new PdfPage(this, &cm); }
+
 void PdfGen::add_page(std::string_view resource_data, std::string_view page_data) {
     const auto resource_num = add_object(FullPDFObject{std::string{resource_data}, ""});
     const auto page_num = add_object(FullPDFObject{std::string{page_data}, ""});

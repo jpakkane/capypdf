@@ -174,6 +174,7 @@ public:
     ~PdfGen();
 
     PdfPage new_page();
+    PdfPage *new_page_capihack();
 
     int32_t add_object(ObjectType object);
     void add_page(std::string_view resource_data, std::string_view page_data);

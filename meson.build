@@ -7,7 +7,7 @@ lcms_dep = dependency('lcms2')
 freetype_dep = dependency('freetype2')
 gtk_dep = dependency('gtk4')
 
-pdflib = static_library('mypdf',
+pdflib = library('mypdf',
   'pdfgen.cpp',
   'pdfpage.cpp',
   'imageops.cpp',
@@ -15,6 +15,7 @@ pdflib = static_library('mypdf',
   'pdfcolorconverter.cpp',
   'fontsubsetter.cpp',
   'ft_subsetter.cpp',
+  'pdfcapi.cpp',
   dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep, freetype_dep]
 )
 
@@ -34,7 +35,8 @@ executable('fontgen',
 
 executable('gstategen',
   'gstategen.cpp',
-  link_with: pdflib)
+  link_with: pdflib,
+  dependencies: [fmt_dep])
 
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])
