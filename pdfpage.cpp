@@ -58,7 +58,15 @@ const std::array<const char *, 4> intent_names{
 
 } // namespace
 
-PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm), cmd_appender(commands) {}
+PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm), cmd_appender(commands) {
+    if(g->opts.output_colorspace == PDF_DEVICE_GRAY) {
+        commands += "/DeviceGray CS\n/DeviceGray cs\n";
+    } else if(g->opts.output_colorspace == PDF_DEVICE_CMYK) {
+        commands += "/DeviceCMYK CS\n/DeviceCMYK cs\n";
+    }
+    // The default is DeviceRGB.
+    // FIXME add ICC here if needed.
+}
 
 PdfPage::~PdfPage() {
     try {
@@ -93,18 +101,6 @@ endstream
 void PdfPage::build_resource_dict() {
     auto resource_appender = std::back_inserter(resources);
     resources = "<<\n";
-    resources += "  /ColorSpace ";
-    switch(g->opts.output_colorspace) {
-    case PDF_DEVICE_RGB:
-        resources += "/DeviceRGB\n";
-        break;
-    case PDF_DEVICE_GRAY:
-        resources += "/DeviceGray\n";
-        break;
-    case PDF_DEVICE_CMYK:
-        resources += "/DeviceCMYK\n";
-        break;
-    }
     if(!used_images.empty()) {
         resources += "  /XObject <<\n";
         for(const auto &i : used_images) {

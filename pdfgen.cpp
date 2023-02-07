@@ -333,7 +333,6 @@ void PdfGen::write_subset_font_data(int32_t object_num, const DelayedSubsetFontD
     std::string subset_font = font.subsets.generate_subset(
         font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id);
 
-    subset_font = load_file("gsfont.ttf");
     auto compressed_bytes = flate_compress(subset_font);
     std::string dictbuf = fmt::format(R"(<<
   /Length {}
@@ -748,6 +747,7 @@ ImageId PdfGen::load_image(const char *fname) {
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
+>>
 )",
                        rgb_profile_obj,
                        image.w,
@@ -773,6 +773,7 @@ ImageId PdfGen::load_image(const char *fname) {
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
+>>
 )",
                        gray_profile_obj, // FIXME, maybe this should be DeviceGray?
                        image.w,
@@ -798,6 +799,7 @@ ImageId PdfGen::load_image(const char *fname) {
   /BitsPerComponent 8
   /Length {}
   /Filter /FlateDecode
+>>
 )",
                        cmyk_profile_obj, // FIXME, maybe this should be DeviceGray?
                        image.w,
