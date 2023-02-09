@@ -523,7 +523,7 @@ void PdfDocument::generate_info_object() {
     add_object(std::move(obj_data));
 }
 
-FontId PdfDocument::get_builtin_font_id(BuiltinFonts font) {
+FontId PdfDocument::get_builtin_font_id(A4PDF_Builtin_Fonts font) {
     auto it = builtin_fonts.find(font);
     if(it != builtin_fonts.end()) {
         return it->second;

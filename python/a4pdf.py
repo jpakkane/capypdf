@@ -19,53 +19,64 @@ import ctypes
 
 libfile = ctypes.cdll.LoadLibrary('src/liba4pdf.so') # FIXME
 
-libfile.pdf_options_create.restype = ctypes.c_void_p
+libfile.a4pdf_options_create.restype = ctypes.c_void_p
 
-libfile.pdf_options_destroy.argtypes = [ctypes.c_void_p]
+libfile.a4pdf_options_destroy.argtypes = [ctypes.c_void_p]
 
-libfile.pdf_options_set_title.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-libfile.pdf_options_set_title.restype = ctypes.c_int32
+libfile.a4pdf_options_set_title.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+libfile.a4pdf_options_set_title.restype = ctypes.c_int32
 
-libfile.pdf_generator_create.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
-libfile.pdf_generator_create.restype = ctypes.c_void_p
+libfile.a4pdf_generator_create.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
+libfile.a4pdf_generator_create.restype = ctypes.c_void_p
 
-libfile.pdf_generator_destroy.argtypes = [ctypes.c_void_p]
+libfile.a4pdf_generator_destroy.argtypes = [ctypes.c_void_p]
 
-libfile.pdf_generator_new_page.argtypes = [ctypes.c_void_p]
+libfile.a4pdf_generator_new_page.argtypes = [ctypes.c_void_p]
 
-libfile.pdf_error_message.argtypes = [ctypes.c_int32]
-libfile.pdf_error_message.restype = ctypes.c_char_p
+libfile.a4pdf_error_message.argtypes = [ctypes.c_int32]
+libfile.a4pdf_error_message.restype = ctypes.c_char_p
 
 def get_error_message(errorcode):
-    return libfile.pdf_error_message(errorcode).decode('UTF-8')
+    return libfile.a4pdf_error_message(errorcode).decode('UTF-8', errors='ignore')
 
-class PdfOptions:
+def raise_with_error(errorcode):
+    raise RuntimeError(get_error_message(errorcode))
+
+def check_error(errorcode):
+    if errorcode != 0:
+        raise_with_error(errorcode)
+
+class Options:
     def __init__(self):
-        self._as_parameter_ = libfile.pdf_options_create()
+        self._as_parameter_ = libfile.a4pdf_options_create()
 
     def __del__(self):
-        libfile.pdf_options_destroy(self)
+        libfile.a4pdf_options_destroy(self)
 
     def set_title(self, title):
         if not isinstance(title, str):
             raise RuntimeError('Title must be an Unicode string.')
         bytes = title.encode('UTF-8')
-        rc = libfile.pdf_options_set_title(self, bytes)
-        if rc != 0:
-            # fixme, get error here.
-            raise RuntimeError('Setting title failed.')
+        rc = libfile.a4pdf_options_set_title(self, bytes)
+        check_error(rc)
 
-class PdfGenerator:
+class Generator:
     def __init__(self, filename, options):
-        self._as_parameter_ = libfile.pdf_generator_create(filename, options)
+        if isinstance(filename, bytes):
+            file_name_bytes = filename
+        elif isinstance(filename, str):
+            file_name_bytes = filename.encode('UTF-8')
+        else:
+            file_name_bytes = str(filename).encode('UTF-8')
+        self._as_parameter_ = libfile.a4pdf_generator_create(file_name_bytes, options)
 
     def __del__(self):
-        libfile.pdf_generator_destroy(self)
+        libfile.a4pdf_generator_destroy(self)
 
     def new_page(self):
-        libfile.pdf_generator_new_page(self)
+        libfile.a4pdf_generator_new_page(self)
 
 if __name__ == "__main__":
-    o = PdfOptions()
+    o = Options()
     o.set_title('Python PDF')
-    g = PdfGenerator(b'python.pdf', o)
+    g = Generator('python.pdf', o)

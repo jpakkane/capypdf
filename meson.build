@@ -9,6 +9,6 @@ lcms_dep = dependency('lcms2')
 freetype_dep = dependency('freetype2')
 gtk_dep = dependency('gtk4')
 
-pubinc = include_directories('include/a4pdf-0')
+pubinc = include_directories('include')
 
 subdir('src')

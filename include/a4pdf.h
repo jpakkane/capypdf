@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-enum BuiltinFonts {
+enum A4PDF_Builtin_Fonts {
     FONT_TIMES_ROMAN,
     FONT_HELVETICA,
     FONT_COURIER,
@@ -34,7 +34,7 @@ enum BuiltinFonts {
     FONT_COURIER_OBLIQUE,
 };
 
-enum PdfColorSpace { PDF_DEVICE_RGB, PDF_DEVICE_GRAY, PDF_DEVICE_CMYK };
+enum A4PDF_Colorspace { PDF_DEVICE_RGB, PDF_DEVICE_GRAY, PDF_DEVICE_CMYK };
 
 enum RenderingIntent {
     RI_RELATIVE_COLORIMETRIC,
@@ -43,7 +43,7 @@ enum RenderingIntent {
     RI_PERCEPTUAL
 };
 
-enum BlendMode {
+enum A4PDF_Blend_Mode {
     BM_NORMAL,
     BM_MULTIPLY,
     BM_SCREEN,
@@ -62,23 +62,22 @@ enum BlendMode {
     BM_LUMINOSITY,
 };
 
-typedef struct _PdfOptions PdfOptions;
-typedef struct _PdfGenerator PdfGenerator;
-typedef struct _PdfPage2 PdfPage2; // Kludge to avoid name clashes for now.
+typedef struct _A4PDF_Options A4PDF_Options;
+typedef struct _A4PDF_Generator A4PDF_Generator;
 
-PdfOptions *pdf_options_create();
+A4PDF_Options *a4pdf_options_create();
 
-void pdf_options_destroy(PdfOptions *);
+void a4pdf_options_destroy(A4PDF_Options *);
 
-int32_t pdf_options_set_title(PdfOptions *opt, const char *utf8_title);
+int32_t a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title);
 
-PdfGenerator *pdf_generator_create(const char *filename, const PdfOptions *options);
+A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options);
 
-void pdf_generator_destroy(PdfGenerator *);
+void a4pdf_generator_destroy(A4PDF_Generator *);
 
-void pdf_generator_new_page(PdfGenerator *);
+void a4pdf_generator_new_page(A4PDF_Generator *);
 
-const char *pdf_error_message(int32_t error_code);
+const char *a4pdf_error_message(int32_t error_code);
 
 #ifdef __cplusplus
 }

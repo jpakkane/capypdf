@@ -426,7 +426,7 @@ ET
 }
 
 void PdfPageBuilder::render_ascii_text_builtin(
-    const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y) {
+    const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y) {
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
     std::string cleaned_text;

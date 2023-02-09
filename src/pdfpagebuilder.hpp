@@ -36,7 +36,7 @@ namespace A4PDF {
 
 struct GraphicsState {
     std::optional<RenderingIntent> intent;
-    std::optional<BlendMode> blend_mode;
+    std::optional<A4PDF_Blend_Mode> blend_mode;
 };
 
 struct GsEntries {
@@ -96,7 +96,7 @@ public:
     void render_utf8_text(std::string_view text, FontId fid, double pointsize, double x, double y);
     void render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y);
     void render_ascii_text_builtin(
-        const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y);
+        const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
 
     void add_graphics_state(std::string_view name, const GraphicsState &gs);
 
