@@ -12,12 +12,13 @@ directly.
 - Provides a plain C API for easy integration into scripting languages
 - Minimal dependencies
 
-## Non-features
+## Things the library does not do
 
 - Reading PDF files
 - Modifying PDF files
 - Supporting any other backend than PDF
 - Parsing any vector data files like SVG
+- Data conversions in general (apart from colorspaces)
 - Supporting PDF versions earlier than 1.7
 
 ## Status

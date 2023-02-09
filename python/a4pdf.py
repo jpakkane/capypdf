@@ -17,7 +17,7 @@
 
 import ctypes
 
-libfile = ctypes.cdll.LoadLibrary('./liba4pdf.so')
+libfile = ctypes.cdll.LoadLibrary('src/liba4pdf.so') # FIXME
 
 libfile.pdf_options_create.restype = ctypes.c_void_p
 
