@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,13 +70,15 @@ PdfOptions *pdf_options_create();
 
 void pdf_options_destroy(PdfOptions *);
 
-PdfGenerator *pdf_generator_create(const char *filename, PdfOptions *options);
+int32_t pdf_options_set_title(PdfOptions *opt, const char *utf8_title);
+
+PdfGenerator *pdf_generator_create(const char *filename, const PdfOptions *options);
 
 void pdf_generator_destroy(PdfGenerator *);
 
-PdfPage2 *pdf_generator_new_page(PdfGenerator *);
+void pdf_generator_new_page(PdfGenerator *);
 
-void pdf_page_destroy(PdfPage2 *);
+const char *pdf_error_message(int32_t error_code);
 
 #ifdef __cplusplus
 }

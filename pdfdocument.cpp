@@ -140,6 +140,7 @@ end
 } // namespace
 PdfDocument::PdfDocument(const PdfGenerationData &d)
     : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
+    generate_info_object();
     if(d.output_colorspace == PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
@@ -201,7 +202,6 @@ void PdfDocument::write_to_file(FILE *output_file) {
     ofile = output_file;
     try {
         write_header();
-        write_info();
         write_pages();
         create_catalog();
         auto object_offsets = write_objects();
@@ -499,7 +499,7 @@ void PdfDocument::write_bytes(const char *buf, size_t buf_size) {
 
 void PdfDocument::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
 
-void PdfDocument::write_info() {
+void PdfDocument::generate_info_object() {
     FullPDFObject obj_data;
     obj_data.dictionary = "<<\n";
     if(!opts.title.empty()) {

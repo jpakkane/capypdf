@@ -16,24 +16,30 @@
 
 #include <pdfcapi.h>
 #include <pdfgen.hpp>
-#include <pdfpage.hpp>
+#include <pdfpagebuilder.hpp>
 
 PdfOptions *pdf_options_create() { return reinterpret_cast<PdfOptions *>(new PdfGenerationData()); }
 
 void pdf_options_destroy(PdfOptions *opt) { delete reinterpret_cast<PdfGenerationData *>(opt); }
 
-PdfGenerator *pdf_generator_create(const char *filename, PdfOptions *options) {
-    return reinterpret_cast<PdfGenerator *>(
-        new PdfGen(filename, *reinterpret_cast<PdfGenerationData *>(options)));
+int32_t pdf_options_set_title(PdfOptions *opt, const char *utf8_title) {
+    reinterpret_cast<PdfGenerationData *>(opt)->title = utf8_title;
+    return 0;
+}
+
+PdfGenerator *pdf_generator_create(const char *filename, const PdfOptions *options) {
+    auto opts = reinterpret_cast<const PdfGenerationData *>(options);
+    return reinterpret_cast<PdfGenerator *>(new PdfGen(filename, *opts));
 }
 
 void pdf_generator_destroy(PdfGenerator *generator) {
     delete reinterpret_cast<PdfGen *>(generator);
 }
 
-PdfPage2 *pdf_generator_new_page(PdfGenerator *gen_c) {
-    auto *g = reinterpret_cast<PdfGen *>(gen_c);
-    return reinterpret_cast<PdfPage2 *>(g);
-}
+void pdf_generator_new_page(PdfGenerator *gen_c) { reinterpret_cast<PdfGen *>(gen_c)->new_page(); }
 
-void pdf_page_destroy(PdfPage2 *p) { delete reinterpret_cast<PdfPage *>(p); }
+const char *pdf_error_message(int32_t error_code) {
+    if(error_code == 0)
+        return "No error";
+    return "Error messages not implemented yet";
+}

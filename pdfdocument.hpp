@@ -120,7 +120,7 @@ struct PdfGenerationData {
 };
 
 class PdfGen;
-class PdfPage;
+class PdfPageBuilder;
 
 typedef std::variant<FullPDFObject,
                      DelayedSubsetFontData,
@@ -134,7 +134,7 @@ public:
     PdfDocument(const PdfGenerationData &d);
 
     friend class PdfGen;
-    friend class PdfPage;
+    friend class PdfPageBuilder;
 
     void write_to_file(FILE *output_file);
 
@@ -167,7 +167,7 @@ private:
     void create_catalog();
     void write_pages();
     void write_header();
-    void write_info();
+    void generate_info_object();
     void write_cross_reference_table(const std::vector<uint64_t> object_offsets);
     void write_trailer(int64_t xref_offset);
 

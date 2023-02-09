@@ -29,7 +29,7 @@ const double margin = mm2pt(20);
 const double paper_height = page_h + 2 * margin;
 const double paper_width = 2 * (margin + page_w) + spine_w;
 
-void draw_registration_cross(PdfPage &ctx, double x, double y, const double cross_size) {
+void draw_registration_cross(PdfPageBuilder &ctx, double x, double y, const double cross_size) {
     const double circle_size = 0.6 * cross_size;
     ctx.cmd_q();
     ctx.translate(x, y);
@@ -45,7 +45,7 @@ void draw_registration_cross(PdfPage &ctx, double x, double y, const double cros
     ctx.cmd_Q();
 }
 
-void draw_colorbox(PdfPage &ctx,
+void draw_colorbox(PdfPageBuilder &ctx,
                    double box_size,
                    double xloc,
                    double yloc,
@@ -62,7 +62,7 @@ void draw_colorbox(PdfPage &ctx,
     ctx.cmd_Q();
 }
 
-void draw_colorbar(PdfPage &ctx) {
+void draw_colorbar(PdfPageBuilder &ctx) {
     const double box_size = mm2pt(5);
     const double yloc = (margin - bleed) / 2;
     draw_colorbox(ctx, box_size, 2 * margin, yloc, 1.0, 0.0, 0.0, 0.0);
@@ -73,7 +73,7 @@ void draw_colorbar(PdfPage &ctx) {
     draw_colorbox(ctx, box_size, 2 * margin + 5 * box_size, yloc, 0.0, 1.0, 1.0, 0.0);
 }
 
-void draw_graybar(PdfPage &ctx) {
+void draw_graybar(PdfPageBuilder &ctx) {
     const double box_size = mm2pt(5);
     const double xloc = paper_width / 2 + margin;
     const double yloc = paper_height - (margin - bleed) / 2;
@@ -82,7 +82,7 @@ void draw_graybar(PdfPage &ctx) {
     }
 }
 
-void draw_registration_marks(PdfPage &ctx) {
+void draw_registration_marks(PdfPageBuilder &ctx) {
     const double cross_size = mm2pt(10); // diameter, not radius
     draw_registration_cross(ctx, cross_size / 2, paper_height / 2, cross_size);
     draw_registration_cross(ctx, paper_width - cross_size / 2, paper_height / 2, cross_size);
@@ -90,7 +90,7 @@ void draw_registration_marks(PdfPage &ctx) {
     draw_registration_cross(ctx, paper_width / 2, paper_height - cross_size / 2, cross_size);
 }
 
-void draw_trim_marks(PdfPage &ctx) {
+void draw_trim_marks(PdfPageBuilder &ctx) {
     const auto len = margin / 2;
     ctx.cmd_m(margin, 0);
     ctx.cmd_l(margin, len);

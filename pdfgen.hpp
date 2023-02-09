@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <pdfpage.hpp>
+#include <pdfpagebuilder.hpp>
 #include <pdfdocument.hpp>
 
 #include <cstdio>
@@ -41,9 +41,9 @@ public:
         return pdoc.create_separation(name, fallback);
     }
 
-    PdfPage &page_context() { return page; }
+    PdfPageBuilder &page_context() { return page; }
 
-    friend class PdfPage;
+    friend class PdfPageBuilder;
 
 private:
     void close_file();
@@ -51,5 +51,5 @@ private:
     std::filesystem::path ofilename;
     FT_Library ft;
     PdfDocument pdoc;
-    PdfPage page;
+    PdfPageBuilder page;
 };
