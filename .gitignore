@@ -5,4 +5,5 @@
 .pydevproject
 /build*
 *.user
+__pycache__
 

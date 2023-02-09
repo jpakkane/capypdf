@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2023 Jussi Pakkanen
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 
 import ctypes
 
@@ -75,8 +73,3 @@ class Generator:
 
     def new_page(self):
         libfile.a4pdf_generator_new_page(self)
-
-if __name__ == "__main__":
-    o = Options()
-    o.set_title('Python PDF')
-    g = Generator('python.pdf', o)

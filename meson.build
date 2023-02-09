@@ -12,3 +12,4 @@ gtk_dep = dependency('gtk4')
 pubinc = include_directories('include')
 
 subdir('src')
+subdir('test')
