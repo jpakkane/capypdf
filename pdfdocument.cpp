@@ -84,27 +84,6 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::string
-build_width_array(FT_Face face, const int start_char, const int one_past_the_end_end_char) {
-    std::string arr{"[ "};
-    assert(one_past_the_end_end_char > start_char);
-    arr.reserve((one_past_the_end_end_char - start_char) * 10);
-    auto bi = std::back_inserter(arr);
-    const auto load_flags =
-        FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
-    //    static_assert(load_flags == 522);
-    for(int i = start_char; i < one_past_the_end_end_char; ++i) {
-        auto glyph_index = FT_Get_Char_Index(face, i);
-        auto error = FT_Load_Glyph(face, glyph_index, load_flags);
-        if(error != 0) {
-            throw std::runtime_error(FT_Error_String(error));
-        }
-        fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
-    }
-    arr += "]";
-    return arr;
-}
-
 std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
@@ -125,67 +104,6 @@ std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &
     }
     arr += "]";
     return arr;
-}
-
-std::map<uint32_t, uint32_t> build_cmap_entries(FT_Face face) {
-    const int first_id = 1;
-    const int last_id = 1024;
-    std::map<uint32_t, uint32_t> glyph_mapping;
-    for(uint32_t i = first_id; i < last_id; ++i) {
-        auto glyph_id = i != 0 ? FT_Get_Char_Index(face, i) : 0;
-        if(glyph_id != i) {
-            glyph_mapping[glyph_id] = i;
-        }
-    }
-    return glyph_mapping;
-}
-
-std::string create_cmap(FT_Face face) {
-    const auto mapping = build_cmap_entries(face);
-    std::string cmap{R"(/CIDInit/ProcSet findresource begin
-12 dict begin
-begincmap
-/CIDSystemInfo<<
-  /Registry (Adobe)
-  /Ordering (UCS)
-  /Supplement 0
->> def
-/CMapName/Adobe-Identity-UCS def
-/CMapType 2 def
-1 begincodespacerange
-<0000> <FFFF>
-endcodespacerange
-)"};
-
-    int num_entries = 0;
-    std::string buf;
-    auto cmap_app = std::back_inserter(cmap);
-    auto buf_app = std::back_inserter(buf);
-    for(const auto &[glyph_id, unicode_point] : mapping) {
-        if(num_entries == 100) {
-            fmt::format_to(cmap_app, "{} beginbfchar\n", num_entries);
-            cmap += buf;
-            buf.clear();
-            num_entries = 0;
-            cmap += "endbfchar\n";
-        }
-        ++num_entries;
-        fmt::format_to(buf_app, "<{:04X}> <{:04X}>\n", glyph_id, unicode_point);
-    }
-    fmt::format_to(cmap_app,
-                   R"({} beginbfchar
-{}
-endbfchar
-)",
-                   num_entries,
-                   buf);
-
-    cmap += R"(endcmap
-CMapName currentdict /CMap defineresource pop
-end
-end
-)";
-    return cmap;
 }
 
 std::string create_subset_cmap(const std::vector<uint32_t> &glyphs) {
@@ -410,22 +328,6 @@ std::vector<uint64_t> PdfDocument::write_objects() {
         if(std::holds_alternative<FullPDFObject>(obj)) {
             const auto &pobj = std::get<FullPDFObject>(obj);
             write_finished_object(object_number, pobj.dictionary, pobj.stream);
-        } else if(std::holds_alternative<DelayedFontData>(obj)) {
-            const auto &fobj = std::get<DelayedFontData>(obj);
-            write_font_file(object_number, fonts.at(fobj.font_offset).fontdata);
-        } else if(std::holds_alternative<DelayedFontDescriptor>(obj)) {
-            const auto &fdobj = std::get<DelayedFontDescriptor>(obj);
-            write_font_descriptor(
-                object_number, fonts.at(fdobj.font_offset).fontdata, fdobj.font_file_object);
-        } else if(std::holds_alternative<DelayedFont>(obj)) {
-            const auto &fobj = std::get<DelayedFont>(obj);
-            write_font(object_number,
-                       fonts.at(fobj.font_offset).fontdata,
-                       fobj.to_unicode_obj,
-                       fobj.font_descriptor_obj);
-        } else if(std::holds_alternative<DelayedCmap>(obj)) {
-            const auto &cmap = std::get<DelayedCmap>(obj);
-            write_cmap(object_number, fonts.at(cmap.font_offset).fontdata);
         } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
             write_subset_font_data(object_number, ssfont);
@@ -544,96 +446,6 @@ void PdfDocument::write_subset_font(int32_t object_num,
                               font_descriptor_obj,
                               tounicode_obj);
     write_finished_object(object_num, objbuf, "");
-}
-
-void PdfDocument::write_font_file(int32_t object_num, const TtfFont &font) {
-    // Full font, not a generated subset.
-    auto compressed_bytes = flate_compress(font.fontdata);
-    std::string dictbuf = fmt::format(R"(<<
-  /Length {}
-  /Length1 {}
-  /Filter /FlateDecode
->>
-)",
-                                      compressed_bytes.size(),
-                                      font.fontdata.size());
-    write_finished_object(object_num, dictbuf, compressed_bytes);
-}
-
-void PdfDocument::write_font_descriptor(int32_t object_num,
-                                        const TtfFont &font,
-                                        int32_t font_file_obj) {
-    auto face = font.face.get();
-    const uint32_t fflags = 32;
-    auto objbuf = fmt::format(R"(<<
-  /Type /FontDescriptor
-  /FontName /{}
-  /FontFamily ({})
-  /Flags {}
-  /FontBBox [ {} {} {} {} ]
-  /ItalicAngle {}
-  /Ascent {}
-  /Descent {}
-  /CapHeight {}
-  /StemH {}
-  /StemV {}
-  /FontFile2 {} 0 R
->>
-)",
-                              fontname2pdfname(FT_Get_Postscript_Name(face)),
-                              face->family_name,
-                              fflags,
-                              face->bbox.xMin,
-                              face->bbox.yMin,
-                              face->bbox.xMax,
-                              face->bbox.yMax,
-                              0, // Cairo always sets this to zero.
-                              face->ascender,
-                              face->descender,
-                              face->bbox.yMax, // Copying what Cairo does.
-                              80,              // Cairo always sets these to 80.
-                              80,
-                              font_file_obj);
-    write_finished_object(object_num, objbuf, "");
-}
-
-void PdfDocument::write_font(int32_t object_num,
-                             const TtfFont &font,
-                             int32_t tounicode_obj,
-                             int32_t font_descriptor_obj) {
-    auto face = font.face.get();
-    const int start_char = 0;
-    const int end_char = 0xFFFD; // Unicode replacement character.
-    auto width_arr = build_width_array(face, start_char, end_char + 1);
-    auto objbuf = fmt::format(R"(<<
-  /Type /Font
-  /Subtype /TrueType
-  /BaseFont /{}
-  /FirstChar {}
-  /LastChar {}
-  /Widths {}
-  /FontDescriptor {} 0 R
-  /ToUnicode {} 0 R
->>
-)",
-                              FT_Get_Postscript_Name(face),
-                              start_char,
-                              end_char,
-                              width_arr,
-                              font_descriptor_obj,
-                              tounicode_obj);
-    write_finished_object(object_num, objbuf, "");
-}
-
-void PdfDocument::write_cmap(int32_t object_number, const TtfFont &font) {
-    auto face = font.face.get();
-    auto cmap = create_cmap(face);
-    auto dict = fmt::format(R"(<<
-  /Length {}
->>
-)",
-                            cmap.length());
-    write_finished_object(object_number, dict, cmap);
 }
 
 void PdfDocument::write_finished_object(int32_t object_number,
