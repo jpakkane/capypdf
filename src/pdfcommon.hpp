@@ -27,13 +27,8 @@ struct PdfBox {
     double y;
     double w;
     double h;
-};
 
-struct Area {
-    double w;
-    double h;
-
-    static Area a4() { return Area{595.28, 841.89}; }
+    static PdfBox a4() { return PdfBox{0, 0, 595.28, 841.89}; }
 };
 
 class LimitDouble {

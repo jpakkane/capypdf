@@ -20,8 +20,6 @@ using namespace A4PDF;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.page_size.h = 200;
-    opts.page_size.w = 200;
     opts.output_colorspace = PDF_DEVICE_GRAY;
     const char *fontfile;
     if(argc > 1) {
@@ -30,8 +28,8 @@ int main(int argc, char **argv) {
         fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
     }
     opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = opts.page_size.w;
-    opts.mediabox.h = opts.page_size.h;
+    opts.mediabox.w = 200;
+    opts.mediabox.h = 200;
     opts.title = "Font layout test";
     PdfGen gen("fonttest.pdf", opts);
     auto fid = gen.load_font(fontfile);

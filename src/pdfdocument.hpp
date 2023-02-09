@@ -108,8 +108,7 @@ struct ColorProfiles {
 };
 
 struct PdfGenerationData {
-    Area page_size;
-    PdfBox mediabox;
+    PdfBox mediabox = PdfBox::a4();
     std::optional<PdfBox> cropbox;
     std::optional<PdfBox> bleedbox;
     std::optional<PdfBox> trimbox;

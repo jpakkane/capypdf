@@ -20,10 +20,6 @@ using namespace A4PDF;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.page_size = Area::a4();
-    opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = opts.page_size.w;
-    opts.mediabox.h = opts.page_size.h;
 
     opts.title = "PDF experiment";
     opts.author = "Peter David Foster, esq";

@@ -515,7 +515,7 @@ void PdfDocument::generate_info_object() {
         obj_data.dictionary += utf8_to_pdfmetastr(opts.author);
         obj_data.dictionary += "\n";
     }
-    obj_data.dictionary += "  /Producer (PDF Testbed generator)\n";
+    obj_data.dictionary += "  /Producer (A4PDF)\n";
     obj_data.dictionary += "  /CreationDate ";
     obj_data.dictionary += current_date_string();
     obj_data.dictionary += '\n';

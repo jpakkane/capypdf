@@ -122,12 +122,10 @@ void draw_trim_marks(PdfPageBuilder &ctx) {
 
 int main(int, char **) {
     PdfGenerationData opts;
-    opts.page_size.h = paper_height;
-    opts.page_size.w = paper_width;
 
     opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = opts.page_size.w;
-    opts.mediabox.h = opts.page_size.h;
+    opts.mediabox.w = paper_width;
+    opts.mediabox.h = paper_height;
 
     opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = "Book cover generation experiment with utf-8 (ö).";
@@ -146,12 +144,12 @@ int main(int, char **) {
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
             ctx.cmd_re(margin - bleed,
                        margin - bleed,
-                       opts.page_size.w - 2 * (margin - bleed),
-                       opts.page_size.h - 2 * (margin - bleed));
+                       opts.mediabox.w - 2 * (margin - bleed),
+                       opts.mediabox.h - 2 * (margin - bleed));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.2, 0.2});
             ctx.cmd_re(
-                margin, margin, opts.page_size.w - 2 * (margin), opts.page_size.h - 2 * (margin));
+                margin, margin, opts.mediabox.w - 2 * (margin), opts.mediabox.h - 2 * (margin));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.2, 0.9, 0.2});
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);

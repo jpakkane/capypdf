@@ -44,11 +44,9 @@ int main(int argc, char **argv) {
     }
     PdfGenerationData opts;
     opts.output_colorspace = PDF_DEVICE_RGB;
-    opts.page_size.h = 300;
-    opts.page_size.w = 300;
     opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = opts.page_size.w;
-    opts.mediabox.h = opts.page_size.h;
+    opts.mediabox.w = 300;
+    opts.mediabox.h = 300;
     PdfGen gen("gstate.pdf", opts);
     auto &ctx = gen.page_context();
     GraphicsState gs;
@@ -57,7 +55,7 @@ int main(int argc, char **argv) {
     auto bg_img = gen.load_image(argv[1]);
     auto fg_img = gen.load_image(argv[2]);
     ctx.cmd_q();
-    ctx.scale(opts.page_size.w, opts.page_size.h);
+    ctx.scale(opts.mediabox.w, opts.mediabox.h);
     ctx.draw_image(bg_img);
     ctx.cmd_Q();
     // There are 16 blend modes.
