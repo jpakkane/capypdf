@@ -16,6 +16,8 @@
 
 #include <pdfgen.hpp>
 
+using namespace A4PDF;
+
 int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.page_size = Area::a4();

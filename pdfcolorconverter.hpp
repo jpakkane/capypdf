@@ -23,6 +23,8 @@
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
 
+namespace A4PDF {
+
 struct LcmsHolder {
     cmsHPROFILE h;
 
@@ -69,3 +71,5 @@ private:
     std::string rgb_profile_data, gray_profile_data, cmyk_profile_data;
     // FIXME, store transforms so that they don't get recreated all the time.
 };
+
+} // namespace A4PDF

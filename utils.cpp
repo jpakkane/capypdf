@@ -24,6 +24,8 @@
 #include <fmt/core.h>
 #include <memory>
 
+namespace A4PDF {
+
 std::string flate_compress(std::string_view data) {
     std::string compressed;
     const int CHUNK = 1024 * 1024;
@@ -131,3 +133,5 @@ std::string current_date_string() {
     strftime(buf, bufsize, "(D:%Y%m%d%H%M%SZ)", &utctime);
     return std::string(buf);
 }
+
+} // namespace A4PDF

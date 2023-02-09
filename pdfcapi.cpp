@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-#include <pdfcapi.h>
+#include <a4pdf.h>
 #include <pdfgen.hpp>
 #include <pdfpagebuilder.hpp>
+
+using namespace A4PDF;
 
 PdfOptions *pdf_options_create() { return reinterpret_cast<PdfOptions *>(new PdfGenerationData()); }
 

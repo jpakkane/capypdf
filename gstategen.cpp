@@ -35,6 +35,8 @@ const std::array<const char *, 16> gstate_names{"NORMAL",
                                                 "COLOR",
                                                 "LUMINOSITY"};
 
+using namespace A4PDF;
+
 int main(int argc, char **argv) {
     if(argc != 3) {
         printf("%s <bg file> <fg file>\n", argv[0]);

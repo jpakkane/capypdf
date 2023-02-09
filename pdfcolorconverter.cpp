@@ -30,6 +30,8 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 
 }
 
+namespace A4PDF {
+
 PdfColorConverter::PdfColorConverter(const char *rgb_profile_fname,
                                      const char *gray_profile_fname,
                                      const char *cmyk_profile_fname) {
@@ -152,3 +154,5 @@ std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     cmsDeleteTransform(transform);
     return converted_pixels;
 }
+
+} // namespace A4PDF

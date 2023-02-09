@@ -16,9 +16,11 @@
 
 #pragma once
 
-#include <pdfcapi.h>
+#include <a4pdf.h>
 
 #include <cstdint>
+
+namespace A4PDF {
 
 struct PdfBox {
     double x;
@@ -108,3 +110,5 @@ struct FontSubset {
 
     bool operator!=(const FontSubset &other) const { return !(*this == other); }
 };
+
+} // namespace A4PDF

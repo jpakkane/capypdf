@@ -16,6 +16,9 @@
 
 #include <pdfgen.hpp>
 #include <cmath>
+
+using namespace A4PDF;
+
 namespace {
 
 constexpr double mm2pt(const double x) { return x * 2.8346456693; }

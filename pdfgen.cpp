@@ -27,6 +27,8 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 
+namespace A4PDF {
+
 LcmsHolder::~LcmsHolder() { deallocate(); }
 
 void LcmsHolder::deallocate() {
@@ -77,3 +79,5 @@ void PdfGen::new_page() {
     page.finalize();
     page.clear();
 }
+
+} // namespace A4PDF

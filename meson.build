@@ -1,4 +1,4 @@
-project('pdfgen', 'cpp', default_options : ['cpp_std=c++20'])
+project('a4pdf', 'cpp', default_options : ['cpp_std=c++20'])
 
 fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
@@ -7,7 +7,7 @@ lcms_dep = dependency('lcms2')
 freetype_dep = dependency('freetype2')
 gtk_dep = dependency('gtk4')
 
-pdflib = library('mypdf',
+pdflib = library('a4pdf',
   'pdfgen.cpp',
   'pdfpagebuilder.cpp',
   'pdfdocument.cpp',

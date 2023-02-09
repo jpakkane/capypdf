@@ -35,6 +35,8 @@ typedef int FT_Error;
 
 FT_Error guarded_face_close(FT_Face face);
 
+namespace A4PDF {
+
 struct TtfFont {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
     std::string fontdata;
@@ -201,3 +203,5 @@ private:
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
     FILE *ofile = nullptr;
 };
+
+} // namespace A4PDF

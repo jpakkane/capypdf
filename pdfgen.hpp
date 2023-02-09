@@ -27,6 +27,8 @@
 #include <optional>
 #include <filesystem>
 
+namespace A4PDF {
+
 class PdfGen {
 public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
@@ -53,3 +55,5 @@ private:
     PdfDocument pdoc;
     PdfPageBuilder page;
 };
+
+} // namespace A4PDF

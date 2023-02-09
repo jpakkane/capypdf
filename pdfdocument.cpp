@@ -51,7 +51,7 @@ const std::array<const char *, 9> font_names{
     "Courier-Oblique",
 };
 
-void write_box(auto &appender, const char *boxname, const PdfBox &box) {
+void write_box(auto &appender, const char *boxname, const A4PDF::PdfBox &box) {
     fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
 }
 
@@ -138,6 +138,9 @@ end
 }
 
 } // namespace
+
+namespace A4PDF {
+
 PdfDocument::PdfDocument(const PdfGenerationData &d)
     : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
     generate_info_object();
@@ -728,3 +731,5 @@ FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
         FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
     return fid;
 }
+
+} // namespace A4PDF
