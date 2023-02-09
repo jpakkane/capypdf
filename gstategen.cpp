@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.page_size.w;
     opts.mediabox.h = opts.page_size.h;
     PdfGen gen("gstate.pdf", opts);
-    auto ctx = gen.new_page();
+    auto &ctx = gen.page_context();
     GraphicsState gs;
     gs.blend_mode = BM_MULTIPLY;
     gs.intent = RI_PERCEPTUAL;

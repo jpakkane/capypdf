@@ -58,25 +58,22 @@ const std::array<const char *, 4> intent_names{
 
 } // namespace
 
-PdfPage::PdfPage(PdfGen *g, PdfColorConverter *cm) : g(g), cm(cm), cmd_appender(commands) {
-    if(g->opts.output_colorspace == PDF_DEVICE_GRAY) {
+PdfPage::PdfPage(PdfDocument *doc, PdfColorConverter *cm)
+    : doc(doc), cm(cm), cmd_appender(commands) {
+    setup_initial_cs();
+}
+
+void PdfPage::setup_initial_cs() {
+    if(doc->opts.output_colorspace == PDF_DEVICE_GRAY) {
         commands += "/DeviceGray CS\n/DeviceGray cs\n";
-    } else if(g->opts.output_colorspace == PDF_DEVICE_CMYK) {
+    } else if(doc->opts.output_colorspace == PDF_DEVICE_CMYK) {
         commands += "/DeviceCMYK CS\n/DeviceCMYK cs\n";
     }
     // The default is DeviceRGB.
     // FIXME add ICC here if needed.
 }
 
-PdfPage::~PdfPage() {
-    try {
-        if(!is_finalized) {
-            finalize();
-        }
-    } catch(const std::exception &e) {
-        printf("FAIL: %s\n", e.what());
-    }
-}
+PdfPage::~PdfPage() {}
 
 void PdfPage::finalize() {
     if(is_finalized) {
@@ -95,7 +92,21 @@ endstream
 )",
         commands.size(),
         commands);
-    g->add_page(resources, buf);
+    doc->add_page(resources, buf);
+}
+
+void PdfPage::clear() {
+    resources.clear();
+    commands.clear();
+    used_images.clear();
+    used_subset_fonts.clear();
+    used_fonts.clear();
+    used_colorspaces.clear();
+    gstates.clear();
+    is_finalized = false;
+    uses_all_colorspace = false;
+
+    setup_initial_cs();
 }
 
 void PdfPage::build_resource_dict() {
@@ -115,7 +126,7 @@ void PdfPage::build_resource_dict() {
             fmt::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
         }
         for(const auto &i : used_subset_fonts) {
-            const auto &bob = g->font_objects.at(i.fid.id);
+            const auto &bob = doc->font_objects.at(i.fid.id);
             fmt::format_to(resource_appender,
                            "    /SFont{}-{} {} 0 R\n",
                            bob.font_obj,
@@ -127,7 +138,7 @@ void PdfPage::build_resource_dict() {
     if(!used_colorspaces.empty() || uses_all_colorspace) {
         resources += "  /ColorSpace <<\n";
         if(uses_all_colorspace) {
-            fmt::format_to(resource_appender, "    /All {} 0 R\n", g->separation_objects.at(0));
+            fmt::format_to(resource_appender, "    /All {} 0 R\n", doc->separation_objects.at(0));
         }
         for(const auto &i : used_colorspaces) {
             fmt::format_to(resource_appender, "    /CSpace{} {} 0 R\n", i, i);
@@ -213,7 +224,7 @@ void PdfPage::cmd_gs(std::string_view gs_name) {
 }
 
 void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
-    switch(g->opts.output_colorspace) {
+    switch(doc->opts.output_colorspace) {
     case PDF_DEVICE_RGB: {
         cmd_RG(c.r.v(), c.g.v(), c.b.v());
         break;
@@ -232,7 +243,7 @@ void PdfPage::set_stroke_color(const DeviceRGBColor &c) {
 }
 
 void PdfPage::set_nonstroke_color(const DeviceRGBColor &c) {
-    switch(g->opts.output_colorspace) {
+    switch(doc->opts.output_colorspace) {
     case PDF_DEVICE_RGB: {
         cmd_rg(c.r.v(), c.g.v(), c.b.v());
         break;
@@ -259,7 +270,7 @@ void PdfPage::set_nonstroke_color(const DeviceGrayColor &c) {
 }
 
 void PdfPage::set_separation_stroke_color(SeparationId id, LimitDouble value) {
-    const auto idnum = g->separation_object_number(id);
+    const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
     cmd_CS(csname);
@@ -267,7 +278,7 @@ void PdfPage::set_separation_stroke_color(SeparationId id, LimitDouble value) {
 }
 
 void PdfPage::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
-    const auto idnum = g->separation_object_number(id);
+    const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
     cmd_cs(csname);
@@ -281,7 +292,7 @@ void PdfPage::set_all_stroke_color() {
 }
 
 void PdfPage::draw_image(ImageId im_id) {
-    auto obj_num = g->image_object_number(im_id);
+    auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
     fmt::format_to(cmd_appender, "/Image{} Do\n", obj_num);
 }
@@ -314,7 +325,7 @@ void PdfPage::render_utf8_text(
         throw std::runtime_error(strerror(errno));
     }
     IconvCloser ic{to_codepoint};
-    FT_Face face = g->fonts.at(g->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
+    FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
         throw std::runtime_error(
             "Tried to use builtin font to render UTF-8. They only support ASCII.");
@@ -340,8 +351,8 @@ void PdfPage::render_utf8_text(
             throw std::runtime_error(strerror(errno));
         }
         // Need to change font subset?
-        auto current_subset_glyph = g->get_subset_glyph(fid, codepoint);
-        const auto &bob = g->font_objects.at(current_subset_glyph.ss.fid.id);
+        auto current_subset_glyph = doc->get_subset_glyph(fid, codepoint);
+        const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         if(previous_subset.subset_id == -1) {
             fmt::format_to(cmd_appender,
@@ -392,11 +403,11 @@ void PdfPage::render_utf8_text(
 }
 
 void PdfPage::render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y) {
-    auto &font_data = g->font_objects.at(fid.id);
+    auto &font_data = doc->font_objects.at(fid.id);
     // used_fonts.insert(font_data.font_obj);
 
-    const auto font_glyph_id =
-        g->glyph_for_codepoint(g->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
+    const auto font_glyph_id = doc->glyph_for_codepoint(
+        doc->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
     fmt::format_to(cmd_appender,
                    R"(BT
   /Font{} {} Tf
@@ -413,7 +424,7 @@ ET
 
 void PdfPage::render_ascii_text_builtin(
     const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y) {
-    auto font_object = g->font_object_number(g->get_builtin_font_id(font_id));
+    auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
     std::string cleaned_text;
     for(const auto c : std::string_view(ascii_text)) {

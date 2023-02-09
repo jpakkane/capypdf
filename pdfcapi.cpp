@@ -33,7 +33,7 @@ void pdf_generator_destroy(PdfGenerator *generator) {
 
 PdfPage2 *pdf_generator_new_page(PdfGenerator *gen_c) {
     auto *g = reinterpret_cast<PdfGen *>(gen_c);
-    return reinterpret_cast<PdfPage2 *>(g->new_page_capihack());
+    return reinterpret_cast<PdfPage2 *>(g);
 }
 
 void pdf_page_destroy(PdfPage2 *p) { delete reinterpret_cast<PdfPage *>(p); }

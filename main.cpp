@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
 
     try {
         PdfGen gen("test.pdf", opts);
+        auto &ctx = gen.page_context();
         {
-            auto ctx = gen.new_page();
             ctx.cmd_w(2.0);
             ctx.set_stroke_color(DeviceRGBColor{0.0, 0.3, 1.0});
             ctx.cmd_re(300, 100, 200, 100);
@@ -49,8 +49,8 @@ int main(int argc, char **argv) {
             ctx.set_separation_nonstroke_color(sep, 1.0);
             ctx.render_ascii_text_builtin("GOLD!", FONT_HELVETICA_BOLD, 32, 250, 340);
         }
+        gen.new_page();
         {
-            auto ctx = gen.new_page();
             ctx.cmd_re(100, 300, 200, 100);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.1, 0.2});
             ctx.cmd_f();

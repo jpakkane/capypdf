@@ -10,6 +10,7 @@ gtk_dep = dependency('gtk4')
 pdflib = library('mypdf',
   'pdfgen.cpp',
   'pdfpage.cpp',
+  'pdfdocument.cpp',
   'imageops.cpp',
   'utils.cpp',
   'pdfcolorconverter.cpp',

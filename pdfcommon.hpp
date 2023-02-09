@@ -20,6 +20,20 @@
 
 #include <cstdint>
 
+struct PdfBox {
+    double x;
+    double y;
+    double w;
+    double h;
+};
+
+struct Area {
+    double w;
+    double h;
+
+    static Area a4() { return Area{595.28, 841.89}; }
+};
+
 class LimitDouble {
 public:
     LimitDouble() : value(minval) {}

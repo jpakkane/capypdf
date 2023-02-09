@@ -138,7 +138,7 @@ int main(int, char **) {
         auto image_id = gen.load_image("gradient.png");
         auto sep_id = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
         {
-            auto ctx = gen.new_page();
+            auto &ctx = gen.page_context();
             ctx.cmd_w(1.0);
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
             ctx.cmd_re(margin - bleed,

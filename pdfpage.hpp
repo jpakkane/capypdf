@@ -18,12 +18,11 @@
 
 #include <pdfcommon.hpp>
 #include <pdfcolorconverter.hpp>
+#include <pdfdocument.hpp>
 #include <string>
 #include <unordered_set>
 #include <vector>
 #include <optional>
-
-class PdfGen;
 
 struct GraphicsState {
     std::optional<RenderingIntent> intent;
@@ -46,10 +45,12 @@ template<> struct std::hash<FontSubset> {
 class PdfPage {
 
 public:
-    PdfPage(PdfGen *g, PdfColorConverter *cm);
+    PdfPage(PdfDocument *g, PdfColorConverter *cm);
     ~PdfPage();
     void finalize();
 
+    PdfPage() = delete;
+    PdfPage(const PdfPage &) = delete;
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
     void cmd_q(); // Save
     void cmd_Q(); // Restore
@@ -95,15 +96,18 @@ public:
     void render_ascii_text_builtin(
         const char *ascii_text, BuiltinFonts font_id, double pointsize, double x, double y);
 
+    void add_graphics_state(std::string_view name, const GraphicsState &gs);
+
     void draw_unit_circle();
     void draw_unit_box();
 
-    void add_graphics_state(std::string_view name, const GraphicsState &gs);
+    void clear();
 
 private:
     void build_resource_dict();
+    void setup_initial_cs();
 
-    PdfGen *g;
+    PdfDocument *doc;
     PdfColorConverter *cm;
     std::string resources;
     std::string commands;
