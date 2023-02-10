@@ -116,7 +116,7 @@ struct PdfGenerationData {
 
     std::string title;
     std::string author;
-    A4PDF_Colorspace output_colorspace = PDF_DEVICE_RGB;
+    A4PDF_Colorspace output_colorspace = A4PDF_DEVICE_RGB;
     ColorProfiles prof;
 };
 

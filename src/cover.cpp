@@ -130,7 +130,7 @@ int main(int, char **) {
     opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = "Book cover generation experiment with utf-8 (ö).";
     opts.author = "G. R. Aphicdesigner";
-    opts.output_colorspace = PDF_DEVICE_CMYK;
+    opts.output_colorspace = A4PDF_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 

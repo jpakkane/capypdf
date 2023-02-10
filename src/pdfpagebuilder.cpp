@@ -66,9 +66,9 @@ PdfPageBuilder::PdfPageBuilder(PdfDocument *doc, PdfColorConverter *cm)
 }
 
 void PdfPageBuilder::setup_initial_cs() {
-    if(doc->opts.output_colorspace == PDF_DEVICE_GRAY) {
+    if(doc->opts.output_colorspace == A4PDF_DEVICE_GRAY) {
         commands += "/DeviceGray CS\n/DeviceGray cs\n";
-    } else if(doc->opts.output_colorspace == PDF_DEVICE_CMYK) {
+    } else if(doc->opts.output_colorspace == A4PDF_DEVICE_CMYK) {
         commands += "/DeviceCMYK CS\n/DeviceCMYK cs\n";
     }
     // The default is DeviceRGB.
@@ -179,7 +179,13 @@ void PdfPageBuilder::cmd_f() { commands += "f\n"; }
 
 void PdfPageBuilder::cmd_S() { commands += "S\n"; }
 
+void PdfPageBuilder::cmd_s() { commands += "s\n"; }
+
 void PdfPageBuilder::cmd_h() { commands += "h\n"; }
+
+void PdfPageBuilder::cmd_B() { commands += "B\n"; }
+
+void PdfPageBuilder::cmd_Bstar() { commands += "B*\n"; }
 
 void PdfPageBuilder::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
 
@@ -227,16 +233,16 @@ void PdfPageBuilder::cmd_gs(std::string_view gs_name) {
 
 void PdfPageBuilder::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
-    case PDF_DEVICE_RGB: {
+    case A4PDF_DEVICE_RGB: {
         cmd_RG(c.r.v(), c.g.v(), c.b.v());
         break;
     }
-    case PDF_DEVICE_GRAY: {
+    case A4PDF_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         cmd_G(gray.v.v());
         break;
     }
-    case PDF_DEVICE_CMYK: {
+    case A4PDF_DEVICE_CMYK: {
         DeviceCMYKColor cmyk = cm->to_cmyk(c);
         cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         break;
@@ -246,16 +252,16 @@ void PdfPageBuilder::set_stroke_color(const DeviceRGBColor &c) {
 
 void PdfPageBuilder::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
-    case PDF_DEVICE_RGB: {
+    case A4PDF_DEVICE_RGB: {
         cmd_rg(c.r.v(), c.g.v(), c.b.v());
         break;
     }
-    case PDF_DEVICE_GRAY: {
+    case A4PDF_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         cmd_g(gray.v.v());
         break;
     }
-    case PDF_DEVICE_CMYK: {
+    case A4PDF_DEVICE_CMYK: {
         DeviceCMYKColor cmyk = cm->to_cmyk(c);
         cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         break;

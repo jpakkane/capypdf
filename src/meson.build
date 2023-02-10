@@ -34,7 +34,12 @@ executable('fontgen',
 executable('gstategen',
   'gstategen.cpp',
   dependencies: [a4pdf_dep, fmt_dep]
-  )
+)
+
+executable('pathgen',
+  'pathgen.cpp',
+  dependencies: [a4pdf_dep]
+)
 
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])

@@ -20,7 +20,7 @@ using namespace A4PDF;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.output_colorspace = PDF_DEVICE_GRAY;
+    opts.output_colorspace = A4PDF_DEVICE_GRAY;
     const char *fontfile;
     if(argc > 1) {
         fontfile = argv[1];

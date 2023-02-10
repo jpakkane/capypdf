@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     PdfGenerationData opts;
-    opts.output_colorspace = PDF_DEVICE_RGB;
+    opts.output_colorspace = A4PDF_DEVICE_RGB;
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 300;
     opts.mediabox.h = 300;

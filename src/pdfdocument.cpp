@@ -144,7 +144,7 @@ namespace A4PDF {
 PdfDocument::PdfDocument(const PdfGenerationData &d)
     : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
     generate_info_object();
-    if(d.output_colorspace == PDF_DEVICE_CMYK) {
+    if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
     rgb_profile_obj = store_icc_profile(cm.get_rgb(), 3);
@@ -591,7 +591,7 @@ ImageId PdfDocument::load_image(const char *fname) {
         buf.clear();
     }
     switch(opts.output_colorspace) {
-    case PDF_DEVICE_RGB: {
+    case A4PDF_DEVICE_RGB: {
         const auto compressed = flate_compress(image.pixels);
         // FIXME, use ICC colorspace, if one was defined.
         fmt::format_to(std::back_inserter(buf),
@@ -616,7 +616,7 @@ ImageId PdfDocument::load_image(const char *fname) {
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
-    case PDF_DEVICE_GRAY: {
+    case A4PDF_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
         const auto compressed = flate_compress(converted_pixels);
         // FIXME also ICC here.
@@ -642,7 +642,7 @@ ImageId PdfDocument::load_image(const char *fname) {
         image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
         break;
     }
-    case PDF_DEVICE_CMYK: {
+    case A4PDF_DEVICE_CMYK: {
         if(cmyk_profile_obj == -1) {
             throw std::runtime_error("Tried to convert image to CMYK without a CMYK profile.");
         }

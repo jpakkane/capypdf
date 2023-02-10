@@ -59,7 +59,10 @@ public:
     void cmd_re(double x, double y, double w, double h);
     void cmd_f();
     void cmd_S();
+    void cmd_s();
     void cmd_h();
+    void cmd_B();
+    void cmd_Bstar();
     void cmd_m(double x, double y);
     void cmd_l(double x, double y);
     void cmd_w(double w);
