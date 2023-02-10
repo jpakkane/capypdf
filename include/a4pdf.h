@@ -73,6 +73,14 @@ enum A4PDF_Blend_Mode {
     A4PDF_BM_LUMINOSITY,
 };
 
+enum A4PDF_Line_Cap { A4PDF_Butt_Cap, A4PDF_Round_Cap, A4PDF_Projection_Square_Cap };
+
+enum A4PDF_Line_Join {
+    A4PDF_Miter_Join,
+    A4PDF_Round_Join,
+    A4PDF_Bevel_Join,
+};
+
 typedef struct _A4PDF_Options A4PDF_Options;
 typedef struct _A4PDF_Generator A4PDF_Generator;
 

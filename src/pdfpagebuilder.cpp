@@ -182,6 +182,14 @@ void PdfPageBuilder::cmd_CS(std::string_view cspace_name) {
 
 void PdfPageBuilder::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
 
+void PdfPageBuilder::cmd_J(A4PDF_Line_Cap cap_style) {
+    fmt::format_to(cmd_appender, "{} J\n", (int)cap_style);
+}
+
+void PdfPageBuilder::cmd_j(A4PDF_Line_Join join_style) {
+    fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
+}
+
 void PdfPageBuilder::cmd_RG(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
 }

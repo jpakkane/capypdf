@@ -29,14 +29,20 @@ static void draw_intersect_shape(PdfPageBuilder &ctx) {
 
 void basic_painting(PdfPageBuilder &ctx) {
     ctx.cmd_w(5);
-    ctx.cmd_m(10, 10);
-    ctx.cmd_c(80, 10, 20, 90, 90, 90);
-    ctx.cmd_S();
     {
         auto pop = ctx.push_gstate();
+        ctx.cmd_J(A4PDF_Round_Cap);
+        ctx.cmd_m(10, 10);
+        ctx.cmd_c(80, 10, 20, 90, 90, 90);
+        ctx.cmd_S();
+    }
+    {
+        auto pop = ctx.push_gstate();
+        ctx.cmd_w(10);
         ctx.translate(100, 0);
         ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
-        ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.4, 0.7});
+        ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.0});
+        ctx.cmd_j(A4PDF_Bevel_Join);
         ctx.cmd_m(50, 90);
         ctx.cmd_l(10, 10);
         ctx.cmd_l(90, 10);
@@ -50,6 +56,7 @@ void basic_painting(PdfPageBuilder &ctx) {
         ctx.cmd_w(3);
         ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
         ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
+        ctx.cmd_j(A4PDF_Round_Join);
         ctx.cmd_B();
     }
     {

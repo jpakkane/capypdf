@@ -106,6 +106,16 @@ struct DeviceCMYKColor {
     LimitDouble k;
 };
 
+struct TextStateParameters {
+    std::optional<double> char_spacing;
+    std::optional<double> word_spacing;
+    std::optional<double> horizontal_scaling;
+    std::optional<double> leading;
+    std::optional<A4PDF_Text_Rendering_Mode> render_mode;
+    std::optional<double> rise;
+    // Knockout can only be set with gs.
+};
+
 struct FontSubset {
     FontId fid;
     int32_t subset_id;
