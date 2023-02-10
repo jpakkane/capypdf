@@ -244,6 +244,10 @@ void PdfPageBuilder::cmd_gs(std::string_view gs_name) {
     fmt::format_to(cmd_appender, "/{} gs\n", gs_name);
 }
 
+void PdfPageBuilder::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
+    fmt::format_to(cmd_appender, "{} Tr\n", (int)mode);
+}
+
 void PdfPageBuilder::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {

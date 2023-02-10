@@ -64,13 +64,24 @@ void basic_painting(PdfPageBuilder &ctx) {
 }
 
 void clipping(PdfPageBuilder &ctx, ImageId image) {
-    auto pop = ctx.push_gstate();
     ctx.cmd_w(0.1);
-    draw_intersect_shape(ctx);
-    ctx.cmd_Wstar();
-    ctx.cmd_n();
-    ctx.scale(100, 100);
-    ctx.draw_image(image);
+    {
+        auto pop = ctx.push_gstate();
+
+        draw_intersect_shape(ctx);
+        ctx.cmd_Wstar();
+        ctx.cmd_n();
+        ctx.scale(100, 100);
+        ctx.draw_image(image);
+    }
+    {
+        auto pop = ctx.push_gstate();
+        ctx.translate(100, 0);
+        ctx.cmd_Tr(A4PDF_Text_Clip);
+        ctx.render_ascii_text_builtin("Awesome!", FONT_TIMES_ROMAN, 18, 10, 50);
+        ctx.scale(100, 100);
+        ctx.draw_image(image);
+    }
 }
 
 int main(int argc, char **argv) {

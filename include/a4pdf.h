@@ -36,11 +36,22 @@ enum A4PDF_Builtin_Fonts {
 
 enum A4PDF_Colorspace { A4PDF_DEVICE_RGB, A4PDF_DEVICE_GRAY, A4PDF_DEVICE_CMYK };
 
-enum RenderingIntent {
+enum A4PDF_Rendering_Intent {
     RI_RELATIVE_COLORIMETRIC,
     RI_ABSOLUTE_COLORIMETRIC,
     RI_SATURATION,
     RI_PERCEPTUAL
+};
+
+enum A4PDF_Text_Rendering_Mode {
+    A4PDF_Text_Fill,
+    A4PDF_Text_Stroke,
+    A4PDF_Text_Fill_Stroke,
+    A4PDF_Text_Invisible,
+    A4PDF_Text_Fill_Clip,
+    A4PDF_Text_Stroke_Clip,
+    A4PDF_Text_Fill_Stroke_Clip,
+    A4PDF_Text_Clip,
 };
 
 enum A4PDF_Blend_Mode {

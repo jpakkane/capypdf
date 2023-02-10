@@ -35,7 +35,7 @@ template<> struct std::hash<A4PDF::FontSubset> {
 namespace A4PDF {
 
 struct GraphicsState {
-    std::optional<RenderingIntent> intent;
+    std::optional<A4PDF_Rendering_Intent> intent;
     std::optional<A4PDF_Blend_Mode> blend_mode;
 };
 
@@ -101,6 +101,9 @@ public:
     void cmd_k(double c, double m, double y, double k);
 
     void cmd_gs(std::string_view gs_name);
+
+    // Text
+    void cmd_Tr(A4PDF_Text_Rendering_Mode mode);
 
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
