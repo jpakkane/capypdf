@@ -194,6 +194,12 @@ void PdfPageBuilder::cmd_B() { commands += "B\n"; }
 
 void PdfPageBuilder::cmd_Bstar() { commands += "B*\n"; }
 
+void PdfPageBuilder::cmd_n() { commands += "n\n"; }
+
+void PdfPageBuilder::cmd_W() { commands += "W\n"; }
+
+void PdfPageBuilder::cmd_Wstar() { commands += "W*\n"; }
+
 void PdfPageBuilder::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
 
 void PdfPageBuilder::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }

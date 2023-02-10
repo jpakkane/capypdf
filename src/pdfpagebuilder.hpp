@@ -76,6 +76,9 @@ public:
     void cmd_h();
     void cmd_B();
     void cmd_Bstar();
+    void cmd_n();
+    void cmd_W();
+    void cmd_Wstar();
     void cmd_m(double x, double y);
     void cmd_l(double x, double y);
     void cmd_w(double w);

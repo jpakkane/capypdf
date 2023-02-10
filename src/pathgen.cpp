@@ -27,50 +27,67 @@ static void draw_intersect_shape(PdfPageBuilder &ctx) {
     ctx.cmd_h();
 }
 
-int main(int, char **) {
+void basic_painting(PdfPageBuilder &ctx) {
+    ctx.cmd_w(5);
+    ctx.cmd_m(10, 10);
+    ctx.cmd_c(80, 10, 20, 90, 90, 90);
+    ctx.cmd_S();
+    {
+        auto pop = ctx.push_gstate();
+        ctx.translate(100, 0);
+        ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
+        ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.4, 0.7});
+        ctx.cmd_m(50, 90);
+        ctx.cmd_l(10, 10);
+        ctx.cmd_l(90, 10);
+        ctx.cmd_h();
+        ctx.cmd_B();
+    }
+    {
+        auto pop = ctx.push_gstate();
+        ctx.translate(0, 100);
+        draw_intersect_shape(ctx);
+        ctx.cmd_w(3);
+        ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
+        ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
+        ctx.cmd_B();
+    }
+    {
+        auto pop = ctx.push_gstate();
+        ctx.translate(100, 100);
+        ctx.cmd_w(2);
+        ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
+        ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
+        draw_intersect_shape(ctx);
+        ctx.cmd_Bstar();
+    }
+}
+
+void clipping(PdfPageBuilder &ctx, ImageId image) {
+    auto pop = ctx.push_gstate();
+    ctx.cmd_w(0.1);
+    draw_intersect_shape(ctx);
+    ctx.cmd_Wstar();
+    ctx.cmd_n();
+    ctx.scale(100, 100);
+    ctx.draw_image(image);
+}
+
+int main(int argc, char **argv) {
     PdfGenerationData opts;
 
+    const char *image = argc > 1 ? argv[1] : "../pdfgen/images/flame_gradient.png";
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF path test";
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
-
     {
         PdfGen gen("path_test.pdf", opts);
         auto &ctx = gen.page_context();
-        ctx.cmd_w(5);
-        ctx.cmd_m(10, 10);
-        ctx.cmd_c(80, 10, 20, 90, 90, 90);
-        ctx.cmd_S();
-        {
-            auto pop = ctx.push_gstate();
-            ctx.translate(100, 0);
-            ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
-            ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.4, 0.7});
-            ctx.cmd_m(50, 90);
-            ctx.cmd_l(10, 10);
-            ctx.cmd_l(90, 10);
-            ctx.cmd_h();
-            ctx.cmd_B();
-        }
-        {
-            auto pop = ctx.push_gstate();
-            ctx.translate(0, 100);
-            draw_intersect_shape(ctx);
-            ctx.cmd_w(3);
-            ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
-            ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
-            ctx.cmd_B();
-        }
-        {
-            auto pop = ctx.push_gstate();
-            ctx.translate(100, 100);
-            ctx.cmd_w(2);
-            ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
-            ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
-            draw_intersect_shape(ctx);
-            ctx.cmd_Bstar();
-        }
+        basic_painting(ctx);
+        gen.new_page();
+        auto bg_img = gen.load_image(image);
+        clipping(ctx, bg_img);
     }
     return 0;
 }
