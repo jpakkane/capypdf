@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
     PdfGen gen("gstate.pdf", opts);
     auto &ctx = gen.page_context();
     GraphicsState gs;
-    gs.blend_mode = BM_MULTIPLY;
-    gs.intent = RI_PERCEPTUAL;
+    gs.blend_mode = A4PDF_BM_MULTIPLY;
+    gs.intent = A4PDF_RI_PERCEPTUAL;
     auto bg_img = gen.load_image(argv[1]);
     auto fg_img = gen.load_image(argv[2]);
     ctx.cmd_q();
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     ctx.cmd_Q();
     // There are 16 blend modes.
     const int imsize = 40;
-    A4PDF_Blend_Mode bm = BM_NORMAL;
+    A4PDF_Blend_Mode bm = A4PDF_BM_NORMAL;
     for(int j = 3; j >= 0; --j) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
             ctx.cmd_Q();
             ctx.cmd_q();
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.3) * 1.5 * imsize);
-            ctx.render_ascii_text_builtin(gstate_names.at(bm), FONT_HELVETICA, 8, 0, 0);
+            ctx.render_ascii_text_builtin(gstate_names.at(bm), A4PDF_FONT_HELVETICA, 8, 0, 0);
             ctx.cmd_Q();
             bm = (A4PDF_Blend_Mode)((int)bm + 1);
         }

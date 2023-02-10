@@ -94,7 +94,7 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
                                         TYPE_RGB_DBL,
                                         gray_profile.h,
                                         TYPE_GRAY_DBL,
-                                        ri2lcms.at(RI_RELATIVE_COLORIMETRIC),
+                                        ri2lcms.at(A4PDF_RI_RELATIVE_COLORIMETRIC),
                                         0);
     cmsDoTransform(transform, &rgb, &gray, 1);
     cmsDeleteTransform(transform);
@@ -111,7 +111,7 @@ DeviceCMYKColor PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
                                         TYPE_RGB_DBL,
                                         cmyk_profile.h,
                                         TYPE_CMYK_DBL,
-                                        ri2lcms.at(RI_RELATIVE_COLORIMETRIC),
+                                        ri2lcms.at(A4PDF_RI_RELATIVE_COLORIMETRIC),
                                         0);
     cmsDoTransform(transform, &rgb, &buf, 1);
     cmyk.c = buf[0] / 100.0;
@@ -130,7 +130,7 @@ std::string PdfColorConverter::rgb_pixels_to_gray(std::string_view rgb_data) {
                                         TYPE_RGB_8,
                                         gray_profile.h,
                                         TYPE_GRAY_8,
-                                        ri2lcms.at(RI_RELATIVE_COLORIMETRIC),
+                                        ri2lcms.at(A4PDF_RI_RELATIVE_COLORIMETRIC),
                                         0);
     cmsDoTransform(transform, rgb_data.data(), converted_pixels.data(), num_pixels);
     cmsDeleteTransform(transform);
@@ -148,7 +148,7 @@ std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
                                         TYPE_RGB_8,
                                         cmyk_profile.h,
                                         TYPE_CMYK_8,
-                                        ri2lcms.at(RI_RELATIVE_COLORIMETRIC),
+                                        ri2lcms.at(A4PDF_RI_RELATIVE_COLORIMETRIC),
                                         0);
     cmsDoTransform(transform, rgb_data.data(), converted_pixels.data(), num_pixels);
     cmsDeleteTransform(transform);

@@ -163,18 +163,18 @@ int main(int, char **) {
             }
             ctx.set_separation_nonstroke_color(sep_id, 1.0);
             ctx.render_ascii_text_builtin("Front Cover",
-                                          FONT_HELVETICA_BOLD,
+                                          A4PDF_FONT_HELVETICA_BOLD,
                                           48,
                                           paper_width / 2 + page_w / 5,
                                           2 * paper_height / 3);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
             ctx.render_ascii_text_builtin("Lorem ipsum dolor sit amet,",
-                                          FONT_TIMES_ROMAN,
+                                          A4PDF_FONT_TIMES_ROMAN,
                                           12,
                                           margin + page_w / 6,
                                           2 * paper_height / 3);
             ctx.render_ascii_text_builtin("consectetur adipiscing elit",
-                                          FONT_TIMES_ROMAN,
+                                          A4PDF_FONT_TIMES_ROMAN,
                                           12,
                                           margin + page_w / 6,
                                           2 * paper_height / 3 - 12);
@@ -183,13 +183,13 @@ int main(int, char **) {
                 ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
                 ctx.translate(paper_width / 2, 3 * paper_height / 4);
                 ctx.rotate(-M_PI / 2.0);
-                ctx.render_ascii_text_builtin("Name of Book", FONT_HELVETICA_BOLD, 12, 0, 0);
+                ctx.render_ascii_text_builtin("Name of Book", A4PDF_FONT_HELVETICA_BOLD, 12, 0, 0);
                 // ctx.cmd_re(0, 0, 10, 10);
                 ctx.cmd_f();
             }
             ctx.set_nonstroke_color(DeviceGrayColor{0});
             ctx.render_ascii_text_builtin("PDF created: YYYY-MM-DD HH:MM",
-                                          FONT_TIMES_ROMAN,
+                                          A4PDF_FONT_TIMES_ROMAN,
                                           10,
                                           paper_width / 2 + page_w / 5,
                                           10);
