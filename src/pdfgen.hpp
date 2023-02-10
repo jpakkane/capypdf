@@ -17,7 +17,6 @@
 #pragma once
 
 #include <pdfpagebuilder.hpp>
-#include <pdfdocument.hpp>
 
 #include <cstdio>
 #include <cstdint>
@@ -42,10 +41,11 @@ public:
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
     }
+    GstateId add_graphics_state(const GraphicsState &state) {
+        return pdoc.add_graphics_state(state);
+    }
 
     PdfPageBuilder &page_context() { return page; }
-
-    friend class PdfPageBuilder;
 
 private:
     void close_file();

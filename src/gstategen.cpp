@@ -66,9 +66,9 @@ int main(int argc, char **argv) {
             GraphicsState gs;
             gs.blend_mode = bm;
             auto gs_name = fmt::format("bm{}", (int)bm);
-            ctx.add_graphics_state(gs_name, gs);
+            auto sid = gen.add_graphics_state(gs);
             ctx.cmd_q();
-            ctx.cmd_gs(gs_name);
+            ctx.cmd_gs(sid);
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.5) * 1.5 * imsize);
             ctx.scale(imsize, imsize);
             ctx.draw_image(fg_img);

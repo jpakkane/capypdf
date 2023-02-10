@@ -154,6 +154,9 @@ public:
     // Images
     ImageId load_image(const char *fname);
 
+    // Graphics states
+    GstateId add_graphics_state(const GraphicsState &state);
+
 private:
     int32_t add_object(ObjectType object);
 

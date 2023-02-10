@@ -28,36 +28,6 @@
 #include <cassert>
 #include <memory>
 
-namespace {
-
-const std::array<const char *, 16> blend_mode_names{
-    "Normal",
-    "Multiply",
-    "Screen",
-    "Overlay",
-    "Darken",
-    "Lighten",
-    "ColorDodge",
-    "ColorBurn",
-    "HardLight",
-    "SoftLight",
-    "Difference",
-    "Exclusion",
-    "Hue",
-    "Saturation",
-    "Color",
-    "Luminosity",
-};
-
-const std::array<const char *, 4> intent_names{
-    "RelativeColorimetric",
-    "AbsoluteColorimetric",
-    "Saturation",
-    "Perceptual",
-};
-
-} // namespace
-
 namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
@@ -106,7 +76,7 @@ void PdfPageBuilder::clear() {
     used_subset_fonts.clear();
     used_fonts.clear();
     used_colorspaces.clear();
-    gstates.clear();
+    used_gstates.clear();
     is_finalized = false;
     uses_all_colorspace = false;
 
@@ -149,20 +119,10 @@ void PdfPageBuilder::build_resource_dict() {
         }
         resources += "  >>\n";
     }
-    if(!gstates.empty()) {
+    if(!used_gstates.empty()) {
         resources += "  /ExtGState <<\n";
-        for(const auto &s : gstates) {
-            fmt::format_to(resource_appender, "    /{} <<\n", s.name);
-            if(s.state.blend_mode) {
-                fmt::format_to(
-                    resource_appender, "      /BM /{}\n", blend_mode_names.at(*s.state.blend_mode));
-            }
-            if(s.state.intent) {
-                fmt::format_to(resource_appender,
-                               "      /RenderingIntent /{}\n",
-                               intent_names.at(*s.state.intent));
-            }
-            fmt::format_to(resource_appender, "    >>\n");
+        for(const auto &s : used_gstates) {
+            fmt::format_to(resource_appender, "    /GS{} {} 0 R \n", s, s);
         }
         resources += "  >>\n";
     }
@@ -240,8 +200,9 @@ void PdfPageBuilder::cmd_k(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
 }
 
-void PdfPageBuilder::cmd_gs(std::string_view gs_name) {
-    fmt::format_to(cmd_appender, "/{} gs\n", gs_name);
+void PdfPageBuilder::cmd_gs(GstateId gid) {
+    used_gstates.insert(gid.id);
+    fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
 }
 
 void PdfPageBuilder::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
@@ -490,9 +451,5 @@ void PdfPageBuilder::draw_unit_circle() {
 }
 
 void PdfPageBuilder::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
-
-void PdfPageBuilder::add_graphics_state(std::string_view name, const GraphicsState &gs) {
-    gstates.emplace_back(GsEntries{std::string{name}, gs});
-}
 
 } // namespace A4PDF

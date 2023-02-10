@@ -34,16 +34,9 @@ template<> struct std::hash<A4PDF::FontSubset> {
 
 namespace A4PDF {
 
-struct GraphicsState {
-    std::optional<A4PDF_Rendering_Intent> intent;
-    std::optional<A4PDF_Blend_Mode> blend_mode;
-};
+class PdfPageBuilder;
 
-struct GsEntries {
-    std::string name;
-    GraphicsState state;
-};
-
+// Scope based q/Q pairing.
 struct GstatePopper {
     PdfPageBuilder *ctx;
     explicit GstatePopper(PdfPageBuilder *ctx) : ctx(ctx) {}
@@ -100,7 +93,7 @@ public:
     void cmd_g(double gray);
     void cmd_k(double c, double m, double y, double k);
 
-    void cmd_gs(std::string_view gs_name);
+    void cmd_gs(GstateId id);
 
     // Text
     void cmd_Tr(A4PDF_Text_Rendering_Mode mode);
@@ -120,8 +113,6 @@ public:
     void render_ascii_text_builtin(
         const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
 
-    void add_graphics_state(std::string_view name, const GraphicsState &gs);
-
     void draw_unit_circle();
     void draw_unit_box();
 
@@ -140,7 +131,7 @@ private:
     std::unordered_set<FontSubset> used_subset_fonts;
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
-    std::vector<GsEntries> gstates;
+    std::unordered_set<int32_t> used_gstates;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
 };

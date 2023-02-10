@@ -51,6 +51,32 @@ const std::array<const char *, 9> font_names{
     "Courier-Oblique",
 };
 
+const std::array<const char *, 16> blend_mode_names{
+    "Normal",
+    "Multiply",
+    "Screen",
+    "Overlay",
+    "Darken",
+    "Lighten",
+    "ColorDodge",
+    "ColorBurn",
+    "HardLight",
+    "SoftLight",
+    "Difference",
+    "Exclusion",
+    "Hue",
+    "Saturation",
+    "Color",
+    "Luminosity",
+};
+
+const std::array<const char *, 4> intent_names{
+    "RelativeColorimetric",
+    "AbsoluteColorimetric",
+    "Saturation",
+    "Perceptual",
+};
+
 void write_box(auto &appender, const char *boxname, const A4PDF::PdfBox &box) {
     fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
 }
@@ -675,6 +701,25 @@ ImageId PdfDocument::load_image(const char *fname) {
         throw std::runtime_error("Not implemented.");
     }
     return ImageId{(int32_t)image_info.size() - 1};
+}
+
+GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
+    const int32_t id = (int32_t)document_objects.size();
+    std::string buf{
+        R"(<<
+  /Type /ExtGState
+)"};
+    auto resource_appender = std::back_inserter(buf);
+    if(state.blend_mode) {
+        fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.blend_mode));
+    }
+    if(state.intent) {
+        fmt::format_to(
+            resource_appender, "  /RenderingIntent /{}\n", intent_names.at(*state.intent));
+    }
+    fmt::format_to(resource_appender, ">>\n");
+    add_object(FullPDFObject{std::move(buf), {}});
+    return GstateId{id};
 }
 
 FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
