@@ -155,11 +155,12 @@ int main(int, char **) {
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0, 0, 0});
-            ctx.cmd_q();
-            ctx.translate((paper_width + spine_w + page_w - 100) / 2, paper_height / 2 - 100);
-            ctx.scale(100, 100);
-            ctx.draw_image(image_id);
-            ctx.cmd_Q();
+            {
+                auto pop = ctx.push_gstate();
+                ctx.translate((paper_width + spine_w + page_w - 100) / 2, paper_height / 2 - 100);
+                ctx.scale(100, 100);
+                ctx.draw_image(image_id);
+            }
             ctx.set_separation_nonstroke_color(sep_id, 1.0);
             ctx.render_ascii_text_builtin("Front Cover",
                                           FONT_HELVETICA_BOLD,
@@ -177,14 +178,15 @@ int main(int, char **) {
                                           12,
                                           margin + page_w / 6,
                                           2 * paper_height / 3 - 12);
-            ctx.cmd_q();
-            ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
-            ctx.translate(paper_width / 2, 3 * paper_height / 4);
-            ctx.rotate(-M_PI / 2.0);
-            ctx.render_ascii_text_builtin("Name of Book", FONT_HELVETICA_BOLD, 12, 0, 0);
-            // ctx.cmd_re(0, 0, 10, 10);
-            ctx.cmd_f();
-            ctx.cmd_Q();
+            {
+                auto pop = ctx.push_gstate();
+                ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
+                ctx.translate(paper_width / 2, 3 * paper_height / 4);
+                ctx.rotate(-M_PI / 2.0);
+                ctx.render_ascii_text_builtin("Name of Book", FONT_HELVETICA_BOLD, 12, 0, 0);
+                // ctx.cmd_re(0, 0, 10, 10);
+                ctx.cmd_f();
+            }
             ctx.set_nonstroke_color(DeviceGrayColor{0});
             ctx.render_ascii_text_builtin("PDF created: YYYY-MM-DD HH:MM",
                                           FONT_TIMES_ROMAN,

@@ -60,6 +60,8 @@ const std::array<const char *, 4> intent_names{
 
 namespace A4PDF {
 
+GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
+
 PdfPageBuilder::PdfPageBuilder(PdfDocument *doc, PdfColorConverter *cm)
     : doc(doc), cm(cm), cmd_appender(commands) {
     setup_initial_cs();
@@ -165,6 +167,11 @@ void PdfPageBuilder::build_resource_dict() {
         resources += "  >>\n";
     }
     resources += ">>\n";
+}
+
+GstatePopper PdfPageBuilder::push_gstate() {
+    cmd_q();
+    return GstatePopper(this);
 }
 
 void PdfPageBuilder::cmd_q() { commands += "q\n"; }

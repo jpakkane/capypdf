@@ -42,35 +42,35 @@ int main(int, char **) {
         ctx.cmd_m(10, 10);
         ctx.cmd_c(80, 10, 20, 90, 90, 90);
         ctx.cmd_S();
-
-        ctx.cmd_q();
-        ctx.translate(100, 0);
-        ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
-        ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.4, 0.7});
-        ctx.cmd_m(50, 90);
-        ctx.cmd_l(10, 10);
-        ctx.cmd_l(90, 10);
-        ctx.cmd_h();
-        ctx.cmd_B();
-        ctx.cmd_Q();
-
-        ctx.cmd_q();
-        ctx.translate(0, 100);
-        draw_intersect_shape(ctx);
-        ctx.cmd_w(3);
-        ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
-        ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
-        ctx.cmd_B();
-        ctx.cmd_Q();
-
-        ctx.cmd_q();
-        ctx.translate(100, 100);
-        ctx.cmd_w(2);
-        ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
-        ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
-        draw_intersect_shape(ctx);
-        ctx.cmd_Bstar();
-        ctx.cmd_Q();
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(100, 0);
+            ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
+            ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.4, 0.7});
+            ctx.cmd_m(50, 90);
+            ctx.cmd_l(10, 10);
+            ctx.cmd_l(90, 10);
+            ctx.cmd_h();
+            ctx.cmd_B();
+        }
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(0, 100);
+            draw_intersect_shape(ctx);
+            ctx.cmd_w(3);
+            ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
+            ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
+            ctx.cmd_B();
+        }
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(100, 100);
+            ctx.cmd_w(2);
+            ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
+            ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
+            draw_intersect_shape(ctx);
+            ctx.cmd_Bstar();
+        }
     }
     return 0;
 }

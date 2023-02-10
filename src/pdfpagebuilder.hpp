@@ -44,6 +44,16 @@ struct GsEntries {
     GraphicsState state;
 };
 
+struct GstatePopper {
+    PdfPageBuilder *ctx;
+    explicit GstatePopper(PdfPageBuilder *ctx) : ctx(ctx) {}
+
+    GstatePopper() = delete;
+    GstatePopper(const GstatePopper &) = delete;
+
+    ~GstatePopper();
+};
+
 class PdfPageBuilder {
 
 public:
@@ -53,6 +63,9 @@ public:
 
     PdfPageBuilder() = delete;
     PdfPageBuilder(const PdfPageBuilder &) = delete;
+
+    GstatePopper push_gstate();
+
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
     void cmd_q(); // Save
     void cmd_Q(); // Restore
