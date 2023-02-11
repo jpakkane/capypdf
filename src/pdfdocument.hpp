@@ -157,6 +157,13 @@ public:
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
 
+    // Functions
+    FunctionId add_function(const FunctionType2 &func);
+
+    // Shading
+    ShadingId add_shading(const ShadingType2 &shade);
+    ShadingId add_shading(const ShadingType3 &shade);
+
 private:
     int32_t add_object(ObjectType object);
 

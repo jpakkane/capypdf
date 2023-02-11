@@ -41,6 +41,11 @@ executable('pathgen',
   dependencies: [a4pdf_dep]
 )
 
+executable('patterngen',
+  'patterngen.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])
 

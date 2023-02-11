@@ -77,6 +77,12 @@ const std::array<const char *, 4> intent_names{
     "Perceptual",
 };
 
+const std::array<const char *, 3> colorspace_names{
+    "/DeviceRGB",
+    "/DeviceGray",
+    "/DeviceCMYK",
+};
+
 void write_box(auto &appender, const char *boxname, const A4PDF::PdfBox &box) {
     fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
 }
@@ -720,6 +726,90 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
     fmt::format_to(resource_appender, ">>\n");
     add_object(FullPDFObject{std::move(buf), {}});
     return GstateId{id};
+}
+
+FunctionId PdfDocument::add_function(const FunctionType2 &func) {
+    const int functiontype = 2;
+    std::string buf = fmt::format(
+        R"(<<
+  /FunctionType {}
+  /N {}
+)",
+        functiontype,
+        func.n);
+    auto resource_appender = std::back_inserter(buf);
+
+    buf += "  /Domain [ ";
+    for(const auto d : func.domain) {
+        fmt::format_to(resource_appender, "{} ", d);
+    }
+    buf += "]\n";
+    buf += "  /C0 [ ";
+    for(const auto d : func.C0) {
+        fmt::format_to(resource_appender, "{} ", d);
+    }
+    buf += "]\n";
+    buf += "  /C1 [ ";
+    for(const auto d : func.C1) {
+        fmt::format_to(resource_appender, "{} ", d);
+    }
+    buf += "]\n";
+    buf += ">>\n";
+    add_object(FullPDFObject{std::move(buf), {}});
+
+    return FunctionId{(int32_t)document_objects.size()};
+}
+
+ShadingId PdfDocument::add_shading(const ShadingType2 &shade) {
+    const int shadingtype = 2;
+    std::string buf = fmt::format(
+        R"(<<
+  /ShadingType {}
+  /ColorSpace {}
+  /Coords [ {} {} {} {} ]
+  /Function {} 0 R
+  /Extend [ {} {} ]
+>>
+)",
+        shadingtype,
+        colorspace_names.at((int)shade.colorspace),
+        shade.x0,
+        shade.y0,
+        shade.x1,
+        shade.y1,
+        shade.function.id,
+        shade.extend0 ? "true" : "false",
+        shade.extend1 ? "true" : "false");
+    add_object(FullPDFObject{std::move(buf), {}});
+
+    return ShadingId{(int32_t)document_objects.size()};
+}
+
+ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
+    const int shadingtype = 3;
+    std::string buf = fmt::format(
+        R"(<<
+  /ShadingType {}
+  /ColorSpace {}
+  /Coords [ {} {} {} {} {} {}]
+  /Function {} 0 R
+  /Extend [ {} {} ]
+>>
+)",
+        shadingtype,
+        colorspace_names.at((int)shade.colorspace),
+        shade.x0,
+        shade.y0,
+        shade.r0,
+        shade.x1,
+        shade.y1,
+        shade.r1,
+        shade.function.id,
+        shade.extend0 ? "true" : "false",
+        shade.extend1 ? "true" : "false");
+    add_object(FullPDFObject{std::move(buf), {}});
+
+    return ShadingId{(int32_t)document_objects.size()};
 }
 
 FontId PdfDocument::load_font(FT_Library ft, const char *fname) {

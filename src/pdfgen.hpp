@@ -45,6 +45,11 @@ public:
         return pdoc.add_graphics_state(state);
     }
 
+    FunctionId add_function(const FunctionType2 &func) { return pdoc.add_function(func); }
+
+    ShadingId add_shading(const ShadingType2 &shade) { return pdoc.add_shading(shade); }
+    ShadingId add_shading(const ShadingType3 &shade) { return pdoc.add_shading(shade); }
+
     PdfPageBuilder &page_context() { return page; }
 
 private:

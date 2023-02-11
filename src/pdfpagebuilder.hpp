@@ -69,6 +69,7 @@ public:
     void cmd_h();
     void cmd_B();
     void cmd_Bstar();
+    void cmd_sh(ShadingId shid);
     void cmd_n();
     void cmd_W();
     void cmd_Wstar();
@@ -135,6 +136,7 @@ private:
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
     std::unordered_set<int32_t> used_gstates;
+    std::unordered_set<int32_t> used_shadings;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
 };

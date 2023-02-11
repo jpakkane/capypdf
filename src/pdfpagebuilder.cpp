@@ -77,6 +77,7 @@ void PdfPageBuilder::clear() {
     used_fonts.clear();
     used_colorspaces.clear();
     used_gstates.clear();
+    used_shadings.clear();
     is_finalized = false;
     uses_all_colorspace = false;
 
@@ -126,6 +127,13 @@ void PdfPageBuilder::build_resource_dict() {
         }
         resources += "  >>\n";
     }
+    if(!used_shadings.empty()) {
+        resources += "  /Shading <<\n";
+        for(const auto &s : used_shadings) {
+            fmt::format_to(resource_appender, "    /SH{} {} 0 R\n", s, s);
+        }
+        resources += "  >>\n";
+    }
     resources += ">>\n";
 }
 
@@ -153,6 +161,11 @@ void PdfPageBuilder::cmd_h() { commands += "h\n"; }
 void PdfPageBuilder::cmd_B() { commands += "B\n"; }
 
 void PdfPageBuilder::cmd_Bstar() { commands += "B*\n"; }
+
+void PdfPageBuilder::cmd_sh(ShadingId shid) {
+    used_shadings.insert(shid.id);
+    fmt::format_to(cmd_appender, "/SH{} sh\n", shid.id);
+}
 
 void PdfPageBuilder::cmd_n() { commands += "n\n"; }
 

@@ -19,6 +19,7 @@
 #include <a4pdf.h>
 
 #include <optional>
+#include <vector>
 
 #include <cstdint>
 
@@ -84,6 +85,14 @@ struct GstateId {
     int32_t id;
 };
 
+struct FunctionId {
+    int32_t id;
+};
+
+struct ShadingId {
+    int32_t id;
+};
+
 struct GraphicsState {
     std::optional<A4PDF_Rendering_Intent> intent;
     std::optional<A4PDF_Blend_Mode> blend_mode;
@@ -104,6 +113,29 @@ struct DeviceCMYKColor {
     LimitDouble m;
     LimitDouble y;
     LimitDouble k;
+};
+
+struct FunctionType2 {
+    std::vector<double> domain;
+    std::vector<double> C0;
+    std::vector<double> C1;
+    double n;
+};
+
+// Linear
+struct ShadingType2 {
+    A4PDF_Colorspace colorspace;
+    double x0, y0, x1, y1;
+    FunctionId function;
+    bool extend0, extend1;
+};
+
+// Radial
+struct ShadingType3 {
+    A4PDF_Colorspace colorspace;
+    double x0, y0, r0, x1, y1, r1;
+    FunctionId function;
+    bool extend0, extend1;
 };
 
 struct TextStateParameters {
