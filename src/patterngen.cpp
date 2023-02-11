@@ -61,17 +61,14 @@ int main() {
             shade.x0 = 50;
             shade.y0 = 50;
             shade.r0 = 40;
-            shade.x1 = 20;
-            shade.y1 = 20;
+            shade.x1 = 40;
+            shade.y1 = 30;
             shade.r1 = 10;
             shade.function = funcid;
             shade.extend0 = false;
-            shade.extend1 = false;
+            shade.extend1 = true;
 
             auto shadeid = gen.add_shading(shade);
-            ctx.cmd_re(10, 10, 80, 80);
-            ctx.cmd_Wstar();
-            ctx.cmd_n();
             ctx.cmd_sh(shadeid);
         }
     }
