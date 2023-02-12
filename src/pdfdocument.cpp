@@ -232,6 +232,27 @@ exch {} mul
     return SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
+LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
+    std::string buf = fmt::format(
+        R"([ /Lab
+  <<
+    /WhitePoint [ {} {} {} ]
+    /Range [ {} {} {} {} ]
+  >>
+]
+)",
+        lab.xw,
+        lab.yw,
+        lab.zw,
+        lab.amin,
+        lab.amax,
+        lab.bmin,
+        lab.bmax);
+
+    add_object(FullPDFObject{std::move(buf), {}});
+    return LabId{(int32_t)document_objects.size()};
+}
+
 void PdfDocument::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;

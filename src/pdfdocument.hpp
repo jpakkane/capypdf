@@ -144,6 +144,7 @@ public:
 
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
+    LabId add_lab_colorspace(const LabColorSpace &lab);
 
     // Fonts
     FontId load_font(FT_Library ft, const char *fname);

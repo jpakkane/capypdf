@@ -292,6 +292,20 @@ void PdfPageBuilder::set_separation_nonstroke_color(SeparationId id, LimitDouble
     cmd_scn(value.v());
 }
 
+void PdfPageBuilder::set_stroke_color(LabId lid, const LabColor &c) {
+    used_colorspaces.insert(lid.id);
+    std::string csname = fmt::format("/CSpace{}", lid.id);
+    cmd_CS(csname);
+    fmt::format_to(cmd_appender, "{:f} {:f} {:f} SCN\n", c.l, c.a, c.b);
+}
+
+void PdfPageBuilder::set_nonstroke_color(LabId lid, const LabColor &c) {
+    used_colorspaces.insert(lid.id);
+    std::string csname = fmt::format("/CSpace{}", lid.id);
+    cmd_cs(csname);
+    fmt::format_to(cmd_appender, "{:f} {:f} {:f} scn\n", c.l, c.a, c.b);
+}
+
 void PdfPageBuilder::set_all_stroke_color() {
     uses_all_colorspace = true;
     cmd_CS("/All");

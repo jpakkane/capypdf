@@ -46,8 +46,13 @@ executable('patterngen',
   dependencies: [a4pdf_dep]
 )
 
+executable('labtest', 'labtest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])
 
 executable('fontsubset', 'fontsubset.cpp', 'ft_subsetter.cpp',
   dependencies: freetype_dep)
+

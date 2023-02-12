@@ -54,7 +54,7 @@ int main() {
         {
             auto pop = ctx.push_gstate();
             ctx.translate(100, 100);
-            FunctionType2 rgbfunc{{0.0, 1.0}, {1.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 1.0};
+            FunctionType2 rgbfunc{{0.0, 1.0}, {1.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 0.7};
             auto funcid = gen.add_function(rgbfunc);
             ShadingType3 shade;
             shade.colorspace = A4PDF_DEVICE_RGB;

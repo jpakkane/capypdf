@@ -50,6 +50,8 @@ public:
     ShadingId add_shading(const ShadingType2 &shade) { return pdoc.add_shading(shade); }
     ShadingId add_shading(const ShadingType3 &shade) { return pdoc.add_shading(shade); }
 
+    LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
+
     PdfPageBuilder &page_context() { return page; }
 
 private:

@@ -93,6 +93,10 @@ struct ShadingId {
     int32_t id;
 };
 
+struct LabId {
+    int32_t id;
+};
+
 struct GraphicsState {
     std::optional<A4PDF_Rendering_Intent> intent;
     std::optional<A4PDF_Blend_Mode> blend_mode;
@@ -113,6 +117,30 @@ struct DeviceCMYKColor {
     LimitDouble m;
     LimitDouble y;
     LimitDouble k;
+};
+
+struct LabColor {
+    double l;
+    double a;
+    double b;
+};
+
+struct LabColorSpace {
+    double xw, yw, zw;
+    double amin, amax, bmin, bmax;
+
+    static LabColorSpace cielab_1976_D65() {
+        LabColorSpace cl;
+        cl.xw = 0.9505;
+        cl.yw = 1.0;
+        cl.zw = 1.089;
+
+        cl.amin = -128;
+        cl.amax = 127;
+        cl.bmin = -128;
+        cl.bmax = 127;
+        return cl;
+    }
 };
 
 struct FunctionType2 {
