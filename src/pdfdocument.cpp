@@ -730,6 +730,29 @@ ImageId PdfDocument::load_image(const char *fname) {
     return ImageId{(int32_t)image_info.size() - 1};
 }
 
+ImageId PdfDocument::embed_jpg(const char *fname) {
+    auto jpg = load_jpg(fname);
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace /DeviceRGB
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /DCTDecode
+>>
+)",
+                   jpg.w,
+                   jpg.h,
+                   jpg.file_contents.length());
+    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
+    image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
+    return ImageId{(int32_t)image_info.size() - 1};
+}
+
 GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
     const int32_t id = (int32_t)document_objects.size();
     std::string buf{
@@ -839,24 +862,34 @@ FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     FT_Face face;
     auto error = FT_New_Face(ft, fname, 0, &face);
     if(error) {
-        // By default Freetype is compiled without error strings. Yay!
+        // By default Freetype is compiled without
+        // error strings. Yay!
         throw std::runtime_error(fmt::format("Freetype error {}.", error));
     }
     ttf.face.reset(face);
 
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
-        throw std::runtime_error(fmt::format("Could not determine format of font file {}.", fname));
+        throw std::runtime_error(fmt::format("Could not determine "
+                                             "format of font file {}.",
+                                             fname));
     }
-    if(strcmp(font_format, "TrueType")) { // != 0 && strcmp(font_format, "CFF") != 0) {
-        throw std::runtime_error(
-            fmt::format("Only TrueType fonts are supported. {} is a {} font.", fname, font_format));
+    if(strcmp(font_format,
+              "TrueType")) { // != 0 &&
+                             // strcmp(font_format,
+                             // "CFF") != 0) {
+        throw std::runtime_error(fmt::format("Only TrueType fonts are supported. {} "
+                                             "is a {} font.",
+                                             fname,
+                                             font_format));
     }
     FT_Bytes base = nullptr;
     error = FT_OpenType_Validate(face, FT_VALIDATE_BASE, &base, nullptr, nullptr, nullptr, nullptr);
     if(!error) {
-        throw std::runtime_error(fmt::format("Font file {} is an OpenType font. Only TrueType "
-                                             "fonts are supported. Freetype error {}.",
+        throw std::runtime_error(fmt::format("Font file {} is an OpenType font. "
+                                             "Only TrueType "
+                                             "fonts are supported. Freetype error "
+                                             "{}.",
                                              fname,
                                              error));
     }
@@ -864,13 +897,19 @@ FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter()});
 
     /*
-    auto font_data_obj = add_object(DelayedFontData{font_source_id});
-    auto tounicode_obj = add_object(DelayedCmap{font_source_id});
-    auto font_descriptor_obj = add_object(DelayedFontDescriptor{font_source_id, font_data_obj});
-    auto font_obj = add_object(DelayedFont{font_source_id, tounicode_obj, font_descriptor_obj});
+    auto font_data_obj =
+    add_object(DelayedFontData{font_source_id});
+    auto tounicode_obj =
+    add_object(DelayedCmap{font_source_id}); auto
+    font_descriptor_obj =
+    add_object(DelayedFontDescriptor{font_source_id,
+    font_data_obj}); auto font_obj =
+    add_object(DelayedFont{font_source_id,
+    tounicode_obj, font_descriptor_obj});
 
     font_objects.push_back(
-        FontInfo{font_data_obj, font_descriptor_obj, font_obj, fonts.size() - 1});
+        FontInfo{font_data_obj, font_descriptor_obj,
+    font_obj, fonts.size() - 1});
         */
     const int32_t subset_num = 0;
     auto subfont_data_obj =

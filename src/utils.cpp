@@ -63,7 +63,7 @@ std::string flate_compress(std::string_view data) {
 }
 
 std::string load_file(const char *fname) {
-    FILE *f = fopen(fname, "r");
+    FILE *f = fopen(fname, "rb");
     if(!f) {
         throw std::runtime_error(strerror(errno));
     }

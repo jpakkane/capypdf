@@ -15,12 +15,16 @@
  */
 
 #include <imageops.hpp>
+#include <utils.hpp>
 #include <png.h>
+#include <jpeglib.h>
 #include <cstring>
 #include <cassert>
 #include <stdexcept>
 #include <vector>
 #include <memory>
+
+namespace A4PDF {
 
 namespace {
 
@@ -91,3 +95,27 @@ rgb_image load_image_file(const char *fname) {
     }
     throw std::runtime_error("Unreachable code.");
 }
+
+jpg_image load_jpg(const char *fname) {
+    jpg_image im;
+    im.file_contents = load_file(fname);
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
+    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
+        &cinfo, &jpeg_destroy_decompress);
+
+    jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
+    if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
+        throw std::runtime_error(std::string{"Not a valid jpg file: "} + fname);
+    }
+    jpeg_start_decompress(&cinfo);
+    im.h = cinfo.image_height;
+    im.w = cinfo.image_width;
+    // Fixme, validate that this is an 8bpp RGB image.
+    return im;
+}
+
+} // namespace A4PDF

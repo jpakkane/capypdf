@@ -36,6 +36,7 @@ public:
     void new_page();
 
     ImageId load_image(const char *fname) { return pdoc.load_image(fname); }
+    ImageId embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
     FontId load_font(const char *fname) { return pdoc.load_font(ft, fname); };
     ImageSize get_image_info(ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {

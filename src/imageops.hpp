@@ -20,6 +20,8 @@
 #include <string>
 #include <optional>
 
+namespace A4PDF {
+
 struct rgb_image {
     int32_t w;
     int32_t h;
@@ -27,4 +29,14 @@ struct rgb_image {
     std::optional<std::string> alpha;
 };
 
+struct jpg_image {
+    int32_t w;
+    int32_t h;
+    std::string file_contents;
+};
+
 rgb_image load_image_file(const char *fname);
+
+jpg_image load_jpg(const char *fname);
+
+} // namespace A4PDF

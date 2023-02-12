@@ -9,7 +9,7 @@ a4pdf_lib = library('a4pdf',
   'ft_subsetter.cpp',
   'pdfcapi.cpp',
   include_directories: [pubinc],
-  dependencies: [fmt_dep, png_dep, zlib_dep, lcms_dep, freetype_dep]
+  dependencies: [fmt_dep, png_dep, zlib_dep, jpeg_dep, lcms_dep, freetype_dep]
 )
 
 a4pdf_dep = declare_dependency(include_directories: pubinc,
@@ -47,6 +47,10 @@ executable('patterngen',
 )
 
 executable('labtest', 'labtest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
+executable('imagetest', 'imagetest.cpp',
   dependencies: [a4pdf_dep]
 )
 
