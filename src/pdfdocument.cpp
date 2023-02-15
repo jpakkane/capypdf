@@ -16,7 +16,6 @@
 
 #include <pdfdocument.hpp>
 #include <utils.hpp>
-#include <imageops.hpp>
 
 #include <cassert>
 #include <array>
@@ -621,8 +620,42 @@ SubsetGlyph PdfDocument::get_subset_glyph(FontId fid, uint32_t glyph) {
 
 ImageId PdfDocument::load_image(const char *fname) {
     auto image = load_image_file(fname);
+    if(std::holds_alternative<rgb_image>(image)) {
+        return process_rgb_image(std::get<rgb_image>(image));
+    } else if(std::holds_alternative<mono_image>(image)) {
+        return process_mono_image(std::get<mono_image>(image));
+    } else {
+        throw std::runtime_error("Unsupported image format.");
+    }
+}
+
+ImageId PdfDocument::process_mono_image(const mono_image &image) {
+    auto compressed = flate_compress(image.pixels);
+    std::string buf;
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace /DeviceGray
+  /Width {}
+  /Height {}
+  /BitsPerComponent 1
+  /Length {}
+  /Filter /FlateDecode
+>>
+)",
+                   image.w,
+                   image.h,
+                   compressed.size());
+    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+    return ImageId{(int32_t)image_info.size() - 1};
+}
+
+ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
     std::string buf;
     int32_t smask_id = -1;
+
     if(image.alpha) {
         auto compressed = flate_compress(*image.alpha);
         fmt::format_to(std::back_inserter(buf),

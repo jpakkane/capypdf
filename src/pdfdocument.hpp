@@ -19,6 +19,7 @@
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <pdfcolorconverter.hpp>
+#include <imageops.hpp>
 
 #include <vector>
 #include <string>
@@ -201,6 +202,9 @@ private:
                            int32_t subset,
                            int32_t font_descriptor_obj,
                            int32_t tounicode_obj);
+
+    ImageId process_rgb_image(const rgb_image &image);
+    ImageId process_mono_image(const mono_image &image);
 
     PdfGenerationData opts;
     PdfColorConverter cm;

@@ -71,9 +71,57 @@ rgb_image load_rgba_png(png_image &image) {
     return result;
 }
 
+mono_image load_mono_png(png_image &image) {
+    mono_image result;
+    std::string buf;
+    result.w = image.width;
+    result.h = image.height;
+    size_t final_size = (result.w + 7) / 8 * result.h;
+    result.pixels.reserve(final_size);
+
+    auto bufsize = PNG_IMAGE_SIZE(image);
+    buf.resize(bufsize);
+    std::string colormap;
+    colormap.resize(PNG_IMAGE_COLORMAP_SIZE(image));
+
+    png_image_finish_read(
+        &image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, colormap.data());
+    if(PNG_IMAGE_FAILED(image)) {
+        std::string msg("PNG file reading failed: ");
+        msg += image.message;
+        throw std::runtime_error(std::move(msg));
+    }
+    size_t offset = 0;
+    const int white_pixel = colormap[0] == 1 ? 1 : 0;
+    const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
+    for(int j = 0; j < result.h; ++j) {
+        unsigned char current_byte = 0;
+        for(int i = 0; i < result.w; ++i) {
+            current_byte <<= 1;
+            if(buf[offset] == white_pixel) {
+                current_byte |= 1;
+            }
+            if((i % 8 == 0) && i > 0) {
+                result.pixels.push_back(~current_byte);
+                current_byte = 0;
+            }
+            ++offset;
+        }
+        // PDF spec 8.9.3 "Sample representation"
+
+        if(num_padding_bits > 0) {
+            current_byte <<= num_padding_bits;
+            result.pixels.push_back(~current_byte);
+        }
+    }
+    auto blub = result.pixels.size();
+    assert(result.pixels.size() == final_size);
+    return result;
+}
+
 } // namespace
 
-rgb_image load_image_file(const char *fname) {
+RasterImage load_image_file(const char *fname) {
     png_image image;
     std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
 
@@ -85,6 +133,14 @@ rgb_image load_image_file(const char *fname) {
             return load_rgba_png(image);
         } else if(image.format == PNG_FORMAT_RGB) {
             return load_rgb_png(image);
+        } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
+            if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
+                throw std::runtime_error("Colormap format not supported.\n");
+            }
+            if(image.colormap_entries != 2) {
+                throw std::runtime_error("Only monochrome colormap images supported.\n");
+            }
+            return load_mono_png(image);
         } else {
             throw std::runtime_error("Only RGB images supported.");
         }

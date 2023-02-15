@@ -19,8 +19,15 @@
 #include <cstdint>
 #include <string>
 #include <optional>
+#include <variant>
 
 namespace A4PDF {
+
+struct mono_image {
+    int32_t w;
+    int32_t h;
+    std::string pixels;
+};
 
 struct rgb_image {
     int32_t w;
@@ -35,7 +42,9 @@ struct jpg_image {
     std::string file_contents;
 };
 
-rgb_image load_image_file(const char *fname);
+typedef std::variant<mono_image, rgb_image> RasterImage;
+
+RasterImage load_image_file(const char *fname);
 
 jpg_image load_jpg(const char *fname);
 

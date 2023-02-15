@@ -15,13 +15,16 @@
  */
 
 #include <pdfgen.hpp>
-
+#include <filesystem>
 using namespace A4PDF;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
-    const char *image = argc > 1 ? argv[1] : "../pdfgen/images/simple.jpg";
+    std::filesystem::path datadir = argc > 1 ? argv[1] : "../pdfgen/images";
+    std::filesystem::path jpg = datadir / "simple.jpg";
+    std::filesystem::path png_noalpha = datadir / "1bit_noalpha.png";
+    std::filesystem::path png_alpha = datadir / "1bit_alpha.png";
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF path test";
     opts.author = "Test Person";
@@ -29,10 +32,24 @@ int main(int argc, char **argv) {
     {
         PdfGen gen("image_test.pdf", opts);
         auto &ctx = gen.page_context();
-        auto bg_img = gen.embed_jpg(image);
-        ctx.translate(10, 10);
-        ctx.scale(80, 80);
-        ctx.draw_image(bg_img);
+        auto bg_img = gen.embed_jpg(jpg.c_str());
+        auto mono_img = gen.load_image(png_noalpha.c_str());
+        ctx.cmd_re(0, 0, 200, 200);
+        ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
+        ctx.cmd_f();
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(10, 10);
+            ctx.scale(80, 80);
+            ctx.draw_image(bg_img);
+        }
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(0, 100);
+            ctx.translate(10, 10);
+            ctx.scale(80, 80);
+            ctx.draw_image(mono_img);
+        }
     }
     return 0;
 }
