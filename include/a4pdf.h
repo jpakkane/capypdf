@@ -81,20 +81,26 @@ enum A4PDF_Line_Join {
     A4PDF_Bevel_Join,
 };
 
+enum A4PDF_Draw_Context_Type {
+    A4PDF_Page_Context,
+    A4PDF_Color_Tiling_Pattern_Context,
+    A4PDF_Uncolored_Tiling_Pattern_Context,
+};
+
 typedef struct _A4PDF_Options A4PDF_Options;
 typedef struct _A4PDF_Generator A4PDF_Generator;
+typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
 
 A4PDF_Options *a4pdf_options_create();
-
 void a4pdf_options_destroy(A4PDF_Options *);
-
 int32_t a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title);
 
 A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options);
+void a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *ctx);
+void a4pdf_generator_destroy(A4PDF_Generator *g);
 
-void a4pdf_generator_destroy(A4PDF_Generator *);
-
-void a4pdf_generator_new_page(A4PDF_Generator *);
+A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g);
+void a4pdf_draw_context_destroy(A4PDF_DrawContext *);
 
 const char *a4pdf_error_message(int32_t error_code);
 

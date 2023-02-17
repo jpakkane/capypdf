@@ -48,7 +48,8 @@ int main(int argc, char **argv) {
     opts.mediabox.w = 300;
     opts.mediabox.h = 300;
     PdfGen gen("gstate.pdf", opts);
-    auto &ctx = gen.page_context();
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
     GraphicsState gs;
     gs.blend_mode = A4PDF_BM_MULTIPLY;
     gs.intent = A4PDF_RI_PERCEPTUAL;

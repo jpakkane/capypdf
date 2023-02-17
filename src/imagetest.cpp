@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         PdfGen gen("image_test.pdf", opts);
-        auto &ctx = gen.page_context();
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
         auto bg_img = gen.embed_jpg(jpg.c_str());
         auto mono_img = gen.load_image(png_1bit_noalpha.c_str());
         auto gray_img = gen.load_image(png_gray.c_str());

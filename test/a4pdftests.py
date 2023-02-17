@@ -27,9 +27,16 @@ class TestPDFCreation(unittest.TestCase):
 
     def test_simple(self):
         ofile = pathlib.Path('python_test.pdf')
+        try:
+            ofile.unlink()
+        except FileNotFoundError:
+            pass
         self.assertFalse(ofile.exists())
         o = a4pdf.Options()
         g = a4pdf.Generator(ofile, o)
+        ctx = g.page_draw_context()
+        g.add_page(ctx)
+        ctx = None
         g = None
         try:
             self.assertTrue(ofile.exists())

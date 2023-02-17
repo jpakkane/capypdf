@@ -18,7 +18,7 @@
 
 using namespace A4PDF;
 
-static void draw_intersect_shape(PdfPageBuilder &ctx) {
+static void draw_intersect_shape(PdfDrawContext &ctx) {
     ctx.cmd_m(50, 90);
     ctx.cmd_l(80, 10);
     ctx.cmd_l(10, 60);
@@ -27,7 +27,7 @@ static void draw_intersect_shape(PdfPageBuilder &ctx) {
     ctx.cmd_h();
 }
 
-void basic_painting(PdfPageBuilder &ctx) {
+void basic_painting(PdfDrawContext &ctx) {
     ctx.cmd_w(5);
     {
         auto pop = ctx.push_gstate();
@@ -70,7 +70,7 @@ void basic_painting(PdfPageBuilder &ctx) {
     }
 }
 
-void clipping(PdfPageBuilder &ctx, ImageId image) {
+void clipping(PdfDrawContext &ctx, ImageId image) {
     ctx.cmd_w(0.1);
     {
         auto pop = ctx.push_gstate();
@@ -101,9 +101,10 @@ int main(int argc, char **argv) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         PdfGen gen("path_test.pdf", opts);
-        auto &ctx = gen.page_context();
+        auto ctxp = gen.guarded_page_context();
+        auto &ctx = ctxp.ctx;
         basic_painting(ctx);
-        gen.new_page();
+        gen.add_page(ctx);
         auto bg_img = gen.load_image(image);
         clipping(ctx, bg_img);
     }

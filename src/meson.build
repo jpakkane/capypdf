@@ -1,6 +1,6 @@
 a4pdf_lib = library('a4pdf',
   'pdfgen.cpp',
-  'pdfpagebuilder.cpp',
+  'pdfdrawcontext.cpp',
   'pdfdocument.cpp',
   'imageops.cpp',
   'utils.cpp',

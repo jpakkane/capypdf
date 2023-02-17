@@ -28,7 +28,8 @@ int main(int, char **) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         PdfGen gen("lab_test.pdf", opts);
-        auto &ctx = gen.page_context();
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
         const LabColorSpace lab = LabColorSpace::cielab_1976_D65();
         auto labid = gen.add_lab_colorspace(lab);
         const double ball_size = 10;

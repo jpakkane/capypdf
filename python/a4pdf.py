@@ -15,24 +15,30 @@
 
 import ctypes
 
+cfunc_types = (('a4pdf_options_create', None, ctypes.c_void_p),
+               ('a4pdf_options_destroy', [ctypes.c_void_p], None),
+               ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ctypes.c_int32),
+
+               ('a4pdf_generator_create', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], None),
+               ('a4pdf_generator_destroy', [ctypes.c_void_p], None),
+
+               ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_draw_context_destroy', [ctypes.c_void_p], None),
+
+               ('a4pdf_error_message', [ctypes.c_int32], ctypes.c_char_p),
+               )
+
 libfile = ctypes.cdll.LoadLibrary('src/liba4pdf.so') # FIXME
 
-libfile.a4pdf_options_create.restype = ctypes.c_void_p
+# Options
 
-libfile.a4pdf_options_destroy.argtypes = [ctypes.c_void_p]
-
-libfile.a4pdf_options_set_title.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-libfile.a4pdf_options_set_title.restype = ctypes.c_int32
-
-libfile.a4pdf_generator_create.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
-libfile.a4pdf_generator_create.restype = ctypes.c_void_p
-
-libfile.a4pdf_generator_destroy.argtypes = [ctypes.c_void_p]
-
-libfile.a4pdf_generator_new_page.argtypes = [ctypes.c_void_p]
-
-libfile.a4pdf_error_message.argtypes = [ctypes.c_int32]
-libfile.a4pdf_error_message.restype = ctypes.c_char_p
+for funcname, argtypes, restype in cfunc_types:
+    funcobj = getattr(libfile, funcname)
+    if argtypes is not None:
+        funcobj.argtypes = argtypes
+    if restype is not None:
+        funcobj.restype = restype
 
 def get_error_message(errorcode):
     return libfile.a4pdf_error_message(errorcode).decode('UTF-8', errors='ignore')
@@ -58,6 +64,13 @@ class Options:
         rc = libfile.a4pdf_options_set_title(self, bytes)
         check_error(rc)
 
+class DrawContext:
+    def __init__(self, generator):
+        self._as_parameter_ = libfile.a4pdf_page_draw_context_new(generator)
+
+    def __del__(self):
+        libfile.a4pdf_page_draw_context_destroy(self)
+
 class Generator:
     def __init__(self, filename, options):
         if isinstance(filename, bytes):
@@ -71,5 +84,8 @@ class Generator:
     def __del__(self):
         libfile.a4pdf_generator_destroy(self)
 
-    def new_page(self):
-        libfile.a4pdf_generator_new_page(self)
+    def page_draw_context(self):
+        return DrawContext(self)
+
+    def add_page(self, page_ctx):
+        libfile.a4pdf_generator_add_page(self, page_ctx)

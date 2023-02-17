@@ -34,12 +34,12 @@ template<> struct std::hash<A4PDF::FontSubset> {
 
 namespace A4PDF {
 
-class PdfPageBuilder;
+class PdfDrawContext;
 
 // Scope based q/Q pairing.
 struct GstatePopper {
-    PdfPageBuilder *ctx;
-    explicit GstatePopper(PdfPageBuilder *ctx) : ctx(ctx) {}
+    PdfDrawContext *ctx;
+    explicit GstatePopper(PdfDrawContext *ctx) : ctx(ctx) {}
 
     GstatePopper() = delete;
     GstatePopper(const GstatePopper &) = delete;
@@ -47,15 +47,21 @@ struct GstatePopper {
     ~GstatePopper();
 };
 
-class PdfPageBuilder {
+struct SerializedContext {
+    std::string dict;
+    std::string commands;
+};
+
+class PdfDrawContext {
 
 public:
-    PdfPageBuilder(PdfDocument *g, PdfColorConverter *cm);
-    ~PdfPageBuilder();
+    PdfDrawContext(PdfDocument *g, PdfColorConverter *cm, A4PDF_Draw_Context_Type dtype);
+    ~PdfDrawContext();
+    SerializedContext serialize();
     void finalize();
 
-    PdfPageBuilder() = delete;
-    PdfPageBuilder(const PdfPageBuilder &) = delete;
+    PdfDrawContext() = delete;
+    PdfDrawContext(const PdfDrawContext &) = delete;
 
     GstatePopper push_gstate();
 
@@ -107,6 +113,7 @@ public:
     void set_stroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
+    void set_nonstroke_color(PatternId id);
     void set_separation_stroke_color(SeparationId id, LimitDouble value);
     void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
@@ -124,13 +131,18 @@ public:
 
     void clear();
 
+    A4PDF_Draw_Context_Type draw_context_type() const { return context_type; }
+    PdfDocument &get_doc() { return *doc; }
+
+    std::string build_resource_dict();
+    std::string_view get_command_stream() { return commands; }
+
 private:
-    void build_resource_dict();
     void setup_initial_cs();
 
     PdfDocument *doc;
     PdfColorConverter *cm;
-    std::string resources;
+    A4PDF_Draw_Context_Type context_type;
     std::string commands;
     std::back_insert_iterator<std::string> cmd_appender;
     std::unordered_set<int32_t> used_images;
@@ -139,8 +151,14 @@ private:
     std::unordered_set<int32_t> used_colorspaces;
     std::unordered_set<int32_t> used_gstates;
     std::unordered_set<int32_t> used_shadings;
+    std::unordered_set<int32_t> used_patterns;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
+};
+
+struct ColorPatternBuilder {
+    PdfDrawContext pctx;
+    double w, h;
 };
 
 } // namespace A4PDF

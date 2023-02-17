@@ -16,7 +16,7 @@
 
 #include <a4pdf.h>
 #include <pdfgen.hpp>
-#include <pdfpagebuilder.hpp>
+#include <pdfdrawcontext.hpp>
 
 using namespace A4PDF;
 
@@ -33,6 +33,12 @@ int32_t a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) {
     return 0;
 }
 
+void a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
+    gen->add_page(*ctx);
+}
+
 A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options) {
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
     return reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
@@ -42,8 +48,13 @@ void a4pdf_generator_destroy(A4PDF_Generator *generator) {
     delete reinterpret_cast<PdfGen *>(generator);
 }
 
-void a4pdf_generator_new_page(A4PDF_Generator *gen_c) {
-    reinterpret_cast<PdfGen *>(gen_c)->new_page();
+A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
+}
+
+void a4pdf_draw_context_destroy(A4PDF_DrawContext *ctx) {
+    delete reinterpret_cast<PdfDrawContext *>(ctx);
 }
 
 const char *a4pdf_error_message(int32_t error_code) {

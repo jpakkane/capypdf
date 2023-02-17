@@ -26,7 +26,8 @@ int main() {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         PdfGen gen("pattern_test.pdf", opts);
-        auto &ctx = gen.page_context();
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
         {
             auto pop = ctx.push_gstate();
             ctx.translate(0, 100);

@@ -122,7 +122,7 @@ struct PdfGenerationData {
 };
 
 class PdfGen;
-class PdfPageBuilder;
+class PdfDrawContext;
 
 typedef std::variant<FullPDFObject,
                      DelayedSubsetFontData,
@@ -136,7 +136,7 @@ public:
     PdfDocument(const PdfGenerationData &d);
 
     friend class PdfGen;
-    friend class PdfPageBuilder;
+    friend class PdfDrawContext;
 
     void write_to_file(FILE *output_file);
 

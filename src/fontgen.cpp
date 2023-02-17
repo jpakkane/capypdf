@@ -33,7 +33,8 @@ int main(int argc, char **argv) {
     opts.title = "Font layout test";
     PdfGen gen("fonttest.pdf", opts);
     auto fid = gen.load_font(fontfile);
-    auto &ctx = gen.page_context();
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
     ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 150);
     /*
     gen.new_page();

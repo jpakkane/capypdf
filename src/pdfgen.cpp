@@ -38,8 +38,17 @@ void LcmsHolder::deallocate() {
     h = nullptr;
 }
 
-PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d)
-    : ofilename(ofname), pdoc{d}, page{&pdoc, &pdoc.cm} {
+DrawContextPopper::~DrawContextPopper() {
+    switch(ctx.draw_context_type()) {
+    case A4PDF_Page_Context:
+        g->add_page(ctx);
+        break;
+    default:
+        std::abort();
+    }
+}
+
+PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : ofilename(ofname), pdoc{d} {
     auto error = FT_Init_FreeType(&ft);
     if(error) {
         throw std::runtime_error(FT_Error_String(error));
@@ -53,7 +62,6 @@ PdfGen::~PdfGen() {
         return;
     }
     try {
-        page.finalize();
         pdoc.write_to_file(ofile);
     } catch(const std::exception &e) {
         fprintf(stderr, "%s", e.what());
@@ -75,9 +83,17 @@ PdfGen::~PdfGen() {
     }
 }
 
-void PdfGen::new_page() {
-    page.finalize();
-    page.clear();
+void PdfGen::add_page(PdfDrawContext &ctx) {
+    ctx.finalize();
+    ctx.clear();
+}
+
+DrawContextPopper PdfGen::guarded_page_context() {
+    return DrawContextPopper{this, &pdoc, &pdoc.cm, A4PDF_Page_Context};
+}
+
+PdfDrawContext *PdfGen::new_page_draw_context() {
+    return new PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Page_Context};
 }
 
 } // namespace A4PDF

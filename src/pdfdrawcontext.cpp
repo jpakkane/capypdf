@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <pdfpagebuilder.hpp>
+#include <pdfdrawcontext.hpp>
 #include <pdfgen.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -32,12 +32,14 @@ namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfPageBuilder::PdfPageBuilder(PdfDocument *doc, PdfColorConverter *cm)
-    : doc(doc), cm(cm), cmd_appender(commands) {
+PdfDrawContext::PdfDrawContext(PdfDocument *doc,
+                               PdfColorConverter *cm,
+                               A4PDF_Draw_Context_Type dtype)
+    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands) {
     setup_initial_cs();
 }
 
-void PdfPageBuilder::setup_initial_cs() {
+void PdfDrawContext::setup_initial_cs() {
     if(doc->opts.output_colorspace == A4PDF_DEVICE_GRAY) {
         commands += "/DeviceGray CS\n/DeviceGray cs\n";
     } else if(doc->opts.output_colorspace == A4PDF_DEVICE_CMYK) {
@@ -47,15 +49,15 @@ void PdfPageBuilder::setup_initial_cs() {
     // FIXME add ICC here if needed.
 }
 
-PdfPageBuilder::~PdfPageBuilder() {}
+PdfDrawContext::~PdfDrawContext() {}
 
-void PdfPageBuilder::finalize() {
+void PdfDrawContext::finalize() {
     if(is_finalized) {
         throw std::runtime_error("Tried to finalize a page object twice.");
     }
     is_finalized = true;
     std::string buf;
-    build_resource_dict();
+    std::string resources = build_resource_dict();
     buf = fmt::format(
         R"(<<
   /Length {}
@@ -69,8 +71,7 @@ endstream
     doc->add_page(resources, buf);
 }
 
-void PdfPageBuilder::clear() {
-    resources.clear();
+void PdfDrawContext::clear() {
     commands.clear();
     used_images.clear();
     used_subset_fonts.clear();
@@ -78,13 +79,15 @@ void PdfPageBuilder::clear() {
     used_colorspaces.clear();
     used_gstates.clear();
     used_shadings.clear();
+    used_patterns.clear();
     is_finalized = false;
     uses_all_colorspace = false;
 
     setup_initial_cs();
 }
 
-void PdfPageBuilder::build_resource_dict() {
+std::string PdfDrawContext::build_resource_dict() {
+    std::string resources;
     auto resource_appender = std::back_inserter(resources);
     resources = "<<\n";
     if(!used_images.empty()) {
@@ -134,103 +137,111 @@ void PdfPageBuilder::build_resource_dict() {
         }
         resources += "  >>\n";
     }
+    if(!used_patterns.empty()) {
+        resources += "  /Pattern <<\n";
+        for(const auto &s : used_patterns) {
+            fmt::format_to(resource_appender, "    /Pattern-{} {} 0 R\n", s, s);
+        }
+        resources += "  >>\n";
+    }
     resources += ">>\n";
+    return resources;
 }
 
-GstatePopper PdfPageBuilder::push_gstate() {
+GstatePopper PdfDrawContext::push_gstate() {
     cmd_q();
     return GstatePopper(this);
 }
 
-void PdfPageBuilder::cmd_q() { commands += "q\n"; }
+void PdfDrawContext::cmd_q() { commands += "q\n"; }
 
-void PdfPageBuilder::cmd_Q() { commands += "Q\n"; }
+void PdfDrawContext::cmd_Q() { commands += "Q\n"; }
 
-void PdfPageBuilder::cmd_re(double x, double y, double w, double h) {
+void PdfDrawContext::cmd_re(double x, double y, double w, double h) {
     fmt::format_to(cmd_appender, "{} {} {} {} re\n", x, y, w, h);
 }
 
-void PdfPageBuilder::cmd_f() { commands += "f\n"; }
+void PdfDrawContext::cmd_f() { commands += "f\n"; }
 
-void PdfPageBuilder::cmd_S() { commands += "S\n"; }
+void PdfDrawContext::cmd_S() { commands += "S\n"; }
 
-void PdfPageBuilder::cmd_s() { commands += "s\n"; }
+void PdfDrawContext::cmd_s() { commands += "s\n"; }
 
-void PdfPageBuilder::cmd_h() { commands += "h\n"; }
+void PdfDrawContext::cmd_h() { commands += "h\n"; }
 
-void PdfPageBuilder::cmd_B() { commands += "B\n"; }
+void PdfDrawContext::cmd_B() { commands += "B\n"; }
 
-void PdfPageBuilder::cmd_Bstar() { commands += "B*\n"; }
+void PdfDrawContext::cmd_Bstar() { commands += "B*\n"; }
 
-void PdfPageBuilder::cmd_sh(ShadingId shid) {
+void PdfDrawContext::cmd_sh(ShadingId shid) {
     used_shadings.insert(shid.id);
     fmt::format_to(cmd_appender, "/SH{} sh\n", shid.id);
 }
 
-void PdfPageBuilder::cmd_n() { commands += "n\n"; }
+void PdfDrawContext::cmd_n() { commands += "n\n"; }
 
-void PdfPageBuilder::cmd_W() { commands += "W\n"; }
+void PdfDrawContext::cmd_W() { commands += "W\n"; }
 
-void PdfPageBuilder::cmd_Wstar() { commands += "W*\n"; }
+void PdfDrawContext::cmd_Wstar() { commands += "W*\n"; }
 
-void PdfPageBuilder::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
+void PdfDrawContext::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
 
-void PdfPageBuilder::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }
+void PdfDrawContext::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }
 
-void PdfPageBuilder::cmd_w(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
+void PdfDrawContext::cmd_w(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
 
-void PdfPageBuilder::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
+void PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
 }
 
-void PdfPageBuilder::cmd_cs(std::string_view cspace_name) {
+void PdfDrawContext::cmd_cs(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{} cs\n", cspace_name);
 }
 
-void PdfPageBuilder::cmd_scn(double value) { fmt::format_to(cmd_appender, "{} scn\n", value); }
+void PdfDrawContext::cmd_scn(double value) { fmt::format_to(cmd_appender, "{} scn\n", value); }
 
-void PdfPageBuilder::cmd_CS(std::string_view cspace_name) {
+void PdfDrawContext::cmd_CS(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{} CS\n", cspace_name);
 }
 
-void PdfPageBuilder::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
+void PdfDrawContext::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
 
-void PdfPageBuilder::cmd_J(A4PDF_Line_Cap cap_style) {
+void PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
     fmt::format_to(cmd_appender, "{} J\n", (int)cap_style);
 }
 
-void PdfPageBuilder::cmd_j(A4PDF_Line_Join join_style) {
+void PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
     fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
 }
 
-void PdfPageBuilder::cmd_RG(double r, double g, double b) {
+void PdfDrawContext::cmd_RG(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
 }
-void PdfPageBuilder::cmd_G(double gray) { fmt::format_to(cmd_appender, "{} G\n", gray); }
+void PdfDrawContext::cmd_G(double gray) { fmt::format_to(cmd_appender, "{} G\n", gray); }
 
-void PdfPageBuilder::cmd_K(double c, double m, double y, double k) {
+void PdfDrawContext::cmd_K(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} K\n", c, m, y, k);
 }
 
-void PdfPageBuilder::cmd_rg(double r, double g, double b) {
+void PdfDrawContext::cmd_rg(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} rg\n", r, g, b);
 }
-void PdfPageBuilder::cmd_g(double gray) { fmt::format_to(cmd_appender, "{} g\n", gray); }
+void PdfDrawContext::cmd_g(double gray) { fmt::format_to(cmd_appender, "{} g\n", gray); }
 
-void PdfPageBuilder::cmd_k(double c, double m, double y, double k) {
+void PdfDrawContext::cmd_k(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
 }
 
-void PdfPageBuilder::cmd_gs(GstateId gid) {
+void PdfDrawContext::cmd_gs(GstateId gid) {
     used_gstates.insert(gid.id);
     fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
 }
 
-void PdfPageBuilder::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
+void PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
     fmt::format_to(cmd_appender, "{} Tr\n", (int)mode);
 }
 
-void PdfPageBuilder::set_stroke_color(const DeviceRGBColor &c) {
+void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
         cmd_RG(c.r.v(), c.g.v(), c.b.v());
@@ -249,7 +260,7 @@ void PdfPageBuilder::set_stroke_color(const DeviceRGBColor &c) {
     }
 }
 
-void PdfPageBuilder::set_nonstroke_color(const DeviceRGBColor &c) {
+void PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
         cmd_rg(c.r.v(), c.g.v(), c.b.v());
@@ -270,13 +281,22 @@ void PdfPageBuilder::set_nonstroke_color(const DeviceRGBColor &c) {
     }
 }
 
-void PdfPageBuilder::set_nonstroke_color(const DeviceGrayColor &c) {
+void PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
     // Assumes that switching to the gray colorspace is always ok.
     // If it is not, fix to do the same switch() as above.
     cmd_g(c.v.v());
 }
 
-void PdfPageBuilder::set_separation_stroke_color(SeparationId id, LimitDouble value) {
+void PdfDrawContext::set_nonstroke_color(PatternId id) {
+    if(context_type != A4PDF_Page_Context) {
+        throw std::runtime_error("Patterns can only be used in page contexts.");
+    }
+    used_patterns.insert(id.id);
+    cmd_cs("/Pattern");
+    fmt::format_to(cmd_appender, "/Pattern-{} scn\n", id.id);
+}
+
+void PdfDrawContext::set_separation_stroke_color(SeparationId id, LimitDouble value) {
     const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
@@ -284,7 +304,7 @@ void PdfPageBuilder::set_separation_stroke_color(SeparationId id, LimitDouble va
     cmd_SCN(value.v());
 }
 
-void PdfPageBuilder::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
+void PdfDrawContext::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
     const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
@@ -292,42 +312,42 @@ void PdfPageBuilder::set_separation_nonstroke_color(SeparationId id, LimitDouble
     cmd_scn(value.v());
 }
 
-void PdfPageBuilder::set_stroke_color(LabId lid, const LabColor &c) {
+void PdfDrawContext::set_stroke_color(LabId lid, const LabColor &c) {
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_CS(csname);
     fmt::format_to(cmd_appender, "{:f} {:f} {:f} SCN\n", c.l, c.a, c.b);
 }
 
-void PdfPageBuilder::set_nonstroke_color(LabId lid, const LabColor &c) {
+void PdfDrawContext::set_nonstroke_color(LabId lid, const LabColor &c) {
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_cs(csname);
     fmt::format_to(cmd_appender, "{:f} {:f} {:f} scn\n", c.l, c.a, c.b);
 }
 
-void PdfPageBuilder::set_all_stroke_color() {
+void PdfDrawContext::set_all_stroke_color() {
     uses_all_colorspace = true;
     cmd_CS("/All");
     cmd_SCN(1.0);
 }
 
-void PdfPageBuilder::draw_image(ImageId im_id) {
+void PdfDrawContext::draw_image(ImageId im_id) {
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
     fmt::format_to(cmd_appender, "/Image{} Do\n", obj_num);
 }
 
-void PdfPageBuilder::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
+void PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(
         cmd_appender, "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n", m1, m2, m3, m4, m5, m6);
 }
 
-void PdfPageBuilder::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
+void PdfDrawContext::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
 
-void PdfPageBuilder::translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
+void PdfDrawContext::translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
 
-void PdfPageBuilder::rotate(double angle) {
+void PdfDrawContext::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
@@ -336,7 +356,7 @@ struct IconvCloser {
     ~IconvCloser() { iconv_close(t); }
 };
 
-void PdfPageBuilder::render_utf8_text(
+void PdfDrawContext::render_utf8_text(
     std::string_view text, FontId fid, double pointsize, double x, double y) {
     if(text.empty()) {
         return;
@@ -423,7 +443,7 @@ void PdfPageBuilder::render_utf8_text(
     assert(in_bytes == 0);
 }
 
-void PdfPageBuilder::render_raw_glyph(
+void PdfDrawContext::render_raw_glyph(
     uint32_t glyph, FontId fid, double pointsize, double x, double y) {
     auto &font_data = doc->font_objects.at(fid.id);
     // used_fonts.insert(font_data.font_obj);
@@ -444,7 +464,7 @@ ET
                    font_glyph_id);
 }
 
-void PdfPageBuilder::render_ascii_text_builtin(
+void PdfDrawContext::render_ascii_text_builtin(
     const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y) {
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
@@ -476,7 +496,7 @@ ET
                    cleaned_text);
 }
 
-void PdfPageBuilder::draw_unit_circle() {
+void PdfDrawContext::draw_unit_circle() {
     const double control = 0.5523 / 2;
     cmd_m(0, 0.5);
     cmd_c(control, 0.5, 0.5, control, 0.5, 0);
@@ -485,6 +505,6 @@ void PdfPageBuilder::draw_unit_circle() {
     cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
 }
 
-void PdfPageBuilder::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
+void PdfDrawContext::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
 
 } // namespace A4PDF

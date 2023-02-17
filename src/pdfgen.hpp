@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <pdfpagebuilder.hpp>
+#include <pdfdrawcontext.hpp>
 
 #include <cstdio>
 #include <cstdint>
@@ -27,6 +27,24 @@
 #include <filesystem>
 
 namespace A4PDF {
+
+class PdfGen;
+
+struct DrawContextPopper {
+    PdfGen *g;
+    PdfDrawContext ctx;
+
+    explicit DrawContextPopper(PdfGen *g,
+                               PdfDocument *doc,
+                               PdfColorConverter *cm,
+                               A4PDF_Draw_Context_Type dtype)
+        : g{g}, ctx{doc, cm, dtype} {}
+
+    DrawContextPopper() = delete;
+    DrawContextPopper(const DrawContextPopper &) = delete;
+
+    ~DrawContextPopper();
+};
 
 class PdfGen {
 public:
@@ -53,7 +71,10 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    PdfPageBuilder &page_context() { return page; }
+    DrawContextPopper guarded_page_context();
+    PdfDrawContext *new_page_draw_context();
+
+    void add_page(PdfDrawContext &ctx);
 
 private:
     void close_file();
@@ -61,7 +82,6 @@ private:
     std::filesystem::path ofilename;
     FT_Library ft;
     PdfDocument pdoc;
-    PdfPageBuilder page;
 };
 
 } // namespace A4PDF
