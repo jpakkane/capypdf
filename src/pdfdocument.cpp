@@ -622,6 +622,8 @@ ImageId PdfDocument::load_image(const char *fname) {
     auto image = load_image_file(fname);
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));
+    } else if(std::holds_alternative<gray_image>(image)) {
+        return process_gray_image(std::get<gray_image>(image));
     } else if(std::holds_alternative<mono_image>(image)) {
         return process_mono_image(std::get<mono_image>(image));
     } else {
@@ -760,6 +762,57 @@ ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
     default:
         throw std::runtime_error("Not implemented.");
     }
+    return ImageId{(int32_t)image_info.size() - 1};
+}
+
+ImageId PdfDocument::process_gray_image(const gray_image &image) {
+    std::string buf;
+    int32_t smask_id = -1;
+
+    // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
+
+    if(image.alpha) {
+        auto compressed = flate_compress(*image.alpha);
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /Width {}
+  /Height {}
+  /ColorSpace /DeviceGray
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /FlateDecode
+>>
+)",
+                       image.w,
+                       image.h,
+                       compressed.size());
+        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+        buf.clear();
+    }
+    const auto compressed = flate_compress(image.pixels);
+
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace /DeviceGray
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /FlateDecode
+)",
+                   image.w,
+                   image.h,
+                   compressed.size());
+    if(smask_id >= 0) {
+        fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
+    }
+    buf += ">>\n";
+    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
     return ImageId{(int32_t)image_info.size() - 1};
 }
 

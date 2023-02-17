@@ -23,8 +23,9 @@ int main(int argc, char **argv) {
 
     std::filesystem::path datadir = argc > 1 ? argv[1] : "../pdfgen/images";
     std::filesystem::path jpg = datadir / "simple.jpg";
-    std::filesystem::path png_noalpha = datadir / "1bit_noalpha.png";
-    std::filesystem::path png_alpha = datadir / "1bit_alpha.png";
+    std::filesystem::path png_1bit_noalpha = datadir / "1bit_noalpha.png";
+    std::filesystem::path png_1bit_alpha = datadir / "1bit_alpha.png";
+    std::filesystem::path png_gray = datadir / "gray_alpha.png";
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF path test";
     opts.author = "Test Person";
@@ -33,7 +34,8 @@ int main(int argc, char **argv) {
         PdfGen gen("image_test.pdf", opts);
         auto &ctx = gen.page_context();
         auto bg_img = gen.embed_jpg(jpg.c_str());
-        auto mono_img = gen.load_image(png_noalpha.c_str());
+        auto mono_img = gen.load_image(png_1bit_noalpha.c_str());
+        auto gray_img = gen.load_image(png_gray.c_str());
         ctx.cmd_re(0, 0, 200, 200);
         ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
         ctx.cmd_f();
@@ -49,6 +51,13 @@ int main(int argc, char **argv) {
             ctx.translate(10, 10);
             ctx.scale(80, 80);
             ctx.draw_image(mono_img);
+        }
+        {
+            auto pop = ctx.push_gstate();
+            ctx.translate(100, 100);
+            ctx.translate(10, 10);
+            ctx.scale(80, 80);
+            ctx.draw_image(gray_img);
         }
     }
     return 0;

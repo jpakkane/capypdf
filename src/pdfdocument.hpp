@@ -204,6 +204,7 @@ private:
                            int32_t tounicode_obj);
 
     ImageId process_rgb_image(const rgb_image &image);
+    ImageId process_gray_image(const gray_image &image);
     ImageId process_mono_image(const mono_image &image);
 
     PdfGenerationData opts;

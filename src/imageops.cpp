@@ -71,6 +71,31 @@ rgb_image load_rgba_png(png_image &image) {
     return result;
 }
 
+gray_image load_ga_png(png_image &image) {
+    gray_image result;
+    std::string buf;
+    result.w = image.width;
+    result.h = image.height;
+    auto blub = PNG_IMAGE_SIZE(image);
+    buf.resize(PNG_IMAGE_SIZE(image));
+    result.alpha = std::string();
+
+    png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
+    if(PNG_IMAGE_FAILED(image)) {
+        std::string msg("PNG file reading failed: ");
+        msg += image.message;
+        throw std::runtime_error(std::move(msg));
+    }
+    result.pixels.reserve(PNG_IMAGE_SIZE(image) / 2);
+    result.alpha->reserve(PNG_IMAGE_SIZE(image) / 2);
+    for(size_t i = 0; i < buf.size(); i += 2) {
+        result.pixels += buf[i];
+        *result.alpha += buf[i + 1];
+    }
+
+    return result;
+}
+
 mono_image load_mono_png(png_image &image) {
     mono_image result;
     std::string buf;
@@ -114,7 +139,6 @@ mono_image load_mono_png(png_image &image) {
             result.pixels.push_back(~current_byte);
         }
     }
-    auto blub = result.pixels.size();
     assert(result.pixels.size() == final_size);
     return result;
 }
@@ -133,6 +157,8 @@ RasterImage load_image_file(const char *fname) {
             return load_rgba_png(image);
         } else if(image.format == PNG_FORMAT_RGB) {
             return load_rgb_png(image);
+        } else if(image.format == PNG_FORMAT_GA) {
+            return load_ga_png(image);
         } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
             if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
                 throw std::runtime_error("Colormap format not supported.\n");

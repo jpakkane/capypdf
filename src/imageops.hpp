@@ -36,13 +36,20 @@ struct rgb_image {
     std::optional<std::string> alpha;
 };
 
+struct gray_image {
+    int32_t w;
+    int32_t h;
+    std::string pixels;
+    std::optional<std::string> alpha;
+};
+
 struct jpg_image {
     int32_t w;
     int32_t h;
     std::string file_contents;
 };
 
-typedef std::variant<mono_image, rgb_image> RasterImage;
+typedef std::variant<mono_image, gray_image, rgb_image> RasterImage;
 
 RasterImage load_image_file(const char *fname);
 
