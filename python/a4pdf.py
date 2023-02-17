@@ -67,9 +67,19 @@ class Options:
 class DrawContext:
     def __init__(self, generator):
         self._as_parameter_ = libfile.a4pdf_page_draw_context_new(generator)
+        self.generator = generator
 
     def __del__(self):
         libfile.a4pdf_page_draw_context_destroy(self)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        try:
+            self.generator.add_page(self)
+        finally:
+            self.generator = None # Not very elegant.
 
 class Generator:
     def __init__(self, filename, options):

@@ -34,14 +34,12 @@ class TestPDFCreation(unittest.TestCase):
         self.assertFalse(ofile.exists())
         o = a4pdf.Options()
         g = a4pdf.Generator(ofile, o)
-        ctx = g.page_draw_context()
-        g.add_page(ctx)
-        ctx = None
+        o = None
+        with g.page_draw_context() as ctx:
+            pass
         g = None
-        try:
-            self.assertTrue(ofile.exists())
-        finally:
-            ofile.unlink()
+        self.assertTrue(ofile.exists())
+        ofile.unlink()
 
 if __name__ == "__main__":
     unittest.main()
