@@ -84,8 +84,41 @@ PdfGen::~PdfGen() {
 }
 
 void PdfGen::add_page(PdfDrawContext &ctx) {
+    if(ctx.draw_context_type() != A4PDF_Page_Context) {
+        throw std::runtime_error("Tried to pass a non-page context to add_page.");
+    }
     ctx.finalize();
     ctx.clear();
+}
+
+PatternId PdfGen::add_pattern(ColorPatternBuilder &cp) {
+    if(cp.pctx.draw_context_type() != A4PDF_Color_Tiling_Pattern_Context) {
+        throw std::runtime_error("Tried to pass an incorrect pattern type to add_pattern.");
+    }
+    auto resources = cp.pctx.build_resource_dict();
+    auto commands = cp.pctx.get_command_stream();
+    auto buf = fmt::format(R"(<<
+  /Type /Pattern
+  /PatternType 1
+  /PaintType 1
+  /TilingType 1
+  /BBox [ {} {} {} {}]
+  /XStep {}
+  /YStep {}
+  /Resources {}
+  /Length {}
+>>
+)",
+                           0,
+                           0,
+                           cp.w,
+                           cp.h,
+                           cp.w,
+                           cp.h,
+                           resources,
+                           commands.length());
+
+    return pdoc.add_pattern(buf, commands);
 }
 
 DrawContextPopper PdfGen::guarded_page_context() {
@@ -94,6 +127,11 @@ DrawContextPopper PdfGen::guarded_page_context() {
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
     return new PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Page_Context};
+}
+
+ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
+    return ColorPatternBuilder{
+        PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Color_Tiling_Pattern_Context}, w, h};
 }
 
 } // namespace A4PDF

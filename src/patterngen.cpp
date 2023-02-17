@@ -72,6 +72,41 @@ int main() {
             auto shadeid = gen.add_shading(shade);
             ctx.cmd_sh(shadeid);
         }
+        {
+            auto pop = ctx.push_gstate();
+            auto pattern = gen.new_color_pattern_builder(10, 10);
+            auto &pctx = pattern.pctx;
+            pctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.8, 0.8});
+            pctx.cmd_re(0, 0, 10, 10);
+            pctx.cmd_f();
+            pctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.1, 0.1});
+            pctx.cmd_re(0, 2.5, 2.5, 5);
+            pctx.cmd_f();
+            pctx.cmd_re(5, 0, 2.5, 2.5);
+            pctx.cmd_f();
+            pctx.cmd_re(5, 7.5, 2.5, 2.5);
+            pctx.cmd_f();
+            auto patternid = gen.add_pattern(pattern);
+
+            ctx.cmd_re(10, 10, 80, 80);
+            ctx.set_nonstroke_color(patternid);
+            ctx.set_stroke_color(DeviceRGBColor{0, 0, 0});
+            ctx.cmd_j(A4PDF_Round_Join);
+            ctx.cmd_w(1.5);
+            ctx.cmd_B();
+        }
+        {
+            auto pop = ctx.push_gstate();
+            auto pattern = gen.new_color_pattern_builder(3, 3);
+            auto &pctx = pattern.pctx;
+
+            pctx.render_ascii_text_builtin("g", A4PDF_FONT_TIMES_ROMAN, 3, 0, 2);
+            auto patternid = gen.add_pattern(pattern);
+
+            ctx.translate(100, 10);
+            ctx.set_nonstroke_color(patternid);
+            ctx.render_ascii_text_builtin("C", A4PDF_FONT_TIMES_ROMAN, 120, 0, 5);
+        }
     }
     return 0;
 }

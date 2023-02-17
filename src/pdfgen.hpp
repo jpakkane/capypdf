@@ -74,7 +74,10 @@ public:
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
+    ColorPatternBuilder new_color_pattern_builder(double w, double h);
+
     void add_page(PdfDrawContext &ctx);
+    PatternId add_pattern(ColorPatternBuilder &cp);
 
 private:
     void close_file();

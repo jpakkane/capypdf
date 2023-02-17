@@ -16,6 +16,7 @@
 
 #include <pdfdocument.hpp>
 #include <utils.hpp>
+#include <pdfdrawcontext.hpp>
 
 #include <cassert>
 #include <array>
@@ -940,6 +941,11 @@ ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
     add_object(FullPDFObject{std::move(buf), {}});
 
     return ShadingId{(int32_t)document_objects.size()};
+}
+
+PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_view commands) {
+    add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)});
+    return PatternId{(int32_t)document_objects.size()};
 }
 
 FontId PdfDocument::load_font(FT_Library ft, const char *fname) {

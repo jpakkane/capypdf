@@ -93,6 +93,10 @@ struct ShadingId {
     int32_t id;
 };
 
+struct PatternId {
+    int32_t id;
+};
+
 struct LabId {
     int32_t id;
 };

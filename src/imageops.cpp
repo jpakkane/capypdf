@@ -76,7 +76,6 @@ gray_image load_ga_png(png_image &image) {
     std::string buf;
     result.w = image.width;
     result.h = image.height;
-    auto blub = PNG_IMAGE_SIZE(image);
     buf.resize(PNG_IMAGE_SIZE(image));
     result.alpha = std::string();
 

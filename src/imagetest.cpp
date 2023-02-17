@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     std::filesystem::path png_1bit_alpha = datadir / "1bit_alpha.png";
     std::filesystem::path png_gray = datadir / "gray_alpha.png";
     opts.mediabox.w = opts.mediabox.h = 200;
-    opts.title = "PDF path test";
+    opts.title = "PDF image test";
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
