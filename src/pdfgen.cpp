@@ -83,12 +83,13 @@ PdfGen::~PdfGen() {
     }
 }
 
-void PdfGen::add_page(PdfDrawContext &ctx) {
+PageId PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
         throw std::runtime_error("Tried to pass a non-page context to add_page.");
     }
     ctx.finalize();
     ctx.clear();
+    return PageId{(int32_t)pdoc.pages.size() - 1};
 }
 
 PatternId PdfGen::add_pattern(ColorPatternBuilder &cp) {

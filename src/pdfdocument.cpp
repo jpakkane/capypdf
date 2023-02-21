@@ -258,8 +258,8 @@ void PdfDocument::write_to_file(FILE *output_file) {
     ofile = output_file;
     try {
         write_header();
-        write_pages();
-        create_catalog();
+        auto page_objects = write_pages();
+        create_catalog(page_objects);
         auto object_offsets = write_objects();
         const int64_t xref_offset = ftell(ofile);
         write_cross_reference_table(object_offsets);
@@ -271,7 +271,7 @@ void PdfDocument::write_to_file(FILE *output_file) {
     ofile = nullptr;
 }
 
-void PdfDocument::write_pages() {
+std::vector<int32_t> PdfDocument::write_pages() {
     const auto pages_obj_num = (int32_t)(document_objects.size() + pages.size() + 1);
 
     std::string buf;
@@ -322,19 +322,67 @@ void PdfDocument::write_pages() {
     if(actual_number != pages_obj_num) {
         throw std::runtime_error("Buggy McBugFace!");
     }
+    return page_objects;
 }
 
-void PdfDocument::create_catalog() {
+void PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
     const int32_t pages_obj_num = (int32_t)document_objects.size();
     std::string buf;
+    std::string outline;
+    if(!outlines.empty()) {
+        outline = fmt::format("  /Outlines {} 0 R\n", create_outlines(page_objects));
+    }
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Type /Catalog
   /Pages {} 0 R
+{}>>
+)",
+                   pages_obj_num,
+                   outline);
+    add_object(FullPDFObject{buf, ""});
+}
+
+int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
+    std::optional<int32_t> first;
+    std::optional<int32_t> last;
+    std::string buf;
+    auto app = std::back_inserter(buf);
+    for(size_t i = 0; i < outlines.size(); ++i) {
+        buf.clear();
+        const auto &o = outlines[i];
+        const int32_t current_obj_num = document_objects.size();
+        fmt::format_to(app,
+                       R"(<<
+  /Title {}
+  /Dest [ {} 0 R /XYZ null null null]
+)",
+                       utf8_to_pdfmetastr(o.title),
+                       page_objects.at(o.dest.id));
+        if(i > 0) {
+            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 1);
+        } else {
+            first = current_obj_num + 1;
+        }
+        if(i == outlines.size() - 1) {
+            last = current_obj_num + 1;
+        } else {
+            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 1);
+        }
+        buf += ">>\n";
+        add_object(FullPDFObject{std::move(buf), ""});
+    }
+    buf.clear();
+    fmt::format_to(app,
+                   R"(<<
+  /Type /Outlines
+  /First {} 0 R
+  /Last {} 0 R
 >>
 )",
-                   pages_obj_num);
-    add_object(FullPDFObject{buf, ""});
+                   *first,
+                   *last);
+    return add_object(FullPDFObject{std::move(buf), ""});
 }
 
 void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> object_offsets) {
@@ -946,6 +994,13 @@ ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
 PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_view commands) {
     add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)});
     return PatternId{(int32_t)document_objects.size()};
+}
+
+OutlineId PdfDocument::add_outline(std::string_view title_utf8,
+                                   PageId dest,
+                                   std::optional<OutlineId> parent) {
+    outlines.emplace_back(Outline{std::string{title_utf8}, dest, parent});
+    return OutlineId{(int32_t)outlines.size()};
 }
 
 FontId PdfDocument::load_font(FT_Library ft, const char *fname) {

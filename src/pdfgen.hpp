@@ -76,8 +76,13 @@ public:
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
-    void add_page(PdfDrawContext &ctx);
+    PageId add_page(PdfDrawContext &ctx);
     PatternId add_pattern(ColorPatternBuilder &cp);
+
+    OutlineId
+    add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent) {
+        return pdoc.add_outline(title_utf8, dest, parent);
+    }
 
 private:
     void close_file();

@@ -121,6 +121,12 @@ struct PdfGenerationData {
     ColorProfiles prof;
 };
 
+struct Outline {
+    std::string title;
+    PageId dest;
+    std::optional<OutlineId> parent;
+};
+
 class PdfGen;
 class PdfDrawContext;
 struct ColorPatternBuilder;
@@ -171,6 +177,10 @@ public:
     // Patterns
     PatternId add_pattern(std::string_view pattern_dict, std::string_view commands);
 
+    // Outlines
+    OutlineId
+    add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
+
 private:
     int32_t add_object(ObjectType object);
 
@@ -182,8 +192,9 @@ private:
 
     std::vector<uint64_t> write_objects();
 
-    void create_catalog();
-    void write_pages();
+    void create_catalog(const std::vector<int32_t> &);
+    int32_t create_outlines(const std::vector<int32_t> &);
+    std::vector<int32_t> write_pages();
     void write_header();
     void generate_info_object();
     void write_cross_reference_table(const std::vector<uint64_t> object_offsets);
@@ -220,6 +231,7 @@ private:
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
+    std::vector<Outline> outlines;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
     FILE *ofile = nullptr;
 };

@@ -54,6 +54,10 @@ executable('imagetest', 'imagetest.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('outlinetest', 'outlinetest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 executable('pdfviewer', 'pdfviewer.cpp',
   dependencies: [zlib_dep, gtk_dep])
 
