@@ -257,20 +257,25 @@ std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
         printf("Very invalid PDF file.\n");
         return {};
     }
+    /*
+     * The trailer is not actually needed for now and some files don't have it.
     const auto trailer_off = data.rfind("trailer", i3);
     if(trailer_off == std::string::npos) {
         printf("Trailer dictionary is missing.\n");
         return {};
     }
-    auto xref = std::string{data.substr(i3 + 1, i2 - i3 - 1)};
-    if(xref.back() == '\r') {
-        xref.pop_back();
-    }
-    if(xref != "startxref") {
+    */
+    auto xrefloc = data.find("startxref", i3);
+    if(xrefloc == std::string::npos) {
         printf("Cross reference table missing.\n");
         return {};
     }
-    const auto xrefstart = strtol(data.data() + i2 + 1, nullptr, 10);
+    auto xrefnumberstart = data.find_first_not_of("\n\r", xrefloc + strlen("startxref"));
+    if(xrefnumberstart == std::string::npos) {
+        printf("Malformed xref.\n");
+        return {};
+    }
+    const auto xrefstart = strtol(data.data() + xrefnumberstart, nullptr, 10);
     if(xrefstart <= 0 || (size_t)xrefstart >= data.size()) {
         printf("Cross reference offset incorrect.\n");
         return {};
