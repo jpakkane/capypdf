@@ -169,6 +169,18 @@ end
     return buf;
 }
 
+std::unordered_map<int32_t, std::vector<int32_t>>
+compute_children(const std::vector<A4PDF::Outline> &outlines) {
+    std::unordered_map<int32_t, std::vector<int32_t>> otree;
+    int32_t id = 0;
+    for(const auto &o : outlines) {
+        const int32_t parent_ind = o.parent ? o.parent->id : -1;
+        otree[parent_ind].push_back(id);
+        ++id;
+    }
+    return otree;
+}
+
 } // namespace
 
 namespace A4PDF {
@@ -344,13 +356,47 @@ void PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
 }
 
 int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
+    const auto otree = compute_children(outlines);
+    auto limits = write_outline_tree(page_objects, otree, -1);
+    std::string buf = fmt::format(R"(<<
+  /Type /Outlines
+  /First {} 0 R
+  /Last {} 0 R
+>>
+)",
+                                  limits.first,
+                                  limits.last);
+    return add_object(FullPDFObject{std::move(buf), ""});
+}
+
+OutlineLimits
+PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
+                                const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
+                                int32_t node_id) {
     std::optional<int32_t> first;
     std::optional<int32_t> last;
+    OutlineLimits limits;
     std::string buf;
     auto app = std::back_inserter(buf);
-    for(size_t i = 0; i < outlines.size(); ++i) {
+    assert(otree.find(node_id) != otree.end());
+    const auto &current_nodes = otree.at(node_id);
+    std::vector<std::optional<OutlineLimits>> child_limits;
+    child_limits.reserve(current_nodes.size());
+
+    // Serialize _all_ children before _any_ parents.
+    for(size_t i = 0; i < current_nodes.size(); ++i) {
+        std::optional<OutlineLimits> cur_limit;
+        auto it = otree.find(current_nodes[i]);
+        if(it != otree.end()) {
+            cur_limit = write_outline_tree(page_objects, otree, current_nodes[i]);
+        }
+        child_limits.emplace_back(std::move(cur_limit));
+    }
+    assert(child_limits.size() == current_nodes.size());
+    for(size_t i = 0; i < current_nodes.size(); ++i) {
         buf.clear();
-        const auto &o = outlines[i];
+        auto &child_data = child_limits[i];
+        const auto &o = outlines[current_nodes[i]];
         const int32_t current_obj_num = document_objects.size();
         fmt::format_to(app,
                        R"(<<
@@ -359,30 +405,32 @@ int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
 )",
                        utf8_to_pdfmetastr(o.title),
                        page_objects.at(o.dest.id));
-        if(i > 0) {
-            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num);
+        if(i != 0) {
+            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 1);
         } else {
             first = current_obj_num + 1;
         }
-        if(i == outlines.size() - 1) {
+        if(i == current_nodes.size() - 1) {
             last = current_obj_num + 1;
         } else {
             fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 2);
         }
+        if(child_data) {
+            fmt::format_to(app,
+                           R"(  /First {} 0 R
+  /Last {} 0 R
+)",
+                           child_data->first,
+                           child_data->last);
+        }
         buf += ">>\n";
         add_object(FullPDFObject{std::move(buf), ""});
     }
-    buf.clear();
-    fmt::format_to(app,
-                   R"(<<
-  /Type /Outlines
-  /First {} 0 R
-  /Last {} 0 R
->>
-)",
-                   *first,
-                   *last);
-    return add_object(FullPDFObject{std::move(buf), ""});
+    assert(first);
+    assert(last);
+    limits.first = *first;
+    limits.last = *last;
+    return limits;
 }
 
 void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> object_offsets) {
@@ -1000,7 +1048,7 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
                                    PageId dest,
                                    std::optional<OutlineId> parent) {
     outlines.emplace_back(Outline{std::string{title_utf8}, dest, parent});
-    return OutlineId{(int32_t)outlines.size()};
+    return OutlineId{(int32_t)outlines.size() - 1};
 }
 
 FontId PdfDocument::load_font(FT_Library ft, const char *fname) {

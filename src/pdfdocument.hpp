@@ -127,6 +127,11 @@ struct Outline {
     std::optional<OutlineId> parent;
 };
 
+struct OutlineLimits {
+    int32_t first;
+    int32_t last;
+};
+
 class PdfGen;
 class PdfDrawContext;
 struct ColorPatternBuilder;
@@ -221,6 +226,10 @@ private:
     ImageId process_rgb_image(const rgb_image &image);
     ImageId process_gray_image(const gray_image &image);
     ImageId process_mono_image(const mono_image &image);
+
+    OutlineLimits
+    write_outline_tree(const std::vector<int32_t> &page_objects, const std::unordered_map<int32_t, std::vector<int32_t>> &children,
+                       int32_t node_id);
 
     PdfGenerationData opts;
     PdfColorConverter cm;
