@@ -360,14 +360,14 @@ int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
                        utf8_to_pdfmetastr(o.title),
                        page_objects.at(o.dest.id));
         if(i > 0) {
-            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 1);
+            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num);
         } else {
             first = current_obj_num + 1;
         }
         if(i == outlines.size() - 1) {
             last = current_obj_num + 1;
         } else {
-            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 1);
+            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 2);
         }
         buf += ">>\n";
         add_object(FullPDFObject{std::move(buf), ""});

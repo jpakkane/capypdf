@@ -32,7 +32,9 @@ int main(int, char **) {
         g->cmd_re(10, 10, 10, 10);
         g->cmd_f();
         auto page_id = gen.add_page(*g);
-        gen.add_outline("First entry", page_id, {});
+        gen.add_outline("First toplevel", page_id, {});
+        gen.add_outline("Second toplevel", page_id, {});
+        gen.add_outline("Third toplevel", page_id, {});
     }
     return 0;
 }
