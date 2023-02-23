@@ -187,6 +187,9 @@ namespace A4PDF {
 
 PdfDocument::PdfDocument(const PdfGenerationData &d)
     : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
+    // PDF uses 1-based indexing so let's add a dummy thing in this vector
+    // so PDF and vector indices are the same.
+    document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
     if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
@@ -203,7 +206,7 @@ void PdfDocument::add_page(std::string_view resource_data, std::string_view page
 }
 
 int32_t PdfDocument::add_object(ObjectType object) {
-    auto object_num = (int32_t)document_objects.size() + 1;
+    auto object_num = (int32_t)document_objects.size();
     document_objects.push_back(std::move(object));
     return object_num;
 }
@@ -262,7 +265,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
         lab.bmax);
 
     add_object(FullPDFObject{std::move(buf), {}});
-    return LabId{(int32_t)document_objects.size()};
+    return LabId{(int32_t)document_objects.size() - 1};
 }
 
 IccColorId PdfDocument::load_icc_file(const char *fname) {
@@ -292,7 +295,7 @@ void PdfDocument::write_to_file(FILE *output_file) {
 }
 
 std::vector<int32_t> PdfDocument::write_pages() {
-    const auto pages_obj_num = (int32_t)(document_objects.size() + pages.size() + 1);
+    const auto pages_obj_num = (int32_t)(document_objects.size() + pages.size());
 
     std::string buf;
 
@@ -346,7 +349,7 @@ std::vector<int32_t> PdfDocument::write_pages() {
 }
 
 void PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
-    const int32_t pages_obj_num = (int32_t)document_objects.size();
+    const int32_t pages_obj_num = (int32_t)document_objects.size() - 1;
     std::string buf;
     std::string outline;
     if(!outlines.empty()) {
@@ -414,14 +417,14 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
                        utf8_to_pdfmetastr(o.title),
                        page_objects.at(o.dest.id));
         if(i != 0) {
-            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 1);
+            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 2);
         } else {
-            first = current_obj_num + 1;
+            first = current_obj_num;
         }
         if(i == current_nodes.size() - 1) {
-            last = current_obj_num + 1;
+            last = current_obj_num;
         } else {
-            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 2);
+            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 1);
         }
         if(child_data) {
             fmt::format_to(app,
@@ -441,25 +444,29 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
     return limits;
 }
 
-void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> object_offsets) {
+void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
     std::string buf;
-    fmt::format_to(
-        std::back_inserter(buf),
-        R"(xref
+    auto app = std::back_inserter(buf);
+    fmt::format_to(app,
+                   R"(xref
 0 {}
-0000000000 65535 f{}
 )",
-        object_offsets.size() + 1,
-        " "); // Qt Creator removes whitespace at the end of lines but it is significant here.
+                   object_offsets.size());
+    bool first = true;
     for(const auto &i : object_offsets) {
-        fmt::format_to(std::back_inserter(buf), "{:010} 00000 n \n", i);
+        if(first) {
+            buf += "0000000000 65535 f \n"; // The end of line whitespace is significant.
+            first = false;
+        } else {
+            fmt::format_to(app, "{:010} 00000 n \n", i);
+        }
     }
     write_bytes(buf);
 }
 
 void PdfDocument::write_trailer(int64_t xref_offset) {
-    const int32_t info = 1;                       // Info object is the first printed.
-    const int32_t root = document_objects.size(); // Root object is the last one printed.
+    const int32_t info = 1;                           // Info object is the first printed.
+    const int32_t root = document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(trailer
@@ -472,7 +479,7 @@ startxref
 {}
 %%EOF
 )",
-                   document_objects.size() + 1,
+                   document_objects.size(),
                    root,
                    info,
                    xref_offset);
@@ -484,25 +491,24 @@ std::vector<uint64_t> PdfDocument::write_objects() {
     for(size_t i = 0; i < document_objects.size(); ++i) {
         const auto &obj = document_objects[i];
         object_offsets.push_back(ftell(ofile));
-        const int32_t object_number = (int32_t)(i + 1);
-        if(std::holds_alternative<FullPDFObject>(obj)) {
+        if(std::holds_alternative<DummyIndexZero>(obj)) {
+            // Skip.
+        } else if(std::holds_alternative<FullPDFObject>(obj)) {
             const auto &pobj = std::get<FullPDFObject>(obj);
-            write_finished_object(object_number, pobj.dictionary, pobj.stream);
+            write_finished_object(i, pobj.dictionary, pobj.stream);
         } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
-            write_subset_font_data(object_number, ssfont);
+            write_subset_font_data(i, ssfont);
         } else if(std::holds_alternative<DelayedSubsetFontDescriptor>(obj)) {
             const auto &ssfontd = std::get<DelayedSubsetFontDescriptor>(obj);
-            write_subset_font_descriptor(object_number,
-                                         fonts.at(ssfontd.fid.id).fontdata,
-                                         ssfontd.subfont_data_obj,
-                                         ssfontd.subset_num);
+            write_subset_font_descriptor(
+                i, fonts.at(ssfontd.fid.id).fontdata, ssfontd.subfont_data_obj, ssfontd.subset_num);
         } else if(std::holds_alternative<DelayedSubsetCMap>(obj)) {
             const auto &sscmap = std::get<DelayedSubsetCMap>(obj);
-            write_subset_cmap(object_number, fonts.at(sscmap.fid.id), sscmap.subset_id);
+            write_subset_cmap(i, fonts.at(sscmap.fid.id), sscmap.subset_id);
         } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFont>(obj);
-            write_subset_font(object_number,
+            write_subset_font(i,
                               fonts.at(ssfont.fid.id),
                               0,
                               ssfont.subfont_descriptor_obj,

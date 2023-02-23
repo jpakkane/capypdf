@@ -65,6 +65,8 @@ struct FontInfo {
     size_t font_index_tmp;
 };
 
+struct DummyIndexZero {};
+
 struct FullPDFObject {
     std::string dictionary;
     std::string stream;
@@ -141,7 +143,8 @@ class PdfGen;
 class PdfDrawContext;
 struct ColorPatternBuilder;
 
-typedef std::variant<FullPDFObject,
+typedef std::variant<DummyIndexZero,
+                     FullPDFObject,
                      DelayedSubsetFontData,
                      DelayedSubsetFontDescriptor,
                      DelayedSubsetCMap,
@@ -208,7 +211,7 @@ private:
     std::vector<int32_t> write_pages();
     void write_header();
     void generate_info_object();
-    void write_cross_reference_table(const std::vector<uint64_t> object_offsets);
+    void write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
     void write_trailer(int64_t xref_offset);
 
     void write_finished_object(int32_t object_number,
