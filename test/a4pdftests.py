@@ -16,24 +16,61 @@
 
 
 import unittest
-import os, sys, pathlib
+import os, sys, pathlib, shutil, subprocess
+import PIL.Image, PIL.ImageChops
+
+if shutil.which('gs') is None:
+    sys.exit('Ghostscript not found, test suite can not be run.')
 
 os.environ['LD_LIBRARY_PATH'] = 'src'
-sys.path.append(sys.argv[1])
+source_root = pathlib.Path(sys.argv[1])
+testdata_dir = source_root / 'testdata'
+sys.path.append(str(source_root / 'python'))
 
 sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import a4pdf
 
+def validate_image(basename, w, h):
+    import functools
+    def decorator_validate(func):
+        @functools.wraps(func)
+        def wrapper_validate(*args, **kwargs):
+            utobj = args[0]
+            pngname = basename + '.png'
+            pdfname = basename + '.pdf'
+            try:
+                os.unlink(pdfname)
+            except Exception:
+                pass
+            utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
+            value = func(*args, **kwargs)
+            the_truth = testdata_dir / pngname
+            utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
+            subprocess.check_call(['gs',
+                                   '-q',
+                                   '-dNOPAUSE',
+                                   '-dBATCH',
+                                   '-sDEVICE=png256',
+                                   f'-g{w}x{h}',
+                                   '-dPDFFitPage',
+                                   f'-sOutputFile={pngname}',
+                                   pdfname])
+            oracle_image = PIL.Image.open(the_truth)
+            gen_image = PIL.Image.open(pngname)
+            diff = PIL.ImageChops.difference(oracle_image, gen_image)
+            utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
+            os.unlink(pdfname)
+            os.unlink(pngname)
+            return value
+        return wrapper_validate
+    return decorator_validate
+
 class TestPDFCreation(unittest.TestCase):
 
+    @validate_image('python_simple', 480, 640)
     def test_simple(self):
-        ofile = pathlib.Path('python_test.pdf')
-        try:
-            ofile.unlink()
-        except FileNotFoundError:
-            pass
-        self.assertFalse(ofile.exists())
+        ofile = pathlib.Path('python_simple.pdf')
         o = a4pdf.Options()
         g = a4pdf.Generator(ofile, o)
         o = None
@@ -42,8 +79,6 @@ class TestPDFCreation(unittest.TestCase):
             ctx.cmd_re(10, 10, 100, 100)
             ctx.cmd_f()
         g = None
-        self.assertTrue(ofile.exists())
-        ofile.unlink()
 
 if __name__ == "__main__":
     unittest.main()
