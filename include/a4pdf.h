@@ -100,7 +100,11 @@ void a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *ctx);
 void a4pdf_generator_destroy(A4PDF_Generator *g);
 
 A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g);
-void a4pdf_draw_context_destroy(A4PDF_DrawContext *);
+void a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b);
+void a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b);
+void a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h);
+void a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx);
+void a4pdf_dc_destroy(A4PDF_DrawContext *);
 
 const char *a4pdf_error_message(int32_t error_code);
 

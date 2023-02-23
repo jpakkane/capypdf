@@ -24,7 +24,11 @@ cfunc_types = (('a4pdf_options_create', None, ctypes.c_void_p),
                ('a4pdf_generator_destroy', [ctypes.c_void_p], None),
 
                ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
-               ('a4pdf_draw_context_destroy', [ctypes.c_void_p], None),
+               ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
+               ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
+               ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
+               ('a4pdf_dc_cmd_f', [ctypes.c_void_p], None),
+               ('a4pdf_dc_destroy', [ctypes.c_void_p], None),
 
                ('a4pdf_error_message', [ctypes.c_int32], ctypes.c_char_p),
                )
@@ -70,7 +74,7 @@ class DrawContext:
         self.generator = generator
 
     def __del__(self):
-        libfile.a4pdf_page_draw_context_destroy(self)
+        libfile.a4pdf_dc_destroy(self)
 
     def __enter__(self):
         return self
@@ -80,6 +84,18 @@ class DrawContext:
             self.generator.add_page(self)
         finally:
             self.generator = None # Not very elegant.
+
+    def set_rgb_stroke(self, r, g, b):
+        libfile.a4pdf_dc_set_rgb_stroke(self, r, g, b)
+
+    def set_rgb_nonstroke(self, r, g, b):
+        libfile.a4pdf_dc_set_rgb_nonstroke(self, r, g, b)
+
+    def cmd_f(self):
+        libfile.a4pdf_dc_cmd_f(self)
+
+    def cmd_re(self, x, y, w, h):
+        libfile.a4pdf_dc_cmd_re(self, x, y, w, h)
 
 class Generator:
     def __init__(self, filename, options):

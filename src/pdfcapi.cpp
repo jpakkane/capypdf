@@ -53,7 +53,29 @@ A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
     return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
 }
 
-void a4pdf_draw_context_destroy(A4PDF_DrawContext *ctx) {
+void a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    DeviceRGBColor rgb{r, g, b};
+    c->set_stroke_color(rgb);
+}
+
+void a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    DeviceRGBColor rgb{r, g, b};
+    c->set_nonstroke_color(rgb);
+}
+
+void a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    c->cmd_re(x, y, w, h);
+}
+
+void a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    c->cmd_f();
+}
+
+void a4pdf_dc_destroy(A4PDF_DrawContext *ctx) {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
 }
 

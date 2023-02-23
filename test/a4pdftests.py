@@ -19,7 +19,9 @@ import unittest
 import os, sys, pathlib
 
 os.environ['LD_LIBRARY_PATH'] = 'src'
-sys.path.append('../pdfgen/python')
+sys.path.append(sys.argv[1])
+
+sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import a4pdf
 
@@ -36,7 +38,9 @@ class TestPDFCreation(unittest.TestCase):
         g = a4pdf.Generator(ofile, o)
         o = None
         with g.page_draw_context() as ctx:
-            pass
+            ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
+            ctx.cmd_re(10, 10, 100, 100)
+            ctx.cmd_f()
         g = None
         self.assertTrue(ofile.exists())
         ofile.unlink()
