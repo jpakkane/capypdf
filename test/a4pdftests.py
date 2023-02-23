@@ -37,10 +37,10 @@ def validate_image(basename, w, h):
         @functools.wraps(func)
         def wrapper_validate(*args, **kwargs):
             utobj = args[0]
-            pngname = basename + '.png'
-            pdfname = basename + '.pdf'
+            pngname = pathlib.Path(basename + '.png')
+            pdfname = pathlib.Path(basename + '.pdf')
             try:
-                os.unlink(pdfname)
+                pdfname.unlink()
             except Exception:
                 pass
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
@@ -60,8 +60,8 @@ def validate_image(basename, w, h):
             gen_image = PIL.Image.open(pngname)
             diff = PIL.ImageChops.difference(oracle_image, gen_image)
             utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
-            os.unlink(pdfname)
-            os.unlink(pngname)
+            pdfname.unlink()
+            pngname.unlink()
             return value
         return wrapper_validate
     return decorator_validate
@@ -71,14 +71,11 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_simple', 480, 640)
     def test_simple(self):
         ofile = pathlib.Path('python_simple.pdf')
-        o = a4pdf.Options()
-        g = a4pdf.Generator(ofile, o)
-        o = None
+        g = a4pdf.Generator(ofile, a4pdf.Options())
         with g.page_draw_context() as ctx:
             ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
             ctx.cmd_re(10, 10, 100, 100)
             ctx.cmd_f()
-        g = None
 
 if __name__ == "__main__":
     unittest.main()
