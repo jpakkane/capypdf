@@ -23,6 +23,7 @@
 #include <unordered_set>
 #include <vector>
 #include <optional>
+#include <span>
 
 template<> struct std::hash<A4PDF::FontSubset> {
     size_t operator()(A4PDF::FontSubset const &s) const noexcept {
@@ -111,9 +112,11 @@ public:
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
     void set_stroke_color(LabId lid, const LabColor &c);
+    void set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values);
     void set_nonstroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
     void set_nonstroke_color(PatternId id);
+    void set_nonstroke_color(IccColorId icc_id, const double *values, int32_t num_values);
     void set_separation_stroke_color(SeparationId id, LimitDouble value);
     void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();

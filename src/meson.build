@@ -9,6 +9,7 @@ a4pdf_lib = library('a4pdf',
   'ft_subsetter.cpp',
   'pdfcapi.cpp',
   include_directories: [pubinc],
+  #link_args: ['-static-libstdc++'],
   dependencies: [fmt_dep, png_dep, zlib_dep, jpeg_dep, lcms_dep, freetype_dep]
 )
 
@@ -55,6 +56,10 @@ executable('imagetest', 'imagetest.cpp',
 )
 
 executable('outlinetest', 'outlinetest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
+executable('icctest', 'icctest.cpp',
   dependencies: [a4pdf_dep]
 )
 

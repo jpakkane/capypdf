@@ -108,6 +108,11 @@ struct ColorProfiles {
     const char *cmyk_profile_file = nullptr;
 };
 
+struct IccInfo {
+    int32_t object_num;
+    int32_t num_channels;
+};
+
 struct PdfGenerationData {
     PdfBox mediabox = PdfBox::a4();
     std::optional<PdfBox> cropbox;
@@ -158,6 +163,7 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
+    IccColorId load_icc_file(const char *fname);
 
     // Fonts
     FontId load_font(FT_Library ft, const char *fname);
@@ -228,7 +234,8 @@ private:
     ImageId process_mono_image(const mono_image &image);
 
     OutlineLimits
-    write_outline_tree(const std::vector<int32_t> &page_objects, const std::unordered_map<int32_t, std::vector<int32_t>> &children,
+    write_outline_tree(const std::vector<int32_t> &page_objects,
+                       const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
 
     PdfGenerationData opts;
@@ -241,6 +248,7 @@ private:
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
     std::vector<Outline> outlines;
+    std::vector<IccInfo> icc_profiles;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
     FILE *ofile = nullptr;
 };

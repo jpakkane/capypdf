@@ -265,6 +265,14 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size()};
 }
 
+IccColorId PdfDocument::load_icc_file(const char *fname) {
+    auto contents = load_file(fname);
+    const auto num_channels = cm.get_num_channels(contents);
+    const auto obj_id = store_icc_profile(contents, num_channels);
+    icc_profiles.emplace_back(IccInfo{obj_id, num_channels});
+    return IccColorId{(int32_t)icc_profiles.size() - 1};
+}
+
 void PdfDocument::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;
@@ -640,7 +648,8 @@ int32_t PdfDocument::store_icc_profile(std::string_view contents, int32_t num_ch
 )",
                    compressed.size(),
                    num_channels);
-    return add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    auto data_obj_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    return add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", data_obj_id), ""});
 }
 
 void PdfDocument::write_bytes(const char *buf, size_t buf_size) {

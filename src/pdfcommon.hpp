@@ -109,6 +109,10 @@ struct OutlineId {
     int32_t id;
 };
 
+struct IccColorId {
+    int32_t id;
+};
+
 struct GraphicsState {
     std::optional<A4PDF_Rendering_Intent> intent;
     std::optional<A4PDF_Blend_Mode> blend_mode;

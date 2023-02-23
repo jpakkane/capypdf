@@ -260,6 +260,34 @@ void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     }
 }
 
+void PdfDrawContext::set_nonstroke_color(IccColorId icc_id,
+                                         const double *values,
+                                         int32_t num_values) {
+    const auto &icc_info = doc->icc_profiles.at(icc_id.id);
+    if(icc_info.num_channels != num_values) {
+        throw std::runtime_error("Incorrect number of color channels.");
+    }
+    used_colorspaces.insert(icc_info.object_num);
+    fmt::format_to(cmd_appender, "/CSpace{} cs\n", icc_info.object_num);
+    for(int32_t i = 0; i < num_values; ++i) {
+        fmt::format_to(cmd_appender, "{:} ", values[i]);
+    }
+    fmt::format_to(cmd_appender, "scn\n", icc_info.object_num);
+}
+
+void PdfDrawContext::set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+    const auto &icc_info = doc->icc_profiles.at(icc_id.id);
+    if(icc_info.num_channels != num_values) {
+        throw std::runtime_error("Incorrect number of color channels.");
+    }
+    used_colorspaces.insert(icc_info.object_num);
+    fmt::format_to(cmd_appender, "/CSpace{} CS\n", icc_info.object_num);
+    for(int32_t i = 0; i < num_values; ++i) {
+        fmt::format_to(cmd_appender, "{:} ", values[i]);
+    }
+    fmt::format_to(cmd_appender, "SCN\n", icc_info.object_num);
+}
+
 void PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {

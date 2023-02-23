@@ -155,4 +155,14 @@ std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     return converted_pixels;
 }
 
+int PdfColorConverter::get_num_channels(std::string_view icc_data) const {
+    cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
+    if(!h) {
+        throw std::runtime_error(std::string("Could not open ICC color profile."));
+    }
+    auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
+    cmsCloseProfile(h);
+    return num_channels;
+}
+
 } // namespace A4PDF

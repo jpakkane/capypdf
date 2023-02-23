@@ -63,6 +63,8 @@ public:
     const std::string &get_gray() const { return gray_profile_data; }
     const std::string &get_cmyk() const { return cmyk_profile_data; }
 
+    int get_num_channels(std::string_view icc_data) const;
+
 private:
     LcmsHolder rgb_profile;
     LcmsHolder gray_profile;

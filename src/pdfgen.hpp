@@ -71,6 +71,8 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
+    IccColorId load_icc_file(const char *fname) { return pdoc.load_icc_file(fname); }
+
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
