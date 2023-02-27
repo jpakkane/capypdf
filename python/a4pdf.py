@@ -25,7 +25,7 @@ cfunc_types = (('a4pdf_options_create', None, ctypes.c_void_p),
                ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
 
-               ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_page_draw_context_create', [ctypes.c_void_p], ctypes.c_void_p),
                ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
@@ -67,12 +67,11 @@ class Options:
         if not isinstance(title, str):
             raise RuntimeError('Title must be an Unicode string.')
         bytes = title.encode('UTF-8')
-        rc = libfile.a4pdf_options_set_title(self, bytes)
-        check_error(rc)
+        check_error(libfile.a4pdf_options_set_title(self, bytes))
 
 class DrawContext:
     def __init__(self, generator):
-        self._as_parameter_ = libfile.a4pdf_page_draw_context_new(generator)
+        self._as_parameter_ = libfile.a4pdf_page_draw_context_create(generator)
         self.generator = generator
 
     def __del__(self):
@@ -88,16 +87,16 @@ class DrawContext:
             self.generator = None # Not very elegant.
 
     def set_rgb_stroke(self, r, g, b):
-        libfile.a4pdf_dc_set_rgb_stroke(self, r, g, b)
+        check_error(libfile.a4pdf_dc_set_rgb_stroke(self, r, g, b))
 
     def set_rgb_nonstroke(self, r, g, b):
-        libfile.a4pdf_dc_set_rgb_nonstroke(self, r, g, b)
+        check_error(libfile.a4pdf_dc_set_rgb_nonstroke(self, r, g, b))
 
     def cmd_f(self):
-        libfile.a4pdf_dc_cmd_f(self)
+        check_error(libfile.a4pdf_dc_cmd_f(self))
 
     def cmd_re(self, x, y, w, h):
-        libfile.a4pdf_dc_cmd_re(self, x, y, w, h)
+        check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
 
 class Generator:
     def __init__(self, filename, options):
@@ -110,10 +109,10 @@ class Generator:
         self._as_parameter_ = libfile.a4pdf_generator_create(file_name_bytes, options)
 
     def __del__(self):
-        libfile.a4pdf_generator_destroy(self)
+        check_error(libfile.a4pdf_generator_destroy(self))
 
     def page_draw_context(self):
         return DrawContext(self)
 
     def add_page(self, page_ctx):
-        libfile.a4pdf_generator_add_page(self, page_ctx)
+        check_error(libfile.a4pdf_generator_add_page(self, page_ctx))

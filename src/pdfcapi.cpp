@@ -51,7 +51,7 @@ A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) {
     return 0;
 }
 
-A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
+A4PDF_DrawContext *a4pdf_page_draw_context_create(A4PDF_Generator *g) {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
 }
