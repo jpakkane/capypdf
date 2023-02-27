@@ -18,6 +18,8 @@
 
 #include <stdint.h>
 
+#mesondefine A4PDF_VERSION_STR
+
 #ifdef __cplusplus
 extern "C" {
 #endif
