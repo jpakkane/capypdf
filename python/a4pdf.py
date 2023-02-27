@@ -15,20 +15,22 @@
 
 import ctypes
 
+ec_type = ctypes.c_int32
+
 cfunc_types = (('a4pdf_options_create', None, ctypes.c_void_p),
-               ('a4pdf_options_destroy', [ctypes.c_void_p], None),
-               ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ctypes.c_int32),
+               ('a4pdf_options_destroy', [ctypes.c_void_p], ec_type),
+               ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ec_type),
 
                ('a4pdf_generator_create', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
-               ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], None),
-               ('a4pdf_generator_destroy', [ctypes.c_void_p], None),
+               ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
+               ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
 
                ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
-               ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
-               ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
-               ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], None),
-               ('a4pdf_dc_cmd_f', [ctypes.c_void_p], None),
-               ('a4pdf_dc_destroy', [ctypes.c_void_p], None),
+               ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
+               ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
+               ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
+               ('a4pdf_dc_cmd_f', [ctypes.c_void_p], ec_type),
+               ('a4pdf_dc_destroy', [ctypes.c_void_p], ec_type),
 
                ('a4pdf_error_message', [ctypes.c_int32], ctypes.c_char_p),
                )

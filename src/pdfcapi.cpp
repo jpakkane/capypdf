@@ -24,19 +24,21 @@ A4PDF_Options *a4pdf_options_create() {
     return reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
 }
 
-void a4pdf_options_destroy(A4PDF_Options *opt) {
+A4PDF_EC a4pdf_options_destroy(A4PDF_Options *opt) {
     delete reinterpret_cast<PdfGenerationData *>(opt);
+    return 0;
 }
 
-int32_t a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) {
+A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) {
     reinterpret_cast<PdfGenerationData *>(opt)->title = utf8_title;
     return 0;
 }
 
-void a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) {
+A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
     gen->add_page(*ctx);
+    return 0;
 }
 
 A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options) {
@@ -44,8 +46,9 @@ A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Option
     return reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
 }
 
-void a4pdf_generator_destroy(A4PDF_Generator *generator) {
+A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) {
     delete reinterpret_cast<PdfGen *>(generator);
+    return 0;
 }
 
 A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
@@ -53,33 +56,38 @@ A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
     return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
 }
 
-void a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
+A4PDF_EC a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_stroke_color(rgb);
+    return 0;
 }
 
-void a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
+A4PDF_EC a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b) {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_nonstroke_color(rgb);
+    return 0;
 }
 
-void a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) {
+A4PDF_EC a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     c->cmd_re(x, y, w, h);
+    return 0;
 }
 
-void a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) {
+A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     c->cmd_f();
+    return 0;
 }
 
-void a4pdf_dc_destroy(A4PDF_DrawContext *ctx) {
+A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
+    return 0;
 }
 
-const char *a4pdf_error_message(int32_t error_code) {
+const char *a4pdf_error_message(A4PDF_EC error_code) {
     if(error_code == 0)
         return "No error";
     return "Error messages not implemented yet";

@@ -91,22 +91,24 @@ typedef struct _A4PDF_Options A4PDF_Options;
 typedef struct _A4PDF_Generator A4PDF_Generator;
 typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
 
+typedef int32_t A4PDF_EC;
+
 A4PDF_Options *a4pdf_options_create();
-void a4pdf_options_destroy(A4PDF_Options *);
-int32_t a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title);
+A4PDF_EC a4pdf_options_destroy(A4PDF_Options *);
+A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title);
 
 A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options);
-void a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *ctx);
-void a4pdf_generator_destroy(A4PDF_Generator *g);
+A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *ctx);
+A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *g);
 
 A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g);
-void a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b);
-void a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b);
-void a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h);
-void a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx);
-void a4pdf_dc_destroy(A4PDF_DrawContext *);
+A4PDF_EC a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b);
+A4PDF_EC a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b);
+A4PDF_EC a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h);
+A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx);
+A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *);
 
-const char *a4pdf_error_message(int32_t error_code);
+const char *a4pdf_error_message(A4PDF_EC error_code);
 
 #ifdef __cplusplus
 }
