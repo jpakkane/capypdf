@@ -93,15 +93,15 @@ typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
 
 typedef int32_t A4PDF_EC;
 
-A4PDF_Options *a4pdf_options_create();
+A4PDF_Options *a4pdf_options_new();
 A4PDF_EC a4pdf_options_destroy(A4PDF_Options *);
 A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title);
 
-A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options);
+A4PDF_Generator *a4pdf_generator_new(const char *filename, const A4PDF_Options *options);
 A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *ctx);
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *g);
 
-A4PDF_DrawContext *a4pdf_page_draw_context_create(A4PDF_Generator *g);
+A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g);
 A4PDF_EC a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b);
 A4PDF_EC a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b);
 A4PDF_EC a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h);

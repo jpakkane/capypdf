@@ -21,7 +21,7 @@
 
 using namespace A4PDF;
 
-A4PDF_Options *a4pdf_options_create() {
+A4PDF_Options *a4pdf_options_new() {
     return reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
 }
 
@@ -42,7 +42,7 @@ A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) {
     return 0;
 }
 
-A4PDF_Generator *a4pdf_generator_create(const char *filename, const A4PDF_Options *options) {
+A4PDF_Generator *a4pdf_generator_new(const char *filename, const A4PDF_Options *options) {
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
     return reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
 }
@@ -52,7 +52,7 @@ A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) {
     return 0;
 }
 
-A4PDF_DrawContext *a4pdf_page_draw_context_create(A4PDF_Generator *g) {
+A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
 }

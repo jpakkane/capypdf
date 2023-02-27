@@ -17,15 +17,15 @@ import ctypes
 
 ec_type = ctypes.c_int32
 
-cfunc_types = (('a4pdf_options_create', None, ctypes.c_void_p),
+cfunc_types = (('a4pdf_options_new', None, ctypes.c_void_p),
                ('a4pdf_options_destroy', [ctypes.c_void_p], ec_type),
                ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ec_type),
 
-               ('a4pdf_generator_create', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
                ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
 
-               ('a4pdf_page_draw_context_create', [ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
                ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
@@ -58,7 +58,7 @@ def check_error(errorcode):
 
 class Options:
     def __init__(self):
-        self._as_parameter_ = libfile.a4pdf_options_create()
+        self._as_parameter_ = libfile.a4pdf_options_new()
 
     def __del__(self):
         libfile.a4pdf_options_destroy(self)
@@ -71,7 +71,7 @@ class Options:
 
 class DrawContext:
     def __init__(self, generator):
-        self._as_parameter_ = libfile.a4pdf_page_draw_context_create(generator)
+        self._as_parameter_ = libfile.a4pdf_page_draw_context_new(generator)
         self.generator = generator
 
     def __del__(self):
@@ -106,7 +106,7 @@ class Generator:
             file_name_bytes = filename.encode('UTF-8')
         else:
             file_name_bytes = str(filename).encode('UTF-8')
-        self._as_parameter_ = libfile.a4pdf_generator_create(file_name_bytes, options)
+        self._as_parameter_ = libfile.a4pdf_generator_new(file_name_bytes, options)
 
     def __del__(self):
         check_error(libfile.a4pdf_generator_destroy(self))
