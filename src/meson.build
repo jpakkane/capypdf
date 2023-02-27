@@ -8,6 +8,7 @@ a4pdf_lib = library('a4pdf',
   'fontsubsetter.cpp',
   'ft_subsetter.cpp',
   'pdfcapi.cpp',
+  'errors.cpp',
   include_directories: [pubinc],
   #link_args: ['-static-libstdc++'],
   dependencies: [fmt_dep, png_dep, zlib_dep, jpeg_dep, lcms_dep, freetype_dep]

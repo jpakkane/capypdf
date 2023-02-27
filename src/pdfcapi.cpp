@@ -17,6 +17,7 @@
 #include <a4pdf.h>
 #include <pdfgen.hpp>
 #include <pdfdrawcontext.hpp>
+#include <errors.hpp>
 
 using namespace A4PDF;
 
@@ -87,8 +88,4 @@ A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) {
     return 0;
 }
 
-const char *a4pdf_error_message(A4PDF_EC error_code) {
-    if(error_code == 0)
-        return "No error";
-    return "Error messages not implemented yet";
-}
+const char *a4pdf_error_message(A4PDF_EC error_code) { return error_text((ErrorCode)error_code); }
