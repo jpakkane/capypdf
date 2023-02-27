@@ -36,9 +36,11 @@ def validate_image(basename, w, h):
     def decorator_validate(func):
         @functools.wraps(func)
         def wrapper_validate(*args, **kwargs):
+            assert(len(args) == 1)
             utobj = args[0]
             pngname = pathlib.Path(basename + '.png')
             pdfname = pathlib.Path(basename + '.pdf')
+            args = (args[0], pdfname)
             try:
                 pdfname.unlink()
             except Exception:
@@ -69,13 +71,13 @@ def validate_image(basename, w, h):
 class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_simple', 480, 640)
-    def test_simple(self):
-        ofile = pathlib.Path('python_simple.pdf')
-        g = a4pdf.Generator(ofile, a4pdf.Options())
-        with g.page_draw_context() as ctx:
-            ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
-            ctx.cmd_re(10, 10, 100, 100)
-            ctx.cmd_f()
+    def test_simple(self, ofilename):
+        ofile = pathlib.Path(ofilename)
+        with a4pdf.Generator(ofile) as g:
+            with g.page_draw_context() as ctx:
+                ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
+                ctx.cmd_re(10, 10, 100, 100)
+                ctx.cmd_f()
 
 if __name__ == "__main__":
     unittest.main()

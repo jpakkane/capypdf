@@ -99,17 +99,27 @@ class DrawContext:
         check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
 
 class Generator:
-    def __init__(self, filename, options):
+    def __init__(self, filename, options=None):
         if isinstance(filename, bytes):
             file_name_bytes = filename
         elif isinstance(filename, str):
             file_name_bytes = filename.encode('UTF-8')
         else:
             file_name_bytes = str(filename).encode('UTF-8')
+        if options is None:
+            options = Options()
         self._as_parameter_ = libfile.a4pdf_generator_new(file_name_bytes, options)
 
     def __del__(self):
+        if self._as_parameter_ is not None:
+            check_error(libfile.a4pdf_generator_destroy(self))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
         check_error(libfile.a4pdf_generator_destroy(self))
+        self._as_parameter_ = None
 
     def page_draw_context(self):
         return DrawContext(self)
