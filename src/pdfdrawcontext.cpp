@@ -492,6 +492,38 @@ ET
                    font_glyph_id);
 }
 
+void PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
+                                   FontId fid,
+                                   double pointsize) {
+    double prev_x = 0;
+    double prev_y = 0;
+    if(glyphs.empty()) {
+        return;
+    }
+    auto &font_data = doc->font_objects.at(fid.id);
+    // FIXME, do per character.
+    // const auto &bob =
+    //    doc->font_objects.at(doc->get_subset_glyph(fid, glyphs.front().codepoint).ss.fid.id);
+    fmt::format_to(cmd_appender,
+                   R"(BT
+  /SFont{}-{} {} Tf
+)",
+                   font_data.font_obj,
+                   0,
+                   pointsize);
+    for(const auto &g : glyphs) {
+        auto current_subset_glyph = doc->get_subset_glyph(fid, g.codepoint);
+        // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
+        used_subset_fonts.insert(current_subset_glyph.ss);
+        fmt::format_to(cmd_appender, "  {} {} Td\n", g.x - prev_x, g.y - prev_y);
+        prev_x = g.x;
+        prev_y = g.y;
+        fmt::format_to(
+            cmd_appender, "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
+    }
+    fmt::format_to(cmd_appender, "ET\n");
+}
+
 void PdfDrawContext::render_ascii_text_builtin(
     const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y) {
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));

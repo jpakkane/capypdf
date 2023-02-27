@@ -15,6 +15,7 @@
  */
 
 #include <pdfgen.hpp>
+#include <cmath>
 
 using namespace A4PDF;
 
@@ -36,6 +37,14 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 150);
+    std::vector<PdfGlyph> glyphs;
+    const int num_glyphs = 26;
+    for(int i = 0; i < num_glyphs; ++i) {
+        const double x = 100 + 40 * sin(2 * M_PI * double(i) / num_glyphs);
+        const double y = 50 + 40 * cos(2 * M_PI * double(i) / num_glyphs);
+        glyphs.emplace_back(PdfGlyph{uint32_t('a' + i), x, y});
+    }
+    ctx.render_glyphs(glyphs, fid, 10);
     /*
     gen.new_page();
     for(int page_num = 0; page_num < 2; ++page_num) {

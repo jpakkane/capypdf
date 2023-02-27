@@ -53,6 +53,11 @@ struct SerializedContext {
     std::string commands;
 };
 
+struct PdfGlyph {
+    uint32_t codepoint;
+    double x, y;
+};
+
 class PdfDrawContext {
 
 public:
@@ -126,6 +131,7 @@ public:
     void rotate(double angle);
     void render_utf8_text(std::string_view text, FontId fid, double pointsize, double x, double y);
     void render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y);
+    void render_glyphs(const std::vector<PdfGlyph> &glyphs, FontId fid, double pointsize);
     void render_ascii_text_builtin(
         const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
 
