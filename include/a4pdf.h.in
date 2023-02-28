@@ -139,6 +139,7 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx,
 A4PDF_PUBLIC A4PDF_EC
 a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *) A4PDF_NOEXCEPT;
 
 A4PDF_PUBLIC const char *a4pdf_error_message(A4PDF_EC error_code) A4PDF_NOEXCEPT;

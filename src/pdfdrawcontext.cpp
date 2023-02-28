@@ -192,7 +192,13 @@ void PdfDrawContext::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{
 
 void PdfDrawContext::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }
 
-void PdfDrawContext::cmd_w(double w) { fmt::format_to(cmd_appender, "{} w\n", w); }
+ErrorCode PdfDrawContext::cmd_w(double w) {
+    if(w < 0) {
+        return ErrorCode::NegativeLineWidth;
+    }
+    fmt::format_to(cmd_appender, "{} w\n", w);
+    return ErrorCode::NoError;
+}
 
 void PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);

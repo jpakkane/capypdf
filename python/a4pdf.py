@@ -15,6 +15,10 @@
 
 import ctypes
 
+class A4PDFException(Exception):
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
 ec_type = ctypes.c_int32
 
 class FontId(ctypes.Structure):
@@ -36,6 +40,7 @@ cfunc_types = (
 ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_f', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
 ('a4pdf_dc_render_utf8_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
@@ -58,7 +63,7 @@ def get_error_message(errorcode):
     return libfile.a4pdf_error_message(errorcode).decode('UTF-8', errors='ignore')
 
 def raise_with_error(errorcode):
-    raise RuntimeError(get_error_message(errorcode))
+    raise A4PDFException(get_error_message(errorcode))
 
 def check_error(errorcode):
     if errorcode != 0:
@@ -83,7 +88,7 @@ class Options:
 
     def set_title(self, title):
         if not isinstance(title, str):
-            raise RuntimeError('Title must be an Unicode string.')
+            raise A4PDFException('Title must be an Unicode string.')
         bytes = title.encode('UTF-8')
         check_error(libfile.a4pdf_options_set_title(self, bytes))
 
@@ -98,7 +103,7 @@ class DrawContext:
         self.generator = generator
 
     def __del__(self):
-        libfile.a4pdf_dc_destroy(self)
+        check_error(libfile.a4pdf_dc_destroy(self))
 
     def __enter__(self):
         return self
@@ -118,14 +123,17 @@ class DrawContext:
     def cmd_f(self):
         check_error(libfile.a4pdf_dc_cmd_f(self))
 
+    def cmd_w(self, line_width):
+        check_error(libfile.a4pdf_dc_cmd_w(self, line_width))
+
     def cmd_re(self, x, y, w, h):
         check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
 
     def render_text(self, text, fid, point_size, x, y):
         if not isinstance(text, str):
-            raise RuntimeError('Text to render is not a string.')
+            raise A4PDFException('Text to render is not a string.')
         if not isinstance(fid, FontId):
-            raise RuntimeError('Font id argument is not a font id object.')
+            raise A4PDFException('Font id argument is not a font id object.')
         text_bytes = text.encode('UTF-8')
         check_error(libfile.a4pdf_dc_render_utf8_text(self, text_bytes, fid, point_size, x, y))
 
@@ -146,8 +154,10 @@ class Generator:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        check_error(libfile.a4pdf_generator_destroy(self))
-        self._as_parameter_ = None
+        try:
+            check_error(libfile.a4pdf_generator_destroy(self))
+        finally:
+            self._as_parameter_ = None
 
     def page_draw_context(self):
         return DrawContext(self)

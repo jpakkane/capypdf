@@ -70,8 +70,15 @@ A4PDF_EC a4pdf_generator_new(const char *filename,
 }
 
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
-    delete reinterpret_cast<PdfGen *>(generator);
-    return (A4PDF_EC)ErrorCode::NoError;
+    fprintf(stderr, "ABC\n");
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    auto rc = (A4PDF_EC)ErrorCode::NoError;
+    if(g->num_pages() == 0) {
+        rc = (A4PDF_EC)ErrorCode::NoPages;
+    }
+    delete g;
+    fprintf(stderr, "123\n");
+    return rc;
 }
 
 A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
@@ -117,6 +124,11 @@ a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) 
 A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_f();
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_w(line_width);
 }
 
 A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {

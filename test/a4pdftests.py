@@ -88,5 +88,19 @@ class TestPDFCreation(unittest.TestCase):
             with g.page_draw_context() as ctx:
                 ctx.render_text('Av, Tv, kerning yo.', fid, 12, 50, 150)
 
+    def test_error(self):
+        ofile = pathlib.Path('delme.pdf')
+        if ofile.exists():
+            ofile.unlink()
+        with self.assertRaises(a4pdf.A4PDFException) as cm_outer:
+            with a4pdf.Generator(ofile) as g:
+                ctx = g.page_draw_context()
+                with self.assertRaises(a4pdf.A4PDFException) as cm:
+                    ctx.cmd_w(-0.1)
+                self.assertEqual(str(cm.exception), 'Negative line width.')
+                ctx = None # Destroy without adding page, so there should be no output.
+        self.assertEqual(str(cm_outer.exception), 'No pages defined.')
+        self.assertFalse(ofile.exists())
+
 if __name__ == "__main__":
     unittest.main()

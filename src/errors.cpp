@@ -21,8 +21,10 @@ namespace A4PDF {
 // clang-format off
 
 const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
-"No error",
-"Invalid index",
+"No error.",
+"Invalid index.",
+"Negative line width.",
+"No pages defined.",
 };
 
 // clang-format on

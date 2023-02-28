@@ -56,24 +56,26 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : ofilename(ofnam
 }
 
 PdfGen::~PdfGen() {
-    FILE *ofile = fopen(ofilename.c_str(), "wb");
-    if(!ofile) {
-        perror("Could not open output file.");
-        return;
-    }
-    try {
-        pdoc.write_to_file(ofile);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s", e.what());
-    } catch(...) {
-        fprintf(stderr, "Unexpected error.\n");
-    }
+    if(pdoc.pages.size() > 0) {
+        FILE *ofile = fopen(ofilename.c_str(), "wb");
+        if(!ofile) {
+            perror("Could not open output file.");
+            return;
+        }
+        try {
+            pdoc.write_to_file(ofile);
+        } catch(const std::exception &e) {
+            fprintf(stderr, "%s", e.what());
+        } catch(...) {
+            fprintf(stderr, "Unexpected error.\n");
+        }
 
-    if(fflush(ofile) != 0) {
-        perror("Writing output file failed");
-    }
-    if(fclose(ofile) != 0) {
-        perror("Closing output file failed");
+        if(fflush(ofile) != 0) {
+            perror("Writing output file failed");
+        }
+        if(fclose(ofile) != 0) {
+            perror("Closing output file failed");
+        }
     }
     pdoc.font_objects.clear();
     pdoc.fonts.clear();

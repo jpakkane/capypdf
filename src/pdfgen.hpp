@@ -86,6 +86,8 @@ public:
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 
+    int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
+
 private:
     void close_file();
 

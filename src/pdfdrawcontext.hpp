@@ -88,7 +88,7 @@ public:
     void cmd_Wstar();
     void cmd_m(double x, double y);
     void cmd_l(double x, double y);
-    void cmd_w(double w);
+    ErrorCode cmd_w(double w);
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     void cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
 
