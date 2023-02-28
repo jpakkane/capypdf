@@ -17,6 +17,7 @@
 #pragma once
 
 #include <pdfcommon.hpp>
+#include <errors.hpp>
 #include <pdfcolorconverter.hpp>
 #include <pdfdocument.hpp>
 #include <string>
@@ -74,8 +75,8 @@ public:
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
     void cmd_q(); // Save
     void cmd_Q(); // Restore
-    void cmd_re(double x, double y, double w, double h);
-    void cmd_f();
+    ErrorCode cmd_re(double x, double y, double w, double h);
+    ErrorCode cmd_f();
     void cmd_S();
     void cmd_s();
     void cmd_h();

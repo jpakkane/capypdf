@@ -157,11 +157,15 @@ void PdfDrawContext::cmd_q() { commands += "q\n"; }
 
 void PdfDrawContext::cmd_Q() { commands += "Q\n"; }
 
-void PdfDrawContext::cmd_re(double x, double y, double w, double h) {
+ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
     fmt::format_to(cmd_appender, "{} {} {} {} re\n", x, y, w, h);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_f() { commands += "f\n"; }
+ErrorCode PdfDrawContext::cmd_f() {
+    commands += "f\n";
+    return ErrorCode::NoError;
+}
 
 void PdfDrawContext::cmd_S() { commands += "S\n"; }
 

@@ -34,8 +34,10 @@ int main(int, char **) {
         auto page_id = gen.add_page(*g);
         auto t1 = gen.add_outline("First toplevel", page_id, {});
         auto t2 = gen.add_outline("Second toplevel", page_id, {});
+        (void)t2;
         gen.add_outline("Third toplevel", page_id, {});
         auto t1c1 = gen.add_outline("Top1 child1", page_id, t1);
+        (void)t1c1;
         auto t1c2 = gen.add_outline("Top1 child2", page_id, t1);
         gen.add_outline("Top1 child2 child1", page_id, t1c2);
     }
