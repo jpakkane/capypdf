@@ -216,12 +216,14 @@ void PdfDrawContext::cmd_CS(std::string_view cspace_name) {
 
 void PdfDrawContext::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
 
-void PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
+ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
     fmt::format_to(cmd_appender, "{} J\n", (int)cap_style);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
+ErrorCode PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
     fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::cmd_RG(double r, double g, double b) {

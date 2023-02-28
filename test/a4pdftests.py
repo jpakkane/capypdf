@@ -102,5 +102,13 @@ class TestPDFCreation(unittest.TestCase):
         self.assertEqual(str(cm_outer.exception), 'No pages defined.')
         self.assertFalse(ofile.exists())
 
+    def test_line_drawing(self):
+        ofile = pathlib.Path('nope.pdf')
+        with a4pdf.Generator(ofile) as g:
+            with g.page_draw_context() as ctx:
+                ctx.cmd_J(a4pdf.LineCapStyle.Round)
+                ctx.cmd_j(a4pdf.LineJoinStyle.Bevel)
+        ofile.unlink()
+
 if __name__ == "__main__":
     unittest.main()

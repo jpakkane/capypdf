@@ -14,12 +14,25 @@
 
 
 import ctypes
+from enum import Enum
+
+class LineCapStyle(Enum):
+    Butt = 0
+    Round = 1
+    Projection_Square = 2
+
+class LineJoinStyle(Enum):
+    Miter = 0
+    Round = 1
+    Bevel = 2
+
 
 class A4PDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
 ec_type = ctypes.c_int32
+enum_type = ctypes.c_int32
 
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
@@ -40,6 +53,8 @@ cfunc_types = (
 ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_f', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_J', [ctypes.c_void_p, enum_type]),
+('a4pdf_dc_cmd_j', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
 ('a4pdf_dc_render_utf8_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -122,6 +137,12 @@ class DrawContext:
 
     def cmd_f(self):
         check_error(libfile.a4pdf_dc_cmd_f(self))
+
+    def cmd_J(self, cap_style):
+        check_error(libfile.a4pdf_dc_cmd_J(self, cap_style.value))
+
+    def cmd_j(self, join_style):
+        check_error(libfile.a4pdf_dc_cmd_j(self, join_style.value))
 
     def cmd_w(self, line_width):
         check_error(libfile.a4pdf_dc_cmd_w(self, line_width))

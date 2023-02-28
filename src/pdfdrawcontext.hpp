@@ -97,8 +97,8 @@ public:
     void cmd_CS(std::string_view cspace_name);
     void cmd_SCN(double value);
 
-    void cmd_J(A4PDF_Line_Cap cap_style);
-    void cmd_j(A4PDF_Line_Join join_style);
+    ErrorCode cmd_J(A4PDF_Line_Cap cap_style);
+    ErrorCode cmd_j(A4PDF_Line_Join join_style);
 
     // Stroke.
     void cmd_RG(double r, double g, double b);
