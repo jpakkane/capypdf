@@ -21,8 +21,9 @@
 
 using namespace A4PDF;
 
-A4PDF_Options *a4pdf_options_new() A4PDF_NOEXCEPT {
-    return reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
+A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
+    return (A4PDF_EC)ErrorCode::NoError;
 }
 
 A4PDF_EC a4pdf_options_destroy(A4PDF_Options *opt) A4PDF_NOEXCEPT {
@@ -60,10 +61,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_Generator *a4pdf_generator_new(const char *filename,
-                                     const A4PDF_Options *options) A4PDF_NOEXCEPT {
+A4PDF_EC a4pdf_generator_new(const char *filename,
+                             const A4PDF_Options *options,
+                             A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
-    return reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
+    *out_ptr = reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
+    return (A4PDF_EC)ErrorCode::NoError;
 }
 
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
@@ -71,9 +74,11 @@ A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) A4PDF_NOEXCEPT {
+A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
+                                     A4PDF_DrawContext **out_ptr) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
+    *out_ptr = reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
+    return (A4PDF_EC)ErrorCode::NoError;
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,

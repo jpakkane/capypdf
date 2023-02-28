@@ -20,17 +20,17 @@ ec_type = ctypes.c_int32
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
-cfunc_types = (('a4pdf_options_new', None, ctypes.c_void_p),
+cfunc_types = (('a4pdf_options_new', [ctypes.c_void_p], ec_type),
                ('a4pdf_options_destroy', [ctypes.c_void_p], ec_type),
                ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ec_type),
                ('a4pdf_options_set_mediabox', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
 
-               ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
 
-               ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
+               ('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
                ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
@@ -72,10 +72,12 @@ def to_bytepath(filename):
 
 class Options:
     def __init__(self):
-        self._as_parameter_ = libfile.a4pdf_options_new()
+        opt = ctypes.c_void_p()
+        check_error(libfile.a4pdf_options_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
 
     def __del__(self):
-        libfile.a4pdf_options_destroy(self)
+        check_error(libfile.a4pdf_options_destroy(self))
 
     def set_title(self, title):
         if not isinstance(title, str):
@@ -88,7 +90,9 @@ class Options:
 
 class DrawContext:
     def __init__(self, generator):
-        self._as_parameter_ = libfile.a4pdf_page_draw_context_new(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.a4pdf_page_draw_context_new(generator, ctypes.pointer(dcptr)))
+        self._as_parameter_ = dcptr
         self.generator = generator
 
     def __del__(self):
@@ -128,7 +132,9 @@ class Generator:
         file_name_bytes = to_bytepath(filename)
         if options is None:
             options = Options()
-        self._as_parameter_ = libfile.a4pdf_generator_new(file_name_bytes, options)
+        gptr = ctypes.c_void_p()
+        check_error(libfile.a4pdf_generator_new(file_name_bytes, options, ctypes.pointer(gptr)))
+        self._as_parameter_ = gptr
 
     def __del__(self):
         if self._as_parameter_ is not None:
