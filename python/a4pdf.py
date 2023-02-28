@@ -20,37 +20,39 @@ ec_type = ctypes.c_int32
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
-cfunc_types = (('a4pdf_options_new', [ctypes.c_void_p], ec_type),
-               ('a4pdf_options_destroy', [ctypes.c_void_p], ec_type),
-               ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ec_type),
-               ('a4pdf_options_set_mediabox', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
+cfunc_types = (
 
-               ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p], ec_type),
-               ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
-               ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p], ec_type),
-               ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
+('a4pdf_options_new', [ctypes.c_void_p]),
+('a4pdf_options_destroy', [ctypes.c_void_p]),
+('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
+('a4pdf_options_set_mediabox',
+    [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('a4pdf_generator_destroy', [ctypes.c_void_p]),
+('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_f', [ctypes.c_void_p]),
+('a4pdf_dc_render_utf8_text',
+    [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_destroy', [ctypes.c_void_p]),
 
-               ('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
-               ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
-               ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
-               ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
-               ('a4pdf_dc_cmd_f', [ctypes.c_void_p], ec_type),
-               ('a4pdf_dc_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
-               ('a4pdf_dc_destroy', [ctypes.c_void_p], ec_type),
-
-               ('a4pdf_error_message', [ctypes.c_int32], ctypes.c_char_p),
-               )
+)
 
 libfile = ctypes.cdll.LoadLibrary('src/liba4pdf.so') # FIXME
 
-# Options
-
-for funcname, argtypes, restype in cfunc_types:
+for funcname, argtypes in cfunc_types:
     funcobj = getattr(libfile, funcname)
     if argtypes is not None:
         funcobj.argtypes = argtypes
-    if restype is not None:
-        funcobj.restype = restype
+    funcobj.restype = ec_type
+
+# This is the only function in the public API not to return an errorcode.
+libfile.a4pdf_error_message.argtypes = [ctypes.c_int32]
+libfile.a4pdf_error_message.restype = ctypes.c_char_p
 
 def get_error_message(errorcode):
     return libfile.a4pdf_error_message(errorcode).decode('UTF-8', errors='ignore')
