@@ -687,7 +687,7 @@ void PdfDocument::generate_info_object() {
     add_object(std::move(obj_data));
 }
 
-FontId PdfDocument::get_builtin_font_id(A4PDF_Builtin_Fonts font) {
+A4PDF_FontId PdfDocument::get_builtin_font_id(A4PDF_Builtin_Fonts font) {
     auto it = builtin_fonts.find(font);
     if(it != builtin_fonts.end()) {
         return it->second;
@@ -702,7 +702,7 @@ FontId PdfDocument::get_builtin_font_id(A4PDF_Builtin_Fonts font) {
 )",
                    font_names[font]);
     font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), size_t(-1)});
-    auto fontid = FontId{(int32_t)font_objects.size() - 1};
+    auto fontid = A4PDF_FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
 }
@@ -712,7 +712,7 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
-SubsetGlyph PdfDocument::get_subset_glyph(FontId fid, uint32_t glyph) {
+SubsetGlyph PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
     auto blub = fonts.at(fid.id).subsets.get_glyph_subset(glyph);
     fss.ss.fid = fid;
@@ -1066,7 +1066,7 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
     return OutlineId{(int32_t)outlines.size() - 1};
 }
 
-FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
+A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 load_file(fname)};
     FT_Face face;
@@ -1123,15 +1123,15 @@ FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
         */
     const int32_t subset_num = 0;
     auto subfont_data_obj =
-        add_object(DelayedSubsetFontData{FontId{(int32_t)font_source_id}, subset_num});
-    auto subfont_descriptor_obj = add_object(
-        DelayedSubsetFontDescriptor{FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
+        add_object(DelayedSubsetFontData{A4PDF_FontId{(int32_t)font_source_id}, subset_num});
+    auto subfont_descriptor_obj = add_object(DelayedSubsetFontDescriptor{
+        A4PDF_FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
     auto subfont_cmap_obj =
-        add_object(DelayedSubsetCMap{FontId{(int32_t)font_source_id}, subset_num});
+        add_object(DelayedSubsetCMap{A4PDF_FontId{(int32_t)font_source_id}, subset_num});
     auto subfont_obj = add_object(DelayedSubsetFont{
-        FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
+        A4PDF_FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
     (void)subfont_obj;
-    FontId fid{(int32_t)fonts.size() - 1};
+    A4PDF_FontId fid{(int32_t)fonts.size() - 1};
     font_objects.push_back(
         FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
     return fid;

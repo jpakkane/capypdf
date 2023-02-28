@@ -721,11 +721,15 @@ subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32
         const auto gid = c != 0 ? FT_Get_Char_Index(face, c) : 0;
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
-        int16_t num_contours;
-        memcpy(&num_contours, subset.back().data(), sizeof(int16_t));
-        if(num_contours < 0) {
-            printf("Composite glyphs not supported yet.\n");
-            std::abort();
+        if(!subset.back().empty()) {
+            int16_t num_contours;
+            assert(subset.back().size() >= sizeof(int16_t));
+            memcpy(&num_contours, subset.back().data(), sizeof(int16_t));
+            byte_swap(num_contours);
+            if(num_contours < 0) {
+                printf("Composite glyphs not supported yet.\n");
+                std::abort();
+            }
         }
     }
 

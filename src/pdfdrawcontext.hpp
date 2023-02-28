@@ -130,9 +130,10 @@ public:
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    void render_utf8_text(std::string_view text, FontId fid, double pointsize, double x, double y);
-    void render_raw_glyph(uint32_t glyph, FontId fid, double pointsize, double x, double y);
-    void render_glyphs(const std::vector<PdfGlyph> &glyphs, FontId fid, double pointsize);
+    void
+    render_utf8_text(std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y);
+    void render_raw_glyph(uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y);
+    void render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);
     void render_ascii_text_builtin(
         const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
 

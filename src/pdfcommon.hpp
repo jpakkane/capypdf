@@ -69,10 +69,6 @@ private:
 // Every resource type has its own id type to avoid
 // accidentally mixing them up.
 
-struct FontId {
-    int32_t id;
-};
-
 struct ImageId {
     int32_t id;
 };
@@ -193,7 +189,7 @@ struct TextStateParameters {
 };
 
 struct FontSubset {
-    FontId fid;
+    A4PDF_FontId fid;
     int32_t subset_id;
 
     bool operator==(const FontSubset &other) const {

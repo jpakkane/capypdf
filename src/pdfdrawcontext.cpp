@@ -389,10 +389,11 @@ struct IconvCloser {
 };
 
 void PdfDrawContext::render_utf8_text(
-    std::string_view text, FontId fid, double pointsize, double x, double y) {
+    std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y) {
     if(text.empty()) {
         return;
     }
+    errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
         throw std::runtime_error(strerror(errno));
@@ -476,7 +477,7 @@ void PdfDrawContext::render_utf8_text(
 }
 
 void PdfDrawContext::render_raw_glyph(
-    uint32_t glyph, FontId fid, double pointsize, double x, double y) {
+    uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y) {
     auto &font_data = doc->font_objects.at(fid.id);
     // used_fonts.insert(font_data.font_obj);
 
@@ -497,7 +498,7 @@ ET
 }
 
 void PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
-                                   FontId fid,
+                                   A4PDF_FontId fid,
                                    double pointsize) {
     double prev_x = 0;
     double prev_y = 0;

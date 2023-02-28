@@ -17,12 +17,17 @@ import ctypes
 
 ec_type = ctypes.c_int32
 
+class FontId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 cfunc_types = (('a4pdf_options_new', None, ctypes.c_void_p),
                ('a4pdf_options_destroy', [ctypes.c_void_p], ec_type),
                ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p], ec_type),
+               ('a4pdf_options_set_mediabox', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
 
                ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p], ctypes.c_void_p),
                ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p], ec_type),
+               ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p], ec_type),
                ('a4pdf_generator_destroy', [ctypes.c_void_p], ec_type),
 
                ('a4pdf_page_draw_context_new', [ctypes.c_void_p], ctypes.c_void_p),
@@ -30,6 +35,7 @@ cfunc_types = (('a4pdf_options_new', None, ctypes.c_void_p),
                ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_cmd_f', [ctypes.c_void_p], ec_type),
+               ('a4pdf_dc_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double], ec_type),
                ('a4pdf_dc_destroy', [ctypes.c_void_p], ec_type),
 
                ('a4pdf_error_message', [ctypes.c_int32], ctypes.c_char_p),
@@ -56,6 +62,14 @@ def check_error(errorcode):
     if errorcode != 0:
         raise_with_error(errorcode)
 
+def to_bytepath(filename):
+    if isinstance(filename, bytes):
+        return filename
+    elif isinstance(filename, str):
+        return filename.encode('UTF-8')
+    else:
+        return str(filename).encode('UTF-8')
+
 class Options:
     def __init__(self):
         self._as_parameter_ = libfile.a4pdf_options_new()
@@ -68,6 +82,9 @@ class Options:
             raise RuntimeError('Title must be an Unicode string.')
         bytes = title.encode('UTF-8')
         check_error(libfile.a4pdf_options_set_title(self, bytes))
+
+    def set_mediabox(self, x, y, w, h):
+        check_error(libfile.a4pdf_options_set_mediabox(self, x, y, w, h))
 
 class DrawContext:
     def __init__(self, generator):
@@ -98,14 +115,17 @@ class DrawContext:
     def cmd_re(self, x, y, w, h):
         check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
 
+    def render_text(self, text, fid, point_size, x, y):
+        if not isinstance(text, str):
+            raise RuntimeError('Text to render is not a string.')
+        if not isinstance(fid, FontId):
+            raise RuntimeError('Font id argument is not a font id object.')
+        text_bytes = text.encode('UTF-8')
+        check_error(libfile.a4pdf_dc_render_utf8_text(self, text_bytes, fid, point_size, x, y))
+
 class Generator:
     def __init__(self, filename, options=None):
-        if isinstance(filename, bytes):
-            file_name_bytes = filename
-        elif isinstance(filename, str):
-            file_name_bytes = filename.encode('UTF-8')
-        else:
-            file_name_bytes = str(filename).encode('UTF-8')
+        file_name_bytes = to_bytepath(filename)
         if options is None:
             options = Options()
         self._as_parameter_ = libfile.a4pdf_generator_new(file_name_bytes, options)
@@ -126,3 +146,10 @@ class Generator:
 
     def add_page(self, page_ctx):
         check_error(libfile.a4pdf_generator_add_page(self, page_ctx))
+
+    def load_font(self, fname):
+        import sys
+        fid = FontId()
+        fid.id = 33
+        check_error(libfile.a4pdf_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
+        return fid

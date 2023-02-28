@@ -35,10 +35,28 @@ A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) A4P
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
+    A4PDF_Options *opt, double x, double y, double w, double h) A4PDF_NOEXCEPT {
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    opts->mediabox.x = x;
+    opts->mediabox.y = y;
+    opts->mediabox.w = w;
+    opts->mediabox.h = h;
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
 A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
     gen->add_page(*ctx);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
+                                                const char *fname,
+                                                A4PDF_FontId *fid) A4PDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    *fid = gen->load_font(fname);
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -56,6 +74,17 @@ A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
 A4PDF_DrawContext *a4pdf_page_draw_context_new(A4PDF_Generator *g) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     return reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
+                                                const char *text,
+                                                A4PDF_FontId fid,
+                                                double point_size,
+                                                double x,
+                                                double y) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    c->render_utf8_text(text, fid, point_size, x, y);
+    return (A4PDF_EC)ErrorCode::NoError;
 }
 
 A4PDF_EC

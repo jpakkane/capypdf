@@ -49,15 +49,15 @@ def validate_image(basename, w, h):
             value = func(*args, **kwargs)
             the_truth = testdata_dir / pngname
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
-            subprocess.check_call(['gs',
-                                   '-q',
-                                   '-dNOPAUSE',
-                                   '-dBATCH',
-                                   '-sDEVICE=png256',
-                                   f'-g{w}x{h}',
-                                   '-dPDFFitPage',
-                                   f'-sOutputFile={pngname}',
-                                   pdfname])
+            utobj.assertEqual(subprocess.run(['gs',
+                                              '-q',
+                                              '-dNOPAUSE',
+                                              '-dBATCH',
+                                              '-sDEVICE=png256',
+                                              f'-g{w}x{h}',
+                                              #'-dPDFFitPage',
+                                              f'-sOutputFile={pngname}',
+                                              str(pdfname)]).returncode, 0)
             oracle_image = PIL.Image.open(the_truth)
             gen_image = PIL.Image.open(pngname)
             diff = PIL.ImageChops.difference(oracle_image, gen_image)
@@ -78,6 +78,15 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
                 ctx.cmd_re(10, 10, 100, 100)
                 ctx.cmd_f()
+
+    @validate_image('python_text', 400, 400)
+    def test_text(self, ofilename):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, 400, 400)
+        with a4pdf.Generator(ofilename, opts) as g:
+            fid = g.load_font('/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                ctx.render_text('Av, Tv, kerning yo.', fid, 12, 50, 150)
 
 if __name__ == "__main__":
     unittest.main()

@@ -73,23 +73,23 @@ struct FullPDFObject {
 };
 
 struct DelayedSubsetFontData {
-    FontId fid;
+    A4PDF_FontId fid;
     int32_t subset_id;
 };
 
 struct DelayedSubsetCMap {
-    FontId fid;
+    A4PDF_FontId fid;
     int32_t subset_id;
 };
 
 struct DelayedSubsetFontDescriptor {
-    FontId fid;
+    A4PDF_FontId fid;
     int32_t subfont_data_obj;
     int32_t subset_num;
 };
 
 struct DelayedSubsetFont {
-    FontId fid;
+    A4PDF_FontId fid;
     int32_t subfont_descriptor_obj;
     int32_t subfont_cmap_obj;
 };
@@ -169,10 +169,10 @@ public:
     IccColorId load_icc_file(const char *fname);
 
     // Fonts
-    FontId load_font(FT_Library ft, const char *fname);
-    SubsetGlyph get_subset_glyph(FontId fid, uint32_t glyph);
+    A4PDF_FontId load_font(FT_Library ft, const char *fname);
+    SubsetGlyph get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
-    FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
+    A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
     ImageId load_image(const char *fname);
@@ -199,7 +199,7 @@ private:
     int32_t add_object(ObjectType object);
 
     int32_t image_object_number(ImageId iid) { return image_info.at(iid.id).obj; }
-    int32_t font_object_number(FontId fid) { return font_objects.at(fid.id).font_obj; }
+    int32_t font_object_number(A4PDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
     int32_t store_icc_profile(std::string_view contents, int32_t num_channels);
@@ -246,7 +246,7 @@ private:
     std::vector<ObjectType> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;
-    std::unordered_map<A4PDF_Builtin_Fonts, FontId> builtin_fonts;
+    std::unordered_map<A4PDF_Builtin_Fonts, A4PDF_FontId> builtin_fonts;
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
