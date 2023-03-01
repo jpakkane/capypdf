@@ -65,7 +65,6 @@ public:
     PdfDrawContext(PdfDocument *g, PdfColorConverter *cm, A4PDF_Draw_Context_Type dtype);
     ~PdfDrawContext();
     SerializedContext serialize();
-    void finalize();
 
     PdfDrawContext() = delete;
     PdfDrawContext(const PdfDrawContext &) = delete;

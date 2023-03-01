@@ -54,14 +54,10 @@ PdfDrawContext::PdfDrawContext(PdfDocument *doc,
 
 PdfDrawContext::~PdfDrawContext() {}
 
-void PdfDrawContext::finalize() {
-    if(is_finalized) {
-        throw std::runtime_error("Tried to finalize a page object twice.");
-    }
-    is_finalized = true;
-    std::string buf;
-    std::string resources = build_resource_dict();
-    buf = fmt::format(
+SerializedContext PdfDrawContext::serialize() {
+    SerializedContext sc;
+    sc.dict = build_resource_dict();
+    sc.commands = fmt::format(
         R"(<<
   /Length {}
 >>
@@ -71,7 +67,7 @@ endstream
 )",
         commands.size(),
         commands);
-    doc->add_page(resources, buf);
+    return sc;
 }
 
 void PdfDrawContext::clear() {

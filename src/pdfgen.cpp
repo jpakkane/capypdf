@@ -89,7 +89,8 @@ PageId PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
         throw std::runtime_error("Tried to pass a non-page context to add_page.");
     }
-    ctx.finalize();
+    auto sc = ctx.serialize();
+    pdoc.add_page(std::move(sc.dict), std::move(sc.commands));
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }
