@@ -153,25 +153,35 @@ GstatePopper PdfDrawContext::push_gstate() {
     return GstatePopper(this);
 }
 
-void PdfDrawContext::cmd_B() { commands += "B\n"; }
-
-void PdfDrawContext::cmd_Bstar() { commands += "B*\n"; }
-
-void PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
+ErrorCode PdfDrawContext::cmd_B() {
+    commands += "B\n";
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
+ErrorCode PdfDrawContext::cmd_Bstar() {
+    commands += "B*\n";
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
+    fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(
         cmd_appender, "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n", m1, m2, m3, m4, m5, m6);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_CS(std::string_view cspace_name) {
+ErrorCode PdfDrawContext::cmd_CS(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{} CS\n", cspace_name);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_cs(std::string_view cspace_name) {
+ErrorCode PdfDrawContext::cmd_cs(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{} cs\n", cspace_name);
+    return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_f() {
@@ -179,16 +189,26 @@ ErrorCode PdfDrawContext::cmd_f() {
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_G(double gray) { fmt::format_to(cmd_appender, "{} G\n", gray); }
-
-void PdfDrawContext::cmd_g(double gray) { fmt::format_to(cmd_appender, "{} g\n", gray); }
-
-void PdfDrawContext::cmd_gs(GstateId gid) {
-    used_gstates.insert(gid.id);
-    fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
+ErrorCode PdfDrawContext::cmd_G(double gray) {
+    fmt::format_to(cmd_appender, "{} G\n", gray);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_h() { commands += "h\n"; }
+ErrorCode PdfDrawContext::cmd_g(double gray) {
+    fmt::format_to(cmd_appender, "{} g\n", gray);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
+    used_gstates.insert(gid.id);
+    fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_h() {
+    commands += "h\n";
+    return ErrorCode::NoError;
+}
 
 ErrorCode PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
     fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
@@ -200,56 +220,95 @@ ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_K(double c, double m, double y, double k) {
+ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} K\n", c, m, y, k);
+    return ErrorCode::NoError;
 }
-void PdfDrawContext::cmd_k(double c, double m, double y, double k) {
+ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
     fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_l(double x, double y) { fmt::format_to(cmd_appender, "{} {} l\n", x, y); }
+ErrorCode PdfDrawContext::cmd_l(double x, double y) {
+    fmt::format_to(cmd_appender, "{} {} l\n", x, y);
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_m(double x, double y) { fmt::format_to(cmd_appender, "{} {} m\n", x, y); }
+ErrorCode PdfDrawContext::cmd_m(double x, double y) {
+    fmt::format_to(cmd_appender, "{} {} m\n", x, y);
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_n() { commands += "n\n"; }
+ErrorCode PdfDrawContext::cmd_n() {
+    commands += "n\n";
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_q() { commands += "q\n"; }
+ErrorCode PdfDrawContext::cmd_q() {
+    commands += "q\n";
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_Q() { commands += "Q\n"; }
+ErrorCode PdfDrawContext::cmd_Q() {
+    commands += "Q\n";
+    return ErrorCode::NoError;
+}
 
 ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
     fmt::format_to(cmd_appender, "{} {} {} {} re\n", x, y, w, h);
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_RG(double r, double g, double b) {
+ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_rg(double r, double g, double b) {
+ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
     fmt::format_to(cmd_appender, "{} {} {} rg\n", r, g, b);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_s() { commands += "s\n"; }
+ErrorCode PdfDrawContext::cmd_s() {
+    commands += "s\n";
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_S() { commands += "S\n"; }
+ErrorCode PdfDrawContext::cmd_S() {
+    commands += "S\n";
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_SCN(double value) { fmt::format_to(cmd_appender, "{} SCN\n", value); }
+ErrorCode PdfDrawContext::cmd_SCN(double value) {
+    fmt::format_to(cmd_appender, "{} SCN\n", value);
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_scn(double value) { fmt::format_to(cmd_appender, "{} scn\n", value); }
+ErrorCode PdfDrawContext::cmd_scn(double value) {
+    fmt::format_to(cmd_appender, "{} scn\n", value);
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_sh(ShadingId shid) {
+ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
     used_shadings.insert(shid.id);
     fmt::format_to(cmd_appender, "/SH{} sh\n", shid.id);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
+ErrorCode PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
     fmt::format_to(cmd_appender, "{} Tr\n", (int)mode);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::cmd_W() { commands += "W\n"; }
+ErrorCode PdfDrawContext::cmd_W() {
+    commands += "W\n";
+    return ErrorCode::NoError;
+}
 
-void PdfDrawContext::cmd_Wstar() { commands += "W*\n"; }
+ErrorCode PdfDrawContext::cmd_Wstar() {
+    commands += "W*\n";
+    return ErrorCode::NoError;
+}
 
 ErrorCode PdfDrawContext::cmd_w(double w) {
     if(w < 0) {
