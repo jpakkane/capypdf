@@ -88,6 +88,34 @@ A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_f();
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
+                                     A4PDF_Line_Join join_style) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_j(join_style);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
+                                     A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_J(cap_style);
+}
+
+A4PDF_EC
+a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_re(x, y, w, h);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_w(line_width);
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
                                                 const char *text,
                                                 A4PDF_FontId fid,
@@ -113,34 +141,6 @@ a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b)
     DeviceRGBColor rgb{r, g, b};
     c->set_nonstroke_color(rgb);
     return (A4PDF_EC)ErrorCode::NoError;
-}
-
-A4PDF_EC
-a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_re(x, y, w, h);
-}
-
-A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_f();
-}
-
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_w(line_width);
-}
-
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Join join_style) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_j(join_style);
-}
-
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_J(cap_style);
 }
 
 A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
