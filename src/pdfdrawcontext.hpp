@@ -143,8 +143,6 @@ public:
     std::string_view get_command_stream() { return commands; }
 
 private:
-    void setup_initial_cs();
-
     PdfDocument *doc;
     PdfColorConverter *cm;
     A4PDF_Draw_Context_Type context_type;

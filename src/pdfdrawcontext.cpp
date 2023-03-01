@@ -50,19 +50,7 @@ GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 PdfDrawContext::PdfDrawContext(PdfDocument *doc,
                                PdfColorConverter *cm,
                                A4PDF_Draw_Context_Type dtype)
-    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands) {
-    setup_initial_cs();
-}
-
-void PdfDrawContext::setup_initial_cs() {
-    if(doc->opts.output_colorspace == A4PDF_DEVICE_GRAY) {
-        commands += "/DeviceGray CS\n/DeviceGray cs\n";
-    } else if(doc->opts.output_colorspace == A4PDF_DEVICE_CMYK) {
-        commands += "/DeviceCMYK CS\n/DeviceCMYK cs\n";
-    }
-    // The default is DeviceRGB.
-    // FIXME add ICC here if needed.
-}
+    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands) {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
@@ -97,8 +85,6 @@ void PdfDrawContext::clear() {
     used_patterns.clear();
     is_finalized = false;
     uses_all_colorspace = false;
-
-    setup_initial_cs();
 }
 
 std::string PdfDrawContext::build_resource_dict() {
