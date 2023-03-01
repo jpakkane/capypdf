@@ -38,6 +38,11 @@
         return ErrorCode::BadId;                                                                   \
     }
 
+#define CHECK_ENUM(v, max_enum_val)                                                                \
+    if((int)v < 0 || ((int)v > (int)max_enum_val)) {                                               \
+        return ErrorCode::BadEnum;                                                                 \
+    }
+
 namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
@@ -224,11 +229,13 @@ ErrorCode PdfDrawContext::cmd_h() {
 }
 
 ErrorCode PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
+    CHECK_ENUM(join_style, A4PDF_Bevel_Join);
     fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
+    CHECK_ENUM(cap_style, A4PDF_Projection_Square_Cap);
     fmt::format_to(cmd_appender, "{} J\n", (int)cap_style);
     return ErrorCode::NoError;
 }
@@ -317,12 +324,14 @@ ErrorCode PdfDrawContext::cmd_scn(double value) {
 }
 
 ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
+    CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
     fmt::format_to(cmd_appender, "/SH{} sh\n", shid.id);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
+    CHECK_ENUM(mode, A4PDF_Text_Clip);
     fmt::format_to(cmd_appender, "{} Tr\n", (int)mode);
     return ErrorCode::NoError;
 }
@@ -364,9 +373,9 @@ void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     }
 }
 
-void PdfDrawContext::set_nonstroke_color(IccColorId icc_id,
-                                         const double *values,
-                                         int32_t num_values) {
+ErrorCode
+PdfDrawContext::set_nonstroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+    CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc_id.id);
     if(icc_info.num_channels != num_values) {
         throw std::runtime_error("Incorrect number of color channels.");
@@ -377,9 +386,12 @@ void PdfDrawContext::set_nonstroke_color(IccColorId icc_id,
         fmt::format_to(cmd_appender, "{:} ", values[i]);
     }
     fmt::format_to(cmd_appender, "scn\n", icc_info.object_num);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+ErrorCode
+PdfDrawContext::set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+    CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc_id.id);
     if(icc_info.num_channels != num_values) {
         throw std::runtime_error("Incorrect number of color channels.");
@@ -390,6 +402,7 @@ void PdfDrawContext::set_stroke_color(IccColorId icc_id, const double *values, i
         fmt::format_to(cmd_appender, "{:} ", values[i]);
     }
     fmt::format_to(cmd_appender, "SCN\n", icc_info.object_num);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {

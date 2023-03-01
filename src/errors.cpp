@@ -27,6 +27,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "No pages defined.",
 "Color component out of range.",
 "Bad ID number.",
+"Enum out of range.",
 };
 
 // clang-format on
