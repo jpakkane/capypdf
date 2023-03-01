@@ -73,47 +73,40 @@ public:
     GstatePopper push_gstate();
 
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
+
+    // They are in the same order as in Annex A of the PDF spec.
+    void cmd_B();
+    void cmd_Bstar();
+    void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
+    void cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
+    void cmd_CS(std::string_view cspace_name);
+    void cmd_cs(std::string_view cspace_name);
+    ErrorCode cmd_f();
+    void cmd_G(double gray);
+    void cmd_g(double gray);
+    void cmd_gs(GstateId id);
+    void cmd_h();
+    ErrorCode cmd_j(A4PDF_Line_Join join_style);
+    ErrorCode cmd_J(A4PDF_Line_Cap cap_style);
+    void cmd_K(double c, double m, double y, double k);
+    void cmd_k(double c, double m, double y, double k);
+    void cmd_l(double x, double y);
+    void cmd_m(double x, double y);
+    void cmd_n();
     void cmd_q(); // Save
     void cmd_Q(); // Restore
     ErrorCode cmd_re(double x, double y, double w, double h);
-    ErrorCode cmd_f();
-    void cmd_S();
+    void cmd_RG(double r, double g, double b);
+    void cmd_rg(double r, double g, double b);
     void cmd_s();
-    void cmd_h();
-    void cmd_B();
-    void cmd_Bstar();
+    void cmd_S();
+    void cmd_SCN(double value);
+    void cmd_scn(double value);
     void cmd_sh(ShadingId shid);
-    void cmd_n();
+    void cmd_Tr(A4PDF_Text_Rendering_Mode mode);
     void cmd_W();
     void cmd_Wstar();
-    void cmd_m(double x, double y);
-    void cmd_l(double x, double y);
     ErrorCode cmd_w(double w);
-    void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
-    void cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
-
-    void cmd_cs(std::string_view cspace_name);
-    void cmd_scn(double value);
-    void cmd_CS(std::string_view cspace_name);
-    void cmd_SCN(double value);
-
-    ErrorCode cmd_J(A4PDF_Line_Cap cap_style);
-    ErrorCode cmd_j(A4PDF_Line_Join join_style);
-
-    // Stroke.
-    void cmd_RG(double r, double g, double b);
-    void cmd_G(double gray);
-    void cmd_K(double c, double m, double y, double k);
-
-    // Nonstroke
-    void cmd_rg(double r, double g, double b);
-    void cmd_g(double gray);
-    void cmd_k(double c, double m, double y, double k);
-
-    void cmd_gs(GstateId id);
-
-    // Text
-    void cmd_Tr(A4PDF_Text_Rendering_Mode mode);
 
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
