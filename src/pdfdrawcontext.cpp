@@ -28,6 +28,11 @@
 #include <cassert>
 #include <memory>
 
+#define CHECK_COLORCOMPONENT(c)                                                                    \
+    if(c < 0 || c > 1) {                                                                           \
+        return ErrorCode::ColorOutOfRange;                                                         \
+    }
+
 namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
@@ -190,11 +195,13 @@ ErrorCode PdfDrawContext::cmd_f() {
 }
 
 ErrorCode PdfDrawContext::cmd_G(double gray) {
+    CHECK_COLORCOMPONENT(gray);
     fmt::format_to(cmd_appender, "{} G\n", gray);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_g(double gray) {
+    CHECK_COLORCOMPONENT(gray);
     fmt::format_to(cmd_appender, "{} g\n", gray);
     return ErrorCode::NoError;
 }
@@ -221,10 +228,18 @@ ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
 }
 
 ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
+    CHECK_COLORCOMPONENT(c);
+    CHECK_COLORCOMPONENT(m);
+    CHECK_COLORCOMPONENT(y);
+    CHECK_COLORCOMPONENT(k);
     fmt::format_to(cmd_appender, "{} {} {} {} K\n", c, m, y, k);
     return ErrorCode::NoError;
 }
 ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
+    CHECK_COLORCOMPONENT(c);
+    CHECK_COLORCOMPONENT(m);
+    CHECK_COLORCOMPONENT(y);
+    CHECK_COLORCOMPONENT(k);
     fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
     return ErrorCode::NoError;
 }
@@ -260,11 +275,17 @@ ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
 }
 
 ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
+    CHECK_COLORCOMPONENT(r);
+    CHECK_COLORCOMPONENT(g);
+    CHECK_COLORCOMPONENT(b);
     fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
+    CHECK_COLORCOMPONENT(r);
+    CHECK_COLORCOMPONENT(g);
+    CHECK_COLORCOMPONENT(b);
     fmt::format_to(cmd_appender, "{} {} {} rg\n", r, g, b);
     return ErrorCode::NoError;
 }
