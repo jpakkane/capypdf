@@ -110,23 +110,24 @@ public:
 
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
-    void set_stroke_color(LabId lid, const LabColor &c);
+    ErrorCode set_stroke_color(LabId lid, const LabColor &c);
     void set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values);
-    void set_nonstroke_color(LabId lid, const LabColor &c);
+    ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
     void set_nonstroke_color(PatternId id);
     void set_nonstroke_color(IccColorId icc_id, const double *values, int32_t num_values);
-    void set_separation_stroke_color(SeparationId id, LimitDouble value);
-    void set_separation_nonstroke_color(SeparationId id, LimitDouble value);
+    ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
+    ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
-    void draw_image(ImageId obj_num);
+    ErrorCode draw_image(ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    void
+    ErrorCode
     render_utf8_text(std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y);
     void render_raw_glyph(uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y);
-    void render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);
+    ErrorCode
+    render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);
     void render_ascii_text_builtin(
         const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
 

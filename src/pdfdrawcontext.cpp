@@ -33,6 +33,11 @@
         return ErrorCode::ColorOutOfRange;                                                         \
     }
 
+#define CHECK_INDEXNESS(ind, container)                                                            \
+    if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
+        return ErrorCode::BadId;                                                                   \
+    }
+
 namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
@@ -207,6 +212,7 @@ ErrorCode PdfDrawContext::cmd_g(double gray) {
 }
 
 ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
+    CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
     fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
     return ErrorCode::NoError;
@@ -422,34 +428,42 @@ void PdfDrawContext::set_nonstroke_color(PatternId id) {
     fmt::format_to(cmd_appender, "/Pattern-{} scn\n", id.id);
 }
 
-void PdfDrawContext::set_separation_stroke_color(SeparationId id, LimitDouble value) {
+ErrorCode PdfDrawContext::set_separation_stroke_color(SeparationId id, LimitDouble value) {
+    CHECK_INDEXNESS(id.id, doc->separation_objects);
     const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
     cmd_CS(csname);
     cmd_SCN(value.v());
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
+ErrorCode PdfDrawContext::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
+    CHECK_INDEXNESS(id.id, doc->separation_objects);
     const auto idnum = doc->separation_object_number(id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
     cmd_cs(csname);
     cmd_scn(value.v());
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_stroke_color(LabId lid, const LabColor &c) {
+ErrorCode PdfDrawContext::set_stroke_color(LabId lid, const LabColor &c) {
+    CHECK_INDEXNESS(lid.id, doc->document_objects);
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_CS(csname);
     fmt::format_to(cmd_appender, "{:f} {:f} {:f} SCN\n", c.l, c.a, c.b);
+    return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_nonstroke_color(LabId lid, const LabColor &c) {
+ErrorCode PdfDrawContext::set_nonstroke_color(LabId lid, const LabColor &c) {
+    CHECK_INDEXNESS(lid.id, doc->document_objects);
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_cs(csname);
     fmt::format_to(cmd_appender, "{:f} {:f} {:f} scn\n", c.l, c.a, c.b);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::set_all_stroke_color() {
@@ -458,10 +472,12 @@ void PdfDrawContext::set_all_stroke_color() {
     cmd_SCN(1.0);
 }
 
-void PdfDrawContext::draw_image(ImageId im_id) {
+ErrorCode PdfDrawContext::draw_image(ImageId im_id) {
+    CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
     fmt::format_to(cmd_appender, "/Image{} Do\n", obj_num);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
@@ -477,10 +493,11 @@ struct IconvCloser {
     ~IconvCloser() { iconv_close(t); }
 };
 
-void PdfDrawContext::render_utf8_text(
+ErrorCode PdfDrawContext::render_utf8_text(
     std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y) {
+    CHECK_INDEXNESS(fid.id, doc->font_objects);
     if(text.empty()) {
-        return;
+        return ErrorCode::NoError;
     }
     errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
@@ -563,6 +580,7 @@ void PdfDrawContext::render_utf8_text(
     }
     fmt::format_to(cmd_appender, "> ] TJ\nET\n");
     assert(in_bytes == 0);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::render_raw_glyph(
@@ -586,13 +604,14 @@ ET
                    font_glyph_id);
 }
 
-void PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
-                                   A4PDF_FontId fid,
-                                   double pointsize) {
+ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
+                                        A4PDF_FontId fid,
+                                        double pointsize) {
+    CHECK_INDEXNESS(fid.id, doc->font_objects);
     double prev_x = 0;
     double prev_y = 0;
     if(glyphs.empty()) {
-        return;
+        return ErrorCode::NoError;
     }
     auto &font_data = doc->font_objects.at(fid.id);
     // FIXME, do per character.
@@ -616,6 +635,7 @@ void PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
             cmd_appender, "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
     }
     fmt::format_to(cmd_appender, "ET\n");
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::render_ascii_text_builtin(
