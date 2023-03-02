@@ -221,7 +221,10 @@ class Generator:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        self.write()
+        if exc_type is None:
+            self.write()
+        else:
+            return False
 
     def page_draw_context(self):
         return DrawContext(self)
@@ -238,6 +241,11 @@ class Generator:
         fid = FontId()
         check_error(libfile.a4pdf_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
         return fid
+
+    def load_image(self, fname):
+        iid = ImageId()
+        check_error(libfile.a4pdf_generator_load_image(self, to_bytepath(fname), ctypes.pointer(iid)))
+        return iid
 
     def write(self):
         check_error(libfile.a4pdf_generator_write(self))

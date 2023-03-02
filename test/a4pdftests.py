@@ -41,7 +41,7 @@ def validate_image(basename, w, h):
             utobj = args[0]
             pngname = pathlib.Path(basename + '.png')
             pdfname = pathlib.Path(basename + '.pdf')
-            args = (args[0], pdfname)
+            args = (args[0], pdfname, w, h)
             try:
                 pdfname.unlink()
             except Exception:
@@ -72,7 +72,7 @@ def validate_image(basename, w, h):
 class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_simple', 480, 640)
-    def test_simple(self, ofilename):
+    def test_simple(self, ofilename, w, h):
         ofile = pathlib.Path(ofilename)
         with a4pdf.Generator(ofile) as g:
             with g.page_draw_context() as ctx:
@@ -81,9 +81,9 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_f()
 
     @validate_image('python_text', 400, 400)
-    def test_text(self, ofilename):
+    def test_text(self, ofilename, w, h):
         opts = a4pdf.Options()
-        opts.set_mediabox(0, 0, 400, 400)
+        opts.set_mediabox(0, 0, w, h)
         with a4pdf.Generator(ofilename, opts) as g:
             fid = g.load_font('/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:
@@ -112,17 +112,27 @@ class TestPDFCreation(unittest.TestCase):
         ofile.unlink()
 
     @validate_image('python_image', 200, 200)
-    def test_images(self, ofilename):
+    def test_images(self, ofilename, w, h):
         opts = a4pdf.Options()
-        opts.set_mediabox(0, 0, 200, 200)
+        opts.set_mediabox(0, 0, w, h)
         with a4pdf.Generator(ofilename) as g:
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
+            mono_img = g.load_image(image_dir / '1bit_noalpha.png')
+            gray_img = g.load_image(image_dir / 'gray_alpha.png')
             with g.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
                     ctx.scale(80, 80)
                     ctx.draw_image(bg_img)
-
+                with ctx.push_gstate():
+                    ctx.translate(0, 100)
+                    ctx.translate(10, 10)
+                    ctx.scale(80, 80)
+                    ctx.draw_image(mono_img)
+                with ctx.push_gstate():
+                    ctx.translate(110, 110)
+                    ctx.scale(80, 80)
+                    ctx.draw_image(gray_img)
 
 if __name__ == "__main__":
     unittest.main()

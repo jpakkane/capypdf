@@ -81,7 +81,29 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
                                                 const char *fname,
                                                 A4PDF_FontId *fid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    *fid = gen->load_font(fname);
+    try {
+        *fid = gen->load_font(fname);
+    } catch(const std::exception &e) {
+        fprintf(stderr, "%s\n", e.what());
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    } catch(...) {
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    }
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,
+                                                 const char *fname,
+                                                 A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    try {
+        *iid = gen->load_image(fname);
+    } catch(const std::exception &e) {
+        fprintf(stderr, "%s\n", e.what());
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    } catch(...) {
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    }
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -93,9 +115,6 @@ A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = (A4PDF_EC)ErrorCode::NoError;
-    if(g->num_pages() == 0) {
-        rc = (A4PDF_EC)ErrorCode::NoPages;
-    }
     delete g;
     return rc;
 }
