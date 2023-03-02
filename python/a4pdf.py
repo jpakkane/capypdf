@@ -37,6 +37,9 @@ enum_type = ctypes.c_int32
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class ImageId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 cfunc_types = (
 
 ('a4pdf_options_new', [ctypes.c_void_p]),
@@ -46,17 +49,24 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('a4pdf_generator_write', [ctypes.c_void_p]),
 ('a4pdf_generator_destroy', [ctypes.c_void_p]),
 ('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
-('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_cm', [ctypes.c_void_p,
+    ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_f', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_j', [ctypes.c_void_p, enum_type]),
+('a4pdf_dc_cmd_q', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_Q', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
+('a4pdf_dc_draw_image',
+    [ctypes.c_void_p, ImageId]),
 ('a4pdf_dc_render_utf8_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
@@ -130,11 +140,17 @@ class DrawContext:
         finally:
             self.generator = None # Not very elegant.
 
+    def push_gstate(self):
+        return StateContextManager(self)
+
     def set_rgb_stroke(self, r, g, b):
         check_error(libfile.a4pdf_dc_set_rgb_stroke(self, r, g, b))
 
     def set_rgb_nonstroke(self, r, g, b):
         check_error(libfile.a4pdf_dc_set_rgb_nonstroke(self, r, g, b))
+
+    def cmd_cm(self, m1, m2, m3, m4, m5, m6):
+        check_error(libfile.a4pdf_dc_cmd_cm(self, m1, m2, m3, m4, m5, m6))
 
     def cmd_f(self):
         check_error(libfile.a4pdf_dc_cmd_f(self))
@@ -145,11 +161,17 @@ class DrawContext:
     def cmd_j(self, join_style):
         check_error(libfile.a4pdf_dc_cmd_j(self, join_style.value))
 
-    def cmd_w(self, line_width):
-        check_error(libfile.a4pdf_dc_cmd_w(self, line_width))
+    def cmd_q(self):
+        check_error(libfile.a4pdf_dc_cmd_q(self))
+
+    def cmd_Q(self):
+        check_error(libfile.a4pdf_dc_cmd_Q(self))
 
     def cmd_re(self, x, y, w, h):
         check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
+
+    def cmd_w(self, line_width):
+        check_error(libfile.a4pdf_dc_cmd_w(self, line_width))
 
     def render_text(self, text, fid, point_size, x, y):
         if not isinstance(text, str):
@@ -158,6 +180,29 @@ class DrawContext:
             raise A4PDFException('Font id argument is not a font id object.')
         text_bytes = text.encode('UTF-8')
         check_error(libfile.a4pdf_dc_render_utf8_text(self, text_bytes, fid, point_size, x, y))
+
+    def draw_image(self, iid):
+        if not isinstance(iid, ImageId):
+            raise A4PDFException('Image id argument is not an image id object.')
+        check_error(libfile.a4pdf_dc_draw_image(self, iid))
+
+    def translate(self, xtran, ytran):
+        self.cmd_cm(1.0, 0, 0, 1.0, xtran, ytran)
+
+    def scale(self, xscale, yscale):
+        self.cmd_cm(xscale, 0, 0, yscale, 0, 0)
+
+class StateContextManager:
+    def __init__(self, ctx):
+        self.ctx = ctx
+        ctx.cmd_q()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.ctx.cmd_Q()
+
 
 class Generator:
     def __init__(self, filename, options=None):
@@ -184,13 +229,15 @@ class Generator:
     def add_page(self, page_ctx):
         check_error(libfile.a4pdf_generator_add_page(self, page_ctx))
 
+    def embed_jpg(self, fname):
+        iid = ImageId()
+        check_error(libfile.a4pdf_generator_embed_jpg(self, to_bytepath(fname), ctypes.pointer(iid)))
+        return iid
+
     def load_font(self, fname):
-        import sys
         fid = FontId()
-        fid.id = 33
         check_error(libfile.a4pdf_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
         return fid
 
     def write(self):
         check_error(libfile.a4pdf_generator_write(self))
-

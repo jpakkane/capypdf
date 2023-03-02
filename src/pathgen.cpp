@@ -70,7 +70,7 @@ void basic_painting(PdfDrawContext &ctx) {
     }
 }
 
-void clipping(PdfDrawContext &ctx, ImageId image) {
+void clipping(PdfDrawContext &ctx, A4PDF_ImageId image) {
     ctx.cmd_w(0.1);
     {
         auto pop = ctx.push_gstate();

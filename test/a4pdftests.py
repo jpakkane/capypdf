@@ -24,7 +24,8 @@ if shutil.which('gs') is None:
 
 os.environ['LD_LIBRARY_PATH'] = 'src'
 source_root = pathlib.Path(sys.argv[1])
-testdata_dir = source_root / 'testdata'
+testdata_dir = source_root / 'testoutput'
+image_dir = source_root / 'images'
 sys.path.append(str(source_root / 'python'))
 
 sys.argv = sys.argv[0:1] + sys.argv[2:]
@@ -109,6 +110,19 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_J(a4pdf.LineCapStyle.Round)
                 ctx.cmd_j(a4pdf.LineJoinStyle.Bevel)
         ofile.unlink()
+
+    @validate_image('python_image', 200, 200)
+    def test_images(self, ofilename):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, 200, 200)
+        with a4pdf.Generator(ofilename) as g:
+            bg_img = g.embed_jpg(image_dir / 'simple.jpg')
+            with g.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.translate(10, 10)
+                    ctx.scale(80, 80)
+                    ctx.draw_image(bg_img)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -70,10 +70,6 @@ private:
 // Every resource type has its own id type to avoid
 // accidentally mixing them up.
 
-struct ImageId {
-    int32_t id;
-};
-
 struct SeparationId {
     int32_t id;
 };

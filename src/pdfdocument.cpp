@@ -730,7 +730,7 @@ SubsetGlyph PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph) {
     return fss;
 }
 
-ImageId PdfDocument::load_image(const char *fname) {
+A4PDF_ImageId PdfDocument::load_image(const char *fname) {
     auto image = load_image_file(fname);
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));
@@ -743,7 +743,7 @@ ImageId PdfDocument::load_image(const char *fname) {
     }
 }
 
-ImageId PdfDocument::process_mono_image(const mono_image &image) {
+A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
     auto compressed = flate_compress(image.pixels);
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -763,10 +763,10 @@ ImageId PdfDocument::process_mono_image(const mono_image &image) {
                    compressed.size());
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
     image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-    return ImageId{(int32_t)image_info.size() - 1};
+    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
+A4PDF_ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
     std::string buf;
     int32_t smask_id = -1;
 
@@ -874,10 +874,10 @@ ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
     default:
         throw std::runtime_error("Not implemented.");
     }
-    return ImageId{(int32_t)image_info.size() - 1};
+    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-ImageId PdfDocument::process_gray_image(const gray_image &image) {
+A4PDF_ImageId PdfDocument::process_gray_image(const gray_image &image) {
     std::string buf;
     int32_t smask_id = -1;
 
@@ -925,10 +925,10 @@ ImageId PdfDocument::process_gray_image(const gray_image &image) {
     buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
     image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-    return ImageId{(int32_t)image_info.size() - 1};
+    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-ImageId PdfDocument::embed_jpg(const char *fname) {
+A4PDF_ImageId PdfDocument::embed_jpg(const char *fname) {
     auto jpg = load_jpg(fname);
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -948,7 +948,7 @@ ImageId PdfDocument::embed_jpg(const char *fname) {
                    jpg.file_contents.length());
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
-    return ImageId{(int32_t)image_info.size() - 1};
+    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
 GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {

@@ -175,8 +175,8 @@ public:
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
-    ImageId load_image(const char *fname);
-    ImageId embed_jpg(const char *fname);
+    A4PDF_ImageId load_image(const char *fname);
+    A4PDF_ImageId embed_jpg(const char *fname);
 
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
@@ -198,7 +198,7 @@ public:
 private:
     int32_t add_object(ObjectType object);
 
-    int32_t image_object_number(ImageId iid) { return image_info.at(iid.id).obj; }
+    int32_t image_object_number(A4PDF_ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(A4PDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
@@ -232,9 +232,9 @@ private:
                            int32_t font_descriptor_obj,
                            int32_t tounicode_obj);
 
-    ImageId process_rgb_image(const rgb_image &image);
-    ImageId process_gray_image(const gray_image &image);
-    ImageId process_mono_image(const mono_image &image);
+    A4PDF_ImageId process_rgb_image(const rgb_image &image);
+    A4PDF_ImageId process_gray_image(const gray_image &image);
+    A4PDF_ImageId process_mono_image(const mono_image &image);
 
     OutlineLimits
     write_outline_tree(const std::vector<int32_t> &page_objects,

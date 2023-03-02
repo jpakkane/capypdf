@@ -46,10 +46,34 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_EC a4pdf_generator_new(const char *filename,
+                             const A4PDF_Options *options,
+                             A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
+    auto opts = reinterpret_cast<const PdfGenerationData *>(options);
+    *out_ptr = reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
 A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
     gen->add_page(*ctx);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_embed_jpg(A4PDF_Generator *g,
+                                                const char *fname,
+                                                A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    // FIXME, convert to std::expected once it exists.
+    try {
+        *iid = gen->embed_jpg(fname);
+    } catch(const std::exception &e) {
+        fprintf(stderr, "%s\n", e.what());
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    } catch(...) {
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    }
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -58,14 +82,6 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
                                                 A4PDF_FontId *fid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     *fid = gen->load_font(fname);
-    return (A4PDF_EC)ErrorCode::NoError;
-}
-
-A4PDF_EC a4pdf_generator_new(const char *filename,
-                             const A4PDF_Options *options,
-                             A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
-    auto opts = reinterpret_cast<const PdfGenerationData *>(options);
-    *out_ptr = reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -91,6 +107,17 @@ A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_cm(A4PDF_DrawContext *ctx,
+                                      double m1,
+                                      double m2,
+                                      double m3,
+                                      double m4,
+                                      double m5,
+                                      double m6) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_cm(m1, m2, m3, m4, m5, m6);
+}
+
 A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_f();
@@ -108,6 +135,16 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
     return (A4PDF_EC)c->cmd_J(cap_style);
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_q();
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_Q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_Q();
+}
+
 A4PDF_EC
 a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
@@ -117,6 +154,12 @@ a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_w(line_width);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_draw_image(A4PDF_DrawContext *ctx,
+                                          A4PDF_ImageId iid) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->draw_image(iid);
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,

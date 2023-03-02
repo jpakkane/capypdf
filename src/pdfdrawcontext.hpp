@@ -128,7 +128,7 @@ public:
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
     ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
-    ErrorCode draw_image(ImageId obj_num);
+    ErrorCode draw_image(A4PDF_ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);

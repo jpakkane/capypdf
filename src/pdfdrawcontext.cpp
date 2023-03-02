@@ -528,7 +528,7 @@ void PdfDrawContext::set_all_stroke_color() {
     cmd_SCN(1.0);
 }
 
-ErrorCode PdfDrawContext::draw_image(ImageId im_id) {
+ErrorCode PdfDrawContext::draw_image(A4PDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);

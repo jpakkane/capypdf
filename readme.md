@@ -10,6 +10,7 @@ directly.
 - All fonts are embedded as subsets
 - Not implemented in C
 - Provides a plain C API for easy integration into scripting languages
+- Ships with a `ctypes` Python binding
 - Minimal dependencies
 
 ## Things the library does not do
