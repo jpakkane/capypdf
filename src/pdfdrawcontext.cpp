@@ -192,6 +192,9 @@ ErrorCode PdfDrawContext::cmd_cs(std::string_view cspace_name) {
 }
 
 ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase) {
+    if(dash_array_length == 0) {
+        return ErrorCode::ZeroLengthArray;
+    }
     for(size_t i = 0; i < dash_array_length; ++i) {
         if(dash_array[i] < 0) {
             return ErrorCode::NegativeDash;

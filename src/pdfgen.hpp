@@ -51,6 +51,7 @@ public:
     explicit PdfGen(const char *ofname, const PdfGenerationData &d);
     ~PdfGen();
 
+    ErrorCode write();
     void new_page();
 
     ImageId load_image(const char *fname) { return pdoc.load_image(fname); }
@@ -89,11 +90,15 @@ public:
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
 private:
-    void close_file();
-
     std::filesystem::path ofilename;
     FT_Library ft;
     PdfDocument pdoc;
+};
+
+struct GenPopper {
+    PdfGen g;
+    GenPopper(const char *ofname, const PdfGenerationData &d) : g(ofname, d) {}
+    ~GenPopper() { g.write(); }
 };
 
 } // namespace A4PDF

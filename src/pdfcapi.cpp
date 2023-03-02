@@ -69,15 +69,18 @@ A4PDF_EC a4pdf_generator_new(const char *filename,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    return (A4PDF_EC)g->write();
+}
+
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
-    fprintf(stderr, "ABC\n");
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = (A4PDF_EC)ErrorCode::NoError;
     if(g->num_pages() == 0) {
         rc = (A4PDF_EC)ErrorCode::NoPages;
     }
     delete g;
-    fprintf(stderr, "123\n");
     return rc;
 }
 

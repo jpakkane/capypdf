@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
     opts.title = "Font layout test";
-    PdfGen gen("fonttest.pdf", opts);
+    GenPopper genpop("fonttest.pdf", opts);
+    PdfGen &gen = genpop.g;
     auto fid = gen.load_font(fontfile);
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;

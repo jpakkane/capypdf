@@ -27,7 +27,8 @@ int main(int, char **) {
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        PdfGen gen("outline_test.pdf", opts);
+        GenPopper genpop("outline_test.pdf", opts);
+        PdfGen &gen = genpop.g;
         std::unique_ptr<PdfDrawContext> g{gen.new_page_draw_context()};
         g->cmd_re(10, 10, 10, 10);
         g->cmd_f();

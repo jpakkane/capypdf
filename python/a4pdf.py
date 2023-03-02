@@ -47,6 +47,7 @@ cfunc_types = (
 ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('a4pdf_generator_write', [ctypes.c_void_p]),
 ('a4pdf_generator_destroy', [ctypes.c_void_p]),
 ('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -175,10 +176,7 @@ class Generator:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        try:
-            check_error(libfile.a4pdf_generator_destroy(self))
-        finally:
-            self._as_parameter_ = None
+        self.write()
 
     def page_draw_context(self):
         return DrawContext(self)
@@ -192,3 +190,7 @@ class Generator:
         fid.id = 33
         check_error(libfile.a4pdf_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
         return fid
+
+    def write(self):
+        check_error(libfile.a4pdf_generator_write(self))
+

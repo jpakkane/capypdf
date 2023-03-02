@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        PdfGen gen("image_test.pdf", opts);
+        GenPopper genpop("image_test.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto bg_img = gen.embed_jpg(jpg.c_str());

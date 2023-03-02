@@ -56,33 +56,60 @@ PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : ofilename(ofnam
 }
 
 PdfGen::~PdfGen() {
-    if(pdoc.pages.size() > 0) {
-        FILE *ofile = fopen(ofilename.c_str(), "wb");
-        if(!ofile) {
-            perror("Could not open output file.");
-            return;
-        }
-        try {
-            pdoc.write_to_file(ofile);
-        } catch(const std::exception &e) {
-            fprintf(stderr, "%s", e.what());
-        } catch(...) {
-            fprintf(stderr, "Unexpected error.\n");
-        }
-
-        if(fflush(ofile) != 0) {
-            perror("Writing output file failed");
-        }
-        if(fclose(ofile) != 0) {
-            perror("Closing output file failed");
-        }
-    }
     pdoc.font_objects.clear();
     pdoc.fonts.clear();
     auto error = FT_Done_FreeType(ft);
     if(error) {
         fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
     }
+}
+
+ErrorCode PdfGen::write() {
+    if(pdoc.pages.size() == 0) {
+        return ErrorCode::NoPages;
+    }
+
+    std::string tempfname = ofilename.c_str();
+    tempfname += "~";
+    FILE *ofile = fopen(tempfname.c_str(), "wb");
+    if(!ofile) {
+        perror(nullptr);
+        return ErrorCode::CouldNotOpenFile;
+    }
+
+    try {
+        pdoc.write_to_file(ofile);
+    } catch(const std::exception &e) {
+        fprintf(stderr, "%s", e.what());
+        fclose(ofile);
+        return ErrorCode::DynamicError;
+    } catch(...) {
+        fprintf(stderr, "Unexpected error.\n");
+        fclose(ofile);
+        return ErrorCode::DynamicError;
+    }
+
+    if(fflush(ofile) != 0) {
+        perror(nullptr);
+        fclose(ofile);
+        return ErrorCode::DynamicError;
+    }
+    if(fsync(fileno(ofile)) != 0) {
+        perror(nullptr);
+        fclose(ofile);
+        return ErrorCode::FileWriteError;
+    }
+    if(fclose(ofile) != 0) {
+        perror(nullptr);
+        return ErrorCode::FileWriteError;
+    }
+
+    // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
+    if(rename(tempfname.c_str(), ofilename.c_str()) != 0) {
+        perror(nullptr);
+        return ErrorCode::FileWriteError;
+    }
+    return ErrorCode::NoError;
 }
 
 PageId PdfGen::add_page(PdfDrawContext &ctx) {

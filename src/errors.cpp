@@ -22,6 +22,7 @@ namespace A4PDF {
 
 const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "No error.",
+"Unexpected error, the real error message should be in stdout or stderr.",
 "Invalid index.",
 "Negative line width.",
 "No pages defined.",
@@ -30,6 +31,9 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Enum out of range.",
 "Negative dash array element.",
 "Flatness value out of bounds.",
+"Array has zero length.",
+"Could not open file.",
+"Writing to file failed.",
 };
 
 // clang-format on

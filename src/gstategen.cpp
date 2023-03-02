@@ -47,7 +47,8 @@ int main(int argc, char **argv) {
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 300;
     opts.mediabox.h = 300;
-    PdfGen gen("gstate.pdf", opts);
+    GenPopper genpop("gstate.pdf", opts);
+    PdfGen &gen = genpop.g;
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     GraphicsState gs;

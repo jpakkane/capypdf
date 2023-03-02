@@ -25,7 +25,8 @@ int main() {
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        PdfGen gen("pattern_test.pdf", opts);
+        GenPopper genpop("pattern_test.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         {

@@ -124,6 +124,7 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g,
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
                                                 const char *fname,
                                                 A4PDF_FontId *fid) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_write(A4PDF_Generator *g) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *g) A4PDF_NOEXCEPT;
 
 // Draw context

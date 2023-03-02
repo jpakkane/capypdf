@@ -135,7 +135,8 @@ int main(int, char **) {
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
     try {
-        PdfGen gen("cover.pdf", opts);
+        GenPopper genpop("cover.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto image_id = gen.load_image("gradient.png");
         auto sep_id = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
         {

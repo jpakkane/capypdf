@@ -23,6 +23,7 @@ namespace A4PDF {
 
 enum class ErrorCode : int32_t {
     NoError,
+    DynamicError,
     InvalidIndex,
     NegativeLineWidth,
     NoPages,
@@ -31,6 +32,9 @@ enum class ErrorCode : int32_t {
     BadEnum,
     NegativeDash,
     InvalidFlatness,
+    ZeroLengthArray,
+    CouldNotOpenFile,
+    FileWriteError,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

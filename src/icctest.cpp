@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        PdfGen gen("icc_test.pdf", opts);
+        GenPopper genpop("icc_test.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto icc_id = gen.load_icc_file(icc_file);

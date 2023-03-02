@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
     try {
-        PdfGen gen("test.pdf", opts);
+        GenPopper genpop("test.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         {

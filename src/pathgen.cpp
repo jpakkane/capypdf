@@ -100,7 +100,8 @@ int main(int argc, char **argv) {
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        PdfGen gen("path_test.pdf", opts);
+        GenPopper genpop("path_test.pdf", opts);
+        PdfGen &gen = genpop.g;
         auto ctxp = gen.guarded_page_context();
         auto &ctx = ctxp.ctx;
         basic_painting(ctx);
