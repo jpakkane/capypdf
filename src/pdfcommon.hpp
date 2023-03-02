@@ -20,6 +20,7 @@
 
 #include <optional>
 #include <vector>
+#include <array>
 
 #include <cstdint>
 
@@ -198,5 +199,7 @@ struct FontSubset {
 
     bool operator!=(const FontSubset &other) const { return !(*this == other); }
 };
+
+extern const std::array<const char *, 4> rendering_intent_names;
 
 } // namespace A4PDF

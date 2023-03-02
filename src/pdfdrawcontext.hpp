@@ -74,38 +74,48 @@ public:
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
 
     // They are in the same order as in Annex A of the PDF spec.
+    ErrorCode cmd_b();
     ErrorCode cmd_B();
+    ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
     ErrorCode cmd_CS(std::string_view cspace_name);
     ErrorCode cmd_cs(std::string_view cspace_name);
+    ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
     ErrorCode cmd_f();
+    // ErrorCode cmd_F(); PDF spec says this is obsolete.
+    ErrorCode cmd_fstar();
     ErrorCode cmd_G(double gray);
     ErrorCode cmd_g(double gray);
     ErrorCode cmd_gs(GstateId id);
     ErrorCode cmd_h();
+    ErrorCode cmd_i(double flatness);
     ErrorCode cmd_j(A4PDF_Line_Join join_style);
     ErrorCode cmd_J(A4PDF_Line_Cap cap_style);
     ErrorCode cmd_K(double c, double m, double y, double k);
     ErrorCode cmd_k(double c, double m, double y, double k);
     ErrorCode cmd_l(double x, double y);
     ErrorCode cmd_m(double x, double y);
+    ErrorCode cmd_M(double miterlimit);
     ErrorCode cmd_n();
     ErrorCode cmd_q(); // Save
     ErrorCode cmd_Q(); // Restore
     ErrorCode cmd_re(double x, double y, double w, double h);
     ErrorCode cmd_RG(double r, double g, double b);
     ErrorCode cmd_rg(double r, double g, double b);
+    ErrorCode cmd_ri(A4PDF_Rendering_Intent ri);
     ErrorCode cmd_s();
     ErrorCode cmd_S();
     ErrorCode cmd_SCN(double value);
     ErrorCode cmd_scn(double value);
     ErrorCode cmd_sh(ShadingId shid);
     ErrorCode cmd_Tr(A4PDF_Text_Rendering_Mode mode);
+    ErrorCode cmd_v(double x2, double y2, double x3, double y3);
+    ErrorCode cmd_w(double w);
     ErrorCode cmd_W();
     ErrorCode cmd_Wstar();
-    ErrorCode cmd_w(double w);
+    ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);

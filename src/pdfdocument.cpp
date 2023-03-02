@@ -70,13 +70,6 @@ const std::array<const char *, 16> blend_mode_names{
     "Luminosity",
 };
 
-const std::array<const char *, 4> intent_names{
-    "RelativeColorimetric",
-    "AbsoluteColorimetric",
-    "Saturation",
-    "Perceptual",
-};
-
 const std::array<const char *, 3> colorspace_names{
     "/DeviceRGB",
     "/DeviceGray",
@@ -184,6 +177,13 @@ compute_children(const std::vector<A4PDF::Outline> &outlines) {
 } // namespace
 
 namespace A4PDF {
+
+const std::array<const char *, 4> rendering_intent_names{
+    "RelativeColorimetric",
+    "AbsoluteColorimetric",
+    "Saturation",
+    "Perceptual",
+};
 
 PdfDocument::PdfDocument(const PdfGenerationData &d)
     : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
@@ -962,8 +962,9 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
         fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.blend_mode));
     }
     if(state.intent) {
-        fmt::format_to(
-            resource_appender, "  /RenderingIntent /{}\n", intent_names.at(*state.intent));
+        fmt::format_to(resource_appender,
+                       "  /RenderingIntent /{}\n",
+                       rendering_intent_names.at(*state.intent));
     }
     fmt::format_to(resource_appender, ">>\n");
     add_object(FullPDFObject{std::move(buf), {}});

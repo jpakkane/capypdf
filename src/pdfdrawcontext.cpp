@@ -150,8 +150,18 @@ GstatePopper PdfDrawContext::push_gstate() {
     return GstatePopper(this);
 }
 
+ErrorCode PdfDrawContext::cmd_b() {
+    commands += "b\n";
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_B() {
     commands += "B\n";
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_bstar() {
+    commands += "b*\n";
     return ErrorCode::NoError;
 }
 
@@ -181,8 +191,27 @@ ErrorCode PdfDrawContext::cmd_cs(std::string_view cspace_name) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase) {
+    for(size_t i = 0; i < dash_array_length; ++i) {
+        if(dash_array[i] < 0) {
+            return ErrorCode::NegativeDash;
+        }
+    }
+    commands += "[ ";
+    for(size_t i = 0; i < dash_array_length; ++i) {
+        fmt::format_to(cmd_appender, "{} ", dash_array[i]);
+    }
+    fmt::format_to(cmd_appender, " ] {} d\n", phase);
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_f() {
     commands += "f\n";
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_fstar() {
+    commands += "f*\n";
     return ErrorCode::NoError;
 }
 
@@ -207,6 +236,14 @@ ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
 
 ErrorCode PdfDrawContext::cmd_h() {
     commands += "h\n";
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_i(double flatness) {
+    if(flatness < 0 || flatness > 100) {
+        return ErrorCode::InvalidFlatness;
+    }
+    fmt::format_to(cmd_appender, "{} i\n", flatness);
     return ErrorCode::NoError;
 }
 
@@ -249,6 +286,11 @@ ErrorCode PdfDrawContext::cmd_m(double x, double y) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_M(double miterlimit) {
+    fmt::format_to(cmd_appender, "{} M\n", miterlimit);
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_n() {
     commands += "n\n";
     return ErrorCode::NoError;
@@ -285,6 +327,12 @@ ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_ri(A4PDF_Rendering_Intent ri) {
+    CHECK_ENUM(ri, A4PDF_RI_PERCEPTUAL);
+    fmt::format_to(cmd_appender, "/{} ri\n", rendering_intent_names.at((int)ri));
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_s() {
     commands += "s\n";
     return ErrorCode::NoError;
@@ -318,6 +366,19 @@ ErrorCode PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
+    fmt::format_to(cmd_appender, "{} {} {} {} v\n", x2, y2, x3, y3);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_w(double w) {
+    if(w < 0) {
+        return ErrorCode::NegativeLineWidth;
+    }
+    fmt::format_to(cmd_appender, "{} w\n", w);
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_W() {
     commands += "W\n";
     return ErrorCode::NoError;
@@ -328,11 +389,8 @@ ErrorCode PdfDrawContext::cmd_Wstar() {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_w(double w) {
-    if(w < 0) {
-        return ErrorCode::NegativeLineWidth;
-    }
-    fmt::format_to(cmd_appender, "{} w\n", w);
+ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
+    fmt::format_to(cmd_appender, "{} {} {} {} y\n", x1, y1, x3, y3);
     return ErrorCode::NoError;
 }
 

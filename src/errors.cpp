@@ -28,6 +28,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Color component out of range.",
 "Bad ID number.",
 "Enum out of range.",
+"Negative dash array element.",
+"Flatness value out of bounds.",
 };
 
 // clang-format on
