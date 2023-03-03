@@ -6,6 +6,8 @@ version = meson.project_version()
 cdata = configuration_data()
 cdata.set_quoted('A4PDF_VERSION_STR', version)
 
+header_install_subdir = 'a4pdf-0'
+
 fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
 zlib_dep = dependency('zlib')
@@ -18,4 +20,11 @@ pubinc = include_directories('include')
 
 subdir('include')
 subdir('src')
+subdir('python')
 subdir('test')
+
+pkg_mod = import('pkgconfig')
+pkg_mod.generate(a4pdf_lib,
+  name: 'a4pdf',
+  filebase: 'a4pdf',
+  subdirs: header_install_subdir)

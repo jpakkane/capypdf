@@ -11,7 +11,8 @@ a4pdf_lib = library('a4pdf',
   'errors.cpp',
   include_directories: [pubinc],
   #link_args: ['-static-libstdc++'],
-  dependencies: [fmt_dep, png_dep, zlib_dep, jpeg_dep, lcms_dep, freetype_dep]
+  dependencies: [fmt_dep, png_dep, zlib_dep, jpeg_dep, lcms_dep, freetype_dep],
+  install: true,
 )
 
 a4pdf_dep = declare_dependency(include_directories: pubinc,
