@@ -32,6 +32,14 @@ sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import a4pdf
 
+def draw_intersect_shape(ctx):
+    ctx.cmd_m(50, 90)
+    ctx.cmd_l(80, 10)
+    ctx.cmd_l(10, 60)
+    ctx.cmd_l(90, 60)
+    ctx.cmd_l(20, 10)
+    ctx.cmd_h()
+
 def validate_image(basename, w, h):
     import functools
     def decorator_validate(func):
@@ -76,7 +84,7 @@ class TestPDFCreation(unittest.TestCase):
         ofile = pathlib.Path(ofilename)
         with a4pdf.Generator(ofile) as g:
             with g.page_draw_context() as ctx:
-                ctx.set_rgb_nonstroke(1.0, 0.0, 0.0)
+                ctx.cmd_rg(1.0, 0.0, 0.0)
                 ctx.cmd_re(10, 10, 100, 100)
                 ctx.cmd_f()
 
@@ -115,7 +123,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_images(self, ofilename, w, h):
         opts = a4pdf.Options()
         opts.set_mediabox(0, 0, w, h)
-        with a4pdf.Generator(ofilename) as g:
+        with a4pdf.Generator(ofilename, opts) as g:
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
             mono_img = g.load_image(image_dir / '1bit_noalpha.png')
             gray_img = g.load_image(image_dir / 'gray_alpha.png')
@@ -133,6 +141,45 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.translate(110, 110)
                     ctx.scale(80, 80)
                     ctx.draw_image(gray_img)
+
+    @validate_image('python_path', 200, 200)
+    def test_path(self, ofilename, w, h):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, w, h)
+        with a4pdf.Generator(ofilename, opts) as g:
+            with g.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.cmd_w(5)
+                    ctx.cmd_J(a4pdf.LineCapStyle.Round)
+                    ctx.cmd_m(10, 10);
+                    ctx.cmd_c(80, 10, 20, 90, 90, 90);
+                    ctx.cmd_S();
+                with ctx.push_gstate():
+                    ctx.cmd_w(10)
+                    ctx.translate(100, 0)
+                    ctx.cmd_RG(1.0, 0.0, 0.0)
+                    ctx.cmd_rg(0.9, 0.9, 0.0)
+                    ctx.cmd_j(a4pdf.LineJoinStyle.Bevel)
+                    ctx.cmd_m(50, 90)
+                    ctx.cmd_l(10, 10)
+                    ctx.cmd_l(90, 10)
+                    ctx.cmd_h()
+                    ctx.cmd_B()
+                with ctx.push_gstate():
+                    ctx.translate(0, 100)
+                    draw_intersect_shape(ctx)
+                    ctx.cmd_w(3)
+                    ctx.cmd_rg(0, 1, 0)
+                    ctx.cmd_RG(0.5, 0.1, 0.5)
+                    ctx.cmd_j(a4pdf.LineJoinStyle.Round)
+                    ctx.cmd_B()
+                with ctx.push_gstate():
+                    ctx.translate(100, 100)
+                    ctx.cmd_w(2)
+                    ctx.cmd_rg(0, 1, 0);
+                    ctx.cmd_RG(0.5, 0.1, 0.5)
+                    draw_intersect_shape(ctx)
+                    ctx.cmd_Bstar()
 
 if __name__ == "__main__":
     unittest.main()

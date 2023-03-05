@@ -126,6 +126,27 @@ A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_B(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_B();
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_Bstar(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_Bstar();
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_c(A4PDF_DrawContext *ctx,
+                                     double x1,
+                                     double y1,
+                                     double x2,
+                                     double y2,
+                                     double x3,
+                                     double y3) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_c(x1, y1, x2, y2, x3, y3);
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_cm(A4PDF_DrawContext *ctx,
                                       double m1,
                                       double m2,
@@ -142,16 +163,36 @@ A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     return (A4PDF_EC)c->cmd_f();
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_S(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_S();
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
                                      A4PDF_Line_Join join_style) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_j(join_style);
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_h(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_h();
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
                                      A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_J(cap_style);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_l(x, y);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_m(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_m(x, y);
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
@@ -193,7 +234,7 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
 }
 
 A4PDF_EC
-a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
+a4pdf_dc_cmd_RG(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_stroke_color(rgb);
@@ -201,7 +242,7 @@ a4pdf_dc_set_rgb_stroke(A4PDF_DrawContext *ctx, double r, double g, double b) A4
 }
 
 A4PDF_EC
-a4pdf_dc_set_rgb_nonstroke(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
+a4pdf_dc_cmd_rg(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_nonstroke_color(rgb);

@@ -47,6 +47,7 @@ cfunc_types = (
 ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('a4pdf_options_set_mediabox',
     [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+
 ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -54,16 +55,25 @@ cfunc_types = (
 ('a4pdf_generator_write', [ctypes.c_void_p]),
 ('a4pdf_generator_destroy', [ctypes.c_void_p]),
 ('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
-('a4pdf_dc_set_rgb_stroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
-('a4pdf_dc_set_rgb_nonstroke', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+
+('a4pdf_dc_cmd_B', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_Bstar', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_c', [ctypes.c_void_p,
+    ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_f', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_h', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_j', [ctypes.c_void_p, enum_type]),
+('a4pdf_dc_cmd_l', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_m', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_q', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_Q', [ctypes.c_void_p]),
+('a4pdf_dc_cmd_RG', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_rg', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_S', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
 ('a4pdf_dc_draw_image',
     [ctypes.c_void_p, ImageId]),
@@ -143,11 +153,14 @@ class DrawContext:
     def push_gstate(self):
         return StateContextManager(self)
 
-    def set_rgb_stroke(self, r, g, b):
-        check_error(libfile.a4pdf_dc_set_rgb_stroke(self, r, g, b))
+    def cmd_B(self):
+        check_error(libfile.a4pdf_dc_cmd_B(self))
 
-    def set_rgb_nonstroke(self, r, g, b):
-        check_error(libfile.a4pdf_dc_set_rgb_nonstroke(self, r, g, b))
+    def cmd_Bstar(self):
+        check_error(libfile.a4pdf_dc_cmd_Bstar(self))
+
+    def cmd_c(self, x1, y1, x2, y2, x3, y3):
+        check_error(libfile.a4pdf_dc_cmd_c(self, x1, y1, x2, y2, x3, y3))
 
     def cmd_cm(self, m1, m2, m3, m4, m5, m6):
         check_error(libfile.a4pdf_dc_cmd_cm(self, m1, m2, m3, m4, m5, m6))
@@ -155,11 +168,17 @@ class DrawContext:
     def cmd_f(self):
         check_error(libfile.a4pdf_dc_cmd_f(self))
 
+    def cmd_h(self):
+        check_error(libfile.a4pdf_dc_cmd_h(self))
+
     def cmd_J(self, cap_style):
         check_error(libfile.a4pdf_dc_cmd_J(self, cap_style.value))
 
     def cmd_j(self, join_style):
         check_error(libfile.a4pdf_dc_cmd_j(self, join_style.value))
+
+    def cmd_l(self, x, y):
+        check_error(libfile.a4pdf_dc_cmd_l(self, x, y))
 
     def cmd_q(self):
         check_error(libfile.a4pdf_dc_cmd_q(self))
@@ -167,11 +186,23 @@ class DrawContext:
     def cmd_Q(self):
         check_error(libfile.a4pdf_dc_cmd_Q(self))
 
+    def cmd_RG(self, r, g, b):
+        check_error(libfile.a4pdf_dc_cmd_RG(self, r, g, b))
+
+    def cmd_rg(self, r, g, b):
+        check_error(libfile.a4pdf_dc_cmd_rg(self, r, g, b))
+
+    def cmd_m(self, x, y):
+        check_error(libfile.a4pdf_dc_cmd_m(self, x, y))
+
     def cmd_re(self, x, y, w, h):
         check_error(libfile.a4pdf_dc_cmd_re(self, x, y, w, h))
 
     def cmd_w(self, line_width):
         check_error(libfile.a4pdf_dc_cmd_w(self, line_width))
+
+    def cmd_S(self):
+        check_error(libfile.a4pdf_dc_cmd_S(self))
 
     def render_text(self, text, fid, point_size, x, y):
         if not isinstance(text, str):
