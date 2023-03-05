@@ -62,7 +62,7 @@ def validate_image(basename, w, h):
                                               '-q',
                                               '-dNOPAUSE',
                                               '-dBATCH',
-                                              '-sDEVICE=png256',
+                                              '-sDEVICE=png16m',
                                               f'-g{w}x{h}',
                                               #'-dPDFFitPage',
                                               f'-sOutputFile={pngname}',
