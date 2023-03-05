@@ -71,3 +71,6 @@ executable('pdfviewer', 'pdfviewer.cpp',
 executable('fontsubset', 'fontsubset.cpp', 'ft_subsetter.cpp',
   dependencies: freetype_dep)
 
+if tiff_dep.found()
+  executable('tifftest', 'tifftest.cpp', dependencies: tiff_dep)
+endif
