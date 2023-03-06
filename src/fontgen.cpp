@@ -28,16 +28,22 @@ int main(int argc, char **argv) {
     } else {
         fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
     }
+    /*
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
-    opts.title = "Font layout test";
+    */
+    opts.title = "Over 255 letters";
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = genpop.g;
     auto fid = gen.load_font(fontfile);
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
-    ctx.render_utf8_text("Av, Tv, kerning yo", fid, 12, 50, 150);
+    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZ", fid, 12, 10, 800);
+    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyz", fid, 12, 10, 780);
+    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 10, 760);
+    ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 10, 740);
+    // ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", fid, 12, 10, 720);
     /*
     std::vector<PdfGlyph> glyphs;
     const int num_glyphs = 26;
