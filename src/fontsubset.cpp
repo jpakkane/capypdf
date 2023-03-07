@@ -37,7 +37,7 @@ void write_font(const char *ofname,
                 FT_Face face,
                 std::string_view source,
                 const std::vector<uint32_t> &glyphs) {
-    auto bytes = generate_font(face, source, glyphs);
+    auto bytes = A4PDF::generate_font(face, source, glyphs);
     FILE *f = fopen(ofname, "w");
     if(fwrite(bytes.data(), 1, bytes.length(), f) != bytes.length()) {
         printf("Writing to file failed: %s\n", strerror(errno));

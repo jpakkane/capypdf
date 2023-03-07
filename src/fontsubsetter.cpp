@@ -18,6 +18,8 @@
 #include <ft_subsetter.hpp>
 #include <algorithm>
 
+namespace A4PDF {
+
 FontSubsetter::FontSubsetter() { subsets.emplace_back(std::vector<uint32_t>{0}); }
 
 FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
@@ -47,3 +49,5 @@ FontSubsetter::generate_subset(FT_Face face, std::string_view data, int32_t subs
     const auto &glyphs = subsets.at(subset_number);
     return generate_font(face, data, glyphs);
 }
+
+} // namespace A4PDF

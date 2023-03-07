@@ -53,6 +53,8 @@ uint32_t ttf_checksum(std::string_view data) {
 
 } // namespace
 
+namespace A4PDF {
+
 #pragma pack(push, r1, 1)
 
 struct TTOffsetTable {
@@ -88,46 +90,25 @@ struct TTOffsetTable {
     }
 };
 
-struct TTHead {
-    int32_t version;
-    int32_t revision;
-    uint32_t checksum_adjustment;
-    uint32_t magic;
-    uint16_t flags;
-    uint16_t units_per_em;
-    uint64_t created;
-    uint64_t modified;
-    int16_t x_min;
-    int16_t y_min;
-    int16_t x_max;
-    int16_t y_max;
-    uint16_t mac_style;
-    uint16_t lowest_rec_pppem;
-    int16_t font_direction_hint;
-    int16_t index_to_loc_format;
-    int16_t glyph_data_format;
-
-    void swap_endian() {
-        byte_swap(version);
-        byte_swap(revision);
-        byte_swap(checksum_adjustment);
-        byte_swap(magic);
-        byte_swap(flags);
-        byte_swap(units_per_em);
-        byte_swap(created);
-        byte_swap(modified);
-        byte_swap(x_min);
-        byte_swap(y_min);
-        byte_swap(x_max);
-        byte_swap(y_max);
-        byte_swap(mac_style);
-        byte_swap(lowest_rec_pppem);
-        byte_swap(font_direction_hint);
-        byte_swap(index_to_loc_format);
-        byte_swap(glyph_data_format);
-    }
-};
-static_assert(sizeof(TTHead) == 54);
+void TTHead::swap_endian() {
+    byte_swap(version);
+    byte_swap(revision);
+    byte_swap(checksum_adjustment);
+    byte_swap(magic);
+    byte_swap(flags);
+    byte_swap(units_per_em);
+    byte_swap(created);
+    byte_swap(modified);
+    byte_swap(x_min);
+    byte_swap(y_min);
+    byte_swap(x_max);
+    byte_swap(y_max);
+    byte_swap(mac_style);
+    byte_swap(lowest_rec_pppem);
+    byte_swap(font_direction_hint);
+    byte_swap(index_to_loc_format);
+    byte_swap(glyph_data_format);
+}
 
 struct TTDirEntry {
     char tag[4];
@@ -197,41 +178,23 @@ struct TTClassRangeRecord {
     }
 };
 
-struct TTMaxp10 {
-    uint32_t version;
-    uint16_t num_glyphs;
-    uint16_t max_points;
-    uint16_t max_contours;
-    uint16_t max_composite_points;
-    uint16_t max_composite_contours;
-    uint16_t max_zones;
-    uint16_t max_twilight_points;
-    uint16_t max_storage;
-    uint16_t max_function_defs;
-    uint16_t max_instruction_defs;
-    uint16_t max_stack_elements;
-    uint16_t max_sizeof_instructions;
-    uint16_t max_component_elements;
-    uint16_t max_component_depth;
-
-    void swap_endian() {
-        byte_swap(version);
-        byte_swap(num_glyphs);
-        byte_swap(max_points);
-        byte_swap(max_contours);
-        byte_swap(max_composite_points);
-        byte_swap(max_composite_contours);
-        byte_swap(max_zones);
-        byte_swap(max_twilight_points);
-        byte_swap(max_storage);
-        byte_swap(max_function_defs);
-        byte_swap(max_instruction_defs);
-        byte_swap(max_stack_elements);
-        byte_swap(max_sizeof_instructions);
-        byte_swap(max_component_elements);
-        byte_swap(max_component_depth);
-    }
-};
+void TTMaxp10::swap_endian() {
+    byte_swap(version);
+    byte_swap(num_glyphs);
+    byte_swap(max_points);
+    byte_swap(max_contours);
+    byte_swap(max_composite_points);
+    byte_swap(max_composite_contours);
+    byte_swap(max_zones);
+    byte_swap(max_twilight_points);
+    byte_swap(max_storage);
+    byte_swap(max_function_defs);
+    byte_swap(max_instruction_defs);
+    byte_swap(max_stack_elements);
+    byte_swap(max_sizeof_instructions);
+    byte_swap(max_component_elements);
+    byte_swap(max_component_depth);
+}
 
 struct TTGlyphHeader {
     int16_t num_contours;
@@ -249,55 +212,30 @@ struct TTGlyphHeader {
     }
 };
 
-struct TTHhea {
-    uint32_t version;
-    int16_t ascender;
-    int16_t descender;
-    int16_t linegap;
-    uint16_t advance_width_max;
-    int16_t min_left_side_bearing;
-    int16_t min_right_side_bearing;
-    int16_t x_max_extent;
-    int16_t caret_slope_rise;
-    int16_t caret_slope_run;
-    int16_t caret_offset;
-    int16_t reserved0 = 0;
-    int16_t reserved1 = 0;
-    int16_t reserved2 = 0;
-    int16_t reserved3 = 0;
-    int16_t metric_data_format;
-    uint16_t num_hmetrics;
+void TTHhea::swap_endian() {
+    byte_swap(version);
+    byte_swap(ascender);
+    byte_swap(descender);
+    byte_swap(linegap);
+    byte_swap(advance_width_max);
+    byte_swap(min_left_side_bearing);
+    byte_swap(min_right_side_bearing);
+    byte_swap(x_max_extent);
+    byte_swap(caret_slope_rise);
+    byte_swap(caret_slope_run);
+    byte_swap(caret_offset);
+    byte_swap(reserved0);
+    byte_swap(reserved1);
+    byte_swap(reserved2);
+    byte_swap(reserved3);
+    byte_swap(metric_data_format);
+    byte_swap(num_hmetrics);
+}
 
-    void swap_endian() {
-        byte_swap(version);
-        byte_swap(ascender);
-        byte_swap(descender);
-        byte_swap(linegap);
-        byte_swap(advance_width_max);
-        byte_swap(min_left_side_bearing);
-        byte_swap(min_right_side_bearing);
-        byte_swap(x_max_extent);
-        byte_swap(caret_slope_rise);
-        byte_swap(caret_slope_run);
-        byte_swap(caret_offset);
-        byte_swap(reserved0);
-        byte_swap(reserved1);
-        byte_swap(reserved2);
-        byte_swap(reserved3);
-        byte_swap(metric_data_format);
-        byte_swap(num_hmetrics);
-    }
-};
-
-struct TTLongHorMetric {
-    uint16_t advance_width;
-    int16_t lsb;
-
-    void swap_endian() {
-        byte_swap(advance_width);
-        byte_swap(lsb);
-    }
-};
+void TTLongHorMetric::swap_endian() {
+    byte_swap(advance_width);
+    byte_swap(lsb);
+}
 
 struct TTCmapHeader {
     uint16_t version;
@@ -361,22 +299,6 @@ struct TTPost {
 };
 
 #pragma pack(pop, r1)
-
-typedef std::variant<uint8_t, int16_t> CoordInfo;
-
-struct TTHmtx {
-    std::vector<TTLongHorMetric> longhor;
-    std::vector<int16_t> left_side_bearings;
-};
-
-struct SimpleGlyph {
-    std::vector<uint16_t> contour_end_points;
-    uint16_t instruction_length;
-    std::vector<uint8_t> instructions;
-    std::vector<uint8_t> flags;
-    std::vector<CoordInfo> xcoord;
-    std::vector<CoordInfo> ycoord;
-};
 
 static_assert(sizeof(TTDirEntry) == 4 * 4);
 
@@ -551,165 +473,6 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
         std::abort();
     }
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
-}
-
-/* Mandatory TTF tables according to The Internet.
- *
- * 'cmap' character to glyph mapping <- LO does not create this table.
- * 'glyf' glyph data
- * 'head' font header
- * 'hhea' horizontal header
- * 'hmtx' horizontal metrics
- * 'loca' index to location
- * 'maxp' maximum profile
- * 'name' naming                     <-Cairo and LO do not create this table
- * 'post' postscript                 <-Cairo and LO do not create this table
- */
-
-/* In addition, the following may be in files created by Cairo and LO:
- *
- * cvt
- * fpgm
- * prep
- */
-
-struct TrueTypeFont {
-    std::vector<std::string> glyphs; // should be variant<basicfont, compositefont> or smth
-    TTHead head;
-    TTHhea hhea;
-    TTHmtx hmtx;
-    // std::vector<int32_t> loca;
-    TTMaxp10 maxp;
-    std::string cvt;
-    std::string fpgm;
-    std::string prep;
-    std::string cmap;
-
-    int num_directory_entries() const {
-        int entries = 6;
-        if(!cmap.empty()) {
-            ++entries;
-        }
-        if(!cvt.empty()) {
-            ++entries;
-        }
-        if(!fpgm.empty()) {
-            ++entries;
-        }
-        if(!prep.empty()) {
-            ++entries;
-        }
-        return entries;
-    }
-};
-
-TrueTypeFont parse_truetype_font(std::string_view buf) {
-    TrueTypeFont tf;
-    TTOffsetTable off;
-    memcpy(&off, buf.data(), sizeof(off));
-    off.swap_endian();
-    std::vector<TTDirEntry> directory;
-    for(int i = 0; i < off.num_tables; ++i) {
-        TTDirEntry e;
-        memcpy(&e, buf.data() + sizeof(off) + i * sizeof(e), sizeof(e));
-        e.swap_endian();
-        if(e.offset + e.length > buf.length()) {
-            throw std::runtime_error("TTF directory entry points outside of file.");
-        }
-        auto checksum = ttf_checksum(buf.substr(e.offset, e.length));
-        (void)checksum;
-        directory.emplace_back(std::move(e));
-    }
-    tf.head = load_head(directory, buf);
-    tf.maxp = load_maxp(directory, buf);
-    const auto loca = load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs);
-    tf.hhea = load_hhea(directory, buf);
-    tf.hmtx = load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics);
-    tf.glyphs = load_glyphs(directory, buf, tf.maxp.num_glyphs, loca);
-
-    tf.cvt = load_raw_table(directory, buf, "cvt ");
-    tf.fpgm = load_raw_table(directory, buf, "fpgm");
-    tf.prep = load_raw_table(directory, buf, "prep");
-    auto cmap = load_raw_table(directory, buf, "cmap");
-    TTCmapHeader cmap_head;
-    memcpy(&cmap_head, cmap.data(), sizeof(TTCmapHeader));
-    cmap_head.swap_endian();
-    for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
-        TTEncodingRecord enc;
-        memcpy(&enc,
-               cmap.data() + 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord),
-               sizeof(TTEncodingRecord));
-        enc.swap_endian();
-        uint16_t subtable_format;
-        memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
-        byte_swap(subtable_format);
-        assert(subtable_format < 15);
-        if(subtable_format == 0) {
-            TTEncodingSubtable0 enctable;
-            memcpy(&enctable, cmap.data() + enc.subtable_offset, sizeof(TTEncodingSubtable0));
-            enctable.swap_endian();
-            assert(enctable.format == 0);
-        }
-    }
-    /*
-    for(const auto &e : directory) {
-        char tagbuf[5];
-        tagbuf[4] = 0;
-        memcpy(tagbuf, e.tag, 4);
-        printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
-        if(e.tag_is("DSIG")) {
-            // Not actually needed for subsetting.
-            TTDsig sig;
-            memcpy(&sig, buf.data() + e.offset, sizeof(sig));
-            sig.swap_endian();
-            assert(sig.version == 1);
-            assert(sig.num_signatures == 0);
-        } else if(e.tag_is("GDEF")) {
-            // This neither.
-            TTGDEF gdef;
-            assert(e.length > sizeof(gdef));
-            memcpy(&gdef, buf.data() + e.offset, sizeof(gdef));
-            gdef.swap_endian();
-            assert(gdef.major == 1);
-            assert(gdef.minor == 2);
-            gdef.item_var_offset = -1;
-            uint16_t classdef_version;
-            memcpy(&classdef_version,
-                   buf.data() + e.offset + gdef.glyph_class_offset,
-                   sizeof(classdef_version));
-            byte_swap(classdef_version);
-            assert(classdef_version == 2);
-            uint16_t num_records;
-            memcpy(&num_records,
-                   buf.data() + e.offset + gdef.glyph_class_offset + sizeof(classdef_version),
-                   sizeof(num_records));
-            byte_swap(num_records);
-            const char *array_start = buf.data() + e.offset + gdef.glyph_class_offset +
-                                      sizeof(classdef_version) + sizeof(num_records);
-            for(uint16_t i = 0; i < num_records; ++i) {
-                TTClassRangeRecord range;
-                memcpy(&range, array_start + i * sizeof(range), sizeof(range));
-                range.swap_endian();
-            }
-        } else if(e.tag_is("cmap")) {
-            // Maybe we don't need to parse this table, but
-            // instead get it from Freetype as needed
-            // when generating output?
-        } else if(e.tag_is("GPOS")) {
-        } else if(e.tag_is("GSUB")) {
-        } else if(e.tag_is("OS/2")) {
-        } else if(e.tag_is("gasp")) {
-        } else if(e.tag_is("name")) {
-        } else {
-            printf("Unknown tag %s.\n", tagbuf);
-            std::abort();
-
-            // TT fonts contain a ton of additional data tables.
-            // We ignore all of them.
-        }
-    }
-    */
-    return tf;
 }
 
 std::vector<std::string>
@@ -898,6 +661,115 @@ std::string gen_cmap(const std::vector<uint32_t> &glyphs) {
 
 } // namespace
 
+TrueTypeFont parse_truetype_font(std::string_view buf) {
+    TrueTypeFont tf;
+    TTOffsetTable off;
+    memcpy(&off, buf.data(), sizeof(off));
+    off.swap_endian();
+    std::vector<TTDirEntry> directory;
+    for(int i = 0; i < off.num_tables; ++i) {
+        TTDirEntry e;
+        memcpy(&e, buf.data() + sizeof(off) + i * sizeof(e), sizeof(e));
+        e.swap_endian();
+        if(e.offset + e.length > buf.length()) {
+            throw std::runtime_error("TTF directory entry points outside of file.");
+        }
+        auto checksum = ttf_checksum(buf.substr(e.offset, e.length));
+        (void)checksum;
+        directory.emplace_back(std::move(e));
+    }
+    tf.head = load_head(directory, buf);
+    tf.maxp = load_maxp(directory, buf);
+    const auto loca = load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs);
+    tf.hhea = load_hhea(directory, buf);
+    tf.hmtx = load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics);
+    tf.glyphs = load_glyphs(directory, buf, tf.maxp.num_glyphs, loca);
+
+    tf.cvt = load_raw_table(directory, buf, "cvt ");
+    tf.fpgm = load_raw_table(directory, buf, "fpgm");
+    tf.prep = load_raw_table(directory, buf, "prep");
+    auto cmap = load_raw_table(directory, buf, "cmap");
+    TTCmapHeader cmap_head;
+    memcpy(&cmap_head, cmap.data(), sizeof(TTCmapHeader));
+    cmap_head.swap_endian();
+    for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
+        TTEncodingRecord enc;
+        memcpy(&enc,
+               cmap.data() + 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord),
+               sizeof(TTEncodingRecord));
+        enc.swap_endian();
+        uint16_t subtable_format;
+        memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
+        byte_swap(subtable_format);
+        assert(subtable_format < 15);
+        if(subtable_format == 0) {
+            TTEncodingSubtable0 enctable;
+            memcpy(&enctable, cmap.data() + enc.subtable_offset, sizeof(TTEncodingSubtable0));
+            enctable.swap_endian();
+            assert(enctable.format == 0);
+        }
+    }
+    /*
+    for(const auto &e : directory) {
+        char tagbuf[5];
+        tagbuf[4] = 0;
+        memcpy(tagbuf, e.tag, 4);
+        printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
+        if(e.tag_is("DSIG")) {
+            // Not actually needed for subsetting.
+            TTDsig sig;
+            memcpy(&sig, buf.data() + e.offset, sizeof(sig));
+            sig.swap_endian();
+            assert(sig.version == 1);
+            assert(sig.num_signatures == 0);
+        } else if(e.tag_is("GDEF")) {
+            // This neither.
+            TTGDEF gdef;
+            assert(e.length > sizeof(gdef));
+            memcpy(&gdef, buf.data() + e.offset, sizeof(gdef));
+            gdef.swap_endian();
+            assert(gdef.major == 1);
+            assert(gdef.minor == 2);
+            gdef.item_var_offset = -1;
+            uint16_t classdef_version;
+            memcpy(&classdef_version,
+                   buf.data() + e.offset + gdef.glyph_class_offset,
+                   sizeof(classdef_version));
+            byte_swap(classdef_version);
+            assert(classdef_version == 2);
+            uint16_t num_records;
+            memcpy(&num_records,
+                   buf.data() + e.offset + gdef.glyph_class_offset + sizeof(classdef_version),
+                   sizeof(num_records));
+            byte_swap(num_records);
+            const char *array_start = buf.data() + e.offset + gdef.glyph_class_offset +
+                                      sizeof(classdef_version) + sizeof(num_records);
+            for(uint16_t i = 0; i < num_records; ++i) {
+                TTClassRangeRecord range;
+                memcpy(&range, array_start + i * sizeof(range), sizeof(range));
+                range.swap_endian();
+            }
+        } else if(e.tag_is("cmap")) {
+            // Maybe we don't need to parse this table, but
+            // instead get it from Freetype as needed
+            // when generating output?
+        } else if(e.tag_is("GPOS")) {
+        } else if(e.tag_is("GSUB")) {
+        } else if(e.tag_is("OS/2")) {
+        } else if(e.tag_is("gasp")) {
+        } else if(e.tag_is("name")) {
+        } else {
+            printf("Unknown tag %s.\n", tagbuf);
+            std::abort();
+
+            // TT fonts contain a ton of additional data tables.
+            // We ignore all of them.
+        }
+    }
+    */
+    return tf;
+}
+
 std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs) {
     auto source = parse_truetype_font(buf);
     TrueTypeFont dest;
@@ -921,3 +793,21 @@ std::string generate_font(FT_Face face, std::string_view buf, const std::vector<
     auto bytes = serialize_font(dest);
     return bytes;
 }
+
+TrueTypeFont load_and_parse_truetype_font(const char *fname) {
+    FILE *f = fopen(fname, "rb");
+    if(!f) {
+        std::abort();
+    }
+    fseek(f, 0, SEEK_END);
+    const auto fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    std::vector<char> buf(fsize, 0);
+    if(fread(buf.data(), 1, fsize, f) != (size_t)fsize) {
+        std::abort();
+    }
+    fclose(f);
+    return parse_truetype_font(std::string_view{buf.data(), buf.size()});
+}
+
+} // namespace A4PDF

@@ -22,9 +22,11 @@
 #include <optional>
 #include <cstdint>
 
-static const std::size_t max_glyphs = 255;
-
 typedef struct FT_FaceRec_ *FT_Face;
+
+namespace A4PDF {
+
+static const std::size_t max_glyphs = 255;
 
 struct FontSubsetInfo {
     int32_t subset;
@@ -48,3 +50,5 @@ private:
 
     std::vector<std::vector<uint32_t>> subsets;
 };
+
+} // namespace A4PDF
