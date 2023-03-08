@@ -16,11 +16,14 @@
 
 #pragma once
 
+#include <ft_subsetter.hpp>
+
 #include <vector>
 #include <string>
 #include <string_view>
 #include <optional>
 #include <cstdint>
+#include <unordered_map>
 
 typedef struct FT_FaceRec_ *FT_Face;
 
@@ -33,22 +36,29 @@ struct FontSubsetInfo {
     int32_t offset;
 };
 
+struct FontBlahblah {
+    std::vector<uint32_t> codepoints;
+    std::unordered_map<uint32_t, uint32_t> font_index_mapping;
+};
+
 class FontSubsetter {
 public:
-    FontSubsetter();
+    FontSubsetter(const char *fontfile, FT_Face face);
 
     FontSubsetInfo get_glyph_subset(uint32_t glyph);
 
     const std::vector<uint32_t> &get_subset(int32_t subset_number) const {
-        return subsets.at(subset_number);
+        return subsets.at(subset_number).codepoints;
     }
 
     std::string generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const;
 
 private:
+    TrueTypeFontFile ttfile;
+    FT_Face face;
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
 
-    std::vector<std::vector<uint32_t>> subsets;
+    std::vector<FontBlahblah> subsets;
 };
 
 } // namespace A4PDF

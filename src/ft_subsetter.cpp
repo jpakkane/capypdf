@@ -16,6 +16,9 @@
 
 #include <ft_subsetter.hpp>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include <cassert>
 #include <byteswap.h>
 #include <cmath>
@@ -476,7 +479,7 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
 }
 
 std::vector<std::string>
-subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32_t> glyphs) {
+subset_glyphs(FT_Face face, const TrueTypeFontFile &source, const std::vector<uint32_t> glyphs) {
     std::vector<std::string> subset;
     assert(glyphs[0] == 0);
     assert(glyphs.size() < 255);
@@ -499,7 +502,8 @@ subset_glyphs(FT_Face face, const TrueTypeFont &source, const std::vector<uint32
     return subset;
 }
 
-TTHmtx subset_hmtx(FT_Face face, const TrueTypeFont &source, const std::vector<uint32_t> &glyphs) {
+TTHmtx
+subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<uint32_t> &glyphs) {
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + 1 == source.maxp.num_glyphs);
     for(const auto &g : glyphs) {
@@ -531,7 +535,7 @@ TTDirEntry write_raw_table(std::string &odata, const char *tag, std::string_view
     return e;
 }
 
-std::string serialize_font(TrueTypeFont &tf) {
+std::string serialize_font(TrueTypeFontFile &tf) {
     std::string odata;
     odata.reserve(1024 * 1024);
     TTDirEntry e;
@@ -659,10 +663,18 @@ std::string gen_cmap(const std::vector<uint32_t> &glyphs) {
     return buf;
 }
 
+int16_t num_contours(std::string_view buf) {
+    int16_t num_contours;
+    assert(buf.size() > sizeof(num_contours));
+    memcpy(&num_contours, buf.data(), sizeof(num_contours));
+    byte_swap(num_contours);
+    return num_contours;
+}
+
 } // namespace
 
-TrueTypeFont parse_truetype_font(std::string_view buf) {
-    TrueTypeFont tf;
+TrueTypeFontFile parse_truetype_font(std::string_view buf) {
+    TrueTypeFontFile tf;
     TTOffsetTable off;
     memcpy(&off, buf.data(), sizeof(off));
     off.swap_endian();
@@ -772,7 +784,7 @@ TrueTypeFont parse_truetype_font(std::string_view buf) {
 
 std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs) {
     auto source = parse_truetype_font(buf);
-    TrueTypeFont dest;
+    TrueTypeFontFile dest;
     assert(glyphs[0] == 0);
     dest.glyphs = subset_glyphs(face, source, glyphs);
 
@@ -794,7 +806,7 @@ std::string generate_font(FT_Face face, std::string_view buf, const std::vector<
     return bytes;
 }
 
-TrueTypeFont load_and_parse_truetype_font(const char *fname) {
+TrueTypeFontFile load_and_parse_truetype_font(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         std::abort();
@@ -808,6 +820,38 @@ TrueTypeFont load_and_parse_truetype_font(const char *fname) {
     }
     fclose(f);
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});
+}
+
+bool is_composite_glyph(std::string_view buf) { return num_contours(buf) < 0; }
+
+std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
+    std::vector<uint32_t> subglyphs;
+    assert(num_contours(buf) < 0);
+    const char *composite_data = buf.data() + 5 * sizeof(int16_t);
+    const uint16_t MORE_COMPONENTS = 0x20;
+    const uint16_t ARGS_ARE_WORDS = 0x01;
+    uint16_t component_flag;
+    uint16_t glyph_index;
+    do {
+        memcpy(&component_flag, composite_data, sizeof(uint16_t));
+        byte_swap(component_flag);
+        composite_data += sizeof(uint16_t);
+        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+        byte_swap(glyph_index);
+        composite_data += sizeof(uint16_t);
+        if(component_flag & ARGS_ARE_WORDS) {
+            composite_data += 2 * sizeof(int16_t);
+        } else {
+            composite_data += 2 * sizeof(int8_t);
+        }
+        subglyphs.push_back(glyph_index);
+    } while(component_flag & MORE_COMPONENTS);
+    return subglyphs;
+}
+
+uint32_t reassign_composite_glyph_numbers(std::string &buf,
+                                          const std::unordered_map<uint32_t, uint32_t> &mapping) {
+    throw std::runtime_error("Not implemented yet.");
 }
 
 } // namespace A4PDF

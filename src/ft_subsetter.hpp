@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <string>
 #include <vector>
 #include <variant>
+#include <unordered_map>
+
+typedef struct FT_FaceRec_ *FT_Face;
 
 namespace A4PDF {
 
@@ -137,7 +137,7 @@ struct SimpleGlyph {
  * prep
  */
 
-struct TrueTypeFont {
+struct TrueTypeFontFile {
     std::vector<std::string> glyphs; // should be variant<basicfont, compositefont> or smth
     TTHead head;
     TTHhea hhea;
@@ -167,9 +167,14 @@ struct TrueTypeFont {
     }
 };
 
+bool is_composite_glyph(std::string_view buf);
+std::vector<uint32_t> composite_subglyphs(std::string_view buf);
+uint32_t reassign_composite_glyph_numbers(std::string &buf,
+                                          const std::unordered_map<uint32_t, uint32_t> &mapping);
+
 std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs);
 
-TrueTypeFont parse_truetype_font(std::string_view buf);
-TrueTypeFont load_and_parse_truetype_font(const char *fname);
+TrueTypeFontFile parse_truetype_font(std::string_view buf);
+TrueTypeFontFile load_and_parse_truetype_font(const char *fname);
 
 } // namespace A4PDF

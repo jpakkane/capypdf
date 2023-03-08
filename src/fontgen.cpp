@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     auto fid = gen.load_font(fontfile);
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
-    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZ", fid, 12, 10, 800);
+    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÄ", fid, 12, 10, 800);
     ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyz", fid, 12, 10, 780);
     ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 10, 760);
     ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 10, 740);

@@ -1105,7 +1105,7 @@ A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
                                              error));
     }
     auto font_source_id = fonts.size();
-    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter()});
+    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter(fname, face)});
 
     /*
     auto font_data_obj =

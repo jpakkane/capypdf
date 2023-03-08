@@ -586,7 +586,7 @@ ErrorCode PdfDrawContext::render_utf8_text(
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             throw std::runtime_error(strerror(errno));
         }
-        // Need to change font subset?
+        // FIXME: check if we need to change font subset,
         auto current_subset_glyph = doc->get_subset_glyph(fid, codepoint);
         const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);

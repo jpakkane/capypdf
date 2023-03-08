@@ -16,29 +16,93 @@
 
 #include <fontsubsetter.hpp>
 #include <ft_subsetter.hpp>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <cstdio>
+
+#include <unordered_set>
 #include <algorithm>
 
 namespace A4PDF {
 
-FontSubsetter::FontSubsetter() { subsets.emplace_back(std::vector<uint32_t>{0}); }
+namespace {
+
+FontBlahblah create_startstate() {
+    std::vector<uint32_t> start_state{0};
+    std::unordered_map<uint32_t, uint32_t> start_mapping{};
+    return FontBlahblah{std::move(start_state), std::move(start_mapping)};
+}
+
+void add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
+                   uint32_t glyph_id,
+                   const TrueTypeFontFile &ttfile) {
+    const auto &cur_glyph = ttfile.glyphs.at(glyph_id);
+    if(!is_composite_glyph(cur_glyph)) {
+        return;
+    }
+    for(const auto &g : composite_subglyphs(cur_glyph)) {
+        if(new_subglyphs.insert(g).second) {
+            add_subglyphs(new_subglyphs, g, ttfile);
+        }
+    }
+}
+
+std::vector<uint32_t> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
+    std::unordered_set<uint32_t> new_subglyphs;
+
+    add_subglyphs(new_subglyphs, glyph_id, ttfile);
+    std::vector<uint32_t> glyphs(new_subglyphs.cbegin(), new_subglyphs.cend());
+    return glyphs;
+}
+
+} // namespace
+
+FontSubsetter::FontSubsetter(const char *fontfile, FT_Face face)
+    : ttfile(load_and_parse_truetype_font(fontfile)), face{face} {
+    subsets.emplace_back(create_startstate());
+}
 
 FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     auto trial = find_glyph(glyph);
     if(trial) {
         return trial.value();
     }
-    if(subsets.back().size() == max_glyphs) {
-        subsets.emplace_back(std::vector<uint32_t>{0});
+    if(subsets.back().codepoints.size() == max_glyphs) {
+        subsets.emplace_back(create_startstate());
     }
-    subsets.back().push_back(glyph);
-    return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().size() - 1)};
+    const auto font_index = FT_Get_Char_Index(face, glyph);
+    if(is_composite_glyph(ttfile.glyphs.at(font_index))) {
+        auto subglyphs = get_all_subglyphs(font_index, ttfile);
+        if(subglyphs.size() + subsets.back().codepoints.size() >= max_glyphs) {
+            fprintf(stderr, "Composite glyph overflow not yet implemented.");
+            std::abort();
+        }
+        for(const auto &new_glyph : subglyphs) {
+            if(subsets.back().font_index_mapping.find(new_glyph) !=
+               subsets.back().font_index_mapping.end()) {
+                continue;
+            }
+        }
+        subsets.back().codepoints.push_back(glyph);
+        subsets.back().font_index_mapping[font_index] =
+            (uint32_t)subsets.back().codepoints.size() - 1;
+    } else {
+        subsets.back().codepoints.push_back(glyph);
+        subsets.back().font_index_mapping[font_index] =
+            (uint32_t)subsets.back().codepoints.size() - 1;
+    }
+    return FontSubsetInfo{int32_t(subsets.size() - 1),
+                          int32_t(subsets.back().codepoints.size() - 1)};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
     for(size_t subset = 0; subset < subsets.size(); ++subset) {
-        auto loc = std::find(subsets.at(subset).cbegin(), subsets.at(subset).cend(), glyph);
-        if(loc != subsets[subset].cend()) {
-            return FontSubsetInfo{int32_t(subset), int32_t(loc - subsets.at(subset).cbegin())};
+        auto loc = std::find(
+            subsets.at(subset).codepoints.cbegin(), subsets.at(subset).codepoints.cend(), glyph);
+        if(loc != subsets[subset].codepoints.cend()) {
+            return FontSubsetInfo{int32_t(subset),
+                                  int32_t(loc - subsets.at(subset).codepoints.cbegin())};
         }
     }
     return {};
@@ -47,7 +111,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
 std::string
 FontSubsetter::generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
-    return generate_font(face, data, glyphs);
+    return generate_font(face, data, glyphs.codepoints);
 }
 
 } // namespace A4PDF
