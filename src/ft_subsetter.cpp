@@ -665,7 +665,6 @@ std::string gen_cmap(const std::vector<uint32_t> &glyphs) {
 
 int16_t num_contours(std::string_view buf) {
     int16_t num_contours;
-    assert(buf.size() > sizeof(num_contours));
     memcpy(&num_contours, buf.data(), sizeof(num_contours));
     byte_swap(num_contours);
     return num_contours;
@@ -849,9 +848,35 @@ std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
     return subglyphs;
 }
 
-uint32_t reassign_composite_glyph_numbers(std::string &buf,
-                                          const std::unordered_map<uint32_t, uint32_t> &mapping) {
-    throw std::runtime_error("Not implemented yet.");
+void reassign_composite_glyph_numbers(std::string &buf,
+                                      const std::unordered_map<uint32_t, uint32_t> &mapping) {
+    const char *composite_data = buf.data() + 5 * sizeof(int16_t);
+    const uint16_t MORE_COMPONENTS = 0x20;
+    const uint16_t ARGS_ARE_WORDS = 0x01;
+    uint16_t component_flag;
+    uint16_t glyph_index;
+    do {
+        memcpy(&component_flag, composite_data, sizeof(uint16_t));
+        byte_swap(component_flag);
+        composite_data += sizeof(uint16_t);
+        auto index_address = (char *)composite_data;
+        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+        byte_swap(glyph_index);
+        composite_data += sizeof(uint16_t);
+        if(component_flag & ARGS_ARE_WORDS) {
+            composite_data += 2 * sizeof(int16_t);
+        } else {
+            composite_data += 2 * sizeof(int8_t);
+        }
+        auto it = mapping.find(glyph_index);
+        if(it == mapping.end()) {
+            fprintf(stderr, "FAILfailFAIL\n");
+            std::abort();
+        }
+        glyph_index = it->second;
+        byte_swap(glyph_index);
+        memcpy(index_address, &glyph_index, sizeof(glyph_index));
+    } while(component_flag & MORE_COMPONENTS);
 }
 
 } // namespace A4PDF

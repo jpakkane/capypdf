@@ -169,7 +169,7 @@ struct TrueTypeFontFile {
 
 bool is_composite_glyph(std::string_view buf);
 std::vector<uint32_t> composite_subglyphs(std::string_view buf);
-uint32_t reassign_composite_glyph_numbers(std::string &buf,
+void reassign_composite_glyph_numbers(std::string &buf,
                                           const std::unordered_map<uint32_t, uint32_t> &mapping);
 
 std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs);
