@@ -24,6 +24,7 @@
 #include <optional>
 #include <cstdint>
 #include <unordered_map>
+#include <variant>
 
 typedef struct FT_FaceRec_ *FT_Face;
 
@@ -36,8 +37,8 @@ struct FontSubsetInfo {
     int32_t offset;
 };
 
-struct FontBlahblah {
-    std::vector<uint32_t> codepoints;
+struct FontSubsetData {
+    std::vector<TTGlyphs> glyphs;
     std::unordered_map<uint32_t, uint32_t> font_index_mapping;
 };
 
@@ -47,8 +48,8 @@ public:
 
     FontSubsetInfo get_glyph_subset(uint32_t glyph);
 
-    const std::vector<uint32_t> &get_subset(int32_t subset_number) const {
-        return subsets.at(subset_number).codepoints;
+    const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
+        return subsets.at(subset_number).glyphs;
     }
 
     std::string generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const;
@@ -58,7 +59,7 @@ private:
     FT_Face face;
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
 
-    std::vector<FontBlahblah> subsets;
+    std::vector<FontSubsetData> subsets;
 };
 
 } // namespace A4PDF

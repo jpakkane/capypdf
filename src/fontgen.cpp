@@ -39,11 +39,11 @@ int main(int argc, char **argv) {
     auto fid = gen.load_font(fontfile);
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
-    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÄ", fid, 12, 10, 800);
-    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyz", fid, 12, 10, 780);
-    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 10, 760);
-    ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 10, 740);
-    // ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", fid, 12, 10, 720);
+    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", fid, 12, 20, 800);
+    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyzåäö", fid, 12, 20, 780);
+    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 20, 760);
+    ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 20, 740);
+    ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", fid, 12, 20, 720);
     /*
     std::vector<PdfGlyph> glyphs;
     const int num_glyphs = 26;
@@ -62,9 +62,9 @@ int main(int argc, char **argv) {
                 char buf[10];
                 const uint32_t cur_char = 256 * page_num + 16 * i + j;
                 snprintf(buf, 10, "0x%04X", cur_char);
-                ctx.render_utf8_text(buf, fid, 8, 10 + 45 * i, opts.page_size.h - (10 + 10 * j));
-                ctx.render_raw_glyph(
-                    (uint32_t)cur_char, fid, 8, 10 + 30 + 45 * i, opts.page_size.h - (10 + 10 * j));
+                ctx.render_utf8_text(buf, fid, 8, 10 + 45 * i, opts.page_size.h - (10 + 10 *
+    j)); ctx.render_raw_glyph( (uint32_t)cur_char, fid, 8, 10 + 30 + 45 * i, opts.page_size.h -
+    (10 + 10 * j));
             }
         }
     }

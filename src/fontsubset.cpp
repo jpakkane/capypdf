@@ -36,8 +36,9 @@ namespace {
 void write_font(const char *ofname,
                 FT_Face face,
                 std::string_view source,
-                const std::vector<uint32_t> &glyphs) {
-    auto bytes = A4PDF::generate_font(face, source, glyphs);
+                const std::vector<A4PDF::TTGlyphs> &glyphs) {
+    std::unordered_map<uint32_t, uint32_t> dummy;
+    auto bytes = A4PDF::generate_font(face, source, glyphs, dummy);
     FILE *f = fopen(ofname, "w");
     if(fwrite(bytes.data(), 1, bytes.length(), f) != bytes.length()) {
         printf("Writing to file failed: %s\n", strerror(errno));
@@ -77,7 +78,7 @@ int main(int argc, char **argv) {
         printf("Font opening failed.\n");
         return 1;
     }
-    printf("Font opened successfully.\n");
+    printf("Font opened suc½cessfully.\n");
 
     FILE *f = fopen(fontfile, "r");
     fseek(f, 0, SEEK_END);
@@ -86,11 +87,11 @@ int main(int argc, char **argv) {
     std::vector<char> buf(fsize, 0);
     fread(buf.data(), 1, fsize, f);
     fclose(f);
-
-    std::vector<uint32_t> glyphs{0, 'A', 'B', '0', '&', '+', 'z'};
-    // std::abort();
-    write_font(outfile, face, std::string_view{buf.data(), buf.size()}, glyphs);
-
+    /*
+        std::vector<A4PDF::TTGlyphs> glyphs{0, 'A', 'B', '0', '&', '+', 'z'};
+        // std::abort();
+        write_font(outfile, face, std::string_view{buf.data(), buf.size()}, glyphs);
+    */
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     return 0;

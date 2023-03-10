@@ -28,10 +28,10 @@ namespace A4PDF {
 
 namespace {
 
-FontBlahblah create_startstate() {
-    std::vector<uint32_t> start_state{0};
+FontSubsetData create_startstate() {
+    std::vector<TTGlyphs> start_state{RegularGlyph{0}};
     std::unordered_map<uint32_t, uint32_t> start_mapping{};
-    return FontBlahblah{std::move(start_state), std::move(start_mapping)};
+    return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
 
 void add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
@@ -68,13 +68,13 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     if(trial) {
         return trial.value();
     }
-    if(subsets.back().codepoints.size() == max_glyphs) {
+    if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
     const auto font_index = FT_Get_Char_Index(face, glyph);
     if(is_composite_glyph(ttfile.glyphs.at(font_index))) {
         auto subglyphs = get_all_subglyphs(font_index, ttfile);
-        if(subglyphs.size() + subsets.back().codepoints.size() >= max_glyphs) {
+        if(subglyphs.size() + subsets.back().glyphs.size() >= max_glyphs) {
             fprintf(stderr, "Composite glyph overflow not yet implemented.");
             std::abort();
         }
@@ -83,26 +83,34 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
                subsets.back().font_index_mapping.end()) {
                 continue;
             }
+            // Composite glyph parts do not necessarily correspond to any Unicode codepoint.
+            subsets.back().glyphs.push_back(CompositeGlyph{new_glyph});
+            subsets.back().font_index_mapping[new_glyph] =
+                (uint32_t)subsets.back().glyphs.size() - 1;
         }
-        subsets.back().codepoints.push_back(glyph);
-        subsets.back().font_index_mapping[font_index] =
-            (uint32_t)subsets.back().codepoints.size() - 1;
+        subsets.back().glyphs.push_back(RegularGlyph{glyph});
+        subsets.back().font_index_mapping[font_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     } else {
-        subsets.back().codepoints.push_back(glyph);
-        subsets.back().font_index_mapping[font_index] =
-            (uint32_t)subsets.back().codepoints.size() - 1;
+        subsets.back().glyphs.push_back(RegularGlyph{glyph});
+        subsets.back().font_index_mapping[font_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     }
-    return FontSubsetInfo{int32_t(subsets.size() - 1),
-                          int32_t(subsets.back().codepoints.size() - 1)};
+    return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().glyphs.size() - 1)};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
     for(size_t subset = 0; subset < subsets.size(); ++subset) {
-        auto loc = std::find(
-            subsets.at(subset).codepoints.cbegin(), subsets.at(subset).codepoints.cend(), glyph);
-        if(loc != subsets[subset].codepoints.cend()) {
+        auto loc =
+            std::find_if(subsets.at(subset).glyphs.cbegin(),
+                         subsets.at(subset).glyphs.cend(),
+                         [&glyph](const TTGlyphs &ttg) {
+                             if(std::holds_alternative<RegularGlyph>(ttg)) {
+                                 return std::get<RegularGlyph>(ttg).unicode_codepoint == glyph;
+                             }
+                             return false;
+                         });
+        if(loc != subsets[subset].glyphs.cend()) {
             return FontSubsetInfo{int32_t(subset),
-                                  int32_t(loc - subsets.at(subset).codepoints.cbegin())};
+                                  int32_t(loc - subsets.at(subset).glyphs.cbegin())};
         }
     }
     return {};
@@ -111,7 +119,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
 std::string
 FontSubsetter::generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
-    return generate_font(face, data, glyphs.codepoints);
+    return generate_font(face, data, glyphs.glyphs, glyphs.font_index_mapping);
 }
 
 } // namespace A4PDF

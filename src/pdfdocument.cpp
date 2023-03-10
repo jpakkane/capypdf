@@ -109,29 +109,29 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::string build_subset_width_array(FT_Face face, const std::vector<uint32_t> &glyphs) {
+std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags =
         FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
     //    static_assert(load_flags == 522);
     for(const auto glyph : glyphs) {
-        if(glyph == 0) {
-            fmt::format_to(bi, "{} ", 0);
-        } else {
-            auto glyph_index = FT_Get_Char_Index(face, glyph);
-            auto error = FT_Load_Glyph(face, glyph_index, load_flags);
+        const auto glyph_id = A4PDF::font_id_for_glyph(face, glyph);
+        FT_Pos horiadvance = 0;
+        if(glyph_id != 0) {
+            auto error = FT_Load_Glyph(face, glyph_id, load_flags);
             if(error != 0) {
                 throw std::runtime_error(FT_Error_String(error));
             }
-            fmt::format_to(bi, "{} ", face->glyph->metrics.horiAdvance);
+            horiadvance = face->glyph->metrics.horiAdvance;
         }
+        fmt::format_to(bi, "{} ", horiadvance);
     }
     arr += "]";
     return arr;
 }
 
-std::string create_subset_cmap(const std::vector<uint32_t> &glyphs) {
+std::string create_subset_cmap(const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string buf = fmt::format(R"(/CIDInit/ProcSet findresource begin
 12 dict begin
 begincmap
@@ -151,7 +151,12 @@ endcodespacerange
     // Glyph zero is not mapped.
     auto appender = std::back_inserter(buf);
     for(size_t i = 1; i < glyphs.size(); ++i) {
-        fmt::format_to(appender, "<{:02X}> <{:04X}>\n", i, glyphs[i]);
+        const auto &g = glyphs[i];
+        uint32_t unicode_codepoint = 0;
+        if(std::holds_alternative<A4PDF::RegularGlyph>(g)) {
+            unicode_codepoint = std::get<A4PDF::RegularGlyph>(g).unicode_codepoint;
+        }
+        fmt::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
     }
     buf += R"(endbfchar
 endcmap
@@ -590,7 +595,7 @@ void PdfDocument::write_subset_font(int32_t object_num,
                                     int32_t font_descriptor_obj,
                                     int32_t tounicode_obj) {
     auto face = font.fontdata.face.get();
-    const std::vector<uint32_t> &subset_glyphs = font.subsets.get_subset(subset);
+    const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
     auto width_arr = build_subset_width_array(face, subset_glyphs);

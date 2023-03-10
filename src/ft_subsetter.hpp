@@ -117,6 +117,16 @@ struct SimpleGlyph {
     std::vector<CoordInfo> ycoord;
 };
 
+struct RegularGlyph {
+    uint32_t unicode_codepoint;
+};
+
+struct CompositeGlyph {
+    uint32_t font_index;
+};
+
+typedef std::variant<RegularGlyph, CompositeGlyph> TTGlyphs;
+
 /* Mandatory TTF tables according to The Internet.
  *
  * 'cmap' character to glyph mapping <- LO does not create this table.
@@ -138,7 +148,7 @@ struct SimpleGlyph {
  */
 
 struct TrueTypeFontFile {
-    std::vector<std::string> glyphs; // should be variant<basicfont, compositefont> or smth
+    std::vector<std::string> glyphs;
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
@@ -170,11 +180,16 @@ struct TrueTypeFontFile {
 bool is_composite_glyph(std::string_view buf);
 std::vector<uint32_t> composite_subglyphs(std::string_view buf);
 void reassign_composite_glyph_numbers(std::string &buf,
-                                          const std::unordered_map<uint32_t, uint32_t> &mapping);
+                                      const std::unordered_map<uint32_t, uint32_t> &mapping);
 
-std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs);
+std::string generate_font(FT_Face face,
+                          std::string_view buf,
+                          const std::vector<TTGlyphs> &glyphs,
+                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
 TrueTypeFontFile parse_truetype_font(std::string_view buf);
 TrueTypeFontFile load_and_parse_truetype_font(const char *fname);
+
+uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g);
 
 } // namespace A4PDF

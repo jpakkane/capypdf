@@ -15,7 +15,7 @@
  */
 
 #include <ft_subsetter.hpp>
-
+#include <fontsubsetter.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -478,13 +478,15 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-std::vector<std::string>
-subset_glyphs(FT_Face face, const TrueTypeFontFile &source, const std::vector<uint32_t> glyphs) {
+std::vector<std::string> subset_glyphs(FT_Face face,
+                                       const TrueTypeFontFile &source,
+                                       const std::vector<TTGlyphs> glyphs,
+                                       const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     std::vector<std::string> subset;
-    assert(glyphs[0] == 0);
+    assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
-    for(const auto &c : glyphs) {
-        const auto gid = c != 0 ? FT_Get_Char_Index(face, c) : 0;
+    for(const auto &g : glyphs) {
+        uint32_t gid = font_id_for_glyph(face, g);
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
         if(!subset.back().empty()) {
@@ -493,8 +495,7 @@ subset_glyphs(FT_Face face, const TrueTypeFontFile &source, const std::vector<ui
             memcpy(&num_contours, subset.back().data(), sizeof(int16_t));
             byte_swap(num_contours);
             if(num_contours < 0) {
-                printf("Composite glyphs not supported yet.\n");
-                std::abort();
+                reassign_composite_glyph_numbers(subset.back(), comp_mapping);
             }
         }
     }
@@ -503,11 +504,11 @@ subset_glyphs(FT_Face face, const TrueTypeFontFile &source, const std::vector<ui
 }
 
 TTHmtx
-subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<uint32_t> &glyphs) {
+subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + 1 == source.maxp.num_glyphs);
     for(const auto &g : glyphs) {
-        const auto gid = g != 0 ? FT_Get_Char_Index(face, g) : 0;
+        const auto gid = font_id_for_glyph(face, g);
         assert(gid < source.hmtx.longhor.size());
         subset.longhor.push_back(source.hmtx.longhor[gid]);
     }
@@ -631,7 +632,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     return odata;
 }
 
-std::string gen_cmap(const std::vector<uint32_t> &glyphs) {
+std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     TTEncodingSubtable0 glyphencoding;
     glyphencoding.format = 0;
     glyphencoding.language = 0;
@@ -781,11 +782,14 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     return tf;
 }
 
-std::string generate_font(FT_Face face, std::string_view buf, const std::vector<uint32_t> &glyphs) {
+std::string generate_font(FT_Face face,
+                          std::string_view buf,
+                          const std::vector<TTGlyphs> &glyphs,
+                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     auto source = parse_truetype_font(buf);
     TrueTypeFontFile dest;
-    assert(glyphs[0] == 0);
-    dest.glyphs = subset_glyphs(face, source, glyphs);
+    assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
+    dest.glyphs = subset_glyphs(face, source, glyphs, comp_mapping);
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
@@ -877,6 +881,21 @@ void reassign_composite_glyph_numbers(std::string &buf,
         byte_swap(glyph_index);
         memcpy(index_address, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);
+}
+
+uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g) {
+    if(std::holds_alternative<A4PDF::RegularGlyph>(g)) {
+        auto &rg = std::get<A4PDF::RegularGlyph>(g);
+        if(rg.unicode_codepoint == 0) {
+            return 0;
+        } else {
+            return FT_Get_Char_Index(face, rg.unicode_codepoint);
+        }
+    } else if(std::holds_alternative<A4PDF::CompositeGlyph>(g)) {
+        return std::get<A4PDF::CompositeGlyph>(g).font_index;
+    } else {
+        std::abort();
+    }
 }
 
 } // namespace A4PDF
