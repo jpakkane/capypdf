@@ -14,6 +14,7 @@
 
 
 import ctypes
+import os
 from enum import Enum
 
 class LineCapStyle(Enum):
@@ -83,7 +84,10 @@ cfunc_types = (
 
 )
 
-libfile = ctypes.cdll.LoadLibrary('src/liba4pdf.so') # FIXME
+libfile_name = 'liba4pdf.so'
+if 'A4PDF_SO_OVERRIDE' in os.environ:
+    libfile_name = os.environ['A4PDF_SO_OVERRIDE'] + '/' + libfile_name
+libfile = ctypes.cdll.LoadLibrary(libfile_name)
 
 for funcname, argtypes in cfunc_types:
     funcobj = getattr(libfile, funcname)

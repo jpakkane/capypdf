@@ -22,7 +22,7 @@ import PIL.Image, PIL.ImageChops
 if shutil.which('gs') is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
-os.environ['LD_LIBRARY_PATH'] = 'src'
+os.environ['A4PDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
 source_root = pathlib.Path(sys.argv[1])
 testdata_dir = source_root / 'testoutput'
 image_dir = source_root / 'images'
