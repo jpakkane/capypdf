@@ -35,6 +35,7 @@ enum class ErrorCode : int32_t {
     ZeroLengthArray,
     CouldNotOpenFile,
     FileWriteError,
+    ArgIsNull,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

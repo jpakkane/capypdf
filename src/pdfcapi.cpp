@@ -21,6 +21,11 @@
 
 using namespace A4PDF;
 
+#define CHECK_NULL(x)                                                                              \
+    if(x == nullptr) {                                                                             \
+        return (A4PDF_EC)ErrorCode::ArgIsNull;                                                     \
+    }
+
 A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT {
     *out_ptr = reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
     return (A4PDF_EC)ErrorCode::NoError;
@@ -49,6 +54,9 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
 A4PDF_EC a4pdf_generator_new(const char *filename,
                              const A4PDF_Options *options,
                              A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
+    CHECK_NULL(filename);
+    CHECK_NULL(options);
+    CHECK_NULL(out_ptr);
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
     *out_ptr = reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
     return (A4PDF_EC)ErrorCode::NoError;
