@@ -65,8 +65,11 @@ executable('icctest', 'icctest.cpp',
   dependencies: [a4pdf_dep]
 )
 
-executable('pdfviewer', 'pdfviewer.cpp',
-  dependencies: [zlib_dep, gtk_dep])
+
+if gtk_dep.found()
+  executable('pdfviewer', 'pdfviewer.cpp',
+    dependencies: [zlib_dep, gtk_dep])
+endif
 
 executable('fontsubset', 'fontsubset.cpp', 'ft_subsetter.cpp',
   dependencies: freetype_dep)
