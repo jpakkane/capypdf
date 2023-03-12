@@ -101,13 +101,13 @@ typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
 
 typedef int32_t A4PDF_EC;
 
-struct A4PDF_ImageId {
+typedef struct {
     int32_t id;
-};
+} A4PDF_ImageId;
 
-struct A4PDF_FontId {
+typedef struct {
     int32_t id;
-};
+} A4PDF_FontId;
 
 // Options
 
@@ -160,10 +160,10 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_cm(A4PDF_DrawContext *ctx,
                                       double m6) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Join join_style) A4PDF_NOEXCEPT;
+                                     enum A4PDF_Line_Join join_style) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_h(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT;
+                                     enum A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_m(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
