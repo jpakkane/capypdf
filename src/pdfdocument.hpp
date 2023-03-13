@@ -235,6 +235,7 @@ private:
     A4PDF_ImageId process_rgb_image(const rgb_image &image);
     A4PDF_ImageId process_gray_image(const gray_image &image);
     A4PDF_ImageId process_mono_image(const mono_image &image);
+    A4PDF_ImageId process_cmyk_image(const cmyk_image &image);
 
     OutlineLimits
     write_outline_tree(const std::vector<int32_t> &page_objects,

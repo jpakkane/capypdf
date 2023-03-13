@@ -743,6 +743,8 @@ A4PDF_ImageId PdfDocument::load_image(const char *fname) {
         return process_gray_image(std::get<gray_image>(image));
     } else if(std::holds_alternative<mono_image>(image)) {
         return process_mono_image(std::get<mono_image>(image));
+    } else if(std::holds_alternative<cmyk_image>(image)) {
+        return process_cmyk_image(std::get<cmyk_image>(image));
     } else {
         throw std::runtime_error("Unsupported image format.");
     }
@@ -928,6 +930,31 @@ A4PDF_ImageId PdfDocument::process_gray_image(const gray_image &image) {
         fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
     }
     buf += ">>\n";
+    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
+}
+
+A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
+    const auto compressed = flate_compress(image.pixels);
+    std::string buf;
+
+    fmt::format_to(std::back_inserter(buf),
+                   R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /ColorSpace /DeviceCMYK
+  /Width {}
+  /Height {}
+  /BitsPerComponent 8
+  /Length {}
+  /Filter /FlateDecode
+)",
+                   image.w,
+                   image.h,
+                   compressed.size());
+    buf += ">>\n";
+    // FIXME, add ICC profile and smask.
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
     image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
     return A4PDF_ImageId{(int32_t)image_info.size() - 1};

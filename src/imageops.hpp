@@ -49,7 +49,14 @@ struct jpg_image {
     std::string file_contents;
 };
 
-typedef std::variant<mono_image, gray_image, rgb_image> RasterImage;
+struct cmyk_image {
+    int32_t w;
+    int32_t h;
+    std::string pixels;
+    std::optional<std::string> icc;
+};
+
+typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
 
 RasterImage load_image_file(const char *fname);
 

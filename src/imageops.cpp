@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include <imageops.hpp>
 #include <utils.hpp>
 #include <png.h>
 #include <jpeglib.h>
+#include <tiffio.h>
 #include <cstring>
 #include <cassert>
 #include <stdexcept>
@@ -142,9 +144,7 @@ mono_image load_mono_png(png_image &image) {
     return result;
 }
 
-} // namespace
-
-RasterImage load_image_file(const char *fname) {
+RasterImage load_png_file(const char *fname) {
     png_image image;
     std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
 
@@ -177,6 +177,80 @@ RasterImage load_image_file(const char *fname) {
     throw std::runtime_error("Unreachable code.");
 }
 
+RasterImage load_tif_file(const char *fname) {
+    cmyk_image image;
+    TIFF *tif = TIFFOpen(fname, "rb");
+    if(!tif) {
+        std::abort();
+    }
+    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
+
+    uint32_t w{}, h{};
+    uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{}, extrasamples{};
+    uint32_t icc_count{};
+    void *icc_data{};
+
+    if(TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w) != 1) {
+        std::abort();
+    }
+    if(TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h) != 1) {
+        std::abort();
+    }
+
+    if(TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample) != 1) {
+        std::abort();
+    }
+    if(bitspersample != 8) {
+        std::abort();
+    }
+
+    if(TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel) != 1) {
+        std::abort();
+    }
+    if(samplesperpixel != 4) {
+        std::abort();
+    }
+
+    if(TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric) != 1) {
+        std::abort();
+    }
+    if(photometric != PHOTOMETRIC_SEPARATED) {
+        std::abort();
+    }
+
+    if(TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &extrasamples) == 1) {
+        if(extrasamples != 0) {
+            // Has alpha channel.
+            std::abort();
+        }
+    }
+
+    if(TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &planarconf) != 1) {
+        std::abort();
+    }
+    // Maybe fail for this?
+
+    if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
+        // FIXME, add icc profile.
+    }
+
+    image.w = w;
+    image.h = h;
+    const auto scanlinesize = TIFFScanlineSize64(tif);
+    std::string line(scanlinesize, 0);
+    image.pixels.reserve(scanlinesize * h);
+    for(uint32_t row = 0; row < h; ++row) {
+        if(TIFFReadScanline(tif, line.data(), row) != 1) {
+            fprintf(stderr, "Fail in decoding.\n");
+            std::abort();
+        }
+        image.pixels += line;
+    }
+    return image;
+}
+
+} // namespace
+
 jpg_image load_jpg(const char *fname) {
     jpg_image im;
     im.file_contents = load_file(fname);
@@ -197,6 +271,18 @@ jpg_image load_jpg(const char *fname) {
     im.w = cinfo.image_width;
     // Fixme, validate that this is an 8bpp RGB image.
     return im;
+}
+
+RasterImage load_image_file(const char *fname) {
+    auto extension = std::filesystem::path(fname).extension();
+    if(extension == ".png" || extension == ".PNG") {
+        return load_png_file(fname);
+    }
+    if(extension == ".tif" || extension == ".tiff" || extension == ".TIF" || extension == ".TIFF") {
+        return load_tif_file(fname);
+    }
+    fprintf(stderr, "Unsupported image file format: %s\n", fname);
+    std::abort();
 }
 
 } // namespace A4PDF

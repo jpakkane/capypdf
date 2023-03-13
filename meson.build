@@ -14,7 +14,7 @@ zlib_dep = dependency('zlib')
 lcms_dep = dependency('lcms2')
 jpeg_dep = dependency('libjpeg')
 freetype_dep = dependency('freetype2')
-tiff_dep = dependency('libtiff-4', required: false)
+tiff_dep = dependency('libtiff-4')
 gtk_dep = dependency('gtk4', required: false)
 
 pubinc = include_directories('include')
