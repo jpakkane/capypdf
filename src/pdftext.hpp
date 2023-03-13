@@ -95,7 +95,7 @@ typedef std::variant<TStar_arg,
 
 class PdfText {
 public:
-    PdfText();
+    PdfText(A4PDF_FontId font, double pointsize, double x, double y);
 
     ErrorCode cmd_Tstar() {
         events.emplace_back(TStar_arg{});
@@ -161,6 +161,8 @@ public:
         events.emplace_back(Tz_arg{scaling});
         return ErrorCode::NoError;
     }
+
+    const std::vector<TextEvent> &get_events() const { return events; }
 
 private:
     std::vector<TextEvent> events;

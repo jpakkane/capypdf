@@ -639,6 +639,62 @@ ErrorCode PdfDrawContext::render_utf8_text(
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
+    std::string serialisation{"BT\n"};
+    auto app = std::back_inserter(serialisation);
+    int32_t current_subset{-1};
+    A4PDF_FontId current_font{-1};
+    double current_pointsize{-1};
+    for(const auto &e : textobj.get_events()) {
+        if(std::holds_alternative<Tf_arg>(e)) {
+            current_font = std::get<Tf_arg>(e).font;
+            current_subset = -1;
+            current_pointsize = std::get<Tf_arg>(e).pointsize;
+        } else if(std::holds_alternative<Td_arg>(e)) {
+            const auto &td = std::get<Td_arg>(e);
+            fmt::format_to(app, "  {} {} Td\n", td.tx, td.ty);
+        } else if(std::holds_alternative<TJ_arg>(e)) {
+            const auto &tj = std::get<TJ_arg>(e);
+            bool is_first = true;
+            for(const auto &e : tj.elements) {
+                if(std::holds_alternative<double>(e)) {
+                    if(is_first) {
+                        serialisation += "  [ ";
+                    }
+                    fmt::format_to(app, "{} ", std::get<double>(e));
+                } else {
+                    assert(std::holds_alternative<uint32_t>(e));
+                    const auto codepoint = std::get<uint32_t>(e);
+                    auto current_subset_glyph = doc->get_subset_glyph(current_font, codepoint);
+                    used_subset_fonts.insert(current_subset_glyph.ss);
+                    if(current_subset_glyph.ss.subset_id != current_subset) {
+                        if(!is_first) {
+                            serialisation += "] TJ\n";
+                        }
+                        fmt::format_to(
+                            app,
+                            "  /SFont{}-{} {} Tf\n  [ ",
+                            doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
+                            current_subset_glyph.ss.subset_id,
+                            current_pointsize);
+                    }
+                    current_font = current_subset_glyph.ss.fid;
+                    current_subset = current_subset_glyph.ss.subset_id;
+                    fmt::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
+                }
+                is_first = false;
+            }
+            serialisation += "] TJ\n";
+        } else {
+            fprintf(stderr, "Not implemented yet.\n");
+            std::abort();
+        }
+    }
+    serialisation += "ET\n";
+    commands += serialisation;
+    return ErrorCode::NoError;
+}
+
 void PdfDrawContext::render_raw_glyph(
     uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y) {
     auto &font_data = doc->font_objects.at(fid.id);

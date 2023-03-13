@@ -17,6 +17,7 @@
 #pragma once
 
 #include <pdfcommon.hpp>
+#include <pdftext.hpp>
 #include <errors.hpp>
 #include <pdfcolorconverter.hpp>
 #include <pdfdocument.hpp>
@@ -134,6 +135,7 @@ public:
     void rotate(double angle);
     ErrorCode
     render_utf8_text(std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y);
+    ErrorCode render_text(const PdfText &textobj);
     void render_raw_glyph(uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y);
     ErrorCode
     render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);

@@ -15,6 +15,7 @@
  */
 
 #include <pdfgen.hpp>
+#include <pdftext.hpp>
 #include <cmath>
 
 using namespace A4PDF;
@@ -44,6 +45,26 @@ int main(int argc, char **argv) {
     ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 20, 760);
     ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 20, 740);
     ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", fid, 12, 20, 720);
+    PdfText text{fid, 12, 20, 700};
+    std::vector<CharItem> kerned_text;
+
+    kerned_text.emplace_back(uint32_t('A'));
+    kerned_text.emplace_back(-100.0);
+    kerned_text.emplace_back(uint32_t('V'));
+
+    kerned_text.emplace_back(uint32_t(' '));
+
+    kerned_text.emplace_back(uint32_t('A'));
+    kerned_text.emplace_back(uint32_t('V'));
+
+    kerned_text.emplace_back(uint32_t(' '));
+
+    kerned_text.emplace_back(uint32_t('A'));
+    kerned_text.emplace_back(100.0);
+    kerned_text.emplace_back(uint32_t('V'));
+
+    text.cmd_TJ(std::move(kerned_text));
+    ctx.render_text(text);
     /*
     std::vector<PdfGlyph> glyphs;
     const int num_glyphs = 26;
