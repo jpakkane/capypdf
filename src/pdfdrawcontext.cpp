@@ -646,13 +646,19 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     A4PDF_FontId current_font{-1};
     double current_pointsize{-1};
     for(const auto &e : textobj.get_events()) {
-        if(std::holds_alternative<Tf_arg>(e)) {
-            current_font = std::get<Tf_arg>(e).font;
-            current_subset = -1;
-            current_pointsize = std::get<Tf_arg>(e).pointsize;
+        if(std::holds_alternative<Tc_arg>(e)) {
+            const auto &tc = std::get<Td_arg>(e);
+            fmt::format_to(app, "  {} {} Tc\n", tc.tx, tc.ty);
         } else if(std::holds_alternative<Td_arg>(e)) {
             const auto &td = std::get<Td_arg>(e);
             fmt::format_to(app, "  {} {} Td\n", td.tx, td.ty);
+        } else if(std::holds_alternative<TD_arg>(e)) {
+            const auto &tD = std::get<TD_arg>(e);
+            fmt::format_to(app, "  {} {} TD\n", tD.tx, tD.ty);
+        } else if(std::holds_alternative<Tf_arg>(e)) {
+            current_font = std::get<Tf_arg>(e).font;
+            current_subset = -1;
+            current_pointsize = std::get<Tf_arg>(e).pointsize;
         } else if(std::holds_alternative<TJ_arg>(e)) {
             const auto &tj = std::get<TJ_arg>(e);
             bool is_first = true;
@@ -685,6 +691,21 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
                 is_first = false;
             }
             serialisation += "] TJ\n";
+        } else if(std::holds_alternative<TL_arg>(e)) {
+            const auto &tL = std::get<TL_arg>(e);
+            fmt::format_to(app, "  {} TL\n", tL.leading);
+        } else if(std::holds_alternative<Tm_arg>(e)) {
+            const auto &tm = std::get<Tm_arg>(e);
+            fmt::format_to(app, "  {} {} {} {} {} {} Tm\n", tm.a, tm.b, tm.c, tm.d, tm.e, tm.f);
+        } else if(std::holds_alternative<Ts_arg>(e)) {
+            const auto &ts = std::get<Ts_arg>(e);
+            fmt::format_to(app, "  {} Ts\n", ts.rise);
+        } else if(std::holds_alternative<Tw_arg>(e)) {
+            const auto &tw = std::get<Tw_arg>(e);
+            fmt::format_to(app, "  {} Tw\n", tw.width);
+        } else if(std::holds_alternative<Tz_arg>(e)) {
+            const auto &tz = std::get<Tz_arg>(e);
+            fmt::format_to(app, "  {} Tz\n", tz.scaling);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();
