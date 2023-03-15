@@ -89,6 +89,25 @@ int main(int argc, char **argv) {
         ctx.render_text(text);
     }
 
+    {
+        PdfText text{regular_fid, 12, 20, 550};
+        text.render_text("How about some ");
+        text.cmd_Ts(4);
+        text.render_text("raised");
+        text.cmd_Ts(0);
+        text.render_text(" text?");
+        ctx.render_text(text);
+    }
+
+    {
+        PdfText text{regular_fid, 12, 20, 500};
+        text.render_text("Character spacing");
+        text.cmd_Tstar();
+        text.cmd_Tc(1);
+        text.render_text("Character spacing");
+        ctx.render_text(text);
+    }
+
     /*
     std::vector<PdfGlyph> glyphs;
     const int num_glyphs = 26;

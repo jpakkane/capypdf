@@ -747,8 +747,8 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         if(std::holds_alternative<TStar_arg>(e)) {
             serialisation += "  T*\n";
         } else if(std::holds_alternative<Tc_arg>(e)) {
-            const auto &tc = std::get<Td_arg>(e);
-            fmt::format_to(app, "  {} {} Tc\n", tc.tx, tc.ty);
+            const auto &tc = std::get<Tc_arg>(e);
+            fmt::format_to(app, "  {} Tc\n", tc.val);
         } else if(std::holds_alternative<Td_arg>(e)) {
             const auto &td = std::get<Td_arg>(e);
             fmt::format_to(app, "  {} {} Td\n", td.tx, td.ty);
