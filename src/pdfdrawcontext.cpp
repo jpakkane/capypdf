@@ -771,15 +771,18 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::render_ascii_text_builtin(
-    const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y) {
+void PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
+                                                A4PDF_Builtin_Fonts font_id,
+                                                double pointsize,
+                                                double x,
+                                                double y) {
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
     std::string cleaned_text;
-    for(const auto c : std::string_view(ascii_text)) {
-        if((unsigned char)c > 127) {
-            cleaned_text += ' ';
-        } else if(c == '(') {
+    std::string_view textview(pdfdoc_encoded_text);
+    cleaned_text.reserve(textview.size());
+    for(const auto c : textview) {
+        if(c == '(') {
             cleaned_text += "\\(";
         } else if(c == '\\') {
             cleaned_text += "\\\\";

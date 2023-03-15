@@ -101,12 +101,12 @@ int main() {
             auto pattern = gen.new_color_pattern_builder(3, 3);
             auto &pctx = pattern.pctx;
 
-            pctx.render_ascii_text_builtin("g", A4PDF_FONT_TIMES_ROMAN, 3, 0, 2);
+            pctx.render_pdfdoc_text_builtin("g", A4PDF_FONT_TIMES_ROMAN, 3, 0, 2);
             auto patternid = gen.add_pattern(pattern);
 
             ctx.translate(100, 10);
             ctx.set_nonstroke_color(patternid);
-            ctx.render_ascii_text_builtin("C", A4PDF_FONT_TIMES_ROMAN, 120, 0, 5);
+            ctx.render_pdfdoc_text_builtin("C", A4PDF_FONT_TIMES_ROMAN, 120, 0, 5);
         }
     }
     return 0;

@@ -139,8 +139,11 @@ public:
     void render_raw_glyph(uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y);
     ErrorCode
     render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);
-    void render_ascii_text_builtin(
-        const char *ascii_text, A4PDF_Builtin_Fonts font_id, double pointsize, double x, double y);
+    void render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
+                                    A4PDF_Builtin_Fonts font_id,
+                                    double pointsize,
+                                    double x,
+                                    double y);
 
     void draw_unit_circle();
     void draw_unit_box();

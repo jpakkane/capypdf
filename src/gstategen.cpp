@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
             ctx.cmd_Q();
             ctx.cmd_q();
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.3) * 1.5 * imsize);
-            ctx.render_ascii_text_builtin(gstate_names.at(bm), A4PDF_FONT_HELVETICA, 8, 0, 0);
+            ctx.render_pdfdoc_text_builtin(gstate_names.at(bm), A4PDF_FONT_HELVETICA, 8, 0, 0);
             ctx.cmd_Q();
             bm = (A4PDF_Blend_Mode)((int)bm + 1);
         }
