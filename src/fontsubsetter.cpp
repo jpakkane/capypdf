@@ -28,6 +28,8 @@ namespace A4PDF {
 
 namespace {
 
+const uint32_t SPACE = ' ';
+
 FontSubsetData create_startstate() {
     std::vector<TTGlyphs> start_state{RegularGlyph{0}};
     std::unordered_map<uint32_t, uint32_t> start_mapping{};
@@ -71,7 +73,19 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
+    if(glyph == SPACE) {
+        // In the PDF document model the space character is special.
+        // Every subset font _must_ have the space character in
+        // location 32.
+        return FontSubsetInfo{int32_t(subsets.size() - 1), SPACE};
+    }
     const auto font_index = FT_Get_Char_Index(face, glyph);
+    if(subsets.back().glyphs.size() == SPACE) {
+        // NOTE: the case where the subset font has fewer than 32 characters
+        // is handled when serializing the font.
+        subsets.back().glyphs.emplace_back(RegularGlyph{32});
+        subsets.back().font_index_mapping[font_index] = SPACE;
+    }
     if(is_composite_glyph(ttfile.glyphs.at(font_index))) {
         auto subglyphs = get_all_subglyphs(font_index, ttfile);
         if(subglyphs.size() + subsets.back().glyphs.size() >= max_glyphs) {

@@ -28,6 +28,8 @@
 
 namespace {
 
+const uint32_t SPACE = ' ';
+
 void byte_swap(int16_t &val) { val = bswap_16(val); }
 void byte_swap(uint16_t &val) { val = bswap_16(val); }
 void byte_swap(int32_t &val) { val = bswap_32(val); }
@@ -499,7 +501,13 @@ std::vector<std::string> subset_glyphs(FT_Face face,
             }
         }
     }
-
+    // Glyph ID 32 _must_ be the space character. Pad empty things until done.
+    if(subset.size() < SPACE + 1) {
+        while(subset.size() < SPACE) {
+            subset.emplace_back(source.glyphs[0]);
+        }
+        subset.emplace_back(source.glyphs.at(SPACE));
+    }
     return subset;
 }
 

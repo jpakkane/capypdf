@@ -108,6 +108,15 @@ int main(int argc, char **argv) {
         ctx.render_text(text);
     }
 
+    {
+        PdfText text{regular_fid, 12, 20, 450};
+        text.render_text("Word spacing word spacing word spacing.");
+        text.cmd_Tstar();
+        text.cmd_Tw(4);
+        text.render_text("Word spacing word spacing word spacing.");
+        ctx.render_text(text);
+    }
+
     /*
     std::vector<PdfGlyph> glyphs;
     const int num_glyphs = 26;
