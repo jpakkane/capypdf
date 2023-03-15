@@ -744,7 +744,9 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     A4PDF_FontId current_font{-1};
     double current_pointsize{-1};
     for(const auto &e : textobj.get_events()) {
-        if(std::holds_alternative<Tc_arg>(e)) {
+        if(std::holds_alternative<TStar_arg>(e)) {
+            serialisation += "  T*\n";
+        } else if(std::holds_alternative<Tc_arg>(e)) {
             const auto &tc = std::get<Td_arg>(e);
             fmt::format_to(app, "  {} {} Tc\n", tc.tx, tc.ty);
         } else if(std::holds_alternative<Td_arg>(e)) {

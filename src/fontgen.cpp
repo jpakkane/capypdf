@@ -23,12 +23,19 @@ using namespace A4PDF;
 int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.output_colorspace = A4PDF_DEVICE_GRAY;
-    const char *fontfile;
+    const char *regularfont;
+    const char *italicfont;
     if(argc > 1) {
-        fontfile = argv[1];
+        regularfont = argv[1];
     } else {
-        fontfile = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
+        regularfont = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
     }
+    if(argc > 2) {
+        italicfont = argv[2];
+    } else {
+        italicfont = "/usr/share/fonts/truetype/noto/NotoSans-Italic.ttf";
+    }
+
     /*
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 200;
@@ -37,16 +44,17 @@ int main(int argc, char **argv) {
     opts.title = "Over 255 letters";
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = genpop.g;
-    auto fid = gen.load_font(fontfile);
+    auto regular_fid = gen.load_font(regularfont);
+    auto italic_fid = gen.load_font(italicfont);
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
-    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", fid, 12, 20, 800);
-    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyzåäö", fid, 12, 20, 780);
-    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", fid, 12, 20, 760);
-    ctx.render_utf8_text("бгджзиклмнптфцч", fid, 12, 20, 740);
-    ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", fid, 12, 20, 720);
-    PdfText text{fid, 12, 20, 700};
+    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);
+    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyzåäö", regular_fid, 12, 20, 780);
+    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", regular_fid, 12, 20, 760);
+    ctx.render_utf8_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
+    ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
     {
+        PdfText text{regular_fid, 12, 20, 700};
         std::vector<CharItem> kerned_text;
 
         kerned_text.emplace_back(uint32_t('A'));
@@ -64,10 +72,20 @@ int main(int argc, char **argv) {
         kerned_text.emplace_back(100.0);
         kerned_text.emplace_back(uint32_t('V'));
 
+        text.cmd_TL(14);
         text.cmd_TJ(std::move(kerned_text));
-        text.cmd_Td(0, -14);
+        text.cmd_Tstar();
         text.render_text(
             "This is some text using a text object. It uses Freetype kerning (i.e. not GPOS).");
+        ctx.render_text(text);
+    }
+    {
+        PdfText text{regular_fid, 12, 20, 600};
+        text.render_text("How about some ");
+        text.cmd_Tf(italic_fid, 12);
+        text.render_text("italic");
+        text.cmd_Tf(regular_fid, 12);
+        text.render_text(" text?");
         ctx.render_text(text);
     }
 
