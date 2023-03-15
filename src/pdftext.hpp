@@ -46,7 +46,7 @@ struct Tf_arg {
     double pointsize;
 };
 
-struct Tj_arg {
+struct Text_arg {
     std::string utf8_text;
 };
 
@@ -83,7 +83,7 @@ typedef std::variant<TStar_arg,
                      Td_arg,
                      TD_arg,
                      Tf_arg,
-                     Tj_arg,
+                     Text_arg,
                      TJ_arg,
                      TL_arg,
                      Tm_arg,
@@ -122,13 +122,15 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tj(std::string_view utf8_text) {
-        events.emplace_back(Tj_arg{std::string{utf8_text}});
+    ErrorCode render_text(std::string_view utf8_text) {
+        events.emplace_back(Text_arg{std::string{utf8_text}});
         return ErrorCode::NoError;
     }
 
+    // cmd_Tj missing. It might not be needed at all.
+
     ErrorCode cmd_TJ(std::vector<CharItem> chars) {
-        events.emplace_back(TJ_arg(std::move(chars)));
+        events.emplace_back(TJ_arg{std::move(chars)});
         return ErrorCode::NoError;
     }
 

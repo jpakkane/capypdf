@@ -35,6 +35,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Could not open file.",
 "Writing to file failed.",
 "Required argument is NULL.",
+"Invalid UTF-8 string.",
 };
 
 // clang-format on

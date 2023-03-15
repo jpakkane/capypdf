@@ -639,9 +639,107 @@ ErrorCode PdfDrawContext::render_utf8_text(
     return ErrorCode::NoError;
 }
 
+void PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
+                                            std::string &serialisation,
+                                            A4PDF_FontId &current_font,
+                                            int32_t &current_subset,
+                                            double &current_pointsize) {
+    std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
+    bool is_first = true;
+    for(const auto &e : charseq) {
+        if(std::holds_alternative<double>(e)) {
+            if(is_first) {
+                serialisation += "  [ ";
+            }
+            fmt::format_to(app, "{} ", std::get<double>(e));
+        } else {
+            assert(std::holds_alternative<uint32_t>(e));
+            const auto codepoint = std::get<uint32_t>(e);
+            auto current_subset_glyph = doc->get_subset_glyph(current_font, codepoint);
+            used_subset_fonts.insert(current_subset_glyph.ss);
+            if(current_subset_glyph.ss.subset_id != current_subset) {
+                if(!is_first) {
+                    serialisation += "] TJ\n";
+                }
+                fmt::format_to(app,
+                               "  /SFont{}-{} {} Tf\n  [ ",
+                               doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
+                               current_subset_glyph.ss.subset_id,
+                               current_pointsize);
+            } else {
+                if(is_first) {
+                    serialisation += "  [";
+                }
+            }
+            current_font = current_subset_glyph.ss.fid;
+            current_subset = current_subset_glyph.ss.subset_id;
+            fmt::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
+        }
+        is_first = false;
+    }
+    serialisation += "] TJ\n";
+}
+
+ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
+                                               std::vector<CharItem> &charseq,
+                                               A4PDF_FontId fid) {
+    CHECK_INDEXNESS(fid.id, doc->font_objects);
+    if(utf8_text.empty()) {
+        return ErrorCode::NoError;
+    }
+    errno = 0;
+    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
+    if(errno != 0) {
+        throw std::runtime_error(strerror(errno));
+    }
+    IconvCloser ic{to_codepoint};
+    FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
+    if(!face) {
+        throw std::runtime_error(
+            "Tried to use builtin font to render UTF-8. They only support ASCII.");
+    }
+
+    uint32_t previous_codepoint = -1;
+    auto in_ptr = (char *)utf8_text.data();
+    auto in_bytes = utf8_text.length();
+    // Freetype does not support GPOS kerning because it is context-sensitive.
+    // So this method might produce incorrect kerning. Users that need precision
+    // need to use the glyph based rendering method.
+    const bool has_kerning = FT_HAS_KERNING(face);
+    while(in_ptr < utf8_text.data() + utf8_text.size()) {
+        uint32_t codepoint{0};
+        auto out_ptr = (char *)&codepoint;
+        auto out_bytes = sizeof(codepoint);
+        errno = 0;
+        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+        if(iconv_result == (size_t)-1 && errno != E2BIG) {
+            return ErrorCode::BadUtf8;
+        }
+
+        if(has_kerning && previous_codepoint != (uint32_t)-1) {
+            FT_Vector kerning;
+            const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
+            const auto index_right = FT_Get_Char_Index(face, codepoint);
+            auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
+            if(ec != 0) {
+                throw std::runtime_error("Getting kerning data failed.");
+            }
+            if(kerning.x != 0) {
+                // The value might be a integer, fraction or something else.
+                // None of the fonts I tested had kerning that Freetype recognized,
+                // so don't know if this actually works.
+                charseq.emplace_back((double)kerning.x);
+            }
+        }
+        charseq.emplace_back(codepoint);
+        previous_codepoint = codepoint;
+    }
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     std::string serialisation{"BT\n"};
-    auto app = std::back_inserter(serialisation);
+    std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     int32_t current_subset{-1};
     A4PDF_FontId current_font{-1};
     double current_pointsize{-1};
@@ -659,38 +757,19 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             current_font = std::get<Tf_arg>(e).font;
             current_subset = -1;
             current_pointsize = std::get<Tf_arg>(e).pointsize;
-        } else if(std::holds_alternative<TJ_arg>(e)) {
-            const auto &tj = std::get<TJ_arg>(e);
-            bool is_first = true;
-            for(const auto &e : tj.elements) {
-                if(std::holds_alternative<double>(e)) {
-                    if(is_first) {
-                        serialisation += "  [ ";
-                    }
-                    fmt::format_to(app, "{} ", std::get<double>(e));
-                } else {
-                    assert(std::holds_alternative<uint32_t>(e));
-                    const auto codepoint = std::get<uint32_t>(e);
-                    auto current_subset_glyph = doc->get_subset_glyph(current_font, codepoint);
-                    used_subset_fonts.insert(current_subset_glyph.ss);
-                    if(current_subset_glyph.ss.subset_id != current_subset) {
-                        if(!is_first) {
-                            serialisation += "] TJ\n";
-                        }
-                        fmt::format_to(
-                            app,
-                            "  /SFont{}-{} {} Tf\n  [ ",
-                            doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
-                            current_subset_glyph.ss.subset_id,
-                            current_pointsize);
-                    }
-                    current_font = current_subset_glyph.ss.fid;
-                    current_subset = current_subset_glyph.ss.subset_id;
-                    fmt::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
-                }
-                is_first = false;
+        } else if(std::holds_alternative<Text_arg>(e)) {
+            const auto &tj = std::get<Text_arg>(e);
+            std::vector<CharItem> charseq;
+            auto ec = utf8_to_kerned_chars(tj.utf8_text, charseq, current_font);
+            if(ec != ErrorCode::NoError) {
+                return ec;
             }
-            serialisation += "] TJ\n";
+            serialize_charsequence(
+                charseq, serialisation, current_font, current_subset, current_pointsize);
+        } else if(std::holds_alternative<TJ_arg>(e)) {
+            const auto &tJ = std::get<TJ_arg>(e);
+            serialize_charsequence(
+                tJ.elements, serialisation, current_font, current_subset, current_pointsize);
         } else if(std::holds_alternative<TL_arg>(e)) {
             const auto &tL = std::get<TL_arg>(e);
             fmt::format_to(app, "  {} TL\n", tL.leading);

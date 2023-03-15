@@ -157,6 +157,14 @@ public:
     std::string_view get_command_stream() { return commands; }
 
 private:
+    void serialize_charsequence(const std::vector<CharItem> &charseq,
+                                std::string &serialisation,
+                                A4PDF_FontId &current_font,
+                                int32_t &current_subset,
+                                double &current_pointsize);
+    ErrorCode
+    utf8_to_kerned_chars(std::string_view utf8_text, std::vector<CharItem> &charseq, A4PDF_FontId fid);
+
     PdfDocument *doc;
     PdfColorConverter *cm;
     A4PDF_Draw_Context_Type context_type;
