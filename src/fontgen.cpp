@@ -118,7 +118,17 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 350};
+        PdfText text{regular_fid, 12, 20, 400};
+        text.render_text("Character scaling.");
+        text.cmd_Tstar();
+        text.cmd_Tz(150);
+        text.render_text("Character scaling.");
+        text.cmd_Tz(100);
+        ctx.render_text(text);
+    }
+
+    {
+        PdfText text{regular_fid, 12, 20, 300};
         for(int i = 1; i < 20; ++i) {
             text.cmd_Tf(regular_fid, 2 * i);
             text.render_text("X");
