@@ -123,10 +123,14 @@ std::string current_date_string() {
     time_t timepoint;
     struct tm utctime;
     struct timespec tp;
-    if(clock_gettime(CLOCK_REALTIME, &tp) != 0) {
-        throw std::runtime_error(strerror(errno));
+    if(getenv("SOURCE_DATE_EPOCH")) {
+        timepoint = strtol(getenv("SOURCE_DATE_EPOCH"), nullptr, 10);
+    } else {
+        if(clock_gettime(CLOCK_REALTIME, &tp) != 0) {
+            throw std::runtime_error(strerror(errno));
+        }
+        timepoint = tp.tv_sec;
     }
-    timepoint = tp.tv_sec;
     if(gmtime_r(&timepoint, &utctime) == nullptr) {
         throw std::runtime_error(strerror(errno));
     }
