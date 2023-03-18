@@ -66,6 +66,9 @@ executable('icctest', 'icctest.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('loremipsum', 'loremipsum.cpp',
+  dependencies: [a4pdf_dep]
+)
 
 if gtk_dep.found()
   executable('pdfviewer', 'pdfviewer.cpp',

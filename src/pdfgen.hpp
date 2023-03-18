@@ -89,6 +89,11 @@ public:
 
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
+    std::optional<double>
+    glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const {
+        return pdoc.glyph_advance(fid, pointsize, codepoint);
+    }
+
 private:
     std::filesystem::path ofilename;
     FT_Library ft;

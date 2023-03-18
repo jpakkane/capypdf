@@ -195,6 +195,9 @@ public:
     OutlineId
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
 
+    std::optional<double>
+    glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
+
 private:
     int32_t add_object(ObjectType object);
 

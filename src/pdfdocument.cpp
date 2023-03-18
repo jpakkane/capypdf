@@ -112,8 +112,8 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
 std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
-    const auto load_flags =
-        FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
+    const auto load_flags = FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP |
+                            FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_NO_SCALE;
     //    static_assert(load_flags == 522);
     for(const auto glyph : glyphs) {
         const auto glyph_id = A4PDF::font_id_for_glyph(face, glyph);
@@ -1097,6 +1097,20 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
                                    std::optional<OutlineId> parent) {
     outlines.emplace_back(Outline{std::string{title_utf8}, dest, parent});
     return OutlineId{(int32_t)outlines.size() - 1};
+}
+
+std::optional<double>
+PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const {
+    FT_Face face = fonts.at(fid.id).fontdata.face.get();
+    FT_Set_Char_Size(face, 0, pointsize * 64, 300, 300);
+    if(FT_Load_Char(face,
+                    codepoint,
+                    FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH) !=
+       0) {
+        return {};
+    }
+    const auto font_unit_advance = face->glyph->metrics.horiAdvance;
+    return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
 A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
