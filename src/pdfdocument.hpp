@@ -245,6 +245,9 @@ private:
                        const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
 
+    void pad_subset_fonts();
+    void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
+
     PdfGenerationData opts;
     PdfColorConverter cm;
     std::vector<ObjectType> document_objects;

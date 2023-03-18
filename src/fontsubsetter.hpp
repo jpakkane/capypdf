@@ -47,10 +47,18 @@ public:
     FontSubsetter(const char *fontfile, FT_Face face);
 
     FontSubsetInfo get_glyph_subset(uint32_t glyph);
+    FontSubsetInfo unchecked_insert_glyph_to_last_subset(uint32_t glyph);
 
     const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
         return subsets.at(subset_number).glyphs;
     }
+
+    std::vector<TTGlyphs> &get_subset(int32_t subset_number) {
+        return subsets.at(subset_number).glyphs;
+    }
+
+    size_t num_subsets() const { return subsets.size(); }
+    size_t subset_size(size_t subset) const { return subsets.at(subset).glyphs.size(); }
 
     std::string generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const;
 

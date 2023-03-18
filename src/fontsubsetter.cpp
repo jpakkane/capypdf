@@ -70,6 +70,10 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     if(trial) {
         return trial.value();
     }
+    return unchecked_insert_glyph_to_last_subset(glyph);
+}
+
+FontSubsetInfo FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
@@ -77,6 +81,12 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
         // In the PDF document model the space character is special.
         // Every subset font _must_ have the space character in
         // location 32.
+        if(subsets.back().glyphs.size() == SPACE) {
+            const auto space_index = FT_Get_Char_Index(face, glyph);
+            subsets.back().glyphs.push_back(RegularGlyph{glyph});
+            subsets.back().font_index_mapping[space_index] =
+                (uint32_t)subsets.back().glyphs.size() - 1;
+        }
         return FontSubsetInfo{int32_t(subsets.size() - 1), SPACE};
     }
     const auto font_index = FT_Get_Char_Index(face, glyph);

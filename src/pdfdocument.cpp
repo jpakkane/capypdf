@@ -21,6 +21,7 @@
 #include <cassert>
 #include <array>
 #include <map>
+#include <algorithm>
 #include <fmt/core.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -281,6 +282,36 @@ IccColorId PdfDocument::load_icc_file(const char *fname) {
     return IccColorId{(int32_t)icc_profiles.size() - 1};
 }
 
+void PdfDocument::pad_subset_fonts() {
+    const uint32_t SPACE = ' ';
+    const uint32_t max_count = 100;
+
+    for(auto &sf : fonts) {
+        auto &subsetter = sf.subsets;
+        assert(subsetter.num_subsets() > 0);
+        const auto subset_id = subsetter.num_subsets() - 1;
+        if(subsetter.get_subset(subset_id).size() > SPACE) {
+            continue;
+        }
+        // Try to add glyphs until the subset has 32 elements.
+        bool padding_succeeded = false;
+        for(uint32_t i = 0; i < max_count; ++i) {
+            if(subsetter.get_subset(subset_id).size() == SPACE) {
+                padding_succeeded = true;
+                break;
+            }
+            const auto cur_glyph_codepoint = '!' + i;
+            subsetter.get_glyph_subset(cur_glyph_codepoint);
+        }
+        if(!padding_succeeded) {
+            fprintf(stderr, "Font subset padding failed.\n");
+            std::abort();
+        }
+        subsetter.unchecked_insert_glyph_to_last_subset(' ');
+        assert(subsetter.get_subset(subset_id).size() == SPACE + 1);
+    }
+}
+
 void PdfDocument::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;
@@ -288,6 +319,7 @@ void PdfDocument::write_to_file(FILE *output_file) {
         write_header();
         auto page_objects = write_pages();
         create_catalog(page_objects);
+        pad_subset_fonts();
         auto object_offsets = write_objects();
         const int64_t xref_offset = ftell(ofile);
         write_cross_reference_table(object_offsets);
@@ -587,6 +619,38 @@ void PdfDocument::write_subset_cmap(int32_t object_num,
 )",
                             cmap.length());
     write_finished_object(object_num, dict, cmap);
+}
+
+void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
+    const size_t max_count = 100;
+    const uint32_t SPACE = ' ';
+    if(subset_glyphs.size() > SPACE) {
+        return;
+    }
+    bool padding_succeeded = false;
+    for(uint32_t i = 0; i < max_count; ++i) {
+        if(subset_glyphs.size() == SPACE) {
+            padding_succeeded = true;
+            break;
+        }
+        // Yes, this is O(n^2), but n is at most 31.
+        const auto cur_glyph_codepoint = '!' + i;
+        auto glfind = [cur_glyph_codepoint](const TTGlyphs &g) {
+            return std::holds_alternative<RegularGlyph>(g) &&
+                   std::get<RegularGlyph>(g).unicode_codepoint == cur_glyph_codepoint;
+        };
+        if(std::find_if(subset_glyphs.cbegin(), subset_glyphs.cend(), glfind) !=
+           subset_glyphs.cend()) {
+            continue;
+        }
+        subset_glyphs.emplace_back(RegularGlyph{cur_glyph_codepoint});
+    }
+    if(!padding_succeeded) {
+        fprintf(stderr, "Font subset padding failed.\n");
+        std::abort();
+    }
+    subset_glyphs.emplace_back(RegularGlyph{SPACE});
+    assert(subset_glyphs.size() == SPACE + 1);
 }
 
 void PdfDocument::write_subset_font(int32_t object_num,
