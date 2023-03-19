@@ -406,6 +406,7 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
                  uint16_t num_glyphs,
                  uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
+    assert(num_hmetrics <= num_glyphs);
     TTHmtx hmtx;
     for(uint16_t i = 0; i < num_hmetrics; ++i) {
         TTLongHorMetric hm;
@@ -416,7 +417,8 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
     for(int i = 0; i < num_glyphs - num_hmetrics; ++i) {
         int16_t lsb;
         memcpy(&lsb,
-               buf.data() + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t),
+               buf.data() + e->offset + num_hmetrics * sizeof(TTLongHorMetric) +
+                   i * sizeof(int16_t),
                sizeof(int16_t));
         byte_swap(lsb);
         hmtx.left_side_bearings.push_back(lsb);
@@ -514,13 +516,26 @@ std::vector<std::string> subset_glyphs(FT_Face face,
 TTHmtx
 subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
     TTHmtx subset;
-    assert(source.hmtx.longhor.size() + 1 == source.maxp.num_glyphs);
+    assert(source.hmtx.longhor.size() + source.hmtx.left_side_bearings.size() ==
+           source.maxp.num_glyphs);
+    assert(!source.hmtx.longhor.empty());
     for(const auto &g : glyphs) {
         const auto gid = font_id_for_glyph(face, g);
-        assert(gid < source.hmtx.longhor.size());
-        subset.longhor.push_back(source.hmtx.longhor[gid]);
+        if(gid < source.hmtx.longhor.size()) {
+            subset.longhor.push_back(source.hmtx.longhor[gid]);
+        } else {
+            const auto sidebear_index = gid - source.hmtx.longhor.size();
+            if(sidebear_index < source.hmtx.left_side_bearings.size()) {
+                subset.longhor.emplace_back(
+                    TTLongHorMetric{uint16_t(source.hmtx.longhor.back().advance_width),
+                                    int16_t(source.hmtx.left_side_bearings[sidebear_index])});
+            } else {
+                fprintf(stderr, "Malformed font file?\n");
+                std::abort();
+            }
+        }
     }
-    subset.left_side_bearings.push_back(source.hmtx.left_side_bearings.front());
+    assert(subset.left_side_bearings.empty());
     return subset;
 }
 
@@ -611,7 +626,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
 
     e.set_tag("hmtx");
     e.offset = odata.size();
-    for(auto &hm : tf.hmtx.longhor) {
+    for(auto hm : tf.hmtx.longhor) {
         hm.swap_endian();
         append_bytes(odata, hm);
     }

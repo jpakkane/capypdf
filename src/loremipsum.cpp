@@ -102,7 +102,9 @@ const std::vector<std::string> column2{
     "Purus in massa tempor nec feugiat nisl pretium",
 };
 
-const std::string title{"Author McAuthorface"};
+const std::string title{"Title McTitleface"};
+const std::string author{"Author McAuthorface"};
+const std::string email{"author@servermcserverface.com"};
 
 double cm2pt(double cm) { return cm * 28.346; }
 double pt2cm(double pt) { return pt / 28.346; }
@@ -163,15 +165,22 @@ int main() {
 
     const double midx = cm2pt(21.0 / 2);
     const double titley = cm2pt(29 - 3);
+    const double authory = cm2pt(29 - 4);
+    const double emaily = cm2pt(29 - 5);
+    const double pagenumy = cm2pt(2);
     const double column1_top = cm2pt(29 - 6);
     const double column1_left = cm2pt(2);
     const double column2_top = cm2pt(29 - 6);
     const double column2_left = cm2pt(21 - 2 - 8);
     const double leading = 15;
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
-    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
+    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf");
+    auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
+    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
     const double textsize = 10;
     const double titlesize = 28;
+    const double authorsize = 18;
+    const double emailsize = 16;
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.render_utf8_text(title,
@@ -179,7 +188,19 @@ int main() {
                          titlesize,
                          midx - text_width(title, gen, titlefont, titlesize) / 2,
                          titley);
+    ctx.render_utf8_text(author,
+                         authorfont,
+                         authorsize,
+                         midx - text_width(author, gen, authorfont, authorsize) / 2,
+                         authory);
+    ctx.render_utf8_text(email,
+                         emailfont,
+                         emailsize,
+                         midx - text_width(author, gen, emailfont, emailsize) / 2,
+                         emaily);
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
+    ctx.render_utf8_text(
+        "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy);
     return 0;
 }
