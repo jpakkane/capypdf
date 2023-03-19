@@ -40,7 +40,7 @@ namespace A4PDF {
 
 struct TtfFont {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
-    std::string fontdata;
+    TrueTypeFontFile fontdata;
 };
 
 struct PageOffsets {

@@ -141,9 +141,9 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
 }
 
 std::string
-FontSubsetter::generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const {
+FontSubsetter::generate_subset(FT_Face face, const TrueTypeFontFile &source, int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
-    return generate_font(face, data, glyphs.glyphs, glyphs.font_index_mapping);
+    return generate_font(face, source, glyphs.glyphs, glyphs.font_index_mapping);
 }
 
 } // namespace A4PDF

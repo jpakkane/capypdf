@@ -110,11 +110,13 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
+std::string build_subset_width_array(FT_Face face,
+                                     const std::vector<A4PDF::TTGlyphs> &glyphs,
+                                     size_t num_hmetrics) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
-    const auto load_flags = FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP |
-                            FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH | FT_LOAD_NO_SCALE;
+    const auto load_flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_NO_SCALE;
+    const auto x_scale = double(face->size->metrics.x_scale) / 65535.0;
     //    static_assert(load_flags == 522);
     for(const auto glyph : glyphs) {
         const auto glyph_id = A4PDF::font_id_for_glyph(face, glyph);
@@ -125,6 +127,30 @@ std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGl
                 throw std::runtime_error(FT_Error_String(error));
             }
             horiadvance = face->glyph->metrics.horiAdvance;
+        }
+        /* This is _very_ weird. For some reason Freetype reports the
+         * widths of glyphs seemingly incorrectly. For example it
+         * says that glyphs in Noto Mono have width 1229 but if
+         * you export a PDF via Cairo, or LO their output Widths array
+         * says that the glyph width is 600. Fontforge OTOH maintains
+         * that the width is 1229.
+         *
+         * Dividing by the global scale here gives the correct visual result,
+         * but you must _not_ do it for regular glyphs. As far as I can
+         * tell the width value is "correct" if the value of this glyph
+         * is in the hMetrics array in the hmtx table but it is incorrect
+         * if it is in the leftSideBearings table.
+         *
+         * Some monospaced fonts like Ubuntu Mono and FreeMono have an
+         * entry for each glyph in the hmetrics array so they worked just fine,
+         * but Noto Mono, Liberation Mono and others which have only a few
+         * entries in hmetrics do not work. Doing this correction by hand
+         * seems like a massive hack, but it was the only way to make it work
+         * I could find.
+         */
+        if(glyph_id >= num_hmetrics) {
+            assert(x_scale > 0.0001 || x_scale < -0.0001);
+            horiadvance = horiadvance / x_scale;
         }
         fmt::format_to(bi, "{} ", horiadvance);
     }
@@ -662,7 +688,8 @@ void PdfDocument::write_subset_font(int32_t object_num,
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
-    auto width_arr = build_subset_width_array(face, subset_glyphs);
+    auto width_arr =
+        build_subset_width_array(face, subset_glyphs, font.fontdata.fontdata.hmtx.longhor.size());
     auto objbuf = fmt::format(R"(<<
   /Type /Font
   /Subtype /TrueType
@@ -1179,7 +1206,7 @@ PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoin
 
 A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
-                load_file(fname)};
+                load_and_parse_truetype_font(fname)};
     FT_Face face;
     auto error = FT_New_Face(ft, fname, 0, &face);
     if(error) {
@@ -1217,21 +1244,6 @@ A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     auto font_source_id = fonts.size();
     fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter(fname, face)});
 
-    /*
-    auto font_data_obj =
-    add_object(DelayedFontData{font_source_id});
-    auto tounicode_obj =
-    add_object(DelayedCmap{font_source_id}); auto
-    font_descriptor_obj =
-    add_object(DelayedFontDescriptor{font_source_id,
-    font_data_obj}); auto font_obj =
-    add_object(DelayedFont{font_source_id,
-    tounicode_obj, font_descriptor_obj});
-
-    font_objects.push_back(
-        FontInfo{font_data_obj, font_descriptor_obj,
-    font_obj, fonts.size() - 1});
-        */
     const int32_t subset_num = 0;
     auto subfont_data_obj =
         add_object(DelayedSubsetFontData{A4PDF_FontId{(int32_t)font_source_id}, subset_num});

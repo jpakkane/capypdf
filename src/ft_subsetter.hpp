@@ -183,6 +183,11 @@ void reassign_composite_glyph_numbers(std::string &buf,
                                       const std::unordered_map<uint32_t, uint32_t> &mapping);
 
 std::string generate_font(FT_Face face,
+                          const TrueTypeFontFile &source,
+                          const std::vector<TTGlyphs> &glyphs,
+                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+
+std::string generate_font(FT_Face face,
                           std::string_view buf,
                           const std::vector<TTGlyphs> &glyphs,
                           const std::unordered_map<uint32_t, uint32_t> &comp_mapping);

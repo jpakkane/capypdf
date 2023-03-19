@@ -60,7 +60,8 @@ public:
     size_t num_subsets() const { return subsets.size(); }
     size_t subset_size(size_t subset) const { return subsets.at(subset).glyphs.size(); }
 
-    std::string generate_subset(FT_Face face, std::string_view data, int32_t subset_number) const;
+    std::string
+    generate_subset(FT_Face face, const TrueTypeFontFile &source, int32_t subset_number) const;
 
 private:
     TrueTypeFontFile ttfile;

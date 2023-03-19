@@ -810,6 +810,13 @@ std::string generate_font(FT_Face face,
                           const std::vector<TTGlyphs> &glyphs,
                           const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     auto source = parse_truetype_font(buf);
+    return generate_font(face, source, glyphs, comp_mapping);
+}
+
+std::string generate_font(FT_Face face,
+                          const TrueTypeFontFile &source,
+                          const std::vector<TTGlyphs> &glyphs,
+                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     dest.glyphs = subset_glyphs(face, source, glyphs, comp_mapping);

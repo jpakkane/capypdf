@@ -122,6 +122,8 @@ text_width(const std::string_view s, A4PDF::PdfGen &gen, A4PDF_FontId fid, doubl
     return total_w;
 }
 
+const double midx = cm2pt(21.0 / 2);
+
 } // namespace
 
 using namespace A4PDF;
@@ -139,7 +141,7 @@ void render_column(const std::vector<std::string> &text_lines,
     textobj.cmd_TL(leading);
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];
-        if(i + 1 == text_lines.size() || text_lines[i + 1].empty()) {
+        if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
             textobj.cmd_Tw(0);
             textobj.render_text(l);
             textobj.cmd_Tstar();
@@ -158,31 +160,14 @@ void render_column(const std::vector<std::string> &text_lines,
     ctx.render_text(textobj);
 }
 
-int main() {
-    PdfGenerationData opts;
-    GenPopper genpop("loremipsum.pdf", opts);
-    PdfGen &gen = genpop.g;
-
-    const double midx = cm2pt(21.0 / 2);
-    const double titley = cm2pt(29 - 3);
-    const double authory = cm2pt(29 - 4);
-    const double emaily = cm2pt(29 - 5);
-    const double pagenumy = cm2pt(2);
-    const double column1_top = cm2pt(29 - 6);
-    const double column1_left = cm2pt(2);
-    const double column2_top = cm2pt(29 - 6);
-    const double column2_left = cm2pt(21 - 2 - 8);
-    const double leading = 15;
-    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
+void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf");
     auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
-    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
-    const double textsize = 10;
+    const double titley = cm2pt(29 - 2.5);
+    const double authory = cm2pt(29 - 3.5);
     const double titlesize = 28;
     const double authorsize = 18;
-    const double emailsize = 16;
-    auto ctxguard = gen.guarded_page_context();
-    auto &ctx = ctxguard.ctx;
+
     ctx.render_utf8_text(title,
                          titlefont,
                          titlesize,
@@ -193,14 +178,48 @@ int main() {
                          authorsize,
                          midx - text_width(author, gen, authorfont, authorsize) / 2,
                          authory);
-    ctx.render_utf8_text(email,
-                         emailfont,
-                         emailsize,
-                         midx - text_width(author, gen, emailfont, emailsize) / 2,
-                         emaily);
+}
+
+void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
+    const double pagenumy = cm2pt(2);
+    const double column1_top = cm2pt(29 - 6);
+    const double column1_left = cm2pt(2);
+    const double column2_top = cm2pt(29 - 6);
+    const double column2_left = cm2pt(21 - 2 - 8);
+    const double leading = 15;
+    const double textsize = 10;
+    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
     ctx.render_utf8_text(
         "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy);
+}
+
+void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
+    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
+    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf");
+    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/freefont/FreeMono.ttf");
+    //     auto emailfont =
+    //       gen.load_font("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf");
+    const double emailsize = 16;
+    const double emaily = cm2pt(29 - 4.3);
+    ctx.render_utf8_text(email,
+                         emailfont,
+                         emailsize,
+                         midx - text_width(email, gen, emailfont, emailsize) / 2,
+                         emaily);
+}
+
+int main() {
+    PdfGenerationData opts;
+    GenPopper genpop("loremipsum.pdf", opts);
+    PdfGen &gen = genpop.g;
+
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
+
+    draw_headings(gen, ctx);
+    draw_email(gen, ctx);
+    draw_maintext(gen, ctx);
     return 0;
 }
