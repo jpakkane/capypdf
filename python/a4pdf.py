@@ -15,6 +15,7 @@
 
 import ctypes
 import os
+import math
 from enum import Enum
 
 class LineCapStyle(Enum):
@@ -234,6 +235,9 @@ class DrawContext:
 
     def scale(self, xscale, yscale):
         self.cmd_cm(xscale, 0, 0, yscale, 0, 0)
+
+    def rotate(self, angle):
+        self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
 
 class StateContextManager:
     def __init__(self, ctx):
