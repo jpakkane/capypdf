@@ -28,6 +28,8 @@ testdata_dir = source_root / 'testoutput'
 image_dir = source_root / 'images'
 sys.path.append(str(source_root / 'python'))
 
+noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
+
 sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import a4pdf
@@ -93,7 +95,7 @@ class TestPDFCreation(unittest.TestCase):
         opts = a4pdf.Options()
         opts.set_mediabox(0, 0, w, h)
         with a4pdf.Generator(ofilename, opts) as g:
-            fid = g.load_font('/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf')
+            fid = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:
                 ctx.render_text('Av, Tv, kerning yo.', fid, 12, 50, 150)
 
@@ -180,6 +182,17 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_RG(0.5, 0.1, 0.5)
                     draw_intersect_shape(ctx)
                     ctx.cmd_Bstar()
+
+    @validate_image('python_textobj', 200, 200)
+    def test_text(self, ofilename, w, h):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, w, h)
+        with a4pdf.Generator(ofilename, opts) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                t = a4pdf.Text(font, 12.0, 10.0, 100.0)
+                t.render_text('Using text object!')
+                ctx.render_text_obj(t)
 
 if __name__ == "__main__":
     unittest.main()

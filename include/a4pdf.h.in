@@ -98,6 +98,7 @@ enum A4PDF_Draw_Context_Type {
 typedef struct _A4PDF_Options A4PDF_Options;
 typedef struct _A4PDF_Generator A4PDF_Generator;
 typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
+typedef struct _A4PDF_Text A4PDF_Text;
 
 typedef int32_t A4PDF_EC;
 
@@ -184,7 +185,17 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
                                                 double point_size,
                                                 double x,
                                                 double y) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_text_obj(A4PDF_DrawContext *ctx,
+                                               A4PDF_Text *text) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *) A4PDF_NOEXCEPT;
+
+// Text
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(
+    A4PDF_FontId font, double pointsize, double x, double y, A4PDF_Text **out_ptr) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
+                                                  const char *utf8_text) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT;
 
 // Error
 

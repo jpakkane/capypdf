@@ -80,7 +80,12 @@ cfunc_types = (
     [ctypes.c_void_p, ImageId]),
 ('a4pdf_dc_render_utf8_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_render_text_obj',
+    [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
+
+('a4pdf_text_new', [FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('a4pdf_text_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -216,6 +221,9 @@ class DrawContext:
         text_bytes = text.encode('UTF-8')
         check_error(libfile.a4pdf_dc_render_utf8_text(self, text_bytes, fid, point_size, x, y))
 
+    def render_text_obj(self, tobj):
+        check_error(libfile.a4pdf_dc_render_text_obj(self, tobj))
+
     def draw_image(self, iid):
         if not isinstance(iid, ImageId):
             raise A4PDFException('Image id argument is not an image id object.')
@@ -284,3 +292,22 @@ class Generator:
 
     def write(self):
         check_error(libfile.a4pdf_generator_write(self))
+
+class Text:
+    def __init__(self, font, pointsize, x, y):
+        self._as_parameter_ = None
+        if not isinstance(font, FontId):
+            raise RuntimeError('Font argument is not a font object.')
+        opt = ctypes.c_void_p()
+        check_error(libfile.a4pdf_text_new(font, pointsize, x, y, ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        if self._as_parameter_ is not None:
+            check_error(libfile.a4pdf_text_destroy(self))
+
+    def render_text(self, text):
+        if not isinstance(text, str):
+            raise RuntimeError('Text must be a Unicode string.')
+        bytes = text.encode('UTF-8')
+        check_error(libfile.a4pdf_text_render_utf8_text(self, bytes))

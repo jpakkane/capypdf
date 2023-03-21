@@ -15,6 +15,7 @@
  */
 
 #include <a4pdf.h>
+#include <cstring>
 #include <pdfgen.hpp>
 #include <pdfdrawcontext.hpp>
 #include <errors.hpp>
@@ -257,8 +258,32 @@ a4pdf_dc_cmd_rg(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEX
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_text_obj(A4PDF_DrawContext *ctx,
+                                               A4PDF_Text *text) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto t = reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)c->render_text(*t);
+}
+
 A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(
+    A4PDF_FontId font, double pointsize, double x, double y, A4PDF_Text **out_ptr) A4PDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<A4PDF_Text *>(new A4PDF::PdfText(font, pointsize, x, y));
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
+                                                  const char *utf8_text) A4PDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT {
+    delete reinterpret_cast<PdfText *>(text);
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
