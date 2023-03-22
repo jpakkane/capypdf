@@ -110,14 +110,10 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::string build_subset_width_array(FT_Face face,
-                                     const std::vector<A4PDF::TTGlyphs> &glyphs,
-                                     size_t num_hmetrics) {
+std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
-    const auto load_flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_NO_SCALE;
-    const auto x_scale = double(face->size->metrics.x_scale) / 65535.0;
-    //    static_assert(load_flags == 522);
+    const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
     for(const auto glyph : glyphs) {
         const auto glyph_id = A4PDF::font_id_for_glyph(face, glyph);
         FT_Pos horiadvance = 0;
@@ -128,31 +124,10 @@ std::string build_subset_width_array(FT_Face face,
             }
             horiadvance = face->glyph->metrics.horiAdvance;
         }
-        /* This is _very_ weird. For some reason Freetype reports the
-         * widths of glyphs seemingly incorrectly. For example it
-         * says that glyphs in Noto Mono have width 1229 but if
-         * you export a PDF via Cairo, or LO their output Widths array
-         * says that the glyph width is 600. Fontforge OTOH maintains
-         * that the width is 1229.
-         *
-         * Dividing by the global scale here gives the correct visual result,
-         * but you must _not_ do it for regular glyphs. As far as I can
-         * tell the width value is "correct" if the value of this glyph
-         * is in the hMetrics array in the hmtx table but it is incorrect
-         * if it is in the leftSideBearings table.
-         *
-         * Some monospaced fonts like Ubuntu Mono and FreeMono have an
-         * entry for each glyph in the hmetrics array so they worked just fine,
-         * but Noto Mono, Liberation Mono and others which have only a few
-         * entries in hmetrics do not work. Doing this correction by hand
-         * seems like a massive hack, but it was the only way to make it work
-         * I could find.
-         */
-        if(glyph_id >= num_hmetrics) {
-            assert(x_scale > 0.0001 || x_scale < -0.0001);
-            horiadvance = horiadvance / x_scale;
-        }
-        fmt::format_to(bi, "{} ", horiadvance);
+        // I don't know if this is correct or not, but it worked with all fonts I had.
+        //
+        // Determined via debugging empirism.
+        fmt::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
     }
     arr += "]";
     return arr;
@@ -688,8 +663,7 @@ void PdfDocument::write_subset_font(int32_t object_num,
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
-    auto width_arr =
-        build_subset_width_array(face, subset_glyphs, font.fontdata.fontdata.hmtx.longhor.size());
+    auto width_arr = build_subset_width_array(face, subset_glyphs);
     auto objbuf = fmt::format(R"(<<
   /Type /Font
   /Subtype /TrueType

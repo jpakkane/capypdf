@@ -75,8 +75,8 @@ if gtk_dep.found()
     dependencies: [zlib_dep, gtk_dep])
 endif
 
-executable('fontsubset', 'fontsubset.cpp', 'ft_subsetter.cpp',
-  dependencies: freetype_dep)
+executable('fonttester', 'fonttester.cpp',
+  dependencies: [a4pdf_dep])
 
 if tiff_dep.found()
   executable('tifftest', 'tifftest.cpp', dependencies: tiff_dep)
