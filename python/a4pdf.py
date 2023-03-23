@@ -28,6 +28,10 @@ class LineJoinStyle(Enum):
     Round = 1
     Bevel = 2
 
+class Colorspace(Enum):
+    DeviceRGB = 0
+    DeviceGray = 1
+    DeviceCMYK = 2
 
 class A4PDFException(Exception):
     def __init__(*args, **kwargs):
@@ -46,6 +50,7 @@ cfunc_types = (
 
 ('a4pdf_options_new', [ctypes.c_void_p]),
 ('a4pdf_options_destroy', [ctypes.c_void_p]),
+('a4pdf_options_set_colorspace', [ctypes.c_void_p, enum_type]),
 ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('a4pdf_options_set_mediabox',
     [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -68,6 +73,7 @@ cfunc_types = (
 ('a4pdf_dc_cmd_h', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_j', [ctypes.c_void_p, enum_type]),
+('a4pdf_dc_cmd_k', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_l', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_m', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_q', [ctypes.c_void_p]),
@@ -132,6 +138,11 @@ class Options:
     def __del__(self):
         check_error(libfile.a4pdf_options_destroy(self))
 
+    def set_colorspace(self, cs):
+        if not isinstance(cs, Colorspace):
+            raise A4PDFException('Argument not a colorspace object.')
+        check_error(libfile.a4pdf_options_set_colorspace(self, cs.value))
+
     def set_title(self, title):
         if not isinstance(title, str):
             raise A4PDFException('Title must be an Unicode string.')
@@ -186,6 +197,9 @@ class DrawContext:
 
     def cmd_j(self, join_style):
         check_error(libfile.a4pdf_dc_cmd_j(self, join_style.value))
+
+    def cmd_k(self, c, m, y, k):
+        check_error(libfile.a4pdf_dc_cmd_k(self, c, m, y, k))
 
     def cmd_l(self, x, y):
         check_error(libfile.a4pdf_dc_cmd_l(self, x, y))

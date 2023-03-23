@@ -52,6 +52,13 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_colorspace(A4PDF_Options *opt,
+                                                   enum A4PDF_Colorspace cs) A4PDF_NOEXCEPT {
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    opts->output_colorspace = cs;
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
 A4PDF_EC a4pdf_generator_new(const char *filename,
                              const A4PDF_Options *options,
                              A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
@@ -177,21 +184,27 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_S(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     return (A4PDF_EC)c->cmd_S();
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_h(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->cmd_h();
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
                                      A4PDF_Line_Join join_style) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_j(join_style);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_h(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_h();
-}
-
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
                                      A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_J(cap_style);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_k(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
+    A4PDF_NOEXCEPT {
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)dc->cmd_k(c, m, y, k);
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
