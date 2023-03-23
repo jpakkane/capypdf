@@ -27,6 +27,7 @@ struct mono_image {
     int32_t w;
     int32_t h;
     std::string pixels;
+    std::optional<std::string> alpha;
 };
 
 struct rgb_image {

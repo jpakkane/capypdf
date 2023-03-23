@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto bg_img = gen.embed_jpg(jpg.c_str());
-        auto mono_img = gen.load_image(png_1bit_noalpha.c_str());
+        auto mono_img = gen.load_image(png_1bit_alpha.c_str());
         auto gray_img = gen.load_image(png_gray.c_str());
         auto cmyk_img = gen.load_image(cmyk_tif.c_str());
         ctx.cmd_re(0, 0, 200, 200);

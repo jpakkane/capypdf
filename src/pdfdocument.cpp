@@ -816,8 +816,29 @@ A4PDF_ImageId PdfDocument::load_image(const char *fname) {
 }
 
 A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
-    auto compressed = flate_compress(image.pixels);
     std::string buf;
+    int32_t smask_id = -1;
+    if(image.alpha) {
+        auto compressed = flate_compress(*image.alpha);
+        fmt::format_to(std::back_inserter(buf),
+                       R"(<<
+  /Type /XObject
+  /Subtype /Image
+  /Width {}
+  /Height {}
+  /ColorSpace /DeviceGray
+  /BitsPerComponent 1
+  /Length {}
+  /Filter /FlateDecode
+>>
+)",
+                       image.w,
+                       image.h,
+                       compressed.size());
+        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+        buf.clear();
+    }
+    auto compressed = flate_compress(image.pixels);
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
   /Type /XObject
@@ -827,12 +848,16 @@ A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
   /Height {}
   /BitsPerComponent 1
   /Length {}
-  /Filter /FlateDecode
->>
+    /Filter /FlateDecode
 )",
                    image.w,
                    image.h,
                    compressed.size());
+
+    if(smask_id >= 0) {
+        fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
+    }
+    buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
     image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
     return A4PDF_ImageId{(int32_t)image_info.size() - 1};

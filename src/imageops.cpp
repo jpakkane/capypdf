@@ -97,34 +97,42 @@ gray_image load_ga_png(png_image &image) {
     return result;
 }
 
-mono_image load_mono_png(png_image &image) {
-    mono_image result;
-    std::string buf;
-    result.w = image.width;
-    result.h = image.height;
-    size_t final_size = (result.w + 7) / 8 * result.h;
-    result.pixels.reserve(final_size);
+struct png_data {
+    std::string pixels;
+    std::string colormap;
+};
+
+png_data load_png_data(png_image &image) {
+    png_data pd;
 
     auto bufsize = PNG_IMAGE_SIZE(image);
-    buf.resize(bufsize);
-    std::string colormap;
-    colormap.resize(PNG_IMAGE_COLORMAP_SIZE(image));
-
+    pd.pixels.resize(bufsize);
+    pd.colormap.resize(PNG_IMAGE_COLORMAP_SIZE(image));
     png_image_finish_read(
-        &image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, colormap.data());
+        &image, NULL, pd.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, pd.colormap.data());
     if(PNG_IMAGE_FAILED(image)) {
         std::string msg("PNG file reading failed: ");
         msg += image.message;
         throw std::runtime_error(std::move(msg));
     }
+    return pd;
+}
+
+mono_image load_mono_png(png_image &image) {
+    mono_image result;
+    const size_t final_size = (image.width + 7) / 8 * image.height;
+    result.pixels.reserve(final_size);
+    result.w = image.width;
+    result.h = image.height;
+    auto pd = load_png_data(image);
     size_t offset = 0;
-    const int white_pixel = colormap[0] == 1 ? 1 : 0;
+    const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
     const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
     for(int j = 0; j < result.h; ++j) {
         unsigned char current_byte = 0;
         for(int i = 0; i < result.w; ++i) {
             current_byte <<= 1;
-            if(buf[offset] == white_pixel) {
+            if(pd.pixels[offset] == white_pixel) {
                 current_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
@@ -141,6 +149,89 @@ mono_image load_mono_png(png_image &image) {
         }
     }
     assert(result.pixels.size() == final_size);
+    return result;
+}
+
+struct pngbytes {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+};
+
+bool is_1bit(std::string_view colormap) {
+    for(size_t off = 0; off < colormap.size(); off += sizeof(pngbytes)) {
+        const pngbytes *e = reinterpret_cast<const pngbytes *>(colormap.data() + off);
+        if(e->a == 255 || e->a == 0) {
+        } else {
+            return false;
+        }
+        if(e->r == 0 && e->g == 0 && e->b == 0) {
+            continue;
+        }
+        if(e->r == 255 && e->g == 255 && e->b == 255) {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
+std::optional<mono_image> try_load_mono_alpha_png(png_image &image) {
+    auto pd = load_png_data(image);
+    if(!is_1bit(pd.colormap)) {
+        return {};
+    }
+    auto bufsize = PNG_IMAGE_SIZE(image);
+    mono_image result;
+    result.w = image.width;
+    result.h = image.height;
+    result.alpha = std::string{};
+    const size_t final_size = (image.width + 7) / 8 * image.height;
+    result.pixels.reserve(final_size);
+    result.alpha->reserve(final_size);
+    const uint8_t black_pixel = 0;
+    const uint8_t transparent = 255;
+    const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
+    for(int j = 0; j < result.h; ++j) {
+        unsigned char current_byte = 0;
+        unsigned char current_mask_byte = 255;
+        for(int i = 0; i < result.w; ++i) {
+            current_byte <<= 1;
+            current_mask_byte <<= 1;
+            const auto colormap_entry = pd.pixels.at(j * result.w + i);
+            assert(colormap_entry * sizeof(pngbytes) < pd.colormap.size());
+            if(colormap_entry != 0) {
+                ++i;
+                --i;
+            }
+            const auto *colormap_data = pd.colormap.data() + colormap_entry * sizeof(pngbytes);
+            const auto *pixel = reinterpret_cast<const pngbytes *>(colormap_data);
+            if(pixel->r == black_pixel) {
+                current_byte |= 1;
+            }
+            if(pixel->a != transparent) {
+                current_mask_byte |= 1;
+            }
+            if((i % 8 == 0) && i > 0) {
+                result.pixels.push_back(~current_byte);
+                result.alpha->push_back(~current_mask_byte);
+                current_byte = 0;
+                current_mask_byte = 255;
+            }
+        }
+        // PDF spec 8.9.3 "Sample representation"
+
+        if(num_padding_bits > 0) {
+            current_byte <<= num_padding_bits;
+            result.pixels.push_back(current_byte);
+            current_mask_byte <<= num_padding_bits;
+            result.alpha->push_back(~current_mask_byte);
+        }
+    }
+    assert(result.pixels.size() == final_size);
+    assert(result.alpha->size() == final_size);
     return result;
 }
 
@@ -162,10 +253,16 @@ RasterImage load_png_file(const char *fname) {
             if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
                 throw std::runtime_error("Colormap format not supported.\n");
             }
-            if(image.colormap_entries != 2) {
-                throw std::runtime_error("Only monochrome colormap images supported.\n");
+            if(image.colormap_entries == 2) {
+                return load_mono_png(image);
             }
-            return load_mono_png(image);
+            if(image.colormap_entries == 3 || image.colormap_entries == 4) {
+                auto res = try_load_mono_alpha_png(image);
+                if(res) {
+                    return *res;
+                }
+            }
+            throw std::runtime_error("Only monochrome colormap images supported.\n");
         } else {
             throw std::runtime_error("Only RGB images supported.");
         }
