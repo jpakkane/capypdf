@@ -93,7 +93,8 @@ cfunc_types = (
 
 ('a4pdf_text_new', [FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('a4pdf_text_destroy', [ctypes.c_void_p]),
-
+('a4pdf_text_new', [FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('a4pdf_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 )
 
 libfile_name = 'liba4pdf.so'
@@ -329,3 +330,6 @@ class Text:
             raise RuntimeError('Text must be a Unicode string.')
         bytes = text.encode('UTF-8')
         check_error(libfile.a4pdf_text_render_utf8_text(self, bytes))
+
+    def cmd_Tc(self, spacing):
+        check_error(libfile.a4pdf_cmd_Tc(self, spacing))

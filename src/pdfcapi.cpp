@@ -295,6 +295,11 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
     return (A4PDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)t->cmd_Tc(spacing);
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT {
     delete reinterpret_cast<PdfText *>(text);
     return (A4PDF_EC)ErrorCode::NoError;
