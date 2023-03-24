@@ -145,9 +145,10 @@ mono_image load_mono_png(png_image &image) {
 
         if(num_padding_bits > 0) {
             current_byte <<= num_padding_bits;
-            result.pixels.push_back(~current_byte);
         }
+        result.pixels.push_back(~current_byte);
     }
+    auto blub = result.pixels.size();
     assert(result.pixels.size() == final_size);
     return result;
 }
@@ -225,10 +226,10 @@ std::optional<mono_image> try_load_mono_alpha_png(png_image &image) {
 
         if(num_padding_bits > 0) {
             current_byte <<= num_padding_bits;
-            result.pixels.push_back(current_byte);
             current_mask_byte <<= num_padding_bits;
-            result.alpha->push_back(~current_mask_byte);
         }
+        result.pixels.push_back(current_byte);
+        result.alpha->push_back(~current_mask_byte);
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha->size() == final_size);
