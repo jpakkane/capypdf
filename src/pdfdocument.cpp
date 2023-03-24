@@ -275,12 +275,12 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-IccColorId PdfDocument::load_icc_file(const char *fname) {
+A4PDF_IccColorSpaceId PdfDocument::load_icc_file(const char *fname) {
     auto contents = load_file(fname);
     const auto num_channels = cm.get_num_channels(contents);
     const auto obj_id = store_icc_profile(contents, num_channels);
     icc_profiles.emplace_back(IccInfo{obj_id, num_channels});
-    return IccColorId{(int32_t)icc_profiles.size() - 1};
+    return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 
 void PdfDocument::pad_subset_fonts() {

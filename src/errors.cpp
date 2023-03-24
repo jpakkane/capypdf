@@ -36,6 +36,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Writing to file failed.",
 "Required argument is NULL.",
 "Invalid UTF-8 string.",
+"Incorrect amoung of color channels for this colorspace.",
 };
 
 // clang-format on

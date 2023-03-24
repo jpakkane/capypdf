@@ -196,5 +196,18 @@ class TestPDFCreation(unittest.TestCase):
                 t.render_text('Using text object!')
                 ctx.render_text_obj(t)
 
+    @validate_image('python_icccolor', 200, 200)
+    def test_icc(self, ofilename, w, h):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, w, h)
+        with a4pdf.Generator(ofilename, opts) as g:
+            cs = g.load_icc_profile('/usr/share/color/icc/colord/AdobeRGB1998.icc')
+            with g.page_draw_context() as ctx:
+                ctx.set_icc_stroke(cs, [0.1, 0.2, 0.8])
+                ctx.set_icc_nonstroke(cs, [0.7, 0.2, 0.6])
+                ctx.cmd_w(2)
+                ctx.cmd_re(10, 10, 80, 80)
+                ctx.cmd_B()
+
 if __name__ == "__main__":
     unittest.main()

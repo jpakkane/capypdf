@@ -123,6 +123,21 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,
+                                                       const char *fname,
+                                                       A4PDF_IccColorSpaceId *iid) A4PDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    try {
+        *iid = gen->load_icc_file(fname);
+    } catch(const std::exception &e) {
+        fprintf(stderr, "%s\n", e.what());
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    } catch(...) {
+        return (A4PDF_EC)ErrorCode::DynamicError;
+    }
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
 A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     return (A4PDF_EC)g->write();
@@ -207,6 +222,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_k(A4PDF_DrawContext *ctx, double c, double m,
     return (A4PDF_EC)dc->cmd_k(c, m, y, k);
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_K(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
+    A4PDF_NOEXCEPT {
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)dc->cmd_K(c, m, y, k);
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_l(x, y);
@@ -236,6 +257,22 @@ a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)c->cmd_w(line_width);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_stroke(A4PDF_DrawContext *ctx,
+                                              A4PDF_IccColorSpaceId icc_id,
+                                              double *values,
+                                              int32_t num_values) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->set_stroke_color(icc_id, values, num_values);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_nonstroke(A4PDF_DrawContext *ctx,
+                                                 A4PDF_IccColorSpaceId icc_id,
+                                                 double *values,
+                                                 int32_t num_values) A4PDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (A4PDF_EC)c->set_nonstroke_color(icc_id, values, num_values);
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_draw_image(A4PDF_DrawContext *ctx,

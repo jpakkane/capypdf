@@ -121,11 +121,13 @@ public:
     void set_stroke_color(const DeviceRGBColor &c);
     void set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(LabId lid, const LabColor &c);
-    ErrorCode set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values);
+    ErrorCode
+    set_stroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
     void set_nonstroke_color(PatternId id);
-    ErrorCode set_nonstroke_color(IccColorId icc_id, const double *values, int32_t num_values);
+    ErrorCode
+    set_nonstroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
     ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
@@ -162,8 +164,9 @@ private:
                                 A4PDF_FontId &current_font,
                                 int32_t &current_subset,
                                 double &current_pointsize);
-    ErrorCode
-    utf8_to_kerned_chars(std::string_view utf8_text, std::vector<CharItem> &charseq, A4PDF_FontId fid);
+    ErrorCode utf8_to_kerned_chars(std::string_view utf8_text,
+                                   std::vector<CharItem> &charseq,
+                                   A4PDF_FontId fid);
 
     PdfDocument *doc;
     PdfColorConverter *cm;

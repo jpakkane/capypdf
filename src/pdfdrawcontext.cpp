@@ -416,12 +416,13 @@ void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     }
 }
 
-ErrorCode
-PdfDrawContext::set_nonstroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+ErrorCode PdfDrawContext::set_nonstroke_color(A4PDF_IccColorSpaceId icc_id,
+                                              const double *values,
+                                              int32_t num_values) {
     CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc_id.id);
     if(icc_info.num_channels != num_values) {
-        throw std::runtime_error("Incorrect number of color channels.");
+        return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
     fmt::format_to(cmd_appender, "/CSpace{} cs\n", icc_info.object_num);
@@ -432,12 +433,13 @@ PdfDrawContext::set_nonstroke_color(IccColorId icc_id, const double *values, int
     return ErrorCode::NoError;
 }
 
-ErrorCode
-PdfDrawContext::set_stroke_color(IccColorId icc_id, const double *values, int32_t num_values) {
+ErrorCode PdfDrawContext::set_stroke_color(A4PDF_IccColorSpaceId icc_id,
+                                           const double *values,
+                                           int32_t num_values) {
     CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc_id.id);
     if(icc_info.num_channels != num_values) {
-        throw std::runtime_error("Incorrect number of color channels.");
+        return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
     fmt::format_to(cmd_appender, "/CSpace{} CS\n", icc_info.object_num);

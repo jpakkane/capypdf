@@ -110,6 +110,10 @@ typedef struct {
     int32_t id;
 } A4PDF_FontId;
 
+typedef struct {
+    int32_t id;
+} A4PDF_IccColorSpaceId;
+
 // Options
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT;
@@ -137,6 +141,9 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,
                                                  const char *fname,
                                                  A4PDF_ImageId *iid) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,
+                                                       const char *fname,
+                                                       A4PDF_IccColorSpaceId *iid) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_write(A4PDF_Generator *g) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *g) A4PDF_NOEXCEPT;
 
@@ -169,6 +176,8 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
                                      enum A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_k(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
     A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_K(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
+    A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_m(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
@@ -181,6 +190,15 @@ A4PDF_PUBLIC A4PDF_EC
 a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_S(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT;
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_stroke(A4PDF_DrawContext *ctx,
+                                              A4PDF_IccColorSpaceId icc_id,
+                                              double *values,
+                                              int32_t num_values) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_nonstroke(A4PDF_DrawContext *ctx,
+                                                 A4PDF_IccColorSpaceId icc_id,
+                                                 double *values,
+                                                 int32_t num_values) A4PDF_NOEXCEPT;
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_draw_image(A4PDF_DrawContext *ctx, A4PDF_ImageId iid) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,

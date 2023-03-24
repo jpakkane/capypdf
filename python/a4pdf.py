@@ -46,6 +46,9 @@ class FontId(ctypes.Structure):
 class ImageId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class IccColorSpaceId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 cfunc_types = (
 
 ('a4pdf_options_new', [ctypes.c_void_p]),
@@ -58,6 +61,7 @@ cfunc_types = (
 ('a4pdf_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('a4pdf_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('a4pdf_generator_write', [ctypes.c_void_p]),
 ('a4pdf_generator_destroy', [ctypes.c_void_p]),
@@ -74,6 +78,7 @@ cfunc_types = (
 ('a4pdf_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_j', [ctypes.c_void_p, enum_type]),
 ('a4pdf_dc_cmd_k', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('a4pdf_dc_cmd_K', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_l', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_m', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_cmd_q', [ctypes.c_void_p]),
@@ -89,6 +94,8 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_dc_render_text_obj',
     [ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_dc_set_icc_stroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
+('a4pdf_dc_set_icc_nonstroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
 
 ('a4pdf_text_new', [ctypes.c_void_p]),
@@ -204,6 +211,9 @@ class DrawContext:
     def cmd_k(self, c, m, y, k):
         check_error(libfile.a4pdf_dc_cmd_k(self, c, m, y, k))
 
+    def cmd_K(self, c, m, y, k):
+        check_error(libfile.a4pdf_dc_cmd_K(self, c, m, y, k))
+
     def cmd_l(self, x, y):
         check_error(libfile.a4pdf_dc_cmd_l(self, x, y))
 
@@ -230,6 +240,22 @@ class DrawContext:
 
     def cmd_S(self):
         check_error(libfile.a4pdf_dc_cmd_S(self))
+
+    def set_icc_stroke(self, iccid, values):
+        if not isinstance(values, list):
+            raise RuntimeError('Icc color value argument must be an array.')
+        num_entries = len(values)
+        doublearray = ctypes.c_double * num_entries
+        doublevalues = doublearray(*tuple(values))
+        check_error(libfile.a4pdf_dc_set_icc_stroke(self, iccid, doublevalues, num_entries))
+
+    def set_icc_nonstroke(self, iccid, values):
+        if not isinstance(values, list):
+            raise RuntimeError('Icc color value argument must be an array.')
+        num_entries = len(values)
+        doublearray = ctypes.c_double * num_entries
+        doublevalues = doublearray(*tuple(values))
+        check_error(libfile.a4pdf_dc_set_icc_nonstroke(self, iccid, doublevalues, num_entries))
 
     def render_text(self, text, fid, point_size, x, y):
         if not isinstance(text, str):
@@ -305,6 +331,11 @@ class Generator:
         fid = FontId()
         check_error(libfile.a4pdf_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
         return fid
+
+    def load_icc_profile(self, fname):
+        iid = IccColorSpaceId()
+        check_error(libfile.a4pdf_generator_load_icc_profile(self, to_bytepath(fname), ctypes.pointer(iid)))
+        return iid
 
     def load_image(self, fname):
         iid = ImageId()

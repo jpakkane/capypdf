@@ -166,7 +166,7 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
-    IccColorId load_icc_file(const char *fname);
+    A4PDF_IccColorSpaceId load_icc_file(const char *fname);
 
     // Fonts
     A4PDF_FontId load_font(FT_Library ft, const char *fname);
