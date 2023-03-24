@@ -190,7 +190,9 @@ class TestPDFCreation(unittest.TestCase):
         with a4pdf.Generator(ofilename, opts) as g:
             font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
-                t = a4pdf.Text(font, 12.0, 10.0, 100.0)
+                t = a4pdf.Text()
+                t.cmd_Tf(font, 12.0)
+                t.cmd_Td(10.0, 100.0)
                 t.render_text('Using text object!')
                 ctx.render_text_obj(t)
 

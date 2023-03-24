@@ -91,10 +91,12 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
 
-('a4pdf_text_new', [FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('a4pdf_text_new', [ctypes.c_void_p]),
 ('a4pdf_text_destroy', [ctypes.c_void_p]),
-('a4pdf_text_new', [FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
-('a4pdf_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
+('a4pdf_text_new', [ctypes.c_void_p]),
+('a4pdf_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
+('a4pdf_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('a4pdf_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 )
 
 libfile_name = 'liba4pdf.so'
@@ -313,12 +315,10 @@ class Generator:
         check_error(libfile.a4pdf_generator_write(self))
 
 class Text:
-    def __init__(self, font, pointsize, x, y):
+    def __init__(self):
         self._as_parameter_ = None
-        if not isinstance(font, FontId):
-            raise RuntimeError('Font argument is not a font object.')
         opt = ctypes.c_void_p()
-        check_error(libfile.a4pdf_text_new(font, pointsize, x, y, ctypes.pointer(opt)))
+        check_error(libfile.a4pdf_text_new(ctypes.pointer(opt)))
         self._as_parameter_ = opt
 
     def __del__(self):
@@ -332,4 +332,12 @@ class Text:
         check_error(libfile.a4pdf_text_render_utf8_text(self, bytes))
 
     def cmd_Tc(self, spacing):
-        check_error(libfile.a4pdf_cmd_Tc(self, spacing))
+        check_error(libfile.a4pdf_text_cmd_Tc(self, spacing))
+
+    def cmd_Td(self, x, y):
+        check_error(libfile.a4pdf_text_cmd_Td(self, x, y))
+
+    def cmd_Tf(self, fontid, ptsize):
+        if not isinstance(fontid, FontId):
+            raise RuntimeError('Font id is not a font object.')
+        check_error(libfile.a4pdf_text_cmd_Tf(self, fontid, ptsize))

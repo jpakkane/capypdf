@@ -283,9 +283,8 @@ A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(
-    A4PDF_FontId font, double pointsize, double x, double y, A4PDF_Text **out_ptr) A4PDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<A4PDF_Text *>(new A4PDF::PdfText(font, pointsize, x, y));
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(A4PDF_Text **out_ptr) A4PDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<A4PDF_Text *>(new A4PDF::PdfText());
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -295,9 +294,21 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
     return (A4PDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT {
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (A4PDF_EC)t->cmd_Tc(spacing);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Td(A4PDF_Text *text, double x, double y) A4PDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)t->cmd_Td(x, y);
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tf(A4PDF_Text *text,
+                                        A4PDF_FontId font,
+                                        double pointsize) A4PDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)t->cmd_Tf(font, pointsize);
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT {

@@ -95,7 +95,7 @@ typedef std::variant<TStar_arg,
 
 class PdfText {
 public:
-    PdfText(A4PDF_FontId font, double pointsize, double x, double y);
+    PdfText();
 
     ErrorCode cmd_Tstar() {
         events.emplace_back(TStar_arg{});

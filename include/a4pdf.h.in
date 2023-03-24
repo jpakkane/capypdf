@@ -195,12 +195,16 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *) A4PDF_NOEXCEPT;
 
 // Text
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(
-    A4PDF_FontId font, double pointsize, double x, double y, A4PDF_Text **out_ptr) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(A4PDF_Text **out_ptr) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
                                                   const char *utf8_text) A4PDF_NOEXCEPT;
-A4PDF_PUBLIC A4PDF_EC a4pdf_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT;
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Td(A4PDF_Text *text, double x, double y) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tf(A4PDF_Text *text,
+                                        A4PDF_FontId font,
+                                        double pointsize) A4PDF_NOEXCEPT;
 
 // Error
 

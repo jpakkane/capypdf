@@ -54,7 +54,9 @@ int main(int argc, char **argv) {
     ctx.render_utf8_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
     ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
     {
-        PdfText text{regular_fid, 12, 20, 700};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 700);
         std::vector<CharItem> kerned_text;
 
         kerned_text.emplace_back(uint32_t('A'));
@@ -80,7 +82,9 @@ int main(int argc, char **argv) {
         ctx.render_text(text);
     }
     {
-        PdfText text{regular_fid, 12, 20, 600};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 600);
         text.render_text("How about some ");
         text.cmd_Tf(italic_fid, 12);
         text.render_text("italic");
@@ -90,7 +94,9 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 550};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 550);
         text.render_text("How about some ");
         text.cmd_Ts(4);
         text.render_text("raised");
@@ -100,7 +106,9 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 500};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 500);
         text.render_text("Character spacing");
         text.cmd_Tstar();
         text.cmd_Tc(1);
@@ -109,7 +117,9 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 450};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 450);
         text.render_text("Word spacing word spacing word spacing.");
         text.cmd_Tstar();
         text.cmd_Tw(4);
@@ -118,7 +128,9 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 400};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 400);
         text.render_text("Character scaling.");
         text.cmd_Tstar();
         text.cmd_Tz(150);
@@ -128,7 +140,9 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text{regular_fid, 12, 20, 300};
+        PdfText text;
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 300);
         for(int i = 1; i < 20; ++i) {
             text.cmd_Tf(regular_fid, 2 * i);
             text.render_text("X");

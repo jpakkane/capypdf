@@ -137,7 +137,9 @@ void render_column(const std::vector<std::string> &text_lines,
                    double column_left,
                    double column_top) {
     const double target_width = cm2pt(8);
-    auto textobj = PdfText(textfont, textsize, column_left, column_top);
+    auto textobj = PdfText();
+    textobj.cmd_Tf(textfont, textsize);
+    textobj.cmd_Td(column_left, column_top);
     textobj.cmd_TL(leading);
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];

@@ -18,9 +18,6 @@
 
 namespace A4PDF {
 
-PdfText::PdfText(A4PDF_FontId font, double pointsize, double x, double y) {
-    cmd_Tf(font, pointsize);
-    cmd_Td(x, y);
-}
+PdfText::PdfText() {}
 
 } // namespace A4PDF
