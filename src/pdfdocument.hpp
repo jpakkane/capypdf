@@ -235,6 +235,12 @@ private:
                            int32_t font_descriptor_obj,
                            int32_t tounicode_obj);
 
+    A4PDF_ImageId add_image_object(int32_t w,
+                          int32_t h,
+                          int32_t bits_per_component,
+                          A4PDF_Colorspace colorspace, std::optional<int32_t> smask_id,
+                          std::string_view uncompressed_bytes);
+
     A4PDF_ImageId process_rgb_image(const rgb_image &image);
     A4PDF_ImageId process_gray_image(const gray_image &image);
     A4PDF_ImageId process_mono_image(const mono_image &image);

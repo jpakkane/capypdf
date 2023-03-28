@@ -815,239 +815,105 @@ A4PDF_ImageId PdfDocument::load_image(const char *fname) {
     }
 }
 
-A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
+A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
+                                            int32_t h,
+                                            int32_t bits_per_component,
+                                            A4PDF_Colorspace colorspace,
+                                            std::optional<int32_t> smask_id,
+                                            std::string_view uncompressed_bytes) {
     std::string buf;
-    int32_t smask_id = -1;
-    if(image.alpha) {
-        auto compressed = flate_compress(*image.alpha);
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /Width {}
-  /Height {}
-  /ColorSpace /DeviceGray
-  /BitsPerComponent 1
-  /Length {}
-  /Filter /FlateDecode
->>
-)",
-                       image.w,
-                       image.h,
-                       compressed.size());
-        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        buf.clear();
-    }
-    auto compressed = flate_compress(image.pixels);
-    fmt::format_to(std::back_inserter(buf),
+    auto app = std::back_inserter(buf);
+    auto compressed = flate_compress(uncompressed_bytes);
+    fmt::format_to(app,
                    R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace /DeviceGray
   /Width {}
   /Height {}
-  /BitsPerComponent 1
+  /ColorSpace {}
+  /BitsPerComponent {}
   /Length {}
-    /Filter /FlateDecode
+  /Filter /FlateDecode
 )",
-                   image.w,
-                   image.h,
+                   w,
+                   h,
+                   colorspace_names.at(colorspace),
+                   bits_per_component,
                    compressed.size());
-
-    if(smask_id >= 0) {
-        fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
+    if(smask_id) {
+        fmt::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
     }
     buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
+    image_info.emplace_back(ImageInfo{{w, h}, im_id});
     return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-A4PDF_ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
-    std::string buf;
-    int32_t smask_id = -1;
-
+A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
+    std::optional<int32_t> smask_id;
     if(image.alpha) {
-        auto compressed = flate_compress(*image.alpha);
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /Width {}
-  /Height {}
-  /ColorSpace /DeviceGray
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
->>
-)",
-                       image.w,
-                       image.h,
-                       compressed.size());
-        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        buf.clear();
+        smask_id =
+            image_info
+                .at(add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
+                .obj;
+    }
+    return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
+}
+
+A4PDF_ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
+    std::optional<int32_t> smask_id;
+    if(image.alpha) {
+        smask_id =
+            image_info
+                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
+                .obj;
     }
     switch(opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
-        const auto compressed = flate_compress(image.pixels);
-        // FIXME, use ICC colorspace, if one was defined.
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /ColorSpace /DeviceRGB
-  /Width {}
-  /Height {}
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
-)",
-                       image.w,
-                       image.h,
-                       compressed.size());
-        if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
-        }
-        buf += ">>\n";
-        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-        break;
+        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, image.pixels);
     }
     case A4PDF_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
-        const auto compressed = flate_compress(converted_pixels);
-        // FIXME also ICC here.
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /ColorSpace /DeviceGray
-  /Width {}
-  /Height {}
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
-)",
-                       image.w,
-                       image.h,
-                       compressed.size());
-        if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
-        }
-        buf += ">>\n";
-        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-        break;
+        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, converted_pixels);
     }
     case A4PDF_DEVICE_CMYK: {
         if(cmyk_profile_obj == -1) {
             throw std::runtime_error("Tried to convert image to CMYK without a CMYK profile.");
         }
         std::string converted_pixels = cm.rgb_pixels_to_cmyk(image.pixels);
-        const auto compressed = flate_compress(converted_pixels);
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /ColorSpace [/ICCBased {} 0 R]
-  /Width {}
-  /Height {}
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
-)",
-                       cmyk_profile_obj, // FIXME, maybe this should be DeviceGray?
-                       image.w,
-                       image.h,
-                       compressed.size());
-        if(smask_id >= 0) {
-            fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
-        }
-        buf += ">>\n";
-        auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-        break;
+        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, converted_pixels);
     }
     default:
         throw std::runtime_error("Not implemented.");
     }
-    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
 A4PDF_ImageId PdfDocument::process_gray_image(const gray_image &image) {
-    std::string buf;
-    int32_t smask_id = -1;
+    std::optional<int32_t> smask_id;
 
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
 
     if(image.alpha) {
-        auto compressed = flate_compress(*image.alpha);
-        fmt::format_to(std::back_inserter(buf),
-                       R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /Width {}
-  /Height {}
-  /ColorSpace /DeviceGray
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
->>
-)",
-                       image.w,
-                       image.h,
-                       compressed.size());
-        smask_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-        buf.clear();
+        smask_id =
+            image_info
+                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
+                .obj;
     }
-    const auto compressed = flate_compress(image.pixels);
-
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /ColorSpace /DeviceGray
-  /Width {}
-  /Height {}
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
-)",
-                   image.w,
-                   image.h,
-                   compressed.size());
-    if(smask_id >= 0) {
-        fmt::format_to(std::back_inserter(buf), "  /SMask {} 0 R\n", smask_id);
-    }
-    buf += ">>\n";
-    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
+    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
 }
 
 A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
-    const auto compressed = flate_compress(image.pixels);
-    std::string buf;
-
-    fmt::format_to(std::back_inserter(buf),
-                   R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /ColorSpace /DeviceCMYK
-  /Width {}
-  /Height {}
-  /BitsPerComponent 8
-  /Length {}
-  /Filter /FlateDecode
-)",
-                   image.w,
-                   image.h,
-                   compressed.size());
-    buf += ">>\n";
+    std::optional<int32_t> smask_id;
     // FIXME, add ICC profile and smask.
-    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-    image_info.emplace_back(ImageInfo{{image.w, image.h}, im_id});
-    return A4PDF_ImageId{(int32_t)image_info.size() - 1};
+    /*
+    if(image.alpha) {
+        smask_id =
+            image_info
+                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
+                .obj;
+    }
+    */
+    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, image.pixels);
 }
 
 A4PDF_ImageId PdfDocument::embed_jpg(const char *fname) {
