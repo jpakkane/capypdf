@@ -388,11 +388,14 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
             return &e;
         }
     }
-    throw std::runtime_error("Missing entry.");
+    return nullptr;
 }
 
 TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "maxp");
+    if(!e) {
+        throw std::runtime_error("Maxp table missing.");
+    }
     uint32_t version;
     safe_memcpy(&version, buf, e->offset);
     byte_swap(version);
@@ -410,6 +413,9 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
 
 TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
+    if(!e) {
+        throw std::runtime_error("Head table missing.");
+    }
     TTHead head = extract<TTHead>(buf, e->offset);
     head.swap_endian();
 #ifndef A4FUZZING
@@ -423,6 +429,9 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
                                uint16_t index_to_loc_format,
                                uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
+    if(!loca) {
+        throw std::runtime_error("Loca table missing.");
+    }
     std::vector<int32_t> offsets;
     offsets.reserve(num_glyphs);
     if(index_to_loc_format == 0) {
@@ -450,6 +459,9 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
 
 TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "hhea");
+    if(!e) {
+        throw std::runtime_error("Hhea table missing.");
+    }
 
     TTHhea hhea;
     if(sizeof(TTHhea) != e->length) {
@@ -471,6 +483,9 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
                  uint16_t num_glyphs,
                  uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
+    if(!e) {
+        throw std::runtime_error("Hmtx table missing.");
+    }
     if(num_hmetrics > num_glyphs) {
         throw std::runtime_error("Incorrect number of hmetrics.");
     }
@@ -502,7 +517,9 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
                                      const std::vector<int32_t> &loca) {
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
-    assert(e);
+    if(!e) {
+        throw std::runtime_error("Glyf table missing.");
+    }
     if(e->offset > buf.size()) {
         throw std::runtime_error("Glyf offset too big.");
     }

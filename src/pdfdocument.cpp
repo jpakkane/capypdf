@@ -818,7 +818,7 @@ A4PDF_ImageId PdfDocument::load_image(const char *fname) {
 A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
                                             int32_t h,
                                             int32_t bits_per_component,
-                                            A4PDF_Colorspace colorspace,
+                                            ColorspaceType colorspace,
                                             std::optional<int32_t> smask_id,
                                             std::string_view uncompressed_bytes) {
     std::string buf;
@@ -830,16 +830,24 @@ A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
   /Subtype /Image
   /Width {}
   /Height {}
-  /ColorSpace {}
   /BitsPerComponent {}
   /Length {}
   /Filter /FlateDecode
 )",
                    w,
                    h,
-                   colorspace_names.at(colorspace),
                    bits_per_component,
                    compressed.size());
+    if(std::holds_alternative<A4PDF_Colorspace>(colorspace)) {
+        const auto &cs = std::get<A4PDF_Colorspace>(colorspace);
+        fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
+    } else if(std::holds_alternative<int32_t>(colorspace)) {
+        const auto icc_obj = std::get<int32_t>(colorspace);
+        fmt::format_to(app, "  /ColorSpace {} 0 R", icc_obj);
+    } else {
+        fprintf(stderr, "Unknown colorspace.");
+        std::abort();
+    }
     if(smask_id) {
         fmt::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
     }
@@ -904,16 +912,21 @@ A4PDF_ImageId PdfDocument::process_gray_image(const gray_image &image) {
 
 A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
     std::optional<int32_t> smask_id;
-    // FIXME, add ICC profile and smask.
-    /*
+    ColorspaceType cs;
+    if(image.icc) {
+        // FIXME: check for duplicates.
+        auto icc_obj = store_icc_profile(*image.icc, 4);
+        cs = icc_obj;
+    } else {
+        cs = A4PDF_DEVICE_CMYK;
+    }
     if(image.alpha) {
         smask_id =
             image_info
                 .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
                 .obj;
     }
-    */
-    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, image.pixels);
+    return add_image_object(image.w, image.h, 8, cs, smask_id, image.pixels);
 }
 
 A4PDF_ImageId PdfDocument::embed_jpg(const char *fname) {

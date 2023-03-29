@@ -148,7 +148,6 @@ mono_image load_mono_png(png_image &image) {
         }
         result.pixels.push_back(~current_byte);
     }
-    auto blub = result.pixels.size();
     assert(result.pixels.size() == final_size);
     return result;
 }
@@ -184,7 +183,6 @@ std::optional<mono_image> try_load_mono_alpha_png(png_image &image) {
     if(!is_1bit(pd.colormap)) {
         return {};
     }
-    auto bufsize = PNG_IMAGE_SIZE(image);
     mono_image result;
     result.w = image.width;
     result.h = image.height;

@@ -55,6 +55,7 @@ struct cmyk_image {
     int32_t h;
     std::string pixels;
     std::optional<std::string> icc;
+    std::optional<std::string> alpha;
 };
 
 typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
