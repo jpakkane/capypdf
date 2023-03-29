@@ -57,11 +57,14 @@ uint32_t ttf_checksum(std::string_view data) {
 }
 
 std::string_view get_substring(const char *buf,
-                               const size_t bufsize,
-                               const size_t offset,
-                               const size_t substr_size) {
+                               const int64_t bufsize,
+                               const int64_t offset,
+                               const int64_t substr_size) {
     if(!buf) {
         throw std::runtime_error("Nullptr passed to substringing.");
+    }
+    if(bufsize < 0 || offset < 0 || substr_size < 0) {
+        throw std::runtime_error("An offset has gone negative.");
     }
     if(offset > bufsize) {
         throw std::runtime_error("Substring offset past the end.");
@@ -69,19 +72,23 @@ std::string_view get_substring(const char *buf,
     if(offset + substr_size > bufsize) {
         throw std::runtime_error("Tried to read past the end of buffer.");
     }
-    return std::string_view(buf + offset, buf + offset + substr_size);
+    if(substr_size == 0) {
+        return "";
+    }
+    return std::string_view(buf + offset, substr_size);
 }
 
-std::string_view get_substring(std::string_view sv, const size_t offset, const size_t substr_size) {
+std::string_view
+get_substring(std::string_view sv, const size_t offset, const int64_t substr_size) {
     return get_substring(sv.data(), sv.size(), offset, substr_size);
 }
 
-template<typename T> void safe_memcpy(T *obj, std::string_view source, const size_t offset) {
+template<typename T> void safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
     auto validated_area = get_substring(source, offset, sizeof(T));
     memcpy(obj, validated_area.data(), sizeof(T));
 }
 
-template<typename T> T extract_from(std::string_view bf, const size_t offset) {
+template<typename T> T extract(std::string_view bf, const size_t offset) {
     T obj;
     safe_memcpy(&obj, bf, offset);
     return obj;
@@ -392,11 +399,10 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     if(version != 1 << 16) {
         throw std::runtime_error("Unsupported TTF file format.");
     }
-    TTMaxp10 maxp;
-    if(e->length < sizeof(maxp)) {
+    if(e->length < sizeof(TTMaxp10)) {
         throw std::runtime_error("Malformed maxp buffer.");
     }
-    safe_memcpy(&maxp, buf, e->offset);
+    TTMaxp10 maxp = extract<TTMaxp10>(buf, e->offset);
     maxp.swap_endian();
     return maxp;
     std::abort();
@@ -404,8 +410,7 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
 
 TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
-    TTHead head;
-    safe_memcpy(&head, buf, e->offset);
+    TTHead head = extract<TTHead>(buf, e->offset);
     head.swap_endian();
 #ifndef A4FUZZING
     assert(head.magic == 0x5f0f3cf5);
@@ -498,45 +503,14 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
     assert(e);
-    const char *glyf_start = buf.data() + e->offset;
+    if(e->offset > buf.size()) {
+        throw std::runtime_error("Glyf offset too big.");
+    }
+    auto glyf_start = std::string_view(buf).substr(e->offset);
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
-        if(data_size < 0) {
-            throw std::runtime_error("Malformed glyph data.");
-        }
-        if(e->offset + data_off + data_size > buf.size()) {
-            throw std::runtime_error("Malformed glyph data.");
-        }
-        glyph_data.emplace_back(std::string(glyf_start + data_off, data_size));
-        // Eventually unpack to normal glyph or composite.
-        /*
-        int16_t num_contours;
-        memcpy(&num_contours, glyph_data.back().data(), sizeof(num_contours));
-        byte_swap(num_contours);
-        if(num_contours >= 0) {
-        } else {
-            const char *composite_data = glyph_data.back().data() + sizeof(int16_t);
-            const uint16_t MORE_COMPONENTS = 0x20;
-            const uint16_t ARGS_ARE_WORDS = 0x01;
-            uint16_t component_flag;
-            uint16_t glyph_index;
-            do {
-                memcpy(&component_flag, composite_data, sizeof(uint16_t));
-                byte_swap(component_flag);
-                composite_data += sizeof(uint16_t);
-                memcpy(&glyph_index, composite_data, sizeof(uint16_t));
-                byte_swap(glyph_index);
-                composite_data += sizeof(uint16_t);
-                if(component_flag & ARGS_ARE_WORDS) {
-                    composite_data += 2 * sizeof(int16_t);
-                } else {
-                    composite_data += 2 * sizeof(int8_t);
-                }
-            } while(component_flag & MORE_COMPONENTS);
-            // Instruction data would be here, but we don't need to parse it.
-        }
-        */
+        glyph_data.emplace_back(get_substring(glyf_start, data_off, data_size));
     }
     return glyph_data;
 }
@@ -575,9 +549,7 @@ std::vector<std::string> subset_glyphs(FT_Face face,
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
         if(!subset.back().empty()) {
-            int16_t num_contours;
-            assert(subset.back().size() >= sizeof(int16_t));
-            memcpy(&num_contours, subset.back().data(), sizeof(int16_t));
+            int16_t num_contours = extract<int16_t>(subset.back(), 0);
             byte_swap(num_contours);
             if(num_contours < 0) {
                 reassign_composite_glyph_numbers(subset.back(), comp_mapping);
@@ -769,8 +741,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
 }
 
 int16_t num_contours(std::string_view buf) {
-    int16_t num_contours;
-    safe_memcpy(&num_contours, buf, 0);
+    int16_t num_contours = extract<int16_t>(buf, 0);
     byte_swap(num_contours);
     return num_contours;
 }
@@ -779,20 +750,14 @@ int16_t num_contours(std::string_view buf) {
 
 TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     TrueTypeFontFile tf;
-    TTOffsetTable off;
-    if(buf.size() < sizeof(off)) {
+    if(buf.size() < sizeof(TTOffsetTable)) {
         throw std::runtime_error("File too small to be a TTF font file.");
     }
-    memcpy(&off, buf.data(), sizeof(off));
+    TTOffsetTable off = extract<TTOffsetTable>(buf, 0);
     off.swap_endian();
     std::vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
-        TTDirEntry e;
-        const auto fileoffset = sizeof(off) + i * sizeof(e);
-        if(fileoffset + (i + 1) * sizeof(e) > buf.size()) {
-            throw std::runtime_error("TTF header is malformed.");
-        }
-        memcpy(&e, buf.data() + sizeof(off) + i * sizeof(e), sizeof(e));
+        TTDirEntry e = extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(e));
         e.swap_endian();
         if(e.offset + e.length > buf.length()) {
             throw std::runtime_error("TTF directory entry points outside of file.");
@@ -819,28 +784,20 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     tf.fpgm = load_raw_table(directory, buf, "fpgm");
     tf.prep = load_raw_table(directory, buf, "prep");
     auto cmap = load_raw_table(directory, buf, "cmap");
-    TTCmapHeader cmap_head;
-    safe_memcpy(&cmap_head, cmap, 0);
+    auto cmap_head = extract<TTCmapHeader>(cmap, 0);
     cmap_head.swap_endian();
     for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
-        TTEncodingRecord enc;
-        memcpy(&enc,
-               cmap.data() + 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord),
-               sizeof(TTEncodingRecord));
+        TTEncodingRecord enc = extract<TTEncodingRecord>(
+            cmap, 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord));
         enc.swap_endian();
-        uint16_t subtable_format;
-        if(enc.subtable_offset + sizeof(subtable_format) > cmap.size()) {
-            throw std::runtime_error("Malformed cmap data.");
-        }
-        memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
+        uint16_t subtable_format = extract<uint16_t>(cmap, enc.subtable_offset);
         byte_swap(subtable_format);
         if(subtable_format >= 15) {
             throw std::runtime_error("Bad subtable format.");
         }
 #ifndef A4FUZZING
         if(subtable_format == 0) {
-            TTEncodingSubtable0 enctable;
-            memcpy(&enctable, cmap.data() + enc.subtable_offset, sizeof(TTEncodingSubtable0));
+            TTEncodingSubtable0 enctable = extract<TTEncodingSubtable0>(cmap, enc.subtable_offset);
             enctable.swap_endian();
             assert(enctable.format == 0);
         }
