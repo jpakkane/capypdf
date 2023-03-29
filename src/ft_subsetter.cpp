@@ -56,6 +56,37 @@ uint32_t ttf_checksum(std::string_view data) {
     return checksum;
 }
 
+std::string_view get_substring(const char *buf,
+                               const size_t bufsize,
+                               const size_t offset,
+                               const size_t substr_size) {
+    if(!buf) {
+        throw std::runtime_error("Nullptr passed to substringing.");
+    }
+    if(offset > bufsize) {
+        throw std::runtime_error("Substring offset past the end.");
+    }
+    if(offset + substr_size > bufsize) {
+        throw std::runtime_error("Tried to read past the end of buffer.");
+    }
+    return std::string_view(buf + offset, buf + offset + substr_size);
+}
+
+std::string_view get_substring(std::string_view sv, const size_t offset, const size_t substr_size) {
+    return get_substring(sv.data(), sv.size(), offset, substr_size);
+}
+
+template<typename T> void safe_memcpy(T *obj, std::string_view source, const size_t offset) {
+    auto validated_area = get_substring(source, offset, sizeof(T));
+    memcpy(obj, validated_area.data(), sizeof(T));
+}
+
+template<typename T> T extract_from(std::string_view bf, const size_t offset) {
+    T obj;
+    safe_memcpy(&obj, bf, offset);
+    return obj;
+}
+
 } // namespace
 
 namespace A4PDF {
@@ -356,7 +387,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
 TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "maxp");
     uint32_t version;
-    memcpy(&version, buf.data() + e->offset, sizeof(uint32_t));
+    safe_memcpy(&version, buf, e->offset);
     byte_swap(version);
     if(version != 1 << 16) {
         throw std::runtime_error("Unsupported TTF file format.");
@@ -365,7 +396,7 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     if(e->length < sizeof(maxp)) {
         throw std::runtime_error("Malformed maxp buffer.");
     }
-    memcpy(&maxp, buf.data() + e->offset, sizeof(maxp));
+    safe_memcpy(&maxp, buf, e->offset);
     maxp.swap_endian();
     return maxp;
     std::abort();
@@ -374,7 +405,7 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
 TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
     TTHead head;
-    memcpy(&head, buf.data() + e->offset, sizeof(head));
+    safe_memcpy(&head, buf, e->offset);
     head.swap_endian();
 #ifndef A4FUZZING
     assert(head.magic == 0x5f0f3cf5);
@@ -392,14 +423,14 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
     if(index_to_loc_format == 0) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             uint16_t offset;
-            memcpy(&offset, buf.data() + loca->offset + i * sizeof(uint16_t), sizeof(uint16_t));
+            safe_memcpy(&offset, buf, loca->offset + i * sizeof(uint16_t));
             byte_swap(offset);
             offsets.push_back(offset * 2);
         }
     } else if(index_to_loc_format == 1) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             int32_t offset;
-            memcpy(&offset, buf.data() + loca->offset + i * sizeof(int32_t), sizeof(int32_t));
+            safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t));
             byte_swap(offset);
             if(offset < 0) {
                 throw std::runtime_error("Bad offset data.");
@@ -416,8 +447,10 @@ TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "hhea");
 
     TTHhea hhea;
-    assert(sizeof(TTHhea) == e->length);
-    memcpy(&hhea, buf.data() + e->offset, sizeof(hhea));
+    if(sizeof(TTHhea) != e->length) {
+        throw std::runtime_error("Incorred hhea size.");
+    }
+    safe_memcpy(&hhea, buf, e->offset);
     hhea.swap_endian();
     if(hhea.version != 1 << 16) {
         throw std::runtime_error("Unsupported hhea version.");
@@ -433,11 +466,14 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
                  uint16_t num_glyphs,
                  uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
-    assert(num_hmetrics <= num_glyphs);
+    if(num_hmetrics > num_glyphs) {
+        throw std::runtime_error("Incorrect number of hmetrics.");
+    }
     TTHmtx hmtx;
     for(uint16_t i = 0; i < num_hmetrics; ++i) {
         TTLongHorMetric hm;
-        memcpy(&hm, buf.data() + e->offset + i * sizeof(TTLongHorMetric), sizeof(TTLongHorMetric));
+        const auto data_offset = e->offset + i * sizeof(TTLongHorMetric);
+        safe_memcpy(&hm, buf, data_offset);
         hm.swap_endian();
         hmtx.longhor.push_back(hm);
     }
@@ -445,10 +481,10 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
         int16_t lsb;
         const auto data_offset =
             e->offset + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t);
-        if(data_offset < 0 || data_offset + sizeof(int16_t) > buf.size()) {
+        if(data_offset < 0) {
             throw std::runtime_error("Malformet hmtx data.");
         }
-        memcpy(&lsb, buf.data() + data_offset, sizeof(int16_t));
+        safe_memcpy(&lsb, buf, data_offset);
         byte_swap(lsb);
         hmtx.left_side_bearings.push_back(lsb);
     }
@@ -466,7 +502,7 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
-        if(data_size <= 0) {
+        if(data_size < 0) {
             throw std::runtime_error("Malformed glyph data.");
         }
         if(e->offset + data_off + data_size > buf.size()) {
@@ -511,10 +547,18 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     if(!e) {
         return "";
     }
-    auto end_offset = e->offset + e->length;
+    if(e->offset > buf.size()) {
+        throw std::runtime_error("Offset is too large.");
+    }
+    auto end_offset = size_t((int64_t)e->offset + (int64_t)e->length);
     if(end_offset >= buf.size()) {
-        fprintf(stderr, "Directory entry points past the end of file.\n");
-        std::abort();
+        throw std::runtime_error("Directory entry points past the end of file.\n");
+    }
+    if(end_offset < 0) {
+        throw std::runtime_error("Negative offset.");
+    }
+    if(end_offset <= e->offset) {
+        throw std::runtime_error("End offset points earlier than start offset.");
     }
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
@@ -726,7 +770,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
 
 int16_t num_contours(std::string_view buf) {
     int16_t num_contours;
-    memcpy(&num_contours, buf.data(), sizeof(num_contours));
+    safe_memcpy(&num_contours, buf, 0);
     byte_swap(num_contours);
     return num_contours;
 }
@@ -761,6 +805,11 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     }
     tf.head = load_head(directory, buf);
     tf.maxp = load_maxp(directory, buf);
+#ifdef A4FUZZING
+    if(tf.maxp.num_glyphs > 1024) {
+        throw std::runtime_error("Too many glyphs for fuzzer.");
+    }
+#endif
     const auto loca = load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs);
     tf.hhea = load_hhea(directory, buf);
     tf.hmtx = load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics);
@@ -771,7 +820,7 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     tf.prep = load_raw_table(directory, buf, "prep");
     auto cmap = load_raw_table(directory, buf, "cmap");
     TTCmapHeader cmap_head;
-    memcpy(&cmap_head, cmap.data(), sizeof(TTCmapHeader));
+    safe_memcpy(&cmap_head, cmap, 0);
     cmap_head.swap_endian();
     for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
         TTEncodingRecord enc;
