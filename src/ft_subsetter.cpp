@@ -919,22 +919,23 @@ bool is_composite_glyph(std::string_view buf) { return num_contours(buf) < 0; }
 std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
     std::vector<uint32_t> subglyphs;
     assert(num_contours(buf) < 0);
-    const char *composite_data = buf.data() + 5 * sizeof(int16_t);
+    std::string_view composite_data = std::string_view(buf).substr(5 * sizeof(int16_t));
+    int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
     uint16_t component_flag;
     uint16_t glyph_index;
     do {
-        memcpy(&component_flag, composite_data, sizeof(uint16_t));
+        component_flag = extract<uint16_t>(composite_data, composite_offset);
         byte_swap(component_flag);
-        composite_data += sizeof(uint16_t);
-        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+        composite_offset += sizeof(uint16_t);
+        glyph_index = extract<uint16_t>(composite_data, composite_offset);
         byte_swap(glyph_index);
-        composite_data += sizeof(uint16_t);
+        composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
-            composite_data += 2 * sizeof(int16_t);
+            composite_offset += 2 * sizeof(int16_t);
         } else {
-            composite_data += 2 * sizeof(int8_t);
+            composite_offset += 2 * sizeof(int8_t);
         }
         subglyphs.push_back(glyph_index);
     } while(component_flag & MORE_COMPONENTS);
@@ -943,23 +944,26 @@ std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
 
 void reassign_composite_glyph_numbers(std::string &buf,
                                       const std::unordered_map<uint32_t, uint32_t> &mapping) {
-    const char *composite_data = buf.data() + 5 * sizeof(int16_t);
+    const int64_t header_size = 5 * sizeof(int16_t);
+
+    std::string_view composite_data = std::string_view(buf).substr(header_size);
+    int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
     uint16_t component_flag;
     uint16_t glyph_index;
     do {
-        memcpy(&component_flag, composite_data, sizeof(uint16_t));
+        component_flag = extract<uint16_t>(composite_data, composite_offset);
         byte_swap(component_flag);
-        composite_data += sizeof(uint16_t);
-        auto index_address = (char *)composite_data;
-        memcpy(&glyph_index, composite_data, sizeof(uint16_t));
+        composite_offset += sizeof(uint16_t);
+        const auto index_offset = composite_offset;
+        glyph_index = extract<uint16_t>(composite_data, composite_offset);
         byte_swap(glyph_index);
-        composite_data += sizeof(uint16_t);
+        composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
-            composite_data += 2 * sizeof(int16_t);
+            composite_offset += 2 * sizeof(int16_t);
         } else {
-            composite_data += 2 * sizeof(int8_t);
+            composite_offset += 2 * sizeof(int8_t);
         }
         auto it = mapping.find(glyph_index);
         if(it == mapping.end()) {
@@ -968,7 +972,7 @@ void reassign_composite_glyph_numbers(std::string &buf,
         }
         glyph_index = it->second;
         byte_swap(glyph_index);
-        memcpy(index_address, &glyph_index, sizeof(glyph_index));
+        memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);
 }
 
