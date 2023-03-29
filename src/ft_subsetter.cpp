@@ -123,9 +123,22 @@ struct TTDirEntry {
 
     void clear() { memset(this, 0, sizeof(TTDirEntry)); }
 
-    bool tag_is(const char *txt) const { return strncmp(tag, txt, 4) == 0; }
+    bool tag_is(const char *txt) const {
+        if(strlen(txt) != 4) {
+            throw std::runtime_error("Bad tag.");
+        }
+        for(int i = 0; i < 4; ++i) {
+            if(txt[i] != tag[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     void set_tag(const char *txt) {
+        if(strlen(txt) > 4) {
+            throw std::runtime_error("Bad tag.");
+        }
         memset(tag, ' ', 4);
         strncpy(tag, txt, 4);
     }
@@ -337,7 +350,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
             return &e;
         }
     }
-    return nullptr;
+    throw std::runtime_error("Missing entry.");
 }
 
 TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
@@ -345,9 +358,13 @@ TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     uint32_t version;
     memcpy(&version, buf.data() + e->offset, sizeof(uint32_t));
     byte_swap(version);
-    assert(version == 1 << 16);
+    if(version != 1 << 16) {
+        throw std::runtime_error("Unsupported TTF file format.");
+    }
     TTMaxp10 maxp;
-    assert(e->length >= sizeof(maxp));
+    if(e->length < sizeof(maxp)) {
+        throw std::runtime_error("Malformed maxp buffer.");
+    }
     memcpy(&maxp, buf.data() + e->offset, sizeof(maxp));
     maxp.swap_endian();
     return maxp;
@@ -359,7 +376,9 @@ TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     TTHead head;
     memcpy(&head, buf.data() + e->offset, sizeof(head));
     head.swap_endian();
+#ifndef A4FUZZING
     assert(head.magic == 0x5f0f3cf5);
+#endif
     return head;
 }
 
@@ -377,14 +396,18 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
             byte_swap(offset);
             offsets.push_back(offset * 2);
         }
-    } else {
-        assert(index_to_loc_format == 1);
+    } else if(index_to_loc_format == 1) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             int32_t offset;
             memcpy(&offset, buf.data() + loca->offset + i * sizeof(int32_t), sizeof(int32_t));
             byte_swap(offset);
+            if(offset < 0) {
+                throw std::runtime_error("Bad offset data.");
+            }
             offsets.push_back(offset);
         }
+    } else {
+        throw std::runtime_error("Bad loca format.");
     }
     return offsets;
 }
@@ -396,8 +419,12 @@ TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     assert(sizeof(TTHhea) == e->length);
     memcpy(&hhea, buf.data() + e->offset, sizeof(hhea));
     hhea.swap_endian();
-    assert(hhea.version == 1 << 16);
-    assert(hhea.metric_data_format == 0);
+    if(hhea.version != 1 << 16) {
+        throw std::runtime_error("Unsupported hhea version.");
+    }
+    if(hhea.metric_data_format != 0) {
+        throw std::runtime_error("Unsupported metric data format.");
+    }
     return hhea;
 }
 
@@ -416,10 +443,12 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
     }
     for(int i = 0; i < num_glyphs - num_hmetrics; ++i) {
         int16_t lsb;
-        memcpy(&lsb,
-               buf.data() + e->offset + num_hmetrics * sizeof(TTLongHorMetric) +
-                   i * sizeof(int16_t),
-               sizeof(int16_t));
+        const auto data_offset =
+            e->offset + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t);
+        if(data_offset < 0 || data_offset + sizeof(int16_t) > buf.size()) {
+            throw std::runtime_error("Malformet hmtx data.");
+        }
+        memcpy(&lsb, buf.data() + data_offset, sizeof(int16_t));
         byte_swap(lsb);
         hmtx.left_side_bearings.push_back(lsb);
     }
@@ -435,7 +464,15 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
     assert(e);
     const char *glyf_start = buf.data() + e->offset;
     for(uint16_t i = 0; i < num_glyphs; ++i) {
-        glyph_data.emplace_back(std::string(glyf_start + loca.at(i), loca.at(i + 1) - loca.at(i)));
+        const auto data_off = loca.at(i);
+        const auto data_size = loca.at(i + 1) - loca.at(i);
+        if(data_size <= 0) {
+            throw std::runtime_error("Malformed glyph data.");
+        }
+        if(e->offset + data_off + data_size > buf.size()) {
+            throw std::runtime_error("Malformed glyph data.");
+        }
+        glyph_data.emplace_back(std::string(glyf_start + data_off, data_size));
         // Eventually unpack to normal glyph or composite.
         /*
         int16_t num_contours;
@@ -699,18 +736,27 @@ int16_t num_contours(std::string_view buf) {
 TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     TrueTypeFontFile tf;
     TTOffsetTable off;
+    if(buf.size() < sizeof(off)) {
+        throw std::runtime_error("File too small to be a TTF font file.");
+    }
     memcpy(&off, buf.data(), sizeof(off));
     off.swap_endian();
     std::vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
         TTDirEntry e;
+        const auto fileoffset = sizeof(off) + i * sizeof(e);
+        if(fileoffset + (i + 1) * sizeof(e) > buf.size()) {
+            throw std::runtime_error("TTF header is malformed.");
+        }
         memcpy(&e, buf.data() + sizeof(off) + i * sizeof(e), sizeof(e));
         e.swap_endian();
         if(e.offset + e.length > buf.length()) {
             throw std::runtime_error("TTF directory entry points outside of file.");
         }
-        auto checksum = ttf_checksum(buf.substr(e.offset, e.length));
+#ifndef A4FUZZING
+        auto checksum = ttf_checksum(std::string_view(buf.data() + e.offset, e.length));
         (void)checksum;
+#endif
         directory.emplace_back(std::move(e));
     }
     tf.head = load_head(directory, buf);
@@ -734,15 +780,22 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
                sizeof(TTEncodingRecord));
         enc.swap_endian();
         uint16_t subtable_format;
+        if(enc.subtable_offset + sizeof(subtable_format) > cmap.size()) {
+            throw std::runtime_error("Malformed cmap data.");
+        }
         memcpy(&subtable_format, cmap.data() + enc.subtable_offset, sizeof(subtable_format));
         byte_swap(subtable_format);
-        assert(subtable_format < 15);
+        if(subtable_format >= 15) {
+            throw std::runtime_error("Bad subtable format.");
+        }
+#ifndef A4FUZZING
         if(subtable_format == 0) {
             TTEncodingSubtable0 enctable;
             memcpy(&enctable, cmap.data() + enc.subtable_offset, sizeof(TTEncodingSubtable0));
             enctable.swap_endian();
             assert(enctable.format == 0);
         }
+#endif
     }
     /*
     for(const auto &e : directory) {
