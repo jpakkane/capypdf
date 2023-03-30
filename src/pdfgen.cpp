@@ -19,6 +19,7 @@
 #include <cerrno>
 #include <cassert>
 #include <lcms2.h>
+#include <iconv.h>
 #include <stdexcept>
 #include <array>
 #include <fmt/core.h>
@@ -163,6 +164,62 @@ PdfDrawContext *PdfGen::new_page_draw_context() {
 ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
     return ColorPatternBuilder{
         PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Color_Tiling_Pattern_Context}, w, h};
+}
+
+double PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
+    double w = 0;
+    errno = 0;
+    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
+    if(errno != 0) {
+        throw std::runtime_error(strerror(errno));
+    }
+    std::unique_ptr<void, int (*)(void *)> iconvcloser(to_codepoint, iconv_close);
+    FT_Face face = pdoc.fonts.at(pdoc.font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
+    if(!face) {
+        throw std::runtime_error(
+            "Tried to use builtin font to render UTF-8. They only support ASCII.");
+    }
+
+    uint32_t previous_codepoint = -1;
+    auto in_ptr = (char *)utf8_text;
+    const auto text_length = strlen(utf8_text);
+    auto in_bytes = text_length;
+    // Freetype does not support GPOS kerning because it is context-sensitive.
+    // So this method might produce incorrect kerning. Users that need precision
+    // need to use the glyph based rendering method.
+    const bool has_kerning = FT_HAS_KERNING(face);
+    if(has_kerning) {
+        printf("HAS KERNING\n");
+    }
+    while(in_bytes > 0) {
+        uint32_t codepoint{0};
+        auto out_ptr = (char *)&codepoint;
+        auto out_bytes = sizeof(codepoint);
+        errno = 0;
+        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
+        if(iconv_result == (size_t)-1 && errno != E2BIG) {
+            throw std::runtime_error(strerror(errno));
+        }
+        if(has_kerning && previous_codepoint != (uint32_t)-1) {
+            FT_Vector kerning;
+            const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
+            const auto index_right = FT_Get_Char_Index(face, codepoint);
+            auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
+            if(ec != 0) {
+                throw std::runtime_error("Getting kerning data failed.");
+            }
+            if(kerning.x != 0) {
+                // None of the fonts I tested had kerning that Freetype recognized,
+                // so don't know if this actually works.
+                w += int(kerning.x) / face->units_per_EM;
+            }
+        }
+        auto bob = glyph_advance(fid, pointsize, codepoint);
+        assert(bob);
+        w += *bob;
+        previous_codepoint = codepoint;
+    }
+    return w;
 }
 
 } // namespace A4PDF

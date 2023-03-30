@@ -20,6 +20,35 @@
 
 using namespace A4PDF;
 
+void center_test() {
+    const char *text = "Centered text!";
+    const double pt = 12;
+    PdfGenerationData opts;
+    opts.output_colorspace = A4PDF_DEVICE_GRAY;
+    opts.mediabox.w = 200;
+    opts.mediabox.h = 200;
+    GenPopper genpop("centering.pdf", opts);
+    PdfGen &gen = genpop.g;
+    auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
+    auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
+    auto f3 = gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf");
+    auto ctxpop = gen.guarded_page_context();
+    auto &ctx = ctxpop.ctx;
+    ctx.cmd_w(1.0);
+    ctx.cmd_m(100, 0);
+    ctx.cmd_l(100, 200);
+    ctx.cmd_S();
+
+    auto w = gen.utf8_text_width(text, f1, pt);
+    ctx.render_utf8_text(text, f1, pt, 100 - w / 2, 120);
+
+    w = gen.utf8_text_width(text, f2, pt);
+    ctx.render_utf8_text(text, f2, pt, 100 - w / 2, 100);
+
+    w = gen.utf8_text_width(text, f3, pt);
+    ctx.render_utf8_text(text, f3, pt, 100 - w / 2, 80);
+}
+
 int main(int argc, char **argv) {
     PdfGenerationData opts;
     opts.output_colorspace = A4PDF_DEVICE_GRAY;
@@ -35,7 +64,9 @@ int main(int argc, char **argv) {
     } else {
         italicfont = "/usr/share/fonts/truetype/noto/NotoSans-Italic.ttf";
     }
-
+    if(false) {
+        center_test();
+    }
     /*
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 200;

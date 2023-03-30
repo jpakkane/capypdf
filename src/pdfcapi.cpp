@@ -150,6 +150,18 @@ A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     return rc;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_generator_utf8_text_width(A4PDF_Generator *generator,
+                                                      const char *utf8_text,
+                                                      A4PDF_FontId font,
+                                                      double pointsize,
+                                                      double *width) A4PDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    *width = g->utf8_text_width(utf8_text, font, pointsize);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+// Draw Context
+
 A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
                                      A4PDF_DrawContext **out_ptr) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);

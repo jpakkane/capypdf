@@ -65,8 +65,9 @@ cfunc_types = (
 ('a4pdf_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('a4pdf_generator_write', [ctypes.c_void_p]),
 ('a4pdf_generator_destroy', [ctypes.c_void_p]),
-('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
+('a4pdf_generator_utf8_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
+('a4pdf_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_cmd_B', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_Bstar', [ctypes.c_void_p]),
 ('a4pdf_dc_cmd_c', [ctypes.c_void_p,
@@ -344,6 +345,16 @@ class Generator:
 
     def write(self):
         check_error(libfile.a4pdf_generator_write(self))
+
+    def text_width(self, text, font, pointsize):
+        if not isinstance(text, str):
+            raise RuntimeError('Text must be a Unicode string.')
+        if not isinstance(font, FontId):
+            raise A4PDFException('Argument not a colorspace object.')
+        w = ctypes.c_double()
+        bytes = text.encode('UTF-8')
+        check_error(libfile.a4pdf_generator_utf8_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
+        return w.value
 
 class Text:
     def __init__(self):

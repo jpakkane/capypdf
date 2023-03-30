@@ -94,6 +94,8 @@ public:
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
+    double utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
+
 private:
     std::filesystem::path ofilename;
     FT_Library ft;

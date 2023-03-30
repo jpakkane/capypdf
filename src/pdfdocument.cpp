@@ -1072,10 +1072,7 @@ std::optional<double>
 PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const {
     FT_Face face = fonts.at(fid.id).fontdata.face.get();
     FT_Set_Char_Size(face, 0, pointsize * 64, 300, 300);
-    if(FT_Load_Char(face,
-                    codepoint,
-                    FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH) !=
-       0) {
+    if(FT_Load_Char(face, codepoint, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP) != 0) {
         return {};
     }
     const auto font_unit_advance = face->glyph->metrics.horiAdvance;
