@@ -120,6 +120,8 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_destroy(A4PDF_Options *) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt,
                                               const char *utf8_title) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_author(A4PDF_Options *opt,
+                                               const char *utf8_author) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
     A4PDF_Options *opt, double x, double y, double w, double h) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_colorspace(A4PDF_Options *opt,

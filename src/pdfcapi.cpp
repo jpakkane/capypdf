@@ -42,6 +42,12 @@ A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) A4P
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_author(A4PDF_Options *opt,
+                                               const char *utf8_author) A4PDF_NOEXCEPT {
+    reinterpret_cast<PdfGenerationData *>(opt)->author = utf8_author;
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
     A4PDF_Options *opt, double x, double y, double w, double h) A4PDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);

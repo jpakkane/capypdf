@@ -55,6 +55,7 @@ cfunc_types = (
 ('a4pdf_options_destroy', [ctypes.c_void_p]),
 ('a4pdf_options_set_colorspace', [ctypes.c_void_p, enum_type]),
 ('a4pdf_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
+('a4pdf_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
 ('a4pdf_options_set_mediabox',
     [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
@@ -159,6 +160,12 @@ class Options:
             raise A4PDFException('Title must be an Unicode string.')
         bytes = title.encode('UTF-8')
         check_error(libfile.a4pdf_options_set_title(self, bytes))
+
+    def set_author(self, title):
+        if not isinstance(title, str):
+            raise A4PDFException('Author must be an Unicode string.')
+        bytes = title.encode('UTF-8')
+        check_error(libfile.a4pdf_options_set_author(self, bytes))
 
     def set_mediabox(self, x, y, w, h):
         check_error(libfile.a4pdf_options_set_mediabox(self, x, y, w, h))
