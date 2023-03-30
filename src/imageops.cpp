@@ -327,7 +327,7 @@ RasterImage load_tif_file(const char *fname) {
     // Maybe fail for this?
 
     if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
-        // FIXME, add icc profile.
+        image.icc = std::string{(const char *)icc_data, icc_count};
     }
 
     image.w = w;

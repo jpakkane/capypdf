@@ -843,7 +843,7 @@ A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
         fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
     } else if(std::holds_alternative<int32_t>(colorspace)) {
         const auto icc_obj = std::get<int32_t>(colorspace);
-        fmt::format_to(app, "  /ColorSpace {} 0 R", icc_obj);
+        fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
     } else {
         fprintf(stderr, "Unknown colorspace.");
         std::abort();
