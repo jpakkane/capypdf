@@ -72,6 +72,11 @@ struct FullPDFObject {
     std::string stream;
 };
 
+struct DeflatePDFObject {
+    std::string unclosed_dictionary;
+    std::string stream;
+};
+
 struct DelayedSubsetFontData {
     A4PDF_FontId fid;
     int32_t subset_id;
@@ -145,6 +150,7 @@ struct ColorPatternBuilder;
 
 typedef std::variant<DummyIndexZero,
                      FullPDFObject,
+                     DeflatePDFObject,
                      DelayedSubsetFontData,
                      DelayedSubsetFontDescriptor,
                      DelayedSubsetCMap,
@@ -207,7 +213,8 @@ private:
     int32_t font_object_number(A4PDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
-    int32_t store_icc_profile(std::string_view contents, int32_t num_channels);
+    std::optional<A4PDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
+    A4PDF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
 
     std::vector<uint64_t> write_objects();
 

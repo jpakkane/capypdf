@@ -201,9 +201,15 @@ PdfDocument::PdfDocument(const PdfGenerationData &d)
     if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
-    rgb_profile_obj = store_icc_profile(cm.get_rgb(), 3);
-    gray_profile_obj = store_icc_profile(cm.get_gray(), 1);
-    cmyk_profile_obj = store_icc_profile(cm.get_cmyk(), 4);
+    rgb_profile_obj = cm.get_rgb().empty()
+                          ? -1
+                          : icc_profiles.at(store_icc_profile(cm.get_rgb(), 3).id).object_num;
+    gray_profile_obj = cm.get_gray().empty()
+                           ? -1
+                           : icc_profiles.at(store_icc_profile(cm.get_gray(), 1).id).object_num;
+    cmyk_profile_obj = cm.get_cmyk().empty()
+                           ? -1
+                           : icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
 }
 
 void PdfDocument::add_page(std::string_view resource_data, std::string_view page_data) {
@@ -277,10 +283,12 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
 
 A4PDF_IccColorSpaceId PdfDocument::load_icc_file(const char *fname) {
     auto contents = load_file(fname);
+    const auto iccid = find_icc_profile(contents);
+    if(iccid) {
+        return *iccid;
+    }
     const auto num_channels = cm.get_num_channels(contents);
-    const auto obj_id = store_icc_profile(contents, num_channels);
-    icc_profiles.emplace_back(IccInfo{obj_id, num_channels});
-    return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
+    return store_icc_profile(contents, num_channels);
 }
 
 void PdfDocument::pad_subset_fonts() {
@@ -534,6 +542,13 @@ std::vector<uint64_t> PdfDocument::write_objects() {
         } else if(std::holds_alternative<FullPDFObject>(obj)) {
             const auto &pobj = std::get<FullPDFObject>(obj);
             write_finished_object(i, pobj.dictionary, pobj.stream);
+        } else if(std::holds_alternative<DeflatePDFObject>(obj)) {
+            const auto &pobj = std::get<DeflatePDFObject>(obj);
+            auto compressed = flate_compress(pobj.stream);
+            std::string dict = fmt::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
+                                           pobj.unclosed_dictionary,
+                                           compressed.size());
+            write_finished_object(i, dict, compressed);
         } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
             write_subset_font_data(i, ssfont);
@@ -709,23 +724,35 @@ void PdfDocument::write_finished_object(int32_t object_number,
     write_bytes(buf);
 }
 
-int32_t PdfDocument::store_icc_profile(std::string_view contents, int32_t num_channels) {
-    if(contents.empty()) {
-        return -1;
+std::optional<A4PDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
+    for(size_t i = 0; i < icc_profiles.size(); ++i) {
+        const auto &obj = document_objects.at(icc_profiles.at(i).object_num);
+        assert(std::holds_alternative<DeflatePDFObject>(obj));
+        const auto &iccobj = std::get<DeflatePDFObject>(obj);
+        if(iccobj.stream == contents) {
+            return A4PDF_IccColorSpaceId{(int32_t)i};
+        }
     }
-    std::string compressed = flate_compress(contents);
+    return {};
+}
+
+A4PDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
+                                                     int32_t num_channels) {
+    auto existing = find_icc_profile(contents);
+    assert(!existing);
+    if(contents.empty()) {
+        return A4PDF_IccColorSpaceId{-1};
+    }
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
-  /Filter /FlateDecode
-  /Length {}
   /N {}
->>
 )",
-                   compressed.size(),
                    num_channels);
-    auto data_obj_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
-    return add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", data_obj_id), ""});
+    auto data_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
+    auto obj_id = add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", data_obj_id), ""});
+    icc_profiles.emplace_back(IccInfo{obj_id, num_channels});
+    return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 
 void PdfDocument::write_bytes(const char *buf, size_t buf_size) {
@@ -914,9 +941,13 @@ A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
     std::optional<int32_t> smask_id;
     ColorspaceType cs;
     if(image.icc) {
-        // FIXME: check for duplicates.
-        auto icc_obj = store_icc_profile(*image.icc, 4);
-        cs = icc_obj;
+        auto oldicc = find_icc_profile(*image.icc);
+        if(oldicc) {
+            cs = icc_profiles.at(oldicc->id).object_num;
+        } else {
+            auto icc_obj = store_icc_profile(*image.icc, 4);
+            cs = icc_profiles.at(icc_obj.id).object_num;
+        }
     } else {
         cs = A4PDF_DEVICE_CMYK;
     }
