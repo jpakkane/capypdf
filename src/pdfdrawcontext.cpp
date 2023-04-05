@@ -47,26 +47,51 @@ namespace A4PDF {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfDrawContext::PdfDrawContext(PdfDocument *doc,
-                               PdfColorConverter *cm,
-                               A4PDF_Draw_Context_Type dtype)
-    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands) {}
+PdfDrawContext::PdfDrawContext(
+    PdfDocument *doc, PdfColorConverter *cm, A4PDF_Draw_Context_Type dtype, double w, double h)
+    : doc(doc), cm(cm), context_type{dtype},
+      cmd_appender(commands), form_xobj_w{w}, form_xobj_h{h} {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
-SerializedContext PdfDrawContext::serialize() {
-    SerializedContext sc;
+void PdfDrawContext::set_form_xobject_size(double w, double h) {
+    assert(context_type == A4PDF_Form_XObject_Context);
+    form_xobj_w = w;
+    form_xobj_h = h;
+}
+
+DCSerialization PdfDrawContext::serialize() {
+    SerializedBasicContext sc;
     sc.dict = build_resource_dict();
-    sc.commands = fmt::format(
-        R"(<<
+    if(context_type == A4PDF_Form_XObject_Context) {
+        std::string dict = fmt::format(
+            R"(<<
+  /Type /XObject
+  /Subtype /Form
+  /BBox [ {} {} {} {} ]
+  /Resources {}
+  /Length {}
+>>
+)",
+            0,
+            0,
+            form_xobj_w,
+            form_xobj_h,
+            sc.dict,
+            commands.size());
+        return SerializedXObject{std::move(dict), commands};
+    } else {
+        sc.commands = fmt::format(
+            R"(<<
   /Length {}
 >>
 stream
 {}
 endstream
 )",
-        commands.size(),
-        commands);
+            commands.size(),
+            commands);
+    }
     return sc;
 }
 
@@ -87,12 +112,18 @@ std::string PdfDrawContext::build_resource_dict() {
     std::string resources;
     auto resource_appender = std::back_inserter(resources);
     resources = "<<\n";
-    if(!used_images.empty()) {
+    if(!used_images.empty() || !used_form_xobjects.empty()) {
         resources += "  /XObject <<\n";
-        for(const auto &i : used_images) {
-            fmt::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
+        if(!used_images.empty()) {
+            for(const auto &i : used_images) {
+                fmt::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
+            }
         }
-
+        if(!used_form_xobjects.empty()) {
+            for(const auto &fx : used_form_xobjects) {
+                fmt::format_to(resource_appender, "    /FXO{} {} 0 R\n", fx, fx);
+            }
+        }
         resources += "  >>\n";
     }
     if(!used_fonts.empty() || !used_subset_fonts.empty()) {
@@ -205,6 +236,16 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
         fmt::format_to(cmd_appender, "{} ", dash_array[i]);
     }
     fmt::format_to(cmd_appender, " ] {} d\n", phase);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_Do(A4PDF_FormXObjectId fxoid) {
+    if(context_type != A4PDF_Page_Context) {
+        return ErrorCode::InvalidDrawContextType;
+    }
+    CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
+    fmt::format_to(cmd_appender, "/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);
+    used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
     return ErrorCode::NoError;
 }
 

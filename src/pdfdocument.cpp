@@ -212,10 +212,16 @@ PdfDocument::PdfDocument(const PdfGenerationData &d)
                            : icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
 }
 
-void PdfDocument::add_page(std::string_view resource_data, std::string_view page_data) {
-    const auto resource_num = add_object(FullPDFObject{std::string{resource_data}, ""});
-    const auto page_num = add_object(FullPDFObject{std::string{page_data}, ""});
+void PdfDocument::add_page(std::string resource_data, std::string page_data) {
+    const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
+    const auto page_num = add_object(FullPDFObject{std::move(page_data), ""});
     pages.emplace_back(PageOffsets{resource_num, page_num});
+}
+
+void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
+    const auto xobj_num = add_object(FullPDFObject{std::move(xobj_dict), std::move(xobj_stream)});
+
+    form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
 }
 
 int32_t PdfDocument::add_object(ObjectType object) {

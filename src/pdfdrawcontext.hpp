@@ -50,10 +50,17 @@ struct GstatePopper {
     ~GstatePopper();
 };
 
-struct SerializedContext {
+struct SerializedBasicContext {
     std::string dict;
     std::string commands;
 };
+
+struct SerializedXObject {
+    std::string dict;
+    std::string stream;
+};
+
+typedef std::variant<SerializedBasicContext, SerializedXObject> DCSerialization;
 
 struct PdfGlyph {
     uint32_t codepoint;
@@ -63,9 +70,13 @@ struct PdfGlyph {
 class PdfDrawContext {
 
 public:
-    PdfDrawContext(PdfDocument *g, PdfColorConverter *cm, A4PDF_Draw_Context_Type dtype);
+    PdfDrawContext(PdfDocument *g,
+                   PdfColorConverter *cm,
+                   A4PDF_Draw_Context_Type dtype,
+                   double w = -1,
+                   double h = -1);
     ~PdfDrawContext();
-    SerializedContext serialize();
+    DCSerialization serialize();
 
     PdfDrawContext() = delete;
     PdfDrawContext(const PdfDrawContext &) = delete;
@@ -84,6 +95,7 @@ public:
     ErrorCode cmd_CS(std::string_view cspace_name);
     ErrorCode cmd_cs(std::string_view cspace_name);
     ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
+    ErrorCode cmd_Do(A4PDF_FormXObjectId fxoid);
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
     ErrorCode cmd_fstar();
@@ -158,6 +170,10 @@ public:
     std::string build_resource_dict();
     std::string_view get_command_stream() { return commands; }
 
+    void set_form_xobject_size(double w, double h);
+    double get_form_xobj_w() const { return form_xobj_w; }
+    double get_form_xobj_h() const { return form_xobj_h; }
+
 private:
     void serialize_charsequence(const std::vector<CharItem> &charseq,
                                 std::string &serialisation,
@@ -180,8 +196,11 @@ private:
     std::unordered_set<int32_t> used_gstates;
     std::unordered_set<int32_t> used_shadings;
     std::unordered_set<int32_t> used_patterns;
+    std::unordered_set<int32_t> used_form_xobjects;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
+    double form_xobj_w = -1;
+    double form_xobj_h = -1;
 };
 
 struct ColorPatternBuilder {

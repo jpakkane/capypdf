@@ -37,6 +37,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Required argument is NULL.",
 "Invalid UTF-8 string.",
 "Incorrect amoung of color channels for this colorspace.",
+"Invalid draw context type for this operation.",
 };
 
 // clang-format on

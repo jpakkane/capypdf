@@ -93,6 +93,7 @@ enum A4PDF_Draw_Context_Type {
     A4PDF_Page_Context,
     A4PDF_Color_Tiling_Pattern_Context,
     A4PDF_Uncolored_Tiling_Pattern_Context,
+    A4PDF_Form_XObject_Context,
 };
 
 typedef struct _A4PDF_Options A4PDF_Options;
@@ -113,6 +114,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } A4PDF_IccColorSpaceId;
+
+typedef struct {
+    int32_t id;
+} A4PDF_FormXObjectId;
 
 // Options
 

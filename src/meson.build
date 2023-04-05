@@ -66,6 +66,10 @@ executable('icctest', 'icctest.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('formxobj', 'formxobj.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 executable('loremipsum', 'loremipsum.cpp',
   dependencies: [a4pdf_dep]
 )

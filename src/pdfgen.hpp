@@ -77,9 +77,14 @@ public:
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
+    PdfDrawContext new_form_xobject(double w, double h) {
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, A4PDF_Form_XObject_Context, w, h);
+    }
+
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
     PageId add_page(PdfDrawContext &ctx);
+    ErrorCode add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxoid);
     PatternId add_pattern(ColorPatternBuilder &cp);
 
     OutlineId

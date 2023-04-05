@@ -58,6 +58,10 @@ struct ImageInfo {
     int32_t obj;
 };
 
+struct FormXObjectInfo {
+    int32_t xobj_num;
+};
+
 struct FontInfo {
     int32_t font_file_obj;
     int32_t font_descriptor_obj;
@@ -169,7 +173,10 @@ public:
     void write_to_file(FILE *output_file);
 
     // Pages
-    void add_page(std::string_view resource_data, std::string_view page_data);
+    void add_page(std::string resource_data, std::string page_data);
+
+    // Form XObjects
+    void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
@@ -275,6 +282,7 @@ private:
     std::vector<FontThingy> fonts;
     std::vector<Outline> outlines;
     std::vector<IccInfo> icc_profiles;
+    std::vector<FormXObjectInfo> form_xobjects;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
     FILE *ofile = nullptr;
 };
