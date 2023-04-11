@@ -96,7 +96,8 @@ std::expected<std::string, ErrorCode> utf8_to_pdfmetastr(std::string_view input)
     errno = 0;
     auto cd = iconv_open("UTF-16BE", "UTF-8"); // PDF 1.7 spec 7.9.2.2
     if(errno != 0) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return std::unexpected(ErrorCode::IconvError);
     }
     auto in_ptr = (char *)input.data();
     auto out_ptr = (char *)u16buf.data();
@@ -134,12 +135,15 @@ std::string current_date_string() {
         timepoint = strtol(getenv("SOURCE_DATE_EPOCH"), nullptr, 10);
     } else {
         if(clock_gettime(CLOCK_REALTIME, &tp) != 0) {
-            throw std::runtime_error(strerror(errno));
+            // This is so rare we're just going to ignore it.
+            perror(nullptr);
+            std::abort();
         }
         timepoint = tp.tv_sec;
     }
     if(gmtime_r(&timepoint, &utctime) == nullptr) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        std::abort();
     }
     strftime(buf, bufsize, "(D:%Y%m%d%H%M%SZ)", &utctime);
     return std::string(buf);

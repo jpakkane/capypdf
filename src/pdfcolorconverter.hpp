@@ -60,7 +60,7 @@ public:
     DeviceCMYKColor to_cmyk(const DeviceRGBColor &rgb);
 
     std::string rgb_pixels_to_gray(std::string_view rgb_data);
-    std::string rgb_pixels_to_cmyk(std::string_view rgb_data);
+    std::expected<std::string, ErrorCode> rgb_pixels_to_cmyk(std::string_view rgb_data);
 
     const std::string &get_rgb() const { return rgb_profile_data; }
     const std::string &get_gray() const { return gray_profile_data; }

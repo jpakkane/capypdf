@@ -47,6 +47,7 @@ enum class ErrorCode : int32_t {
     PatternNotAccepted,
     IconvError,
     BuiltinFontNotSupported,
+    NoCmykProfile,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

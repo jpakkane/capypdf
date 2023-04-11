@@ -46,6 +46,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Pattern can not be used in this operation.",
 "Iconv error.",
 "Builtin fonts can not be used in this operation.",
+"Output CMYK profile not defined.',"
 };
 
 // clang-format on

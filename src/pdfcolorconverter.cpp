@@ -144,9 +144,10 @@ std::string PdfColorConverter::rgb_pixels_to_gray(std::string_view rgb_data) {
     return converted_pixels;
 }
 
-std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
+std::expected<std::string, ErrorCode>
+PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     if(!cmyk_profile.h) {
-        throw std::runtime_error("Tried to convert to CMYK without a CMYK profile.");
+        return std::unexpected(ErrorCode::NoCmykProfile);
     }
     assert(rgb_data.size() % 3 == 0);
     const int32_t num_pixels = (int32_t)rgb_data.size() / 3;

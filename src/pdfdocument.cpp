@@ -425,6 +425,7 @@ PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
                    pages_obj_num,
                    outline);
     add_object(FullPDFObject{buf, ""});
+    return NoReturnValue{};
 }
 
 std::expected<int32_t, ErrorCode>
@@ -935,11 +936,11 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_rgb_image(const rgb
         if(cmyk_profile_obj == -1) {
             throw std::runtime_error("Tried to convert image to CMYK without a CMYK profile.");
         }
-        std::string converted_pixels = cm.rgb_pixels_to_cmyk(image.pixels);
+        ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
         return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, converted_pixels);
     }
     default:
-        throw std::runtime_error("Not implemented.");
+        return std::unexpected(ErrorCode::Unreachable);
     }
 }
 
