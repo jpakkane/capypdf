@@ -16,6 +16,7 @@
 
 #include <pdfdocument.hpp>
 #include <utils.hpp>
+#include <pdfmacros.hpp>
 #include <pdfdrawcontext.hpp>
 
 #include <cassert>
@@ -833,8 +834,8 @@ SubsetGlyph PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph) {
     return fss;
 }
 
-A4PDF_ImageId PdfDocument::load_image(const char *fname) {
-    auto image = load_image_file(fname);
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::load_image(const char *fname) {
+    ERC(image, load_image_file(fname));
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));
     } else if(std::holds_alternative<gray_image>(image)) {

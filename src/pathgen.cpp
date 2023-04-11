@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
         auto &ctx = ctxp.ctx;
         basic_painting(ctx);
         gen.add_page(ctx);
-        auto bg_img = gen.load_image(image);
+        auto bg_img = gen.load_image(image).value();
         clipping(ctx, bg_img);
     }
     return 0;

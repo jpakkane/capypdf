@@ -118,15 +118,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,
                                                  const char *fname,
                                                  A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    try {
-        *iid = gen->load_image(fname);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        return (A4PDF_EC)ErrorCode::DynamicError;
-    } catch(...) {
-        return (A4PDF_EC)ErrorCode::DynamicError;
+    auto load_result = gen->load_image(fname);
+    if(load_result) {
+        *iid = load_result.value();
+        return (A4PDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (A4PDF_EC)load_result.error();
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,

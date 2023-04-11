@@ -137,7 +137,7 @@ int main(int, char **) {
     try {
         GenPopper genpop("cover.pdf", opts);
         PdfGen &gen = genpop.g;
-        auto image_id = gen.load_image("gradient.png");
+        auto image_id = gen.load_image("gradient.png").value();
         auto sep_id = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
         {
             auto ctxguard = gen.guarded_page_context();
@@ -165,21 +165,21 @@ int main(int, char **) {
             }
             ctx.set_separation_nonstroke_color(sep_id, 1.0);
             ctx.render_pdfdoc_text_builtin("Front Cover",
-                                          A4PDF_FONT_HELVETICA_BOLD,
-                                          48,
-                                          paper_width / 2 + page_w / 5,
-                                          2 * paper_height / 3);
+                                           A4PDF_FONT_HELVETICA_BOLD,
+                                           48,
+                                           paper_width / 2 + page_w / 5,
+                                           2 * paper_height / 3);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
             ctx.render_pdfdoc_text_builtin("Lorem ipsum dolor sit amet,",
-                                          A4PDF_FONT_TIMES_ROMAN,
-                                          12,
-                                          margin + page_w / 6,
-                                          2 * paper_height / 3);
+                                           A4PDF_FONT_TIMES_ROMAN,
+                                           12,
+                                           margin + page_w / 6,
+                                           2 * paper_height / 3);
             ctx.render_pdfdoc_text_builtin("consectetur adipiscing elit",
-                                          A4PDF_FONT_TIMES_ROMAN,
-                                          12,
-                                          margin + page_w / 6,
-                                          2 * paper_height / 3 - 12);
+                                           A4PDF_FONT_TIMES_ROMAN,
+                                           12,
+                                           margin + page_w / 6,
+                                           2 * paper_height / 3 - 12);
             {
                 auto pop = ctx.push_gstate();
                 ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
@@ -191,10 +191,10 @@ int main(int, char **) {
             }
             ctx.set_nonstroke_color(DeviceGrayColor{0});
             ctx.render_pdfdoc_text_builtin("PDF created: YYYY-MM-DD HH:MM",
-                                          A4PDF_FONT_TIMES_ROMAN,
-                                          10,
-                                          paper_width / 2 + page_w / 5,
-                                          10);
+                                           A4PDF_FONT_TIMES_ROMAN,
+                                           10,
+                                           paper_width / 2 + page_w / 5,
+                                           10);
             draw_colorbar(ctx);
             draw_graybar(ctx);
             ctx.set_all_stroke_color();

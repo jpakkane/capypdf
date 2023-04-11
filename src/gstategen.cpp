@@ -54,8 +54,8 @@ int main(int argc, char **argv) {
     GraphicsState gs;
     gs.blend_mode = A4PDF_BM_MULTIPLY;
     gs.intent = A4PDF_RI_PERCEPTUAL;
-    auto bg_img = gen.load_image(argv[1]);
-    auto fg_img = gen.load_image(argv[2]);
+    auto bg_img = gen.load_image(argv[1]).value();
+    auto fg_img = gen.load_image(argv[2]).value();
     ctx.cmd_q();
     ctx.scale(opts.mediabox.w, opts.mediabox.h);
     ctx.draw_image(bg_img);

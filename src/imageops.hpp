@@ -16,10 +16,12 @@
 
 #pragma once
 
+#include <errors.hpp>
 #include <cstdint>
 #include <string>
 #include <optional>
 #include <variant>
+#include <expected>
 
 namespace A4PDF {
 
@@ -60,7 +62,7 @@ struct cmyk_image {
 
 typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
 
-RasterImage load_image_file(const char *fname);
+std::expected<RasterImage, ErrorCode> load_image_file(const char *fname);
 
 jpg_image load_jpg(const char *fname);
 

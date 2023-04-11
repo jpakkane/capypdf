@@ -22,6 +22,7 @@
 #include <imageops.hpp>
 
 #include <vector>
+#include <expected>
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -190,7 +191,7 @@ public:
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
-    A4PDF_ImageId load_image(const char *fname);
+    std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname);
     A4PDF_ImageId embed_jpg(const char *fname);
 
     // Graphics states

@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.1, 0.2});
             ctx.cmd_f();
             if(argc > 1) {
-                auto image_id = gen.load_image(argv[1]);
+                auto image_id = gen.load_image(argv[1]).value();
                 auto image_size = gen.get_image_info(image_id);
                 auto pop = ctx.push_gstate();
                 ctx.cmd_cm(image_size.w / 5, 0, 0, image_size.h / 5, 110, 310);

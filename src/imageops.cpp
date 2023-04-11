@@ -369,7 +369,7 @@ jpg_image load_jpg(const char *fname) {
     return im;
 }
 
-RasterImage load_image_file(const char *fname) {
+std::expected<RasterImage, ErrorCode> load_image_file(const char *fname) {
     auto extension = std::filesystem::path(fname).extension();
     if(extension == ".png" || extension == ".PNG") {
         return load_png_file(fname);

@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto bg_img = gen.embed_jpg(jpg.c_str());
-        auto mono_img = gen.load_image(png_1bit_alpha.c_str());
-        auto gray_img = gen.load_image(png_gray.c_str());
-        auto cmyk_img = gen.load_image(cmyk_tif.c_str());
+        auto mono_img = gen.load_image(png_1bit_alpha.c_str()).value();
+        auto gray_img = gen.load_image(png_gray.c_str()).value();
+        auto cmyk_img = gen.load_image(cmyk_tif.c_str()).value();
         ctx.cmd_re(0, 0, 200, 200);
         ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
         ctx.cmd_f();

@@ -54,7 +54,9 @@ public:
     ErrorCode write();
     void new_page();
 
-    A4PDF_ImageId load_image(const char *fname) { return pdoc.load_image(fname); }
+    std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname) {
+        return pdoc.load_image(fname);
+    }
     A4PDF_ImageId embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
     A4PDF_FontId load_font(const char *fname) { return pdoc.load_font(ft, fname); };
     ImageSize get_image_info(A4PDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
