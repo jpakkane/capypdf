@@ -131,13 +131,13 @@ public:
     ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
     void set_stroke_color(const DeviceRGBColor &c);
-    void set_nonstroke_color(const DeviceRGBColor &c);
+    ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(LabId lid, const LabColor &c);
     ErrorCode
     set_stroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
     void set_nonstroke_color(const DeviceGrayColor &c);
-    void set_nonstroke_color(PatternId id);
+    ErrorCode set_nonstroke_color(PatternId id);
     ErrorCode
     set_nonstroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);

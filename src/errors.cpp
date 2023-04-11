@@ -41,7 +41,11 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Failed to load data from file.",
 "Invalid ICC profile data.",
 "Compression failure.",
-"FreeType error",
+"FreeType error.",
+"Unreachable code.",
+"Pattern can not be used in this operation.",
+"Iconv error.",
+"Builtin fonts can not be used in this operation.",
 };
 
 // clang-format on

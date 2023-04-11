@@ -477,24 +477,21 @@ ErrorCode PdfDrawContext::set_stroke_color(A4PDF_IccColorSpaceId icc_id,
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
+ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
-        cmd_rg(c.r.v(), c.g.v(), c.b.v());
-        break;
+        return cmd_rg(c.r.v(), c.g.v(), c.b.v());
     }
     case A4PDF_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        cmd_g(gray.v.v());
-        break;
+        return cmd_g(gray.v.v());
     }
     case A4PDF_DEVICE_CMYK: {
         DeviceCMYKColor cmyk = cm->to_cmyk(c);
-        cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-        break;
+        return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
     }
     default:
-        throw std::runtime_error("Unreachable!");
+        return ErrorCode::Unreachable;
     }
 }
 
@@ -504,13 +501,17 @@ void PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
     cmd_g(c.v.v());
 }
 
-void PdfDrawContext::set_nonstroke_color(PatternId id) {
+ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
     if(context_type != A4PDF_Page_Context) {
-        throw std::runtime_error("Patterns can only be used in page contexts.");
+        return ErrorCode::PatternNotAccepted;
     }
     used_patterns.insert(id.id);
-    cmd_cs("/Pattern");
+    auto rc = cmd_cs("/Pattern");
+    if(rc != ErrorCode::NoError) {
+        return rc;
+    }
     fmt::format_to(cmd_appender, "/Pattern-{} scn\n", id.id);
+    return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::set_separation_stroke_color(SeparationId id, LimitDouble value) {
@@ -587,13 +588,13 @@ ErrorCode PdfDrawContext::render_utf8_text(
     errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return ErrorCode::IconvError;
     }
     IconvCloser ic{to_codepoint};
     FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
-        throw std::runtime_error(
-            "Tried to use builtin font to render UTF-8. They only support ASCII.");
+        return ErrorCode::BuiltinFontNotSupported;
     }
 
     uint32_t previous_codepoint = -1;
@@ -613,7 +614,8 @@ ErrorCode PdfDrawContext::render_utf8_text(
         errno = 0;
         auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
-            throw std::runtime_error(strerror(errno));
+            perror(nullptr);
+            return ErrorCode::BadUtf8;
         }
         // FIXME: check if we need to change font subset,
         auto current_subset_glyph = doc->get_subset_glyph(fid, codepoint);
@@ -650,7 +652,7 @@ ErrorCode PdfDrawContext::render_utf8_text(
             const auto index_right = FT_Get_Char_Index(face, codepoint);
             auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
-                throw std::runtime_error("Getting kerning data failed.");
+                return ErrorCode::FreeTypeError;
             }
             if(kerning.x != 0) {
                 // The value might be a integer, fraction or something else.
@@ -719,13 +721,13 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
     errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return ErrorCode::IconvError;
     }
     IconvCloser ic{to_codepoint};
     FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
-        throw std::runtime_error(
-            "Tried to use builtin font to render UTF-8. They only support ASCII.");
+        return ErrorCode::BuiltinFontNotSupported;
     }
 
     uint32_t previous_codepoint = -1;
@@ -751,7 +753,7 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
             const auto index_right = FT_Get_Char_Index(face, codepoint);
             auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
-                throw std::runtime_error("Getting kerning data failed.");
+                return ErrorCode::FreeTypeError;
             }
             if(kerning.x != 0) {
                 // The value might be a integer, fraction or something else.
