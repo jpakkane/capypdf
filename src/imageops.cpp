@@ -31,7 +31,7 @@ namespace A4PDF {
 
 namespace {
 
-rgb_image load_rgb_png(png_image &image) {
+std::expected<rgb_image, ErrorCode> load_rgb_png(png_image &image) {
     rgb_image result;
     result.w = image.width;
     result.h = image.height;
@@ -40,14 +40,13 @@ rgb_image load_rgb_png(png_image &image) {
     png_image_finish_read(
         &image, NULL, result.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
-        std::string msg("PNG file reading failed: ");
-        msg += image.message;
-        throw std::runtime_error(std::move(msg));
+        fprintf(stderr, "%s\n", image.message);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     return result;
 }
 
-rgb_image load_rgba_png(png_image &image) {
+std::expected<rgb_image, ErrorCode> load_rgba_png(png_image &image) {
     rgb_image result;
     std::string buf;
     result.w = image.width;
@@ -57,9 +56,8 @@ rgb_image load_rgba_png(png_image &image) {
 
     png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
-        std::string msg("PNG file reading failed: ");
-        msg += image.message;
-        throw std::runtime_error(std::move(msg));
+        fprintf(stderr, "%s\n", image.message);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     assert(buf.size() % 4 == 0);
     result.pixels.reserve(PNG_IMAGE_SIZE(image) * 3 / 4);
@@ -71,10 +69,10 @@ rgb_image load_rgba_png(png_image &image) {
         *result.alpha += buf[i + 3];
     }
 
-    return result;
+    return std::move(result);
 }
 
-gray_image load_ga_png(png_image &image) {
+std::expected<gray_image, ErrorCode> load_ga_png(png_image &image) {
     gray_image result;
     std::string buf;
     result.w = image.width;
@@ -84,9 +82,8 @@ gray_image load_ga_png(png_image &image) {
 
     png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
-        std::string msg("PNG file reading failed: ");
-        msg += image.message;
-        throw std::runtime_error(std::move(msg));
+        fprintf(stderr, "%s\n", image.message);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     result.pixels.reserve(PNG_IMAGE_SIZE(image) / 2);
     result.alpha->reserve(PNG_IMAGE_SIZE(image) / 2);
@@ -95,7 +92,7 @@ gray_image load_ga_png(png_image &image) {
         *result.alpha += buf[i + 1];
     }
 
-    return result;
+    return std::move(result);
 }
 
 struct png_data {
@@ -103,7 +100,7 @@ struct png_data {
     std::string colormap;
 };
 
-png_data load_png_data(png_image &image) {
+std::expected<png_data, ErrorCode> load_png_data(png_image &image) {
     png_data pd;
 
     auto bufsize = PNG_IMAGE_SIZE(image);
@@ -112,20 +109,19 @@ png_data load_png_data(png_image &image) {
     png_image_finish_read(
         &image, NULL, pd.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, pd.colormap.data());
     if(PNG_IMAGE_FAILED(image)) {
-        std::string msg("PNG file reading failed: ");
-        msg += image.message;
-        throw std::runtime_error(std::move(msg));
+        fprintf(stderr, "%s\n", image.message);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
-    return pd;
+    return std::move(pd);
 }
 
-mono_image load_mono_png(png_image &image) {
+std::expected<mono_image, ErrorCode> load_mono_png(png_image &image) {
     mono_image result;
     const size_t final_size = (image.width + 7) / 8 * image.height;
     result.pixels.reserve(final_size);
     result.w = image.width;
     result.h = image.height;
-    auto pd = load_png_data(image);
+    ERC(pd, load_png_data(image));
     size_t offset = 0;
     const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
     const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
@@ -150,7 +146,7 @@ mono_image load_mono_png(png_image &image) {
         result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
-    return result;
+    return std::move(result);
 }
 
 struct pngbytes {
@@ -179,10 +175,10 @@ bool is_1bit(std::string_view colormap) {
 }
 
 // Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
-std::optional<mono_image> try_load_mono_alpha_png(png_image &image) {
-    auto pd = load_png_data(image);
+std::expected<std::optional<mono_image>, ErrorCode> try_load_mono_alpha_png(png_image &image) {
+    ERC(pd, load_png_data(image));
     if(!is_1bit(pd.colormap)) {
-        return {};
+        return std::optional<mono_image>{};
     }
     mono_image result;
     result.w = image.width;
@@ -232,10 +228,10 @@ std::optional<mono_image> try_load_mono_alpha_png(png_image &image) {
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha->size() == final_size);
-    return result;
+    return std::move(result);
 }
 
-RasterImage load_png_file(const char *fname) {
+std::expected<RasterImage, ErrorCode> load_png_file(const char *fname) {
     png_image image;
     std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
 
@@ -251,27 +247,26 @@ RasterImage load_png_file(const char *fname) {
             return load_ga_png(image);
         } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
             if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
-                throw std::runtime_error("Colormap format not supported.\n");
+                return std::unexpected(ErrorCode::UnsupportedFormat);
             }
             if(image.colormap_entries == 2) {
                 return load_mono_png(image);
             }
             if(image.colormap_entries == 3 || image.colormap_entries == 4) {
-                auto res = try_load_mono_alpha_png(image);
+                ERC(res, try_load_mono_alpha_png(image));
                 if(res) {
-                    return *res;
+                    return std::move(*res);
                 }
             }
-            throw std::runtime_error("Only monochrome colormap images supported.\n");
+            return std::unexpected(ErrorCode::NonBWColormap);
         } else {
-            throw std::runtime_error("Only RGB images supported.");
+            return std::unexpected(ErrorCode::UnsupportedFormat);
         }
     } else {
-        std::string msg("Opening a PNG file failed: ");
-        msg += image.message;
-        throw std::runtime_error(std::move(msg));
+        fprintf(stderr, "%s\n", image.message);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
-    throw std::runtime_error("Unreachable code.");
+    return std::unexpected(ErrorCode::Unreachable);
 }
 
 RasterImage load_tif_file(const char *fname) {
@@ -362,7 +357,7 @@ std::expected<jpg_image, ErrorCode> load_jpg(const char *fname) {
 
     jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
-        throw std::runtime_error(std::string{"Not a valid jpg file: "} + fname);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     jpeg_start_decompress(&cinfo);
     im.h = cinfo.image_height;
