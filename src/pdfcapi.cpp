@@ -15,17 +15,13 @@
  */
 
 #include <a4pdf.h>
+#include <pdfmacros.hpp>
 #include <cstring>
 #include <pdfgen.hpp>
 #include <pdfdrawcontext.hpp>
 #include <errors.hpp>
 
 using namespace A4PDF;
-
-#define CHECK_NULL(x)                                                                              \
-    if(x == nullptr) {                                                                             \
-        return (A4PDF_EC)ErrorCode::ArgIsNull;                                                     \
-    }
 
 A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT {
     *out_ptr = reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
@@ -72,7 +68,11 @@ A4PDF_EC a4pdf_generator_new(const char *filename,
     CHECK_NULL(options);
     CHECK_NULL(out_ptr);
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
-    *out_ptr = reinterpret_cast<A4PDF_Generator *>(new PdfGen(filename, *opts));
+    auto genconstruct = PdfGen::construct(filename, *opts);
+    if(!genconstruct) {
+        return (A4PDF_EC)genconstruct.error();
+    }
+    *out_ptr = reinterpret_cast<A4PDF_Generator *>(genconstruct.value().release());
     return (A4PDF_EC)ErrorCode::NoError;
 }
 
@@ -88,15 +88,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_embed_jpg(A4PDF_Generator *g,
                                                 A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     // FIXME, convert to std::expected once it exists.
-    try {
-        *iid = gen->embed_jpg(fname);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        return (A4PDF_EC)ErrorCode::DynamicError;
-    } catch(...) {
-        return (A4PDF_EC)ErrorCode::DynamicError;
+    auto res = gen->embed_jpg(fname);
+    if(res) {
+        *iid = res.value();
+        return (A4PDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (A4PDF_EC)res.error();
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
@@ -130,15 +127,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,
                                                        const char *fname,
                                                        A4PDF_IccColorSpaceId *iid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    try {
-        *iid = gen->load_icc_file(fname);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        return (A4PDF_EC)ErrorCode::DynamicError;
-    } catch(...) {
-        return (A4PDF_EC)ErrorCode::DynamicError;
+    auto res = gen->load_icc_file(fname);
+    if(res) {
+        *iid = res.value();
+        return (A4PDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (A4PDF_EC)res.error();
 }
 
 A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {

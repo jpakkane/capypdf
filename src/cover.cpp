@@ -136,7 +136,7 @@ int main(int, char **) {
 
     try {
         GenPopper genpop("cover.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         auto image_id = gen.load_image("gradient.png").value();
         auto sep_id = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
         {

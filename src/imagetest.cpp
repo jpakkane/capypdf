@@ -33,10 +33,10 @@ int main(int argc, char **argv) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         GenPopper genpop("image_test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
-        auto bg_img = gen.embed_jpg(jpg.c_str());
+        auto bg_img = gen.embed_jpg(jpg.c_str()).value();
         auto mono_img = gen.load_image(png_1bit_alpha.c_str()).value();
         auto gray_img = gen.load_image(png_gray.c_str()).value();
         auto cmyk_img = gen.load_image(cmyk_tif.c_str()).value();

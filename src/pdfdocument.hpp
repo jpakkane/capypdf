@@ -166,12 +166,14 @@ typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
 
 class PdfDocument {
 public:
-    PdfDocument(const PdfGenerationData &d);
+    PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
+
+    PdfDocument(PdfDocument &&o) = default;
 
     friend class PdfGen;
     friend class PdfDrawContext;
 
-    void write_to_file(FILE *output_file);
+    std::expected<NoReturnValue, ErrorCode> write_to_file(FILE *output_file);
 
     // Pages
     void add_page(std::string resource_data, std::string page_data);
@@ -182,7 +184,7 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
-    A4PDF_IccColorSpaceId load_icc_file(const char *fname);
+    std::expected<A4PDF_IccColorSpaceId, ErrorCode> load_icc_file(const char *fname);
 
     // Fonts
     A4PDF_FontId load_font(FT_Library ft, const char *fname);
@@ -192,7 +194,7 @@ public:
 
     // Images
     std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname);
-    A4PDF_ImageId embed_jpg(const char *fname);
+    std::expected<A4PDF_ImageId, ErrorCode> embed_jpg(const char *fname);
 
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
@@ -215,6 +217,8 @@ public:
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
 private:
+    std::expected<NoReturnValue, ErrorCode> write_to_file_impl();
+
     int32_t add_object(ObjectType object);
 
     int32_t image_object_number(A4PDF_ImageId iid) { return image_info.at(iid.id).obj; }
@@ -224,7 +228,7 @@ private:
     std::optional<A4PDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
     A4PDF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
 
-    std::vector<uint64_t> write_objects();
+    std::expected<std::vector<uint64_t>, ErrorCode> write_objects();
 
     void create_catalog(const std::vector<int32_t> &);
     int32_t create_outlines(const std::vector<int32_t> &);
@@ -240,7 +244,8 @@ private:
     void write_bytes(const char *buf, size_t buf_size); // With error checking.
     void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
 
-    void write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
+    std::expected<NoReturnValue, ErrorCode>
+    write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
     void write_subset_font_descriptor(int32_t object_num,
                                       const TtfFont &font,
                                       int32_t font_data_obj,
@@ -252,17 +257,17 @@ private:
                            int32_t font_descriptor_obj,
                            int32_t tounicode_obj);
 
-    A4PDF_ImageId add_image_object(int32_t w,
-                                   int32_t h,
-                                   int32_t bits_per_component,
-                                   ColorspaceType colorspace,
-                                   std::optional<int32_t> smask_id,
-                                   std::string_view uncompressed_bytes);
+    std::expected<A4PDF_ImageId, ErrorCode> add_image_object(int32_t w,
+                                                             int32_t h,
+                                                             int32_t bits_per_component,
+                                                             ColorspaceType colorspace,
+                                                             std::optional<int32_t> smask_id,
+                                                             std::string_view uncompressed_bytes);
 
-    A4PDF_ImageId process_rgb_image(const rgb_image &image);
-    A4PDF_ImageId process_gray_image(const gray_image &image);
-    A4PDF_ImageId process_mono_image(const mono_image &image);
-    A4PDF_ImageId process_cmyk_image(const cmyk_image &image);
+    std::expected<A4PDF_ImageId, ErrorCode> process_rgb_image(const rgb_image &image);
+    std::expected<A4PDF_ImageId, ErrorCode> process_gray_image(const gray_image &image);
+    std::expected<A4PDF_ImageId, ErrorCode> process_mono_image(const mono_image &image);
+    std::expected<A4PDF_ImageId, ErrorCode> process_cmyk_image(const cmyk_image &image);
 
     OutlineLimits
     write_outline_tree(const std::vector<int32_t> &page_objects,
@@ -285,6 +290,7 @@ private:
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
     int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
+
     FILE *ofile = nullptr;
 };
 

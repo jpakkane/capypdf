@@ -17,6 +17,7 @@
 #pragma once
 
 #include <a4pdf.h>
+#include <errors.hpp>
 
 #include <optional>
 #include <vector>
@@ -25,6 +26,8 @@
 #include <cstdint>
 
 namespace A4PDF {
+
+struct NoReturnValue {};
 
 struct PdfBox {
     double x;

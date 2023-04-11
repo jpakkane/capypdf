@@ -39,6 +39,10 @@ enum class ErrorCode : int32_t {
     BadUtf8,
     IncorrectColorChannelCount,
     InvalidDrawContextType,
+    FileReadError,
+    InvalidICCProfile,
+    CompressionFailure,
+    FreeTypeError,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

@@ -19,6 +19,7 @@
 #include <pdfcommon.hpp>
 #include <string_view>
 #include <string>
+#include <expected>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -48,9 +49,11 @@ struct LcmsHolder {
 
 class PdfColorConverter {
 public:
-    PdfColorConverter(const char *rgb_profile,
-                      const char *gray_profile,
-                      const char *cmyk_profile_fname);
+    static std::expected<PdfColorConverter, ErrorCode> construct(const char *rgb_profile_fname,
+                                                                 const char *gray_profile_fname,
+                                                                 const char *cmyk_profile_fname);
+
+    PdfColorConverter(PdfColorConverter &&o) = default;
     ~PdfColorConverter();
 
     DeviceGrayColor to_gray(const DeviceRGBColor &rgb);
@@ -63,9 +66,12 @@ public:
     const std::string &get_gray() const { return gray_profile_data; }
     const std::string &get_cmyk() const { return cmyk_profile_data; }
 
-    int get_num_channels(std::string_view icc_data) const;
+    std::expected<int, ErrorCode> get_num_channels(std::string_view icc_data) const;
+
+    PdfColorConverter &operator=(PdfColorConverter &&o) = default;
 
 private:
+    PdfColorConverter();
     LcmsHolder rgb_profile;
     LcmsHolder gray_profile;
     LcmsHolder cmyk_profile;

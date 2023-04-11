@@ -193,8 +193,8 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
-PdfDocument::PdfDocument(const PdfGenerationData &d)
-    : opts{d}, cm{d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file} {
+PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
+    : opts{d}, cm{std::move(cm)} {
     // PDF uses 1-based indexing so let's add a dummy thing in this vector
     // so PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
@@ -288,13 +288,13 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-A4PDF_IccColorSpaceId PdfDocument::load_icc_file(const char *fname) {
-    auto contents = load_file(fname);
+std::expected<A4PDF_IccColorSpaceId, ErrorCode> PdfDocument::load_icc_file(const char *fname) {
+    ERC(contents, load_file(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
         return *iccid;
     }
-    const auto num_channels = cm.get_num_channels(contents);
+    ERC(num_channels, cm.get_num_channels(contents));
     return store_icc_profile(contents, num_channels);
 }
 
@@ -328,23 +328,29 @@ void PdfDocument::pad_subset_fonts() {
     }
 }
 
-void PdfDocument::write_to_file(FILE *output_file) {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;
     try {
-        write_header();
-        auto page_objects = write_pages();
-        create_catalog(page_objects);
-        pad_subset_fonts();
-        auto object_offsets = write_objects();
-        const int64_t xref_offset = ftell(ofile);
-        write_cross_reference_table(object_offsets);
-        write_trailer(xref_offset);
+        auto rc = write_to_file_impl();
+        ofile = nullptr;
+        return rc;
     } catch(...) {
         ofile = nullptr;
         throw;
     }
-    ofile = nullptr;
+}
+
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file_impl() {
+    write_header();
+    auto page_objects = write_pages();
+    create_catalog(page_objects);
+    pad_subset_fonts();
+    ERC(object_offsets, write_objects());
+    const int64_t xref_offset = ftell(ofile);
+    write_cross_reference_table(object_offsets);
+    write_trailer(xref_offset);
+    return NoReturnValue{};
 }
 
 std::vector<int32_t> PdfDocument::write_pages() {
@@ -539,7 +545,7 @@ startxref
     write_bytes(buf);
 }
 
-std::vector<uint64_t> PdfDocument::write_objects() {
+std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
     std::vector<uint64_t> object_offsets;
     for(size_t i = 0; i < document_objects.size(); ++i) {
         const auto &obj = document_objects[i];
@@ -551,7 +557,7 @@ std::vector<uint64_t> PdfDocument::write_objects() {
             write_finished_object(i, pobj.dictionary, pobj.stream);
         } else if(std::holds_alternative<DeflatePDFObject>(obj)) {
             const auto &pobj = std::get<DeflatePDFObject>(obj);
-            auto compressed = flate_compress(pobj.stream);
+            ERC(compressed, flate_compress(pobj.stream));
             std::string dict = fmt::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
                                            pobj.unclosed_dictionary,
                                            compressed.size());
@@ -580,12 +586,13 @@ std::vector<uint64_t> PdfDocument::write_objects() {
     return object_offsets;
 }
 
-void PdfDocument::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
+std::expected<NoReturnValue, ErrorCode>
+PdfDocument::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
     const auto &font = fonts.at(ssfont.fid.id);
     std::string subset_font = font.subsets.generate_subset(
         font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id);
 
-    auto compressed_bytes = flate_compress(subset_font);
+    ERC(compressed_bytes, flate_compress(subset_font));
     std::string dictbuf = fmt::format(R"(<<
   /Length {}
   /Length1 {}
@@ -595,6 +602,7 @@ void PdfDocument::write_subset_font_data(int32_t object_num, const DelayedSubset
                                       compressed_bytes.size(),
                                       subset_font.size());
     write_finished_object(object_num, dictbuf, compressed_bytes);
+    return NoReturnValue{};
 }
 
 void PdfDocument::write_subset_font_descriptor(int32_t object_num,
@@ -849,15 +857,16 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::load_image(const char *fnam
     }
 }
 
-A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
-                                            int32_t h,
-                                            int32_t bits_per_component,
-                                            ColorspaceType colorspace,
-                                            std::optional<int32_t> smask_id,
-                                            std::string_view uncompressed_bytes) {
+std::expected<A4PDF_ImageId, ErrorCode>
+PdfDocument::add_image_object(int32_t w,
+                              int32_t h,
+                              int32_t bits_per_component,
+                              ColorspaceType colorspace,
+                              std::optional<int32_t> smask_id,
+                              std::string_view uncompressed_bytes) {
     std::string buf;
     auto app = std::back_inserter(buf);
-    auto compressed = flate_compress(uncompressed_bytes);
+    ERC(compressed, flate_compress(uncompressed_bytes));
     fmt::format_to(app,
                    R"(<<
   /Type /XObject
@@ -891,24 +900,20 @@ A4PDF_ImageId PdfDocument::add_image_object(int32_t w,
     return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-A4PDF_ImageId PdfDocument::process_mono_image(const mono_image &image) {
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_mono_image(const mono_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
-        smask_id =
-            image_info
-                .at(add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
-                .obj;
+        ERC(imobj, add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        smask_id = image_info.at(imobj.id).obj;
     }
     return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
 }
 
-A4PDF_ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_rgb_image(const rgb_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
-        smask_id =
-            image_info
-                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
-                .obj;
+        ERC(imobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        smask_id = image_info.at(imobj.id).obj;
     }
     switch(opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
@@ -930,21 +935,19 @@ A4PDF_ImageId PdfDocument::process_rgb_image(const rgb_image &image) {
     }
 }
 
-A4PDF_ImageId PdfDocument::process_gray_image(const gray_image &image) {
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_gray_image(const gray_image &image) {
     std::optional<int32_t> smask_id;
 
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
 
     if(image.alpha) {
-        smask_id =
-            image_info
-                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
-                .obj;
+        ERC(imgobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        smask_id = image_info.at(imgobj.id).obj;
     }
     return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
 }
 
-A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_cmyk_image(const cmyk_image &image) {
     std::optional<int32_t> smask_id;
     ColorspaceType cs;
     if(image.icc) {
@@ -959,16 +962,14 @@ A4PDF_ImageId PdfDocument::process_cmyk_image(const cmyk_image &image) {
         cs = A4PDF_DEVICE_CMYK;
     }
     if(image.alpha) {
-        smask_id =
-            image_info
-                .at(add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha).id)
-                .obj;
+        ERC(imobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        smask_id = image_info.at(imobj.id).obj;
     }
     return add_image_object(image.w, image.h, 8, cs, smask_id, image.pixels);
 }
 
-A4PDF_ImageId PdfDocument::embed_jpg(const char *fname) {
-    auto jpg = load_jpg(fname);
+std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::embed_jpg(const char *fname) {
+    ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<

@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         GenPopper genpop("icc_test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
-        auto icc_id = gen.load_icc_file(icc_file);
+        auto icc_id = gen.load_icc_file(icc_file).value();
 
         const std::array<double, 3> blueish{0.1, 0.2, 0.9};
         const std::vector<double> reddish{0.8, 0.3, 0.1};

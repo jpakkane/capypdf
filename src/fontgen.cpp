@@ -28,7 +28,7 @@ void center_test() {
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
     GenPopper genpop("centering.pdf", opts);
-    PdfGen &gen = genpop.g;
+    PdfGen &gen = *genpop.g;
     auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
     auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
     auto f3 = gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf");
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     */
     opts.title = "Over 255 letters";
     GenPopper genpop("fonttest.pdf", opts);
-    PdfGen &gen = genpop.g;
+    PdfGen &gen = *genpop.g;
     auto regular_fid = gen.load_font(regularfont);
     auto italic_fid = gen.load_font(italicfont);
     auto ctxguard = gen.guarded_page_context();

@@ -64,6 +64,6 @@ typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
 
 std::expected<RasterImage, ErrorCode> load_image_file(const char *fname);
 
-jpg_image load_jpg(const char *fname);
+std::expected<jpg_image, ErrorCode> load_jpg(const char *fname);
 
 } // namespace A4PDF

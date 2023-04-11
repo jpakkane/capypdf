@@ -16,16 +16,18 @@
 
 #pragma once
 
+#include <errors.hpp>
 #include <string>
+#include <expected>
 #include <cstdio>
 
 namespace A4PDF {
 
-std::string flate_compress(std::string_view data);
+std::expected<std::string, ErrorCode> flate_compress(std::string_view data);
 
-std::string load_file(const char *fname);
+std::expected<std::string, ErrorCode> load_file(const char *fname);
 
-std::string load_file(FILE *f);
+std::expected<std::string, ErrorCode> load_file(FILE *f);
 
 std::string utf8_to_pdfmetastr(std::string_view input);
 

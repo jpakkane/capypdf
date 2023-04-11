@@ -28,7 +28,7 @@ int main(int, char **) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         GenPopper genpop("outline_test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         std::unique_ptr<PdfDrawContext> g{gen.new_page_draw_context()};
         g->cmd_re(10, 10, 10, 10);
         g->cmd_f();

@@ -16,6 +16,8 @@
 
 #include <pdfcolorconverter.hpp>
 #include <utils.hpp>
+#include <pdfmacros.hpp>
+#include <expected>
 #include <lcms2.h>
 #include <cassert>
 #include <stdexcept>
@@ -32,59 +34,64 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 
 namespace A4PDF {
 
-PdfColorConverter::PdfColorConverter(const char *rgb_profile_fname,
-                                     const char *gray_profile_fname,
-                                     const char *cmyk_profile_fname) {
+std::expected<PdfColorConverter, ErrorCode> PdfColorConverter::construct(
+    const char *rgb_profile_fname, const char *gray_profile_fname, const char *cmyk_profile_fname) {
+    PdfColorConverter conv;
     if(rgb_profile_fname) {
-        rgb_profile_data = load_file(rgb_profile_fname);
-        cmsHPROFILE h = cmsOpenProfileFromMem(rgb_profile_data.data(), rgb_profile_data.size());
+        ERC(rgb, load_file(rgb_profile_fname));
+        conv.rgb_profile_data = std::move(rgb);
+        cmsHPROFILE h =
+            cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
         if(!h) {
-            throw std::runtime_error(std::string("Could not open RGB color profile ") +
-                                     rgb_profile_fname);
+            return std::unexpected(ErrorCode::InvalidICCProfile);
         }
+        conv.rgb_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 3) {
-            cmsCloseProfile(h);
-            throw std::runtime_error("RGB profile does not have exactly 3 channels.");
+            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
         }
-        rgb_profile.h = h;
     } else {
-        rgb_profile.h = cmsCreate_sRGBProfile();
+        conv.rgb_profile.h = cmsCreate_sRGBProfile();
     }
     if(gray_profile_fname) {
-        gray_profile_data = load_file(gray_profile_fname);
-        auto h = cmsOpenProfileFromMem(gray_profile_data.data(), gray_profile_data.size());
+        ERC(gray, load_file(gray_profile_fname));
+        conv.gray_profile_data = std::move(gray);
+        auto h =
+            cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
         if(!h) {
-            throw std::runtime_error(std::string("Could not open gray color profile ") +
-                                     gray_profile_fname);
+            return std::unexpected(ErrorCode::InvalidICCProfile);
         }
+        conv.gray_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 1) {
-            cmsCloseProfile(h);
-            throw std::runtime_error("Gray profile does not have exactly 1 channels.");
+            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
         }
-        gray_profile.h = h;
     } else {
         auto curve = cmsBuildGamma(nullptr, 1.0);
-        gray_profile.h = cmsCreateGrayProfile(cmsD50_xyY(), curve);
+        conv.gray_profile.h = cmsCreateGrayProfile(cmsD50_xyY(), curve);
         cmsFreeToneCurve(curve);
     }
     if(cmyk_profile_fname) {
-        cmyk_profile_data = load_file(cmyk_profile_fname);
-        auto h = cmsOpenProfileFromMem(cmyk_profile_data.data(), cmyk_profile_data.size());
+        ERC(cmyk, load_file(cmyk_profile_fname));
+        conv.cmyk_profile_data = std::move(cmyk);
+        auto h =
+            cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());
         if(!h) {
-            throw std::runtime_error(std::string("Could not open cmyk color profile ") +
-                                     cmyk_profile_fname);
+            return std::unexpected(ErrorCode::InvalidICCProfile);
         }
+        conv.cmyk_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 4) {
-            cmsCloseProfile(h);
-            throw std::runtime_error("CMYK profile does not have exactly 4 channels.");
+            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
         }
-        cmyk_profile.h = h;
     } else {
+        // Not having a CMYK profile is fine, but any call to CMYK color conversions
+        // is an error.
     }
+    return std::expected<PdfColorConverter, ErrorCode>(std::move(conv));
 }
+
+PdfColorConverter::PdfColorConverter() {}
 
 PdfColorConverter::~PdfColorConverter() {}
 
@@ -155,10 +162,10 @@ std::string PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     return converted_pixels;
 }
 
-int PdfColorConverter::get_num_channels(std::string_view icc_data) const {
+std::expected<int, ErrorCode> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
     cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
     if(!h) {
-        throw std::runtime_error(std::string("Could not open ICC color profile."));
+        return std::unexpected(ErrorCode::InvalidICCProfile);
     }
     auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
     cmsCloseProfile(h);

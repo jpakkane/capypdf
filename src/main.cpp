@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
     try {
         GenPopper genpop("test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         {

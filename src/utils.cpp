@@ -26,7 +26,7 @@
 
 namespace A4PDF {
 
-std::string flate_compress(std::string_view data) {
+std::expected<std::string, ErrorCode> flate_compress(std::string_view data) {
     std::string compressed;
     const int CHUNK = 1024 * 1024;
     std::string buf;
@@ -37,7 +37,7 @@ std::string flate_compress(std::string_view data) {
 
     auto ret = deflateInit(&strm, Z_BEST_COMPRESSION);
     if(ret != Z_OK) {
-        throw std::runtime_error("Zlib init failed.");
+        return std::unexpected(ErrorCode::CompressionFailure);
     }
     std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
     strm.avail_in = data.size();
@@ -54,31 +54,36 @@ std::string flate_compress(std::string_view data) {
         buf.resize(write_size);
         compressed += buf;
     } while(strm.avail_out == 0);
-    assert(strm.avail_in == 0); /* all input will be used */
-
+    if(strm.avail_in != 0) { /* all input will be used */
+        return std::unexpected(ErrorCode::CompressionFailure);
+    }
     /* done when last data in file processed */
-    assert(ret == Z_STREAM_END); /* stream will be complete */
+    if(ret != Z_STREAM_END) {
+        std::unexpected(ErrorCode::CompressionFailure);
+    }
 
-    return compressed;
+    return std::move(compressed);
 }
 
-std::string load_file(const char *fname) {
+std::expected<std::string, ErrorCode> load_file(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return std::unexpected(ErrorCode::CouldNotOpenFile);
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
     return load_file(f);
 }
 
-std::string load_file(FILE *f) {
+std::expected<std::string, ErrorCode> load_file(FILE *f) {
     fseek(f, 0, SEEK_END);
     auto fsize = (size_t)ftell(f);
     std::string contents(fsize, '\0');
     fseek(f, 0, SEEK_SET);
     if(fread(contents.data(), 1, fsize, f) != fsize) {
         fclose(f);
-        throw std::runtime_error("Could not load file contents.");
+        perror(nullptr);
+        return std::unexpected(ErrorCode::FileReadError);
     }
     return contents;
 }

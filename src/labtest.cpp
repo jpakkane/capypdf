@@ -28,7 +28,7 @@ int main(int, char **) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         GenPopper genpop("lab_test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         const LabColorSpace lab = LabColorSpace::cielab_1976_D65();

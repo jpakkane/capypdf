@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
         GenPopper genpop("foxbj_test.pdf", opts);
-        PdfGen &gen = genpop.g;
+        PdfGen &gen = *genpop.g;
         A4PDF_FormXObjectId xid;
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);

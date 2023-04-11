@@ -31,9 +31,22 @@
         return ErrorCode::BadEnum;                                                                 \
     }
 
+#define CHECK_NULL(x)                                                                              \
+    if(x == nullptr) {                                                                             \
+        return (A4PDF_EC)ErrorCode::ArgIsNull;                                                     \
+    }
+
 #define ERC(varname, func)                                                                         \
     auto varname##_variant = func;                                                                 \
     if(!(varname##_variant)) {                                                                     \
         return std::unexpected(varname##_variant.error());                                         \
     }                                                                                              \
     auto &varname = varname##_variant.value();
+
+// For void.
+
+#define ERCV(func)                                                                                 \
+    auto varname##_variant = func;                                                                 \
+    if(!(varname##_variant)) {                                                                     \
+        return std::unexpected(varname##_variant.error());                                         \
+    }

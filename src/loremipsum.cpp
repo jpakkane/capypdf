@@ -107,7 +107,7 @@ const std::string author{"Author McAuthorface"};
 const std::string email{"author@servermcserverface.com"};
 
 double cm2pt(double cm) { return cm * 28.346; }
-double pt2cm(double pt) { return pt / 28.346; }
+// double pt2cm(double pt) { return pt / 28.346; }
 
 int num_spaces(const std::string_view s) { return std::count(s.begin(), s.end(), ' '); }
 
@@ -215,7 +215,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
 int main() {
     PdfGenerationData opts;
     GenPopper genpop("loremipsum.pdf", opts);
-    PdfGen &gen = genpop.g;
+    PdfGen &gen = *genpop.g;
 
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;

@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <imageops.hpp>
 #include <utils.hpp>
+#include <pdfmacros.hpp>
 #include <png.h>
 #include <jpeglib.h>
 #include <tiffio.h>
@@ -347,9 +348,10 @@ RasterImage load_tif_file(const char *fname) {
 
 } // namespace
 
-jpg_image load_jpg(const char *fname) {
+std::expected<jpg_image, ErrorCode> load_jpg(const char *fname) {
     jpg_image im;
-    im.file_contents = load_file(fname);
+    ERC(contents, load_file(fname));
+    im.file_contents = std::move(contents);
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
@@ -366,7 +368,7 @@ jpg_image load_jpg(const char *fname) {
     im.h = cinfo.image_height;
     im.w = cinfo.image_width;
     // Fixme, validate that this is an 8bpp RGB image.
-    return im;
+    return std::move(im);
 }
 
 std::expected<RasterImage, ErrorCode> load_image_file(const char *fname) {

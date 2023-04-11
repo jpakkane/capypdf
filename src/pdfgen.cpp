@@ -15,6 +15,7 @@
  */
 
 #include <pdfgen.hpp>
+#include <pdfmacros.hpp>
 #include <cstring>
 #include <cerrno>
 #include <cassert>
@@ -49,20 +50,24 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-PdfGen::PdfGen(const char *ofname, const PdfGenerationData &d) : ofilename(ofname), pdoc{d} {
-    auto error = FT_Init_FreeType(&ft);
+std::expected<std::unique_ptr<PdfGen>, ErrorCode> PdfGen::construct(const char *ofname,
+                                                                    const PdfGenerationData &d) {
+    FT_Library ft_;
+    auto error = FT_Init_FreeType(&ft_);
     if(error) {
-        throw std::runtime_error(FT_Error_String(error));
+        return std::unexpected(ErrorCode::FreeTypeError);
     }
+    std::filesystem::path opath(ofname);
+    std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
+    ERC(cm,
+        PdfColorConverter::construct(
+            d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
+    return std::make_unique<PdfGen>(std::move(opath), std::move(ft), PdfDocument(d, std::move(cm)));
 }
 
 PdfGen::~PdfGen() {
     pdoc.font_objects.clear();
     pdoc.fonts.clear();
-    auto error = FT_Done_FreeType(ft);
-    if(error) {
-        fprintf(stderr, "Closing FreeType failed: %s\n", FT_Error_String(error));
-    }
 }
 
 ErrorCode PdfGen::write() {

@@ -48,7 +48,13 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    explicit PdfGen(const char *ofname, const PdfGenerationData &d);
+    static std::expected<std::unique_ptr<PdfGen>, ErrorCode> construct(const char *ofname,
+                                                                       const PdfGenerationData &d);
+    PdfGen(std::filesystem::path ofilename,
+           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
+           PdfDocument pdoc)
+        : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
+    PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
     ErrorCode write();
@@ -57,8 +63,10 @@ public:
     std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname) {
         return pdoc.load_image(fname);
     }
-    A4PDF_ImageId embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
-    A4PDF_FontId load_font(const char *fname) { return pdoc.load_font(ft, fname); };
+    std::expected<A4PDF_ImageId, ErrorCode> embed_jpg(const char *fname) {
+        return pdoc.embed_jpg(fname);
+    }
+    A4PDF_FontId load_font(const char *fname) { return pdoc.load_font(ft.get(), fname); };
     ImageSize get_image_info(A4PDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
@@ -74,7 +82,9 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    A4PDF_IccColorSpaceId load_icc_file(const char *fname) { return pdoc.load_icc_file(fname); }
+    std::expected<A4PDF_IccColorSpaceId, ErrorCode> load_icc_file(const char *fname) {
+        return pdoc.load_icc_file(fname);
+    }
 
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
@@ -105,14 +115,15 @@ public:
 
 private:
     std::filesystem::path ofilename;
-    FT_Library ft;
+    std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;
     PdfDocument pdoc;
 };
 
 struct GenPopper {
-    PdfGen g;
-    GenPopper(const char *ofname, const PdfGenerationData &d) : g(ofname, d) {}
-    ~GenPopper() { g.write(); }
+    std::unique_ptr<PdfGen> g;
+    GenPopper(const char *ofname, const PdfGenerationData &d)
+        : g(PdfGen::construct(ofname, d).value()) {}
+    ~GenPopper() { g->write(); }
 };
 
 } // namespace A4PDF
