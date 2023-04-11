@@ -29,7 +29,7 @@ std::expected<std::string, ErrorCode> load_file(const char *fname);
 
 std::expected<std::string, ErrorCode> load_file(FILE *f);
 
-std::string utf8_to_pdfmetastr(std::string_view input);
+std::expected<std::string, ErrorCode> utf8_to_pdfmetastr(std::string_view input);
 
 std::string current_date_string();
 

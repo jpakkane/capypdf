@@ -88,7 +88,7 @@ std::expected<std::string, ErrorCode> load_file(FILE *f) {
     return contents;
 }
 
-std::string utf8_to_pdfmetastr(std::string_view input) {
+std::expected<std::string, ErrorCode> utf8_to_pdfmetastr(std::string_view input) {
     // For now put everything into UTF-16 bracketstrings.
     std::string encoded = "<FEFF";
 
@@ -105,13 +105,15 @@ std::string utf8_to_pdfmetastr(std::string_view input) {
     auto iconv_result = iconv(cd, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
     iconv_close(cd);
     if(errno != 0) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return std::unexpected(ErrorCode::IconvError);
     }
     if(iconv_result == (size_t)-1) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return std::unexpected(ErrorCode::IconvError);
     }
     if(in_bytes != 0) {
-        throw std::runtime_error("Not all input bytes converted.");
+        return std::unexpected(ErrorCode::BadUtf8);
     }
 
     auto bi = std::back_inserter(encoded);
@@ -119,7 +121,7 @@ std::string utf8_to_pdfmetastr(std::string_view input) {
         fmt::format_to(bi, "{:02X}", (unsigned char)(*i));
     }
     encoded += '>';
-    return encoded;
+    return std::move(encoded);
 }
 
 std::string current_date_string() {

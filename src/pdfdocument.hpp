@@ -230,11 +230,11 @@ private:
 
     std::expected<std::vector<uint64_t>, ErrorCode> write_objects();
 
-    void create_catalog(const std::vector<int32_t> &);
-    int32_t create_outlines(const std::vector<int32_t> &);
+    std::expected<NoReturnValue, ErrorCode> create_catalog(const std::vector<int32_t> &);
+    std::expected<int32_t, ErrorCode> create_outlines(const std::vector<int32_t> &);
     std::vector<int32_t> write_pages();
     void write_header();
-    void generate_info_object();
+    std::expected<NoReturnValue, ErrorCode> generate_info_object();
     void write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
     void write_trailer(int64_t xref_offset);
 
@@ -269,8 +269,7 @@ private:
     std::expected<A4PDF_ImageId, ErrorCode> process_mono_image(const mono_image &image);
     std::expected<A4PDF_ImageId, ErrorCode> process_cmyk_image(const cmyk_image &image);
 
-    OutlineLimits
-    write_outline_tree(const std::vector<int32_t> &page_objects,
+    std::expected<OutlineLimits, ErrorCode> write_outline_tree(const std::vector<int32_t> &page_objects,
                        const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
 

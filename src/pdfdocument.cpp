@@ -407,12 +407,14 @@ std::vector<int32_t> PdfDocument::write_pages() {
     return page_objects;
 }
 
-void PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
+std::expected<NoReturnValue, ErrorCode>
+PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
     const int32_t pages_obj_num = (int32_t)document_objects.size() - 1;
     std::string buf;
     std::string outline;
     if(!outlines.empty()) {
-        outline = fmt::format("  /Outlines {} 0 R\n", create_outlines(page_objects));
+        ERC(outlines, create_outlines(page_objects));
+        outline = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
     fmt::format_to(std::back_inserter(buf),
                    R"(<<
@@ -425,9 +427,10 @@ void PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
     add_object(FullPDFObject{buf, ""});
 }
 
-int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
+std::expected<int32_t, ErrorCode>
+PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
     const auto otree = compute_children(outlines);
-    auto limits = write_outline_tree(page_objects, otree, -1);
+    ERC(limits, write_outline_tree(page_objects, otree, -1));
     std::string buf = fmt::format(R"(<<
   /Type /Outlines
   /First {} 0 R
@@ -439,7 +442,7 @@ int32_t PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-OutlineLimits
+std::expected<OutlineLimits, ErrorCode>
 PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
                                 const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
                                 int32_t node_id) {
@@ -458,7 +461,8 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
         std::optional<OutlineLimits> cur_limit;
         auto it = otree.find(current_nodes[i]);
         if(it != otree.end()) {
-            cur_limit = write_outline_tree(page_objects, otree, current_nodes[i]);
+            ERC(limit, write_outline_tree(page_objects, otree, current_nodes[i]));
+            cur_limit = limit;
         }
         child_limits.emplace_back(std::move(cur_limit));
     }
@@ -468,12 +472,13 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
         auto &child_data = child_limits[i];
         const auto &o = outlines[current_nodes[i]];
         const int32_t current_obj_num = document_objects.size();
+        ERC(titlestr, utf8_to_pdfmetastr(o.title));
         fmt::format_to(app,
                        R"(<<
   /Title {}
   /Dest [ {} 0 R /XYZ null null null]
 )",
-                       utf8_to_pdfmetastr(o.title),
+                       titlestr,
                        page_objects.at(o.dest.id));
         if(i != 0) {
             fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 2);
@@ -564,7 +569,7 @@ std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
             write_finished_object(i, dict, compressed);
         } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
-            write_subset_font_data(i, ssfont);
+            ERCV(write_subset_font_data(i, ssfont));
         } else if(std::holds_alternative<DelayedSubsetFontDescriptor>(obj)) {
             const auto &ssfontd = std::get<DelayedSubsetFontDescriptor>(obj);
             write_subset_font_descriptor(
@@ -778,17 +783,19 @@ void PdfDocument::write_bytes(const char *buf, size_t buf_size) {
 
 void PdfDocument::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
 
-void PdfDocument::generate_info_object() {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::generate_info_object() {
     FullPDFObject obj_data;
     obj_data.dictionary = "<<\n";
     if(!opts.title.empty()) {
         obj_data.dictionary += "  /Title ";
-        obj_data.dictionary += utf8_to_pdfmetastr(opts.title);
+        ERC(titlestr, utf8_to_pdfmetastr(opts.title));
+        obj_data.dictionary += titlestr;
         obj_data.dictionary += "\n";
     }
     if(!opts.author.empty()) {
         obj_data.dictionary += "  /Author ";
-        obj_data.dictionary += utf8_to_pdfmetastr(opts.author);
+        ERC(authorstr, utf8_to_pdfmetastr(opts.author));
+        obj_data.dictionary += authorstr;
         obj_data.dictionary += "\n";
     }
     obj_data.dictionary += "  /Producer (A4PDF " A4PDF_VERSION_STR ")\n";
@@ -797,6 +804,7 @@ void PdfDocument::generate_info_object() {
     obj_data.dictionary += '\n';
     obj_data.dictionary += ">>\n";
     add_object(std::move(obj_data));
+    return NoReturnValue{};
 }
 
 A4PDF_FontId PdfDocument::get_builtin_font_id(A4PDF_Builtin_Fonts font) {
