@@ -48,8 +48,7 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    static std::expected<std::unique_ptr<PdfGen>, ErrorCode> construct(const char *ofname,
-                                                                       const PdfGenerationData &d);
+    static rvoe<std::unique_ptr<PdfGen>> construct(const char *ofname, const PdfGenerationData &d);
     PdfGen(std::filesystem::path ofilename,
            std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
            PdfDocument pdoc)
@@ -60,15 +59,9 @@ public:
     ErrorCode write();
     void new_page();
 
-    std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname) {
-        return pdoc.load_image(fname);
-    }
-    std::expected<A4PDF_ImageId, ErrorCode> embed_jpg(const char *fname) {
-        return pdoc.embed_jpg(fname);
-    }
-    std::expected<A4PDF_FontId, ErrorCode> load_font(const char *fname) {
-        return pdoc.load_font(ft.get(), fname);
-    };
+    rvoe<A4PDF_ImageId> load_image(const char *fname) { return pdoc.load_image(fname); }
+    rvoe<A4PDF_ImageId> embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
+    rvoe<A4PDF_FontId> load_font(const char *fname) { return pdoc.load_font(ft.get(), fname); };
     ImageSize get_image_info(A4PDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
@@ -84,7 +77,7 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    std::expected<A4PDF_IccColorSpaceId, ErrorCode> load_icc_file(const char *fname) {
+    rvoe<A4PDF_IccColorSpaceId> load_icc_file(const char *fname) {
         return pdoc.load_icc_file(fname);
     }
 
@@ -97,9 +90,9 @@ public:
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
-    std::expected<PageId, ErrorCode> add_page(PdfDrawContext &ctx);
+    rvoe<PageId> add_page(PdfDrawContext &ctx);
     ErrorCode add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxoid);
-    std::expected<PatternId, ErrorCode> add_pattern(ColorPatternBuilder &cp);
+    rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
 
     OutlineId
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent) {
@@ -113,8 +106,7 @@ public:
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    std::expected<double, ErrorCode>
-    utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
+    rvoe<double> utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
 
 private:
     std::filesystem::path ofilename;

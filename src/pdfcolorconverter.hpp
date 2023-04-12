@@ -49,24 +49,24 @@ struct LcmsHolder {
 
 class PdfColorConverter {
 public:
-    static std::expected<PdfColorConverter, ErrorCode> construct(const char *rgb_profile_fname,
-                                                                 const char *gray_profile_fname,
-                                                                 const char *cmyk_profile_fname);
+    static rvoe<PdfColorConverter> construct(const char *rgb_profile_fname,
+                                             const char *gray_profile_fname,
+                                             const char *cmyk_profile_fname);
 
     PdfColorConverter(PdfColorConverter &&o) = default;
     ~PdfColorConverter();
 
     DeviceGrayColor to_gray(const DeviceRGBColor &rgb);
-    std::expected<DeviceCMYKColor, ErrorCode> to_cmyk(const DeviceRGBColor &rgb);
+    rvoe<DeviceCMYKColor> to_cmyk(const DeviceRGBColor &rgb);
 
     std::string rgb_pixels_to_gray(std::string_view rgb_data);
-    std::expected<std::string, ErrorCode> rgb_pixels_to_cmyk(std::string_view rgb_data);
+    rvoe<std::string> rgb_pixels_to_cmyk(std::string_view rgb_data);
 
     const std::string &get_rgb() const { return rgb_profile_data; }
     const std::string &get_gray() const { return gray_profile_data; }
     const std::string &get_cmyk() const { return cmyk_profile_data; }
 
-    std::expected<int, ErrorCode> get_num_channels(std::string_view icc_data) const;
+    rvoe<int> get_num_channels(std::string_view icc_data) const;
 
     PdfColorConverter &operator=(PdfColorConverter &&o) = default;
 

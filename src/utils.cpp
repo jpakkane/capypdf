@@ -26,7 +26,7 @@
 
 namespace A4PDF {
 
-std::expected<std::string, ErrorCode> flate_compress(std::string_view data) {
+rvoe<std::string> flate_compress(std::string_view data) {
     std::string compressed;
     const int CHUNK = 1024 * 1024;
     std::string buf;
@@ -65,7 +65,7 @@ std::expected<std::string, ErrorCode> flate_compress(std::string_view data) {
     return std::move(compressed);
 }
 
-std::expected<std::string, ErrorCode> load_file(const char *fname) {
+rvoe<std::string> load_file(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         perror(nullptr);
@@ -75,7 +75,7 @@ std::expected<std::string, ErrorCode> load_file(const char *fname) {
     return load_file(f);
 }
 
-std::expected<std::string, ErrorCode> load_file(FILE *f) {
+rvoe<std::string> load_file(FILE *f) {
     fseek(f, 0, SEEK_END);
     auto fsize = (size_t)ftell(f);
     std::string contents(fsize, '\0');
@@ -88,7 +88,7 @@ std::expected<std::string, ErrorCode> load_file(FILE *f) {
     return contents;
 }
 
-std::expected<std::string, ErrorCode> utf8_to_pdfmetastr(std::string_view input) {
+rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     // For now put everything into UTF-16 bracketstrings.
     std::string encoded = "<FEFF";
 

@@ -682,8 +682,7 @@ ErrorCode PdfDrawContext::render_utf8_text(
     return ErrorCode::NoError;
 }
 
-std::expected<NoReturnValue, ErrorCode>
-PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
+rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
                                        std::string &serialisation,
                                        A4PDF_FontId &current_font,
                                        int32_t &current_subset,

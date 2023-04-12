@@ -33,8 +33,9 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 
 namespace A4PDF {
 
-std::expected<PdfColorConverter, ErrorCode> PdfColorConverter::construct(
-    const char *rgb_profile_fname, const char *gray_profile_fname, const char *cmyk_profile_fname) {
+rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fname,
+                                                     const char *gray_profile_fname,
+                                                     const char *cmyk_profile_fname) {
     PdfColorConverter conv;
     if(rgb_profile_fname) {
         ERC(rgb, load_file(rgb_profile_fname));
@@ -87,7 +88,7 @@ std::expected<PdfColorConverter, ErrorCode> PdfColorConverter::construct(
         // Not having a CMYK profile is fine, but any call to CMYK color conversions
         // is an error.
     }
-    return std::expected<PdfColorConverter, ErrorCode>(std::move(conv));
+    return rvoe<PdfColorConverter>(std::move(conv));
 }
 
 PdfColorConverter::PdfColorConverter() {}
@@ -107,7 +108,7 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
     return gray;
 }
 
-std::expected<DeviceCMYKColor, ErrorCode> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
+rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
     if(!cmyk_profile.h) {
         return std::unexpected(ErrorCode::NoCmykProfile);
     }
@@ -143,8 +144,7 @@ std::string PdfColorConverter::rgb_pixels_to_gray(std::string_view rgb_data) {
     return converted_pixels;
 }
 
-std::expected<std::string, ErrorCode>
-PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
+rvoe<std::string> PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     if(!cmyk_profile.h) {
         return std::unexpected(ErrorCode::NoCmykProfile);
     }
@@ -162,7 +162,7 @@ PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     return converted_pixels;
 }
 
-std::expected<int, ErrorCode> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
+rvoe<int> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
     cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
     if(!h) {
         return std::unexpected(ErrorCode::InvalidICCProfile);

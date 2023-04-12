@@ -36,9 +36,9 @@ FontSubsetData create_startstate() {
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
 
-std::expected<NoReturnValue, ErrorCode> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
-                                                      uint32_t glyph_id,
-                                                      const TrueTypeFontFile &ttfile) {
+rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
+                                  uint32_t glyph_id,
+                                  const TrueTypeFontFile &ttfile) {
     const auto &cur_glyph = ttfile.glyphs.at(glyph_id);
     ERC(iscomp, is_composite_glyph(cur_glyph));
     if(!iscomp) {
@@ -53,8 +53,7 @@ std::expected<NoReturnValue, ErrorCode> add_subglyphs(std::unordered_set<uint32_
     return NoReturnValue{};
 }
 
-std::expected<std::vector<uint32_t>, ErrorCode> get_all_subglyphs(uint32_t glyph_id,
-                                                                  const TrueTypeFontFile &ttfile) {
+rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
     std::unordered_set<uint32_t> new_subglyphs;
 
     ERCV(add_subglyphs(new_subglyphs, glyph_id, ttfile));
@@ -64,15 +63,14 @@ std::expected<std::vector<uint32_t>, ErrorCode> get_all_subglyphs(uint32_t glyph
 
 } // namespace
 
-std::expected<FontSubsetter, ErrorCode> FontSubsetter::construct(const char *fontfile,
-                                                                 FT_Face face) {
+rvoe<FontSubsetter> FontSubsetter::construct(const char *fontfile, FT_Face face) {
     ERC(ttfile, load_and_parse_truetype_font(fontfile));
     std::vector<FontSubsetData> subsets;
     subsets.emplace_back(create_startstate());
     return FontSubsetter(std::move(ttfile), face, std::move(subsets));
 }
 
-std::expected<FontSubsetInfo, ErrorCode> FontSubsetter::get_glyph_subset(uint32_t glyph) {
+rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t glyph) {
     auto trial = find_glyph(glyph);
     if(trial) {
         return trial.value();
@@ -80,8 +78,7 @@ std::expected<FontSubsetInfo, ErrorCode> FontSubsetter::get_glyph_subset(uint32_
     return unchecked_insert_glyph_to_last_subset(glyph);
 }
 
-std::expected<FontSubsetInfo, ErrorCode>
-FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
+rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
@@ -149,9 +146,9 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
     return {};
 }
 
-std::expected<std::string, ErrorCode> FontSubsetter::generate_subset(FT_Face face,
-                                                                     const TrueTypeFontFile &source,
-                                                                     int32_t subset_number) const {
+rvoe<std::string> FontSubsetter::generate_subset(FT_Face face,
+                                                 const TrueTypeFontFile &source,
+                                                 int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
     return generate_font(face, source, glyphs.glyphs, glyphs.font_index_mapping);
 }

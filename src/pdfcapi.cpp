@@ -90,7 +90,6 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_embed_jpg(A4PDF_Generator *g,
                                                 const char *fname,
                                                 A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    // FIXME, convert to std::expected once it exists.
     auto res = gen->embed_jpg(fname);
     if(res) {
         *iid = res.value();

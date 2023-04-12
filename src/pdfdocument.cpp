@@ -28,6 +28,10 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 
+namespace A4PDF {
+
+namespace {
+
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
     if(face) {
@@ -35,8 +39,6 @@ FT_Error guarded_face_close(FT_Face face) {
     }
     return 0;
 }
-
-namespace {
 
 const char PDF_header[] = "%PDF-1.7\n\xe5\xf6\xc4\xd6\n";
 
@@ -110,8 +112,8 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::expected<std::string, A4PDF::ErrorCode>
-build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
+rvoe<std::string> build_subset_width_array(FT_Face face,
+                                           const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
@@ -183,8 +185,6 @@ compute_children(const std::vector<A4PDF::Outline> &outlines) {
 }
 
 } // namespace
-
-namespace A4PDF {
 
 const std::array<const char *, 4> rendering_intent_names{
     "RelativeColorimetric",
@@ -288,7 +288,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-std::expected<A4PDF_IccColorSpaceId, ErrorCode> PdfDocument::load_icc_file(const char *fname) {
+rvoe<A4PDF_IccColorSpaceId> PdfDocument::load_icc_file(const char *fname) {
     ERC(contents, load_file(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
@@ -328,7 +328,7 @@ void PdfDocument::pad_subset_fonts() {
     }
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file(FILE *output_file) {
+rvoe<NoReturnValue> PdfDocument::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;
     try {
@@ -341,7 +341,7 @@ std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file(FILE *output_
     }
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file_impl() {
+rvoe<NoReturnValue> PdfDocument::write_to_file_impl() {
     ERCV(write_header());
     auto page_objects = write_pages();
     ERCV(create_catalog(page_objects));
@@ -408,8 +408,7 @@ std::vector<int32_t> PdfDocument::write_pages() {
     return page_objects;
 }
 
-std::expected<NoReturnValue, ErrorCode>
-PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
+rvoe<NoReturnValue> PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
     const int32_t pages_obj_num = (int32_t)document_objects.size() - 1;
     std::string buf;
     std::string outline;
@@ -429,8 +428,7 @@ PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
     return NoReturnValue{};
 }
 
-std::expected<int32_t, ErrorCode>
-PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
+rvoe<int32_t> PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
     const auto otree = compute_children(outlines);
     ERC(limits, write_outline_tree(page_objects, otree, -1));
     std::string buf = fmt::format(R"(<<
@@ -444,7 +442,7 @@ PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-std::expected<OutlineLimits, ErrorCode>
+rvoe<OutlineLimits>
 PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
                                 const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
                                 int32_t node_id) {
@@ -510,7 +508,7 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
     return limits;
 }
 
-std::expected<NoReturnValue, ErrorCode>
+rvoe<NoReturnValue>
 PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -531,7 +529,7 @@ PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &object_off
     return write_bytes(buf);
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_trailer(int64_t xref_offset) {
+rvoe<NoReturnValue> PdfDocument::write_trailer(int64_t xref_offset) {
     const int32_t info = 1;                           // Info object is the first printed.
     const int32_t root = document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
@@ -553,7 +551,7 @@ startxref
     return write_bytes(buf);
 }
 
-std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
+rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
     std::vector<uint64_t> object_offsets;
     for(size_t i = 0; i < document_objects.size(); ++i) {
         const auto &obj = document_objects[i];
@@ -594,8 +592,8 @@ std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
     return object_offsets;
 }
 
-std::expected<NoReturnValue, ErrorCode>
-PdfDocument::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
+rvoe<NoReturnValue> PdfDocument::write_subset_font_data(int32_t object_num,
+                                                        const DelayedSubsetFontData &ssfont) {
     const auto &font = fonts.at(ssfont.fid.id);
     ERC(subset_font,
         font.subsets.generate_subset(
@@ -693,11 +691,11 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
     assert(subset_glyphs.size() == SPACE + 1);
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_subset_font(int32_t object_num,
-                                                                       const FontThingy &font,
-                                                                       int32_t subset,
-                                                                       int32_t font_descriptor_obj,
-                                                                       int32_t tounicode_obj) {
+rvoe<NoReturnValue> PdfDocument::write_subset_font(int32_t object_num,
+                                                   const FontThingy &font,
+                                                   int32_t subset,
+                                                   int32_t font_descriptor_obj,
+                                                   int32_t tounicode_obj) {
     auto face = font.fontdata.face.get();
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
@@ -724,8 +722,9 @@ std::expected<NoReturnValue, ErrorCode> PdfDocument::write_subset_font(int32_t o
     return NoReturnValue{};
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_finished_object(
-    int32_t object_number, std::string_view dict_data, std::string_view stream_data) {
+rvoe<NoReturnValue> PdfDocument::write_finished_object(int32_t object_number,
+                                                       std::string_view dict_data,
+                                                       std::string_view stream_data) {
     std::string buf;
     auto appender = std::back_inserter(buf);
     fmt::format_to(appender, "{} 0 obj\n", object_number);
@@ -779,7 +778,7 @@ A4PDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
     return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_bytes(const char *buf, size_t buf_size) {
+rvoe<NoReturnValue> PdfDocument::write_bytes(const char *buf, size_t buf_size) {
     if(fwrite(buf, 1, buf_size, ofile) != buf_size) {
         perror(nullptr);
         return std::unexpected(ErrorCode::FileWriteError);
@@ -787,11 +786,11 @@ std::expected<NoReturnValue, ErrorCode> PdfDocument::write_bytes(const char *buf
     return NoReturnValue{};
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::write_header() {
+rvoe<NoReturnValue> PdfDocument::write_header() {
     return write_bytes(PDF_header, strlen(PDF_header));
 }
 
-std::expected<NoReturnValue, ErrorCode> PdfDocument::generate_info_object() {
+rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     FullPDFObject obj_data;
     obj_data.dictionary = "<<\n";
     if(!opts.title.empty()) {
@@ -840,8 +839,7 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
-std::expected<SubsetGlyph, ErrorCode> PdfDocument::get_subset_glyph(A4PDF_FontId fid,
-                                                                    uint32_t glyph) {
+rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(glyph));
     fss.ss.fid = fid;
@@ -859,7 +857,7 @@ std::expected<SubsetGlyph, ErrorCode> PdfDocument::get_subset_glyph(A4PDF_FontId
     return fss;
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::load_image(const char *fname) {
+rvoe<A4PDF_ImageId> PdfDocument::load_image(const char *fname) {
     ERC(image, load_image_file(fname));
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));
@@ -874,13 +872,12 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::load_image(const char *fnam
     }
 }
 
-std::expected<A4PDF_ImageId, ErrorCode>
-PdfDocument::add_image_object(int32_t w,
-                              int32_t h,
-                              int32_t bits_per_component,
-                              ColorspaceType colorspace,
-                              std::optional<int32_t> smask_id,
-                              std::string_view uncompressed_bytes) {
+rvoe<A4PDF_ImageId> PdfDocument::add_image_object(int32_t w,
+                                                  int32_t h,
+                                                  int32_t bits_per_component,
+                                                  ColorspaceType colorspace,
+                                                  std::optional<int32_t> smask_id,
+                                                  std::string_view uncompressed_bytes) {
     std::string buf;
     auto app = std::back_inserter(buf);
     ERC(compressed, flate_compress(uncompressed_bytes));
@@ -917,7 +914,7 @@ PdfDocument::add_image_object(int32_t w,
     return A4PDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_mono_image(const mono_image &image) {
+rvoe<A4PDF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj, add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, *image.alpha));
@@ -926,7 +923,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_mono_image(const mo
     return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_rgb_image(const rgb_image &image) {
+rvoe<A4PDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
@@ -952,7 +949,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_rgb_image(const rgb
     }
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_gray_image(const gray_image &image) {
+rvoe<A4PDF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
     std::optional<int32_t> smask_id;
 
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
@@ -964,7 +961,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_gray_image(const gr
     return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_cmyk_image(const cmyk_image &image) {
+rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
     std::optional<int32_t> smask_id;
     ColorspaceType cs;
     if(image.icc) {
@@ -985,7 +982,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_cmyk_image(const cm
     return add_image_object(image.w, image.h, 8, cs, smask_id, image.pixels);
 }
 
-std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::embed_jpg(const char *fname) {
+rvoe<A4PDF_ImageId> PdfDocument::embed_jpg(const char *fname) {
     ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -1135,7 +1132,7 @@ PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoin
     return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
-std::expected<A4PDF_FontId, ErrorCode> PdfDocument::load_font(FT_Library ft, const char *fname) {
+rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const char *fname) {
     ERC(fontdata, load_and_parse_truetype_font(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 std::move(fontdata)};

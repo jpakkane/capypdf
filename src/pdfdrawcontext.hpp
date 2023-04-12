@@ -175,11 +175,11 @@ public:
     double get_form_xobj_h() const { return form_xobj_h; }
 
 private:
-    std::expected<NoReturnValue, ErrorCode> serialize_charsequence(const std::vector<CharItem> &charseq,
-                                std::string &serialisation,
-                                A4PDF_FontId &current_font,
-                                int32_t &current_subset,
-                                double &current_pointsize);
+    rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
+                                               std::string &serialisation,
+                                               A4PDF_FontId &current_font,
+                                               int32_t &current_subset,
+                                               double &current_pointsize);
     ErrorCode utf8_to_kerned_chars(std::string_view utf8_text,
                                    std::vector<CharItem> &charseq,
                                    A4PDF_FontId fid);

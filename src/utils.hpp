@@ -20,16 +20,17 @@
 #include <string>
 #include <expected>
 #include <cstdio>
+#include <string_view>
 
 namespace A4PDF {
 
-std::expected<std::string, ErrorCode> flate_compress(std::string_view data);
+rvoe<std::string> flate_compress(std::string_view data);
 
-std::expected<std::string, ErrorCode> load_file(const char *fname);
+rvoe<std::string> load_file(const char *fname);
 
-std::expected<std::string, ErrorCode> load_file(FILE *f);
+rvoe<std::string> load_file(FILE *f);
 
-std::expected<std::string, ErrorCode> utf8_to_pdfmetastr(std::string_view input);
+rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
 
 std::string current_date_string();
 

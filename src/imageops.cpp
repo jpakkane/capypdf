@@ -342,7 +342,7 @@ RasterImage load_tif_file(const char *fname) {
 
 } // namespace
 
-std::expected<jpg_image, ErrorCode> load_jpg(const char *fname) {
+rvoe<jpg_image> load_jpg(const char *fname) {
     jpg_image im;
     ERC(contents, load_file(fname));
     im.file_contents = std::move(contents);
@@ -365,7 +365,7 @@ std::expected<jpg_image, ErrorCode> load_jpg(const char *fname) {
     return std::move(im);
 }
 
-std::expected<RasterImage, ErrorCode> load_image_file(const char *fname) {
+rvoe<RasterImage> load_image_file(const char *fname) {
     auto extension = std::filesystem::path(fname).extension();
     if(extension == ".png" || extension == ".PNG") {
         return load_png_file(fname);

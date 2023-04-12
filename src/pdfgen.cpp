@@ -49,7 +49,7 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-std::expected<std::unique_ptr<PdfGen>, ErrorCode> PdfGen::construct(const char *ofname,
+rvoe<std::unique_ptr<PdfGen> > PdfGen::construct(const char *ofname,
                                                                     const PdfGenerationData &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
@@ -117,7 +117,7 @@ ErrorCode PdfGen::write() {
     return ErrorCode::NoError;
 }
 
-std::expected<PageId, ErrorCode> PdfGen::add_page(PdfDrawContext &ctx) {
+rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
         return std::unexpected(ErrorCode::InvalidDrawContextType);
     }
@@ -142,7 +142,7 @@ ErrorCode PdfGen::add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxo
     return ErrorCode::NoError;
 }
 
-std::expected<PatternId, ErrorCode> PdfGen::add_pattern(ColorPatternBuilder &cp) {
+rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
     if(cp.pctx.draw_context_type() != A4PDF_Color_Tiling_Pattern_Context) {
         return std::unexpected(ErrorCode::InvalidDrawContextType);
     }
@@ -185,8 +185,7 @@ ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
         PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Color_Tiling_Pattern_Context}, w, h};
 }
 
-std::expected<double, ErrorCode>
-PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
+rvoe<double> PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
     double w = 0;
     errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");

@@ -21,6 +21,7 @@
 #include <pdfcolorconverter.hpp>
 #include <imageops.hpp>
 
+#include <string_view>
 #include <vector>
 #include <expected>
 #include <string>
@@ -173,7 +174,7 @@ public:
     friend class PdfGen;
     friend class PdfDrawContext;
 
-    std::expected<NoReturnValue, ErrorCode> write_to_file(FILE *output_file);
+    rvoe<NoReturnValue> write_to_file(FILE *output_file);
 
     // Pages
     void add_page(std::string resource_data, std::string page_data);
@@ -184,17 +185,17 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
-    std::expected<A4PDF_IccColorSpaceId, ErrorCode> load_icc_file(const char *fname);
+    rvoe<A4PDF_IccColorSpaceId> load_icc_file(const char *fname);
 
     // Fonts
-    std::expected<A4PDF_FontId, ErrorCode> load_font(FT_Library ft, const char *fname);
-    std::expected<SubsetGlyph, ErrorCode> get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
+    rvoe<A4PDF_FontId> load_font(FT_Library ft, const char *fname);
+    rvoe<SubsetGlyph> get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
-    std::expected<A4PDF_ImageId, ErrorCode> load_image(const char *fname);
-    std::expected<A4PDF_ImageId, ErrorCode> embed_jpg(const char *fname);
+    rvoe<A4PDF_ImageId> load_image(const char *fname);
+    rvoe<A4PDF_ImageId> embed_jpg(const char *fname);
 
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
@@ -217,7 +218,7 @@ public:
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
 private:
-    std::expected<NoReturnValue, ErrorCode> write_to_file_impl();
+    rvoe<NoReturnValue> write_to_file_impl();
 
     int32_t add_object(ObjectType object);
 
@@ -228,52 +229,51 @@ private:
     std::optional<A4PDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
     A4PDF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
 
-    std::expected<std::vector<uint64_t>, ErrorCode> write_objects();
+    rvoe<std::vector<uint64_t>> write_objects();
 
-    std::expected<NoReturnValue, ErrorCode> create_catalog(const std::vector<int32_t> &);
-    std::expected<int32_t, ErrorCode> create_outlines(const std::vector<int32_t> &);
+    rvoe<NoReturnValue> create_catalog(const std::vector<int32_t> &);
+    rvoe<int32_t> create_outlines(const std::vector<int32_t> &);
     std::vector<int32_t> write_pages();
-    std::expected<NoReturnValue, ErrorCode> write_header();
-    std::expected<NoReturnValue, ErrorCode> generate_info_object();
-    std::expected<NoReturnValue, ErrorCode>
-    write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
-    std::expected<NoReturnValue, ErrorCode> write_trailer(int64_t xref_offset);
+    rvoe<NoReturnValue> write_header();
+    rvoe<NoReturnValue> generate_info_object();
+    rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
+    rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
 
-    std::expected<NoReturnValue, ErrorCode> write_finished_object(int32_t object_number,
-                                                                  std::string_view dict_data,
-                                                                  std::string_view stream_data);
-    std::expected<NoReturnValue, ErrorCode> write_bytes(const char *buf,
-                                                        size_t buf_size); // With error checking.
-    std::expected<NoReturnValue, ErrorCode> write_bytes(std::string_view view) {
+    rvoe<NoReturnValue> write_finished_object(int32_t object_number,
+                                              std::string_view dict_data,
+                                              std::string_view stream_data);
+    rvoe<NoReturnValue> write_bytes(const char *buf,
+                                    size_t buf_size); // With error checking.
+    rvoe<NoReturnValue> write_bytes(std::string_view view) {
         return write_bytes(view.data(), view.size());
     }
 
-    std::expected<NoReturnValue, ErrorCode>
-    write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
+    rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
+                                               const DelayedSubsetFontData &ssfont);
     void write_subset_font_descriptor(int32_t object_num,
                                       const TtfFont &font,
                                       int32_t font_data_obj,
                                       int32_t subset_number);
     void write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
-    std::expected<NoReturnValue, ErrorCode> write_subset_font(int32_t object_num,
-                                                              const FontThingy &font,
-                                                              int32_t subset,
-                                                              int32_t font_descriptor_obj,
-                                                              int32_t tounicode_obj);
+    rvoe<NoReturnValue> write_subset_font(int32_t object_num,
+                                          const FontThingy &font,
+                                          int32_t subset,
+                                          int32_t font_descriptor_obj,
+                                          int32_t tounicode_obj);
 
-    std::expected<A4PDF_ImageId, ErrorCode> add_image_object(int32_t w,
-                                                             int32_t h,
-                                                             int32_t bits_per_component,
-                                                             ColorspaceType colorspace,
-                                                             std::optional<int32_t> smask_id,
-                                                             std::string_view uncompressed_bytes);
+    rvoe<A4PDF_ImageId> add_image_object(int32_t w,
+                                         int32_t h,
+                                         int32_t bits_per_component,
+                                         ColorspaceType colorspace,
+                                         std::optional<int32_t> smask_id,
+                                         std::string_view uncompressed_bytes);
 
-    std::expected<A4PDF_ImageId, ErrorCode> process_rgb_image(const rgb_image &image);
-    std::expected<A4PDF_ImageId, ErrorCode> process_gray_image(const gray_image &image);
-    std::expected<A4PDF_ImageId, ErrorCode> process_mono_image(const mono_image &image);
-    std::expected<A4PDF_ImageId, ErrorCode> process_cmyk_image(const cmyk_image &image);
+    rvoe<A4PDF_ImageId> process_rgb_image(const rgb_image &image);
+    rvoe<A4PDF_ImageId> process_gray_image(const gray_image &image);
+    rvoe<A4PDF_ImageId> process_mono_image(const mono_image &image);
+    rvoe<A4PDF_ImageId> process_cmyk_image(const cmyk_image &image);
 
-    std::expected<OutlineLimits, ErrorCode>
+    rvoe<OutlineLimits>
     write_outline_tree(const std::vector<int32_t> &page_objects,
                        const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
