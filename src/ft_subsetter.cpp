@@ -27,6 +27,8 @@
 #include <variant>
 #include <expected>
 
+namespace A4PDF {
+
 namespace {
 
 const uint32_t SPACE = ' ';
@@ -57,10 +59,10 @@ uint32_t ttf_checksum(std::string_view data) {
     return checksum;
 }
 
-std::expected<std::string_view, A4PDF::ErrorCode> get_substring(const char *buf,
-                                                                const int64_t bufsize,
-                                                                const int64_t offset,
-                                                                const int64_t substr_size) {
+rvoe<std::string_view> get_substring(const char *buf,
+                                     const int64_t bufsize,
+                                     const int64_t offset,
+                                     const int64_t substr_size) {
     if(!buf) {
         return std::unexpected(A4PDF::ErrorCode::ArgIsNull);
     }
@@ -79,29 +81,25 @@ std::expected<std::string_view, A4PDF::ErrorCode> get_substring(const char *buf,
     return std::string_view(buf + offset, substr_size);
 }
 
-std::expected<std::string_view, A4PDF::ErrorCode>
+rvoe<std::string_view>
 get_substring(std::string_view sv, const size_t offset, const int64_t substr_size) {
     return get_substring(sv.data(), sv.size(), offset, substr_size);
 }
 
 template<typename T>
-std::expected<A4PDF::NoReturnValue, A4PDF::ErrorCode>
-safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
+rvoe<A4PDF::NoReturnValue> safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
     ERC(validated_area, get_substring(source, offset, sizeof(T)));
     memcpy(obj, validated_area.data(), sizeof(T));
     return A4PDF::NoReturnValue{};
 }
 
-template<typename T>
-std::expected<T, A4PDF::ErrorCode> extract(std::string_view bf, const size_t offset) {
+template<typename T> rvoe<T> extract(std::string_view bf, const size_t offset) {
     T obj;
     ERCV(safe_memcpy(&obj, bf, offset));
     return obj;
 }
 
 } // namespace
-
-namespace A4PDF {
 
 #pragma pack(push, r1, 1)
 
@@ -398,8 +396,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-std::expected<TTMaxp10, A4PDF::ErrorCode> load_maxp(const std::vector<TTDirEntry> &dir,
-                                                    std::string_view buf) {
+rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
         fprintf(stderr, "Maxp table missing.\n");
@@ -419,8 +416,7 @@ std::expected<TTMaxp10, A4PDF::ErrorCode> load_maxp(const std::vector<TTDirEntry
     return maxp;
 }
 
-std::expected<TTHead, A4PDF::ErrorCode> load_head(const std::vector<TTDirEntry> &dir,
-                                                  std::string_view buf) {
+rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
     if(!e) {
         return std::unexpected(A4PDF::ErrorCode::MalformedFontFile);
@@ -433,10 +429,10 @@ std::expected<TTHead, A4PDF::ErrorCode> load_head(const std::vector<TTDirEntry> 
     return head;
 }
 
-std::expected<std::vector<int32_t>, ErrorCode> load_loca(const std::vector<TTDirEntry> &dir,
-                                                         std::string_view buf,
-                                                         uint16_t index_to_loc_format,
-                                                         uint16_t num_glyphs) {
+rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
+                                     std::string_view buf,
+                                     uint16_t index_to_loc_format,
+                                     uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
     if(!loca) {
         return std::unexpected(ErrorCode::MalformedFontFile);
@@ -466,8 +462,7 @@ std::expected<std::vector<int32_t>, ErrorCode> load_loca(const std::vector<TTDir
     return offsets;
 }
 
-std::expected<TTHhea, ErrorCode> load_hhea(const std::vector<TTDirEntry> &dir,
-                                           std::string_view buf) {
+rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
         return std::unexpected(ErrorCode::MalformedFontFile);
@@ -488,10 +483,10 @@ std::expected<TTHhea, ErrorCode> load_hhea(const std::vector<TTDirEntry> &dir,
     return hhea;
 }
 
-std::expected<TTHmtx, ErrorCode> load_hmtx(const std::vector<TTDirEntry> &dir,
-                                           std::string_view buf,
-                                           uint16_t num_glyphs,
-                                           uint16_t num_hmetrics) {
+rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
+                       std::string_view buf,
+                       uint16_t num_glyphs,
+                       uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
     if(!e) {
         return std::unexpected(ErrorCode::MalformedFontFile);
@@ -521,10 +516,10 @@ std::expected<TTHmtx, ErrorCode> load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-std::expected<std::vector<std::string>, ErrorCode> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                                               std::string_view buf,
-                                                               uint16_t num_glyphs,
-                                                               const std::vector<int32_t> &loca) {
+rvoe<std::vector<std::string>> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                           std::string_view buf,
+                                           uint16_t num_glyphs,
+                                           const std::vector<int32_t> &loca) {
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
@@ -543,7 +538,7 @@ std::expected<std::vector<std::string>, ErrorCode> load_glyphs(const std::vector
     return glyph_data;
 }
 
-std::expected<std::string, ErrorCode>
+rvoe<std::string>
 load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const char *tag) {
     auto e = find_entry(dir, tag);
     if(!e) {
@@ -565,7 +560,7 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-std::expected<std::vector<std::string>, A4PDF::ErrorCode>
+rvoe<std::vector<std::string>>
 subset_glyphs(FT_Face face,
               const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
@@ -769,7 +764,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     return buf;
 }
 
-std::expected<int16_t, A4PDF::ErrorCode> num_contours(std::string_view buf) {
+rvoe<int16_t> num_contours(std::string_view buf) {
     ERC(num_contours, extract<int16_t>(buf, 0));
     byte_swap(num_contours);
     return num_contours;
@@ -777,7 +772,7 @@ std::expected<int16_t, A4PDF::ErrorCode> num_contours(std::string_view buf) {
 
 } // namespace
 
-std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view buf) {
+rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     TrueTypeFontFile tf;
     if(buf.size() < sizeof(TTOffsetTable)) {
         return std::unexpected(ErrorCode::MalformedFontFile);
@@ -902,20 +897,18 @@ std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view 
     return tf;
 }
 
-std::expected<std::string, ErrorCode>
-generate_font(FT_Face face,
-              std::string_view buf,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+rvoe<std::string> generate_font(FT_Face face,
+                                std::string_view buf,
+                                const std::vector<TTGlyphs> &glyphs,
+                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     ERC(source, parse_truetype_font(buf));
     return generate_font(face, source, glyphs, comp_mapping);
 }
 
-std::expected<std::string, ErrorCode>
-generate_font(FT_Face face,
-              const TrueTypeFontFile &source,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+rvoe<std::string> generate_font(FT_Face face,
+                                const TrueTypeFontFile &source,
+                                const std::vector<TTGlyphs> &glyphs,
+                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(face, source, glyphs, comp_mapping));
@@ -939,7 +932,7 @@ generate_font(FT_Face face,
     return bytes;
 }
 
-std::expected<TrueTypeFontFile, ErrorCode> load_and_parse_truetype_font(const char *fname) {
+rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         return std::unexpected(ErrorCode::CouldNotOpenFile);
@@ -956,12 +949,12 @@ std::expected<TrueTypeFontFile, ErrorCode> load_and_parse_truetype_font(const ch
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});
 }
 
-std::expected<bool, ErrorCode> is_composite_glyph(std::string_view buf) {
+rvoe<bool> is_composite_glyph(std::string_view buf) {
     ERC(numc, num_contours(buf));
     return numc < 0;
 }
 
-std::expected<std::vector<uint32_t>, ErrorCode> composite_subglyphs(std::string_view buf) {
+rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
     std::vector<uint32_t> subglyphs;
     assert(num_contours(buf).value() < 0);
     std::string_view composite_data = std::string_view(buf).substr(5 * sizeof(int16_t));
@@ -987,7 +980,7 @@ std::expected<std::vector<uint32_t>, ErrorCode> composite_subglyphs(std::string_
     return subglyphs;
 }
 
-std::expected<NoReturnValue, ErrorCode>
+rvoe<A4PDF::NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);

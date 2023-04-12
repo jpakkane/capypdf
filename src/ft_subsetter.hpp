@@ -20,6 +20,7 @@
 #include <errorhandling.hpp>
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <variant>
 #include <unordered_map>
@@ -181,26 +182,24 @@ struct TrueTypeFontFile {
     }
 };
 
-std::expected<bool, ErrorCode> is_composite_glyph(std::string_view buf);
-std::expected<std::vector<uint32_t>, ErrorCode> composite_subglyphs(std::string_view buf);
-std::expected<A4PDF::NoReturnValue, ErrorCode>
+rvoe<bool> is_composite_glyph(std::string_view buf);
+rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf);
+rvoe<A4PDF::NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping);
 
-std::expected<std::string, ErrorCode>
-generate_font(FT_Face face,
-              const TrueTypeFontFile &source,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+rvoe<std::string> generate_font(FT_Face face,
+                                const TrueTypeFontFile &source,
+                                const std::vector<TTGlyphs> &glyphs,
+                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-std::expected<std::string, ErrorCode>
-generate_font(FT_Face face,
-              std::string_view buf,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+rvoe<std::string> generate_font(FT_Face face,
+                                std::string_view buf,
+                                const std::vector<TTGlyphs> &glyphs,
+                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view buf);
-std::expected<TrueTypeFontFile, ErrorCode> load_and_parse_truetype_font(const char *fname);
+rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf);
+rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname);
 
 uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g);
 

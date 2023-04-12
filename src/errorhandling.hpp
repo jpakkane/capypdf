@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <expected>
 
 namespace A4PDF {
 
@@ -57,6 +58,9 @@ enum class ErrorCode : int32_t {
 };
 
 const char *error_text(ErrorCode ec) noexcept;
+
+// Return value or error.
+template<typename T> using rvoe = std::expected<T, ErrorCode>;
 
 } // namespace A4PDF
 
