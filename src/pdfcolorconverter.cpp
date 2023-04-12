@@ -43,12 +43,12 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fna
         cmsHPROFILE h =
             cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
         if(!h) {
-            return std::unexpected(ErrorCode::InvalidICCProfile);
+            RETERR(ErrorCode::InvalidICCProfile);
         }
         conv.rgb_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 3) {
-            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
+            RETERR(ErrorCode::IncorrectColorChannelCount);
         }
     } else {
         conv.rgb_profile.h = cmsCreate_sRGBProfile();
@@ -59,12 +59,12 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fna
         auto h =
             cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
         if(!h) {
-            return std::unexpected(ErrorCode::InvalidICCProfile);
+            RETERR(ErrorCode::InvalidICCProfile);
         }
         conv.gray_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 1) {
-            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
+            RETERR(ErrorCode::IncorrectColorChannelCount);
         }
     } else {
         auto curve = cmsBuildGamma(nullptr, 1.0);
@@ -77,12 +77,12 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fna
         auto h =
             cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());
         if(!h) {
-            return std::unexpected(ErrorCode::InvalidICCProfile);
+            RETERR(ErrorCode::InvalidICCProfile);
         }
         conv.cmyk_profile.h = h;
         auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
         if(num_channels != 4) {
-            return std::unexpected(ErrorCode::IncorrectColorChannelCount);
+            RETERR(ErrorCode::IncorrectColorChannelCount);
         }
     } else {
         // Not having a CMYK profile is fine, but any call to CMYK color conversions
@@ -110,7 +110,7 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
 
 rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
     if(!cmyk_profile.h) {
-        return std::unexpected(ErrorCode::NoCmykProfile);
+        RETERR(ErrorCode::NoCmykProfile);
     }
     DeviceCMYKColor cmyk;
     double buf[4]; // PDF uses values [0, 1] but littlecms seems to use [0, 100].
@@ -146,7 +146,7 @@ std::string PdfColorConverter::rgb_pixels_to_gray(std::string_view rgb_data) {
 
 rvoe<std::string> PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_data) {
     if(!cmyk_profile.h) {
-        return std::unexpected(ErrorCode::NoCmykProfile);
+        RETERR(ErrorCode::NoCmykProfile);
     }
     assert(rgb_data.size() % 3 == 0);
     const int32_t num_pixels = (int32_t)rgb_data.size() / 3;
@@ -165,7 +165,7 @@ rvoe<std::string> PdfColorConverter::rgb_pixels_to_cmyk(std::string_view rgb_dat
 rvoe<int> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
     cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
     if(!h) {
-        return std::unexpected(ErrorCode::InvalidICCProfile);
+        RETERR(ErrorCode::InvalidICCProfile);
     }
     auto num_channels = (int32_t)cmsChannelsOf(cmsGetColorSpace(h));
     cmsCloseProfile(h);

@@ -37,7 +37,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
 
     auto ret = deflateInit(&strm, Z_BEST_COMPRESSION);
     if(ret != Z_OK) {
-        return std::unexpected(ErrorCode::CompressionFailure);
+        RETERR(ErrorCode::CompressionFailure);
     }
     std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
     strm.avail_in = data.size();
@@ -55,7 +55,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
         compressed += buf;
     } while(strm.avail_out == 0);
     if(strm.avail_in != 0) { /* all input will be used */
-        return std::unexpected(ErrorCode::CompressionFailure);
+        RETERR(ErrorCode::CompressionFailure);
     }
     /* done when last data in file processed */
     if(ret != Z_STREAM_END) {
@@ -69,7 +69,7 @@ rvoe<std::string> load_file(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::CouldNotOpenFile);
+        RETERR(ErrorCode::CouldNotOpenFile);
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
     return load_file(f);
@@ -83,7 +83,7 @@ rvoe<std::string> load_file(FILE *f) {
     if(fread(contents.data(), 1, fsize, f) != fsize) {
         fclose(f);
         perror(nullptr);
-        return std::unexpected(ErrorCode::FileReadError);
+        RETERR(ErrorCode::FileReadError);
     }
     return contents;
 }
@@ -97,7 +97,7 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     auto cd = iconv_open("UTF-16BE", "UTF-8"); // PDF 1.7 spec 7.9.2.2
     if(errno != 0) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::IconvError);
+        RETERR(ErrorCode::IconvError);
     }
     auto in_ptr = (char *)input.data();
     auto out_ptr = (char *)u16buf.data();
@@ -107,14 +107,14 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     iconv_close(cd);
     if(errno != 0) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::IconvError);
+        RETERR(ErrorCode::IconvError);
     }
     if(iconv_result == (size_t)-1) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::IconvError);
+        RETERR(ErrorCode::IconvError);
     }
     if(in_bytes != 0) {
-        return std::unexpected(ErrorCode::BadUtf8);
+        RETERR(ErrorCode::BadUtf8);
     }
 
     auto bi = std::back_inserter(encoded);

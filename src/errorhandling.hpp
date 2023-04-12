@@ -100,3 +100,5 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
             return std::unexpected(placeholder_name_variant.error());                              \
         }                                                                                          \
     }
+
+#define RETERR(code) return std::unexpected(code)

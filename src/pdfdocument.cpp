@@ -123,7 +123,7 @@ rvoe<std::string> build_subset_width_array(FT_Face face,
         if(glyph_id != 0) {
             auto error = FT_Load_Glyph(face, glyph_id, load_flags);
             if(error != 0) {
-                return std::unexpected(A4PDF::ErrorCode::FreeTypeError);
+                RETERR(A4PDF::ErrorCode::FreeTypeError);
             }
             horiadvance = face->glyph->metrics.horiAdvance;
         }
@@ -586,7 +586,7 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
                                    ssfont.subfont_descriptor_obj,
                                    ssfont.subfont_cmap_obj));
         } else {
-            return std::unexpected(ErrorCode::Unreachable);
+            RETERR(ErrorCode::Unreachable);
         }
     }
     return object_offsets;
@@ -781,7 +781,7 @@ A4PDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
 rvoe<NoReturnValue> PdfDocument::write_bytes(const char *buf, size_t buf_size) {
     if(fwrite(buf, 1, buf_size, ofile) != buf_size) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::FileWriteError);
+        RETERR(ErrorCode::FileWriteError);
     }
     return NoReturnValue{};
 }
@@ -868,7 +868,7 @@ rvoe<A4PDF_ImageId> PdfDocument::load_image(const char *fname) {
     } else if(std::holds_alternative<cmyk_image>(image)) {
         return process_cmyk_image(std::get<cmyk_image>(image));
     } else {
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
 }
 
@@ -939,13 +939,13 @@ rvoe<A4PDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     }
     case A4PDF_DEVICE_CMYK: {
         if(cmyk_profile_obj == -1) {
-            return std::unexpected(ErrorCode::NoCmykProfile);
+            RETERR(ErrorCode::NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
         return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, converted_pixels);
     }
     default:
-        return std::unexpected(ErrorCode::Unreachable);
+        RETERR(ErrorCode::Unreachable);
     }
 }
 
@@ -1141,13 +1141,13 @@ rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const char *fname) {
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!
-        return std::unexpected(ErrorCode::FreeTypeError);
+        RETERR(ErrorCode::FreeTypeError);
     }
     ttf.face.reset(face);
 
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     if(strcmp(font_format,
               "TrueType")) { // != 0 &&
@@ -1158,7 +1158,7 @@ rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const char *fname) {
                 "is a %s font.",
                 fname,
                 font_format);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     FT_Bytes base = nullptr;
     error = FT_OpenType_Validate(face, FT_VALIDATE_BASE, &base, nullptr, nullptr, nullptr, nullptr);
@@ -1170,7 +1170,7 @@ rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const char *fname) {
                 "%d.",
                 fname,
                 error);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     auto font_source_id = fonts.size();
     ERC(fss, FontSubsetter::construct(fname, face));

@@ -49,12 +49,11 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-rvoe<std::unique_ptr<PdfGen> > PdfGen::construct(const char *ofname,
-                                                                    const PdfGenerationData &d) {
+rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const char *ofname, const PdfGenerationData &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {
-        return std::unexpected(ErrorCode::FreeTypeError);
+        RETERR(ErrorCode::FreeTypeError);
     }
     std::filesystem::path opath(ofname);
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
@@ -119,7 +118,7 @@ ErrorCode PdfGen::write() {
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
-        return std::unexpected(ErrorCode::InvalidDrawContextType);
+        RETERR(ErrorCode::InvalidDrawContextType);
     }
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
@@ -144,7 +143,7 @@ ErrorCode PdfGen::add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxo
 
 rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
     if(cp.pctx.draw_context_type() != A4PDF_Color_Tiling_Pattern_Context) {
-        return std::unexpected(ErrorCode::InvalidDrawContextType);
+        RETERR(ErrorCode::InvalidDrawContextType);
     }
     auto resources = cp.pctx.build_resource_dict();
     auto commands = cp.pctx.get_command_stream();
@@ -185,18 +184,19 @@ ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
         PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Color_Tiling_Pattern_Context}, w, h};
 }
 
-rvoe<double> PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
+rvoe<double>
+PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
     double w = 0;
     errno = 0;
     auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
     if(errno != 0) {
         perror(nullptr);
-        return std::unexpected(ErrorCode::IconvError);
+        RETERR(ErrorCode::IconvError);
     }
     std::unique_ptr<void, int (*)(void *)> iconvcloser(to_codepoint, iconv_close);
     FT_Face face = pdoc.fonts.at(pdoc.font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
-        return std::unexpected(ErrorCode::BuiltinFontNotSupported);
+        RETERR(ErrorCode::BuiltinFontNotSupported);
     }
 
     uint32_t previous_codepoint = -1;
@@ -218,7 +218,7 @@ rvoe<double> PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, do
         auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
         if(iconv_result == (size_t)-1 && errno != E2BIG) {
             perror(nullptr);
-            return std::unexpected(ErrorCode::IconvError);
+            RETERR(ErrorCode::IconvError);
         }
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
@@ -226,7 +226,7 @@ rvoe<double> PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, do
             const auto index_right = FT_Get_Char_Index(face, codepoint);
             auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
-                return std::unexpected(ErrorCode::FreeTypeError);
+                RETERR(ErrorCode::FreeTypeError);
             }
             if(kerning.x != 0) {
                 // None of the fonts I tested had kerning that Freetype recognized,

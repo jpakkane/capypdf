@@ -64,16 +64,16 @@ rvoe<std::string_view> get_substring(const char *buf,
                                      const int64_t offset,
                                      const int64_t substr_size) {
     if(!buf) {
-        return std::unexpected(A4PDF::ErrorCode::ArgIsNull);
+        RETERR(A4PDF::ErrorCode::ArgIsNull);
     }
     if(bufsize < 0 || offset < 0 || substr_size < 0) {
-        return std::unexpected(A4PDF::ErrorCode::IndexIsNegative);
+        RETERR(A4PDF::ErrorCode::IndexIsNegative);
     }
     if(offset > bufsize) {
-        return std::unexpected(A4PDF::ErrorCode::IndexOutOfBounds);
+        RETERR(A4PDF::ErrorCode::IndexOutOfBounds);
     }
     if(offset + substr_size > bufsize) {
-        return std::unexpected(A4PDF::ErrorCode::IndexOutOfBounds);
+        RETERR(A4PDF::ErrorCode::IndexOutOfBounds);
     }
     if(substr_size == 0) {
         return "";
@@ -400,16 +400,16 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view bu
     auto e = find_entry(dir, "maxp");
     if(!e) {
         fprintf(stderr, "Maxp table missing.\n");
-        return std::unexpected(A4PDF::ErrorCode::MalformedFontFile);
+        RETERR(A4PDF::ErrorCode::MalformedFontFile);
     }
     uint32_t version;
     safe_memcpy(&version, buf, e->offset);
     byte_swap(version);
     if(version != 1 << 16) {
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     if(e->length < sizeof(TTMaxp10)) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     ERC(maxp, extract<TTMaxp10>(buf, e->offset));
     maxp.swap_endian();
@@ -419,7 +419,7 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view bu
 rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "head");
     if(!e) {
-        return std::unexpected(A4PDF::ErrorCode::MalformedFontFile);
+        RETERR(A4PDF::ErrorCode::MalformedFontFile);
     }
     ERC(head, extract<TTHead>(buf, e->offset));
     head.swap_endian();
@@ -435,7 +435,7 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
                                      uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
     if(!loca) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     std::vector<int32_t> offsets;
     offsets.reserve(num_glyphs);
@@ -452,12 +452,12 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
             ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t)));
             byte_swap(offset);
             if(offset < 0) {
-                return std::unexpected(ErrorCode::IndexIsNegative);
+                RETERR(ErrorCode::IndexIsNegative);
             }
             offsets.push_back(offset);
         }
     } else {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     return offsets;
 }
@@ -465,20 +465,20 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
 rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
 
     TTHhea hhea;
     if(sizeof(TTHhea) != e->length) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     safe_memcpy(&hhea, buf, e->offset);
     hhea.swap_endian();
     if(hhea.version != 1 << 16) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     if(hhea.metric_data_format != 0) {
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     return hhea;
 }
@@ -489,10 +489,10 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
                        uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
     if(!e) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     if(num_hmetrics > num_glyphs) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     TTHmtx hmtx;
     for(uint16_t i = 0; i < num_hmetrics; ++i) {
@@ -507,7 +507,7 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
         const auto data_offset =
             e->offset + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t);
         if(data_offset < 0) {
-            return std::unexpected(ErrorCode::IndexIsNegative);
+            RETERR(ErrorCode::IndexIsNegative);
         }
         safe_memcpy(&lsb, buf, data_offset);
         byte_swap(lsb);
@@ -523,10 +523,10 @@ rvoe<std::vector<std::string>> load_glyphs(const std::vector<TTDirEntry> &dir,
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     if(e->offset > buf.size()) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     auto glyf_start = std::string_view(buf).substr(e->offset);
     for(uint16_t i = 0; i < num_glyphs; ++i) {
@@ -545,17 +545,17 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
         return "";
     }
     if(e->offset > buf.size()) {
-        return std::unexpected(ErrorCode::IndexOutOfBounds);
+        RETERR(ErrorCode::IndexOutOfBounds);
     }
     auto end_offset = size_t((int64_t)e->offset + (int64_t)e->length);
     if(end_offset >= buf.size()) {
-        return std::unexpected(ErrorCode::IndexOutOfBounds);
+        RETERR(ErrorCode::IndexOutOfBounds);
     }
     if(end_offset < 0) {
-        return std::unexpected(ErrorCode::IndexIsNegative);
+        RETERR(ErrorCode::IndexIsNegative);
     }
     if(end_offset <= e->offset) {
-        return std::unexpected(ErrorCode::IndexOutOfBounds);
+        RETERR(ErrorCode::IndexOutOfBounds);
     }
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
@@ -775,7 +775,7 @@ rvoe<int16_t> num_contours(std::string_view buf) {
 rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     TrueTypeFontFile tf;
     if(buf.size() < sizeof(TTOffsetTable)) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
     ERC(off, extract<TTOffsetTable>(buf, 0));
     off.swap_endian();
@@ -784,7 +784,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
         ERC(e, extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
         if(e.offset + e.length > buf.length()) {
-            return std::unexpected(ErrorCode::IndexOutOfBounds);
+            RETERR(ErrorCode::IndexOutOfBounds);
         }
 #ifndef A4FUZZING
         auto checksum = ttf_checksum(std::string_view(buf.data() + e.offset, e.length));
@@ -798,7 +798,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     tf.maxp = maxp;
 #ifdef A4FUZZING
     if(tf.maxp.num_glyphs > 1024) {
-        return std::unexpected(ErrorCode::MalformedFontFile);
+        RETERR(ErrorCode::MalformedFontFile);
     }
 #endif
     ERC(loca, load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
@@ -826,7 +826,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
         ERC(subtable_format, extract<uint16_t>(cmap, enc.subtable_offset));
         byte_swap(subtable_format);
         if(subtable_format >= 15) {
-            return std::unexpected(ErrorCode::UnsupportedFormat);
+            RETERR(ErrorCode::UnsupportedFormat);
         }
 #ifndef A4FUZZING
         if(subtable_format == 0) {
@@ -935,7 +935,7 @@ rvoe<std::string> generate_font(FT_Face face,
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
-        return std::unexpected(ErrorCode::CouldNotOpenFile);
+        RETERR(ErrorCode::CouldNotOpenFile);
     }
     fseek(f, 0, SEEK_END);
     const auto fsize = ftell(f);
@@ -943,7 +943,7 @@ rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname) {
     std::vector<char> buf(fsize, 0);
     if(fread(buf.data(), 1, fsize, f) != (size_t)fsize) {
         fclose(f);
-        return std::unexpected(ErrorCode::FileReadError);
+        RETERR(ErrorCode::FileReadError);
     }
     fclose(f);
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});

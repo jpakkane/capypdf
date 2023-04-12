@@ -40,7 +40,7 @@ std::expected<rgb_image, ErrorCode> load_rgb_png(png_image &image) {
         &image, NULL, result.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
         fprintf(stderr, "%s\n", image.message);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     return result;
 }
@@ -56,7 +56,7 @@ std::expected<rgb_image, ErrorCode> load_rgba_png(png_image &image) {
     png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
         fprintf(stderr, "%s\n", image.message);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     assert(buf.size() % 4 == 0);
     result.pixels.reserve(PNG_IMAGE_SIZE(image) * 3 / 4);
@@ -82,7 +82,7 @@ std::expected<gray_image, ErrorCode> load_ga_png(png_image &image) {
     png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
     if(PNG_IMAGE_FAILED(image)) {
         fprintf(stderr, "%s\n", image.message);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     result.pixels.reserve(PNG_IMAGE_SIZE(image) / 2);
     result.alpha->reserve(PNG_IMAGE_SIZE(image) / 2);
@@ -109,7 +109,7 @@ std::expected<png_data, ErrorCode> load_png_data(png_image &image) {
         &image, NULL, pd.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, pd.colormap.data());
     if(PNG_IMAGE_FAILED(image)) {
         fprintf(stderr, "%s\n", image.message);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     return std::move(pd);
 }
@@ -246,7 +246,7 @@ std::expected<RasterImage, ErrorCode> load_png_file(const char *fname) {
             return load_ga_png(image);
         } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
             if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
-                return std::unexpected(ErrorCode::UnsupportedFormat);
+                RETERR(ErrorCode::UnsupportedFormat);
             }
             if(image.colormap_entries == 2) {
                 return load_mono_png(image);
@@ -257,15 +257,15 @@ std::expected<RasterImage, ErrorCode> load_png_file(const char *fname) {
                     return std::move(*res);
                 }
             }
-            return std::unexpected(ErrorCode::NonBWColormap);
+            RETERR(ErrorCode::NonBWColormap);
         } else {
-            return std::unexpected(ErrorCode::UnsupportedFormat);
+            RETERR(ErrorCode::UnsupportedFormat);
         }
     } else {
         fprintf(stderr, "%s\n", image.message);
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
-    return std::unexpected(ErrorCode::Unreachable);
+    RETERR(ErrorCode::Unreachable);
 }
 
 RasterImage load_tif_file(const char *fname) {
@@ -356,7 +356,7 @@ rvoe<jpg_image> load_jpg(const char *fname) {
 
     jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
-        return std::unexpected(ErrorCode::UnsupportedFormat);
+        RETERR(ErrorCode::UnsupportedFormat);
     }
     jpeg_start_decompress(&cinfo);
     im.h = cinfo.image_height;
