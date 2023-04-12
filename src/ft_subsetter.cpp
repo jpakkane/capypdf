@@ -16,6 +16,7 @@
 
 #include <ft_subsetter.hpp>
 #include <fontsubsetter.hpp>
+#include <pdfmacros.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -25,6 +26,7 @@
 
 #include <stdexcept>
 #include <variant>
+#include <expected>
 
 namespace {
 
@@ -56,12 +58,12 @@ uint32_t ttf_checksum(std::string_view data) {
     return checksum;
 }
 
-std::string_view get_substring(const char *buf,
-                               const int64_t bufsize,
-                               const int64_t offset,
-                               const int64_t substr_size) {
+std::expected<std::string_view, A4PDF::ErrorCode> get_substring(const char *buf,
+                                                                const int64_t bufsize,
+                                                                const int64_t offset,
+                                                                const int64_t substr_size) {
     if(!buf) {
-        throw std::runtime_error("Nullptr passed to substringing.");
+        return std::unexpected(A4PDF::ErrorCode::ArgIsNull);
     }
     if(bufsize < 0 || offset < 0 || substr_size < 0) {
         throw std::runtime_error("An offset has gone negative.");
@@ -78,19 +80,23 @@ std::string_view get_substring(const char *buf,
     return std::string_view(buf + offset, substr_size);
 }
 
-std::string_view
+std::expected<std::string_view, A4PDF::ErrorCode>
 get_substring(std::string_view sv, const size_t offset, const int64_t substr_size) {
     return get_substring(sv.data(), sv.size(), offset, substr_size);
 }
 
-template<typename T> void safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
-    auto validated_area = get_substring(source, offset, sizeof(T));
+template<typename T>
+std::expected<A4PDF::NoReturnValue, A4PDF::ErrorCode>
+safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
+    ERC(validated_area, get_substring(source, offset, sizeof(T)));
     memcpy(obj, validated_area.data(), sizeof(T));
+    return A4PDF::NoReturnValue{};
 }
 
-template<typename T> T extract(std::string_view bf, const size_t offset) {
+template<typename T>
+std::expected<T, A4PDF::ErrorCode> extract(std::string_view bf, const size_t offset) {
     T obj;
-    safe_memcpy(&obj, bf, offset);
+    ERCV(safe_memcpy(&obj, bf, offset));
     return obj;
 }
 
@@ -391,32 +397,34 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-TTMaxp10 load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+std::expected<TTMaxp10, A4PDF::ErrorCode> load_maxp(const std::vector<TTDirEntry> &dir,
+                                                    std::string_view buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
-        throw std::runtime_error("Maxp table missing.");
+        fprintf(stderr, "Maxp table missing.\n");
+        return std::unexpected(A4PDF::ErrorCode::MalformedFontFile);
     }
     uint32_t version;
     safe_memcpy(&version, buf, e->offset);
     byte_swap(version);
     if(version != 1 << 16) {
-        throw std::runtime_error("Unsupported TTF file format.");
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     if(e->length < sizeof(TTMaxp10)) {
-        throw std::runtime_error("Malformed maxp buffer.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
-    TTMaxp10 maxp = extract<TTMaxp10>(buf, e->offset);
+    ERC(maxp, extract<TTMaxp10>(buf, e->offset));
     maxp.swap_endian();
     return maxp;
-    std::abort();
 }
 
-TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+std::expected<TTHead, A4PDF::ErrorCode> load_head(const std::vector<TTDirEntry> &dir,
+                                                  std::string_view buf) {
     auto e = find_entry(dir, "head");
     if(!e) {
-        throw std::runtime_error("Head table missing.");
+        return std::unexpected(A4PDF::ErrorCode::MalformedFontFile);
     }
-    TTHead head = extract<TTHead>(buf, e->offset);
+    ERC(head, extract<TTHead>(buf, e->offset));
     head.swap_endian();
 #ifndef A4FUZZING
     assert(head.magic == 0x5f0f3cf5);
@@ -424,27 +432,27 @@ TTHead load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     return head;
 }
 
-std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
-                               std::string_view buf,
-                               uint16_t index_to_loc_format,
-                               uint16_t num_glyphs) {
+std::expected<std::vector<int32_t>, ErrorCode> load_loca(const std::vector<TTDirEntry> &dir,
+                                                         std::string_view buf,
+                                                         uint16_t index_to_loc_format,
+                                                         uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
     if(!loca) {
-        throw std::runtime_error("Loca table missing.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     std::vector<int32_t> offsets;
     offsets.reserve(num_glyphs);
     if(index_to_loc_format == 0) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             uint16_t offset;
-            safe_memcpy(&offset, buf, loca->offset + i * sizeof(uint16_t));
+            ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(uint16_t)));
             byte_swap(offset);
             offsets.push_back(offset * 2);
         }
     } else if(index_to_loc_format == 1) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             int32_t offset;
-            safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t));
+            ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t)));
             byte_swap(offset);
             if(offset < 0) {
                 throw std::runtime_error("Bad offset data.");
@@ -452,12 +460,13 @@ std::vector<int32_t> load_loca(const std::vector<TTDirEntry> &dir,
             offsets.push_back(offset);
         }
     } else {
-        throw std::runtime_error("Bad loca format.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     return offsets;
 }
 
-TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+std::expected<TTHhea, ErrorCode> load_hhea(const std::vector<TTDirEntry> &dir,
+                                           std::string_view buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
         throw std::runtime_error("Hhea table missing.");
@@ -478,10 +487,10 @@ TTHhea load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
     return hhea;
 }
 
-TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
-                 std::string_view buf,
-                 uint16_t num_glyphs,
-                 uint16_t num_hmetrics) {
+std::expected<TTHmtx, ErrorCode> load_hmtx(const std::vector<TTDirEntry> &dir,
+                                           std::string_view buf,
+                                           uint16_t num_glyphs,
+                                           uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
     if(!e) {
         throw std::runtime_error("Hmtx table missing.");
@@ -511,10 +520,10 @@ TTHmtx load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                     std::string_view buf,
-                                     uint16_t num_glyphs,
-                                     const std::vector<int32_t> &loca) {
+std::expected<std::vector<std::string>, ErrorCode> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                                               std::string_view buf,
+                                                               uint16_t num_glyphs,
+                                                               const std::vector<int32_t> &loca) {
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
@@ -527,12 +536,13 @@ std::vector<std::string> load_glyphs(const std::vector<TTDirEntry> &dir,
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
-        glyph_data.emplace_back(get_substring(glyf_start, data_off, data_size));
+        ERC(sstr, get_substring(glyf_start, data_off, data_size));
+        glyph_data.emplace_back(std::move(sstr));
     }
     return glyph_data;
 }
 
-std::string
+std::expected<std::string, ErrorCode>
 load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const char *tag) {
     auto e = find_entry(dir, tag);
     if(!e) {
@@ -554,10 +564,11 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-std::vector<std::string> subset_glyphs(FT_Face face,
-                                       const TrueTypeFontFile &source,
-                                       const std::vector<TTGlyphs> glyphs,
-                                       const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+std::expected<std::vector<std::string>, A4PDF::ErrorCode>
+subset_glyphs(FT_Face face,
+              const TrueTypeFontFile &source,
+              const std::vector<TTGlyphs> glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     std::vector<std::string> subset;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
@@ -566,10 +577,10 @@ std::vector<std::string> subset_glyphs(FT_Face face,
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
         if(!subset.back().empty()) {
-            int16_t num_contours = extract<int16_t>(subset.back(), 0);
+            ERC(num_contours, extract<int16_t>(subset.back(), 0));
             byte_swap(num_contours);
             if(num_contours < 0) {
-                reassign_composite_glyph_numbers(subset.back(), comp_mapping);
+                ERCV(reassign_composite_glyph_numbers(subset.back(), comp_mapping));
             }
         }
     }
@@ -757,24 +768,24 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     return buf;
 }
 
-int16_t num_contours(std::string_view buf) {
-    int16_t num_contours = extract<int16_t>(buf, 0);
+std::expected<int16_t, A4PDF::ErrorCode> num_contours(std::string_view buf) {
+    ERC(num_contours, extract<int16_t>(buf, 0));
     byte_swap(num_contours);
     return num_contours;
 }
 
 } // namespace
 
-TrueTypeFontFile parse_truetype_font(std::string_view buf) {
+std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view buf) {
     TrueTypeFontFile tf;
     if(buf.size() < sizeof(TTOffsetTable)) {
-        throw std::runtime_error("File too small to be a TTF font file.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
-    TTOffsetTable off = extract<TTOffsetTable>(buf, 0);
+    ERC(off, extract<TTOffsetTable>(buf, 0));
     off.swap_endian();
     std::vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
-        TTDirEntry e = extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(e));
+        ERC(e, extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
         if(e.offset + e.length > buf.length()) {
             throw std::runtime_error("TTF directory entry points outside of file.");
@@ -785,36 +796,45 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
 #endif
         directory.emplace_back(std::move(e));
     }
-    tf.head = load_head(directory, buf);
-    tf.maxp = load_maxp(directory, buf);
+    ERC(head, load_head(directory, buf));
+    tf.head = head;
+    ERC(maxp, load_maxp(directory, buf));
+    tf.maxp = maxp;
 #ifdef A4FUZZING
     if(tf.maxp.num_glyphs > 1024) {
         throw std::runtime_error("Too many glyphs for fuzzer.");
     }
 #endif
-    const auto loca = load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs);
-    tf.hhea = load_hhea(directory, buf);
-    tf.hmtx = load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics);
-    tf.glyphs = load_glyphs(directory, buf, tf.maxp.num_glyphs, loca);
+    ERC(loca, load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
+    ERC(hhea, load_hhea(directory, buf))
+    tf.hhea = hhea;
+    ERC(hmtx, load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics))
+    tf.hmtx = hmtx;
+    ERC(glyphs, load_glyphs(directory, buf, tf.maxp.num_glyphs, loca))
+    tf.glyphs = glyphs;
 
-    tf.cvt = load_raw_table(directory, buf, "cvt ");
-    tf.fpgm = load_raw_table(directory, buf, "fpgm");
-    tf.prep = load_raw_table(directory, buf, "prep");
-    auto cmap = load_raw_table(directory, buf, "cmap");
-    auto cmap_head = extract<TTCmapHeader>(cmap, 0);
+    ERC(cvt, load_raw_table(directory, buf, "cvt "));
+    tf.cvt = cvt;
+    ERC(fpgm, load_raw_table(directory, buf, "fpgm"));
+    tf.fpgm = fpgm;
+    ERC(prep, load_raw_table(directory, buf, "prep"))
+    tf.prep = prep;
+    ERC(cmap, load_raw_table(directory, buf, "cmap"));
+    ERC(cmap_head, extract<TTCmapHeader>(cmap, 0));
     cmap_head.swap_endian();
     for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
-        TTEncodingRecord enc = extract<TTEncodingRecord>(
-            cmap, 2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord));
+        ERC(enc,
+            extract<TTEncodingRecord>(cmap,
+                                      2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord)));
         enc.swap_endian();
-        uint16_t subtable_format = extract<uint16_t>(cmap, enc.subtable_offset);
+        ERC(subtable_format, extract<uint16_t>(cmap, enc.subtable_offset));
         byte_swap(subtable_format);
         if(subtable_format >= 15) {
             throw std::runtime_error("Bad subtable format.");
         }
 #ifndef A4FUZZING
         if(subtable_format == 0) {
-            TTEncodingSubtable0 enctable = extract<TTEncodingSubtable0>(cmap, enc.subtable_offset);
+            ERC(enctable, extract<TTEncodingSubtable0>(cmap, enc.subtable_offset));
             enctable.swap_endian();
             assert(enctable.format == 0);
         }
@@ -881,21 +901,24 @@ TrueTypeFontFile parse_truetype_font(std::string_view buf) {
     return tf;
 }
 
-std::string generate_font(FT_Face face,
-                          std::string_view buf,
-                          const std::vector<TTGlyphs> &glyphs,
-                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    auto source = parse_truetype_font(buf);
+std::expected<std::string, ErrorCode>
+generate_font(FT_Face face,
+              std::string_view buf,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+    ERC(source, parse_truetype_font(buf));
     return generate_font(face, source, glyphs, comp_mapping);
 }
 
-std::string generate_font(FT_Face face,
-                          const TrueTypeFontFile &source,
-                          const std::vector<TTGlyphs> &glyphs,
-                          const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+std::expected<std::string, ErrorCode>
+generate_font(FT_Face face,
+              const TrueTypeFontFile &source,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
-    dest.glyphs = subset_glyphs(face, source, glyphs, comp_mapping);
+    ERC(subglyphs, subset_glyphs(face, source, glyphs, comp_mapping));
+    dest.glyphs = subglyphs;
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
@@ -915,38 +938,42 @@ std::string generate_font(FT_Face face,
     return bytes;
 }
 
-TrueTypeFontFile load_and_parse_truetype_font(const char *fname) {
+std::expected<TrueTypeFontFile, ErrorCode> load_and_parse_truetype_font(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
-        std::abort();
+        return std::unexpected(ErrorCode::CouldNotOpenFile);
     }
     fseek(f, 0, SEEK_END);
     const auto fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
     std::vector<char> buf(fsize, 0);
     if(fread(buf.data(), 1, fsize, f) != (size_t)fsize) {
-        std::abort();
+        fclose(f);
+        return std::unexpected(ErrorCode::FileReadError);
     }
     fclose(f);
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});
 }
 
-bool is_composite_glyph(std::string_view buf) { return num_contours(buf) < 0; }
+std::expected<bool, ErrorCode> is_composite_glyph(std::string_view buf) {
+    ERC(numc, num_contours(buf));
+    return numc < 0;
+}
 
-std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
+std::expected<std::vector<uint32_t>, ErrorCode> composite_subglyphs(std::string_view buf) {
     std::vector<uint32_t> subglyphs;
-    assert(num_contours(buf) < 0);
+    assert(num_contours(buf).value() < 0);
     std::string_view composite_data = std::string_view(buf).substr(5 * sizeof(int16_t));
     int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
     uint16_t component_flag;
-    uint16_t glyph_index;
     do {
-        component_flag = extract<uint16_t>(composite_data, composite_offset);
+        ERC(rv, extract<uint16_t>(composite_data, composite_offset));
+        component_flag = rv;
         byte_swap(component_flag);
         composite_offset += sizeof(uint16_t);
-        glyph_index = extract<uint16_t>(composite_data, composite_offset);
+        ERC(glyph_index, extract<uint16_t>(composite_data, composite_offset));
         byte_swap(glyph_index);
         composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
@@ -959,8 +986,9 @@ std::vector<uint32_t> composite_subglyphs(std::string_view buf) {
     return subglyphs;
 }
 
-void reassign_composite_glyph_numbers(std::string &buf,
-                                      const std::unordered_map<uint32_t, uint32_t> &mapping) {
+std::expected<NoReturnValue, ErrorCode>
+reassign_composite_glyph_numbers(std::string &buf,
+                                 const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
 
     std::string_view composite_data = std::string_view(buf).substr(header_size);
@@ -968,13 +996,13 @@ void reassign_composite_glyph_numbers(std::string &buf,
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
     uint16_t component_flag;
-    uint16_t glyph_index;
     do {
-        component_flag = extract<uint16_t>(composite_data, composite_offset);
+        ERC(rv, extract<uint16_t>(composite_data, composite_offset));
+        component_flag = rv;
         byte_swap(component_flag);
         composite_offset += sizeof(uint16_t);
         const auto index_offset = composite_offset;
-        glyph_index = extract<uint16_t>(composite_data, composite_offset);
+        ERC(glyph_index, extract<uint16_t>(composite_data, composite_offset));
         byte_swap(glyph_index);
         composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
@@ -991,6 +1019,7 @@ void reassign_composite_glyph_numbers(std::string &buf,
         byte_swap(glyph_index);
         memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);
+    return NoReturnValue{};
 }
 
 uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g) {

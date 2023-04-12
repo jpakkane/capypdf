@@ -44,10 +44,13 @@ struct FontSubsetData {
 
 class FontSubsetter {
 public:
-    FontSubsetter(const char *fontfile, FT_Face face);
+    static std::expected<FontSubsetter, ErrorCode> construct(const char *fontfile, FT_Face face);
 
-    FontSubsetInfo get_glyph_subset(uint32_t glyph);
-    FontSubsetInfo unchecked_insert_glyph_to_last_subset(uint32_t glyph);
+    FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, std::vector<FontSubsetData> subsets)
+        : ttfile{ttfile}, face{face}, subsets{subsets} {}
+
+    std::expected<FontSubsetInfo, ErrorCode> get_glyph_subset(uint32_t glyph);
+    std::expected<FontSubsetInfo, ErrorCode> unchecked_insert_glyph_to_last_subset(uint32_t glyph);
 
     const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
         return subsets.at(subset_number).glyphs;
@@ -60,7 +63,7 @@ public:
     size_t num_subsets() const { return subsets.size(); }
     size_t subset_size(size_t subset) const { return subsets.at(subset).glyphs.size(); }
 
-    std::string
+    std::expected<std::string, ErrorCode>
     generate_subset(FT_Face face, const TrueTypeFontFile &source, int32_t subset_number) const;
 
 private:

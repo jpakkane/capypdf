@@ -16,6 +16,7 @@
 
 #include <fontsubsetter.hpp>
 #include <ft_subsetter.hpp>
+#include <pdfmacros.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -36,36 +37,43 @@ FontSubsetData create_startstate() {
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
 
-void add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
-                   uint32_t glyph_id,
-                   const TrueTypeFontFile &ttfile) {
+std::expected<NoReturnValue, ErrorCode> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
+                                                      uint32_t glyph_id,
+                                                      const TrueTypeFontFile &ttfile) {
     const auto &cur_glyph = ttfile.glyphs.at(glyph_id);
-    if(!is_composite_glyph(cur_glyph)) {
-        return;
+    ERC(iscomp, is_composite_glyph(cur_glyph));
+    if(!iscomp) {
+        return NoReturnValue{};
     }
-    for(const auto &g : composite_subglyphs(cur_glyph)) {
+    ERC(subglyphs, composite_subglyphs(cur_glyph));
+    for(const auto &g : subglyphs) {
         if(new_subglyphs.insert(g).second) {
-            add_subglyphs(new_subglyphs, g, ttfile);
+            ERCV(add_subglyphs(new_subglyphs, g, ttfile));
         }
     }
+    return NoReturnValue{};
 }
 
-std::vector<uint32_t> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
+std::expected<std::vector<uint32_t>, ErrorCode> get_all_subglyphs(uint32_t glyph_id,
+                                                                  const TrueTypeFontFile &ttfile) {
     std::unordered_set<uint32_t> new_subglyphs;
 
-    add_subglyphs(new_subglyphs, glyph_id, ttfile);
+    ERCV(add_subglyphs(new_subglyphs, glyph_id, ttfile));
     std::vector<uint32_t> glyphs(new_subglyphs.cbegin(), new_subglyphs.cend());
     return glyphs;
 }
 
 } // namespace
 
-FontSubsetter::FontSubsetter(const char *fontfile, FT_Face face)
-    : ttfile(load_and_parse_truetype_font(fontfile)), face{face} {
+std::expected<FontSubsetter, ErrorCode> FontSubsetter::construct(const char *fontfile,
+                                                                 FT_Face face) {
+    ERC(ttfile, load_and_parse_truetype_font(fontfile));
+    std::vector<FontSubsetData> subsets;
     subsets.emplace_back(create_startstate());
+    return FontSubsetter(std::move(ttfile), face, std::move(subsets));
 }
 
-FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
+std::expected<FontSubsetInfo, ErrorCode> FontSubsetter::get_glyph_subset(uint32_t glyph) {
     auto trial = find_glyph(glyph);
     if(trial) {
         return trial.value();
@@ -73,7 +81,8 @@ FontSubsetInfo FontSubsetter::get_glyph_subset(uint32_t glyph) {
     return unchecked_insert_glyph_to_last_subset(glyph);
 }
 
-FontSubsetInfo FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
+std::expected<FontSubsetInfo, ErrorCode>
+FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
@@ -96,8 +105,9 @@ FontSubsetInfo FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t gly
         subsets.back().glyphs.emplace_back(RegularGlyph{32});
         subsets.back().font_index_mapping[font_index] = SPACE;
     }
-    if(is_composite_glyph(ttfile.glyphs.at(font_index))) {
-        auto subglyphs = get_all_subglyphs(font_index, ttfile);
+    ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(font_index)));
+    if(iscomp) {
+        ERC(subglyphs, get_all_subglyphs(font_index, ttfile));
         if(subglyphs.size() + subsets.back().glyphs.size() >= max_glyphs) {
             fprintf(stderr, "Composite glyph overflow not yet implemented.");
             std::abort();
@@ -140,8 +150,9 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
     return {};
 }
 
-std::string
-FontSubsetter::generate_subset(FT_Face face, const TrueTypeFontFile &source, int32_t subset_number) const {
+std::expected<std::string, ErrorCode> FontSubsetter::generate_subset(FT_Face face,
+                                                                     const TrueTypeFontFile &source,
+                                                                     int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
     return generate_font(face, source, glyphs.glyphs, glyphs.font_index_mapping);
 }

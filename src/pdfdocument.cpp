@@ -598,8 +598,9 @@ std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
 std::expected<NoReturnValue, ErrorCode>
 PdfDocument::write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont) {
     const auto &font = fonts.at(ssfont.fid.id);
-    std::string subset_font = font.subsets.generate_subset(
-        font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id);
+    ERC(subset_font,
+        font.subsets.generate_subset(
+            font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id));
 
     ERC(compressed_bytes, flate_compress(subset_font));
     std::string dictbuf = fmt::format(R"(<<
@@ -840,9 +841,10 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
-SubsetGlyph PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph) {
+std::expected<SubsetGlyph, ErrorCode> PdfDocument::get_subset_glyph(A4PDF_FontId fid,
+                                                                    uint32_t glyph) {
     SubsetGlyph fss;
-    auto blub = fonts.at(fid.id).subsets.get_glyph_subset(glyph);
+    ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(glyph));
     fss.ss.fid = fid;
     if(true) {
         fss.ss.subset_id = blub.subset;
@@ -1135,8 +1137,9 @@ PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoin
 }
 
 std::expected<A4PDF_FontId, ErrorCode> PdfDocument::load_font(FT_Library ft, const char *fname) {
+    ERC(fontdata, load_and_parse_truetype_font(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
-                load_and_parse_truetype_font(fname)};
+                std::move(fontdata)};
     FT_Face face;
     auto error = FT_New_Face(ft, fname, 0, &face);
     if(error) {
@@ -1168,13 +1171,14 @@ std::expected<A4PDF_FontId, ErrorCode> PdfDocument::load_font(FT_Library ft, con
                 "Font file %s is an OpenType font. "
                 "Only TrueType "
                 "fonts are supported. Freetype error "
-                "%2.",
+                "%d.",
                 fname,
                 error);
         return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     auto font_source_id = fonts.size();
-    fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter(fname, face)});
+    ERC(fss, FontSubsetter::construct(fname, face));
+    fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
 
     const int32_t subset_num = 0;
     auto subfont_data_obj =

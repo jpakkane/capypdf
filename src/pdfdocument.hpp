@@ -188,7 +188,7 @@ public:
 
     // Fonts
     std::expected<A4PDF_FontId, ErrorCode> load_font(FT_Library ft, const char *fname);
-    SubsetGlyph get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
+    std::expected<SubsetGlyph, ErrorCode> get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 

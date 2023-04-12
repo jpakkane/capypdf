@@ -35,6 +35,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Could not open file.",
 "Writing to file failed.",
 "Required argument is NULL.",
+"Index is negative.",
 "Invalid UTF-8 string.",
 "Incorrect amoung of color channels for this colorspace.",
 "Invalid draw context type for this operation.",
@@ -48,7 +49,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Builtin fonts can not be used in this operation.",
 "Output CMYK profile not defined.',"
 "Unsupported file format.",
-"Only monochrome colormap images supported."
+"Only monochrome colormap images supported.",
+"Malformed font file.",
 };
 
 // clang-format on

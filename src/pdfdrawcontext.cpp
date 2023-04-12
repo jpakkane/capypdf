@@ -627,7 +627,11 @@ ErrorCode PdfDrawContext::render_utf8_text(
             return ErrorCode::BadUtf8;
         }
         // FIXME: check if we need to change font subset,
-        auto current_subset_glyph = doc->get_subset_glyph(fid, codepoint);
+        auto rc = doc->get_subset_glyph(fid, codepoint);
+        if(!rc) {
+            return rc.error();
+        }
+        auto current_subset_glyph = rc.value();
         const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         if(previous_subset.subset_id == -1) {
@@ -679,11 +683,12 @@ ErrorCode PdfDrawContext::render_utf8_text(
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
-                                            std::string &serialisation,
-                                            A4PDF_FontId &current_font,
-                                            int32_t &current_subset,
-                                            double &current_pointsize) {
+std::expected<NoReturnValue, ErrorCode>
+PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
+                                       std::string &serialisation,
+                                       A4PDF_FontId &current_font,
+                                       int32_t &current_subset,
+                                       double &current_pointsize) {
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     bool is_first = true;
     for(const auto &e : charseq) {
@@ -695,7 +700,7 @@ void PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq
         } else {
             assert(std::holds_alternative<uint32_t>(e));
             const auto codepoint = std::get<uint32_t>(e);
-            auto current_subset_glyph = doc->get_subset_glyph(current_font, codepoint);
+            ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint));
             used_subset_fonts.insert(current_subset_glyph.ss);
             if(current_subset_glyph.ss.subset_id != current_subset) {
                 if(!is_first) {
@@ -718,6 +723,7 @@ void PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq
         is_first = false;
     }
     serialisation += "] TJ\n";
+    return NoReturnValue{};
 }
 
 ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
@@ -806,12 +812,18 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             if(ec != ErrorCode::NoError) {
                 return ec;
             }
-            serialize_charsequence(
+            auto rv = serialize_charsequence(
                 charseq, serialisation, current_font, current_subset, current_pointsize);
+            if(!rv) {
+                return rv.error();
+            }
         } else if(std::holds_alternative<TJ_arg>(e)) {
             const auto &tJ = std::get<TJ_arg>(e);
-            serialize_charsequence(
+            auto rc = serialize_charsequence(
                 tJ.elements, serialisation, current_font, current_subset, current_pointsize);
+            if(!rc) {
+                return rc.error();
+            }
         } else if(std::holds_alternative<TL_arg>(e)) {
             const auto &tL = std::get<TL_arg>(e);
             fmt::format_to(app, "  {} TL\n", tL.leading);
@@ -879,7 +891,11 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
                    0,
                    pointsize);
     for(const auto &g : glyphs) {
-        auto current_subset_glyph = doc->get_subset_glyph(fid, g.codepoint);
+        auto rv = doc->get_subset_glyph(fid, g.codepoint);
+        if(!rv) {
+            return rv.error();
+        }
+        auto &current_subset_glyph = rv.value();
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         fmt::format_to(cmd_appender, "  {} {} Td\n", g.x - prev_x, g.y - prev_y);

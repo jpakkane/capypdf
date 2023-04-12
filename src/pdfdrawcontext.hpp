@@ -175,7 +175,7 @@ public:
     double get_form_xobj_h() const { return form_xobj_h; }
 
 private:
-    void serialize_charsequence(const std::vector<CharItem> &charseq,
+    std::expected<NoReturnValue, ErrorCode> serialize_charsequence(const std::vector<CharItem> &charseq,
                                 std::string &serialisation,
                                 A4PDF_FontId &current_font,
                                 int32_t &current_subset,
