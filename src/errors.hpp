@@ -37,6 +37,7 @@ enum class ErrorCode : int32_t {
     FileWriteError,
     ArgIsNull,
     IndexIsNegative,
+    IndexOutOfBounds,
     BadUtf8,
     IncorrectColorChannelCount,
     InvalidDrawContextType,

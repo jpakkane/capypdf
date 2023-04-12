@@ -66,13 +66,13 @@ std::expected<std::string_view, A4PDF::ErrorCode> get_substring(const char *buf,
         return std::unexpected(A4PDF::ErrorCode::ArgIsNull);
     }
     if(bufsize < 0 || offset < 0 || substr_size < 0) {
-        throw std::runtime_error("An offset has gone negative.");
+        return std::unexpected(A4PDF::ErrorCode::IndexIsNegative);
     }
     if(offset > bufsize) {
-        throw std::runtime_error("Substring offset past the end.");
+        return std::unexpected(A4PDF::ErrorCode::IndexOutOfBounds);
     }
     if(offset + substr_size > bufsize) {
-        throw std::runtime_error("Tried to read past the end of buffer.");
+        return std::unexpected(A4PDF::ErrorCode::IndexOutOfBounds);
     }
     if(substr_size == 0) {
         return "";
@@ -169,7 +169,8 @@ struct TTDirEntry {
 
     bool tag_is(const char *txt) const {
         if(strlen(txt) != 4) {
-            throw std::runtime_error("Bad tag.");
+            fprintf(stderr, "Bad tag.\n");
+            std::abort();
         }
         for(int i = 0; i < 4; ++i) {
             if(txt[i] != tag[i]) {
@@ -181,7 +182,8 @@ struct TTDirEntry {
 
     void set_tag(const char *txt) {
         if(strlen(txt) > 4) {
-            throw std::runtime_error("Bad tag.");
+            fprintf(stderr, "Bad tag.\n");
+            std::abort();
         }
         memset(tag, ' ', 4);
         strncpy(tag, txt, 4);
@@ -455,7 +457,7 @@ std::expected<std::vector<int32_t>, ErrorCode> load_loca(const std::vector<TTDir
             ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t)));
             byte_swap(offset);
             if(offset < 0) {
-                throw std::runtime_error("Bad offset data.");
+                return std::unexpected(ErrorCode::IndexIsNegative);
             }
             offsets.push_back(offset);
         }
@@ -469,20 +471,20 @@ std::expected<TTHhea, ErrorCode> load_hhea(const std::vector<TTDirEntry> &dir,
                                            std::string_view buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
-        throw std::runtime_error("Hhea table missing.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
 
     TTHhea hhea;
     if(sizeof(TTHhea) != e->length) {
-        throw std::runtime_error("Incorred hhea size.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     safe_memcpy(&hhea, buf, e->offset);
     hhea.swap_endian();
     if(hhea.version != 1 << 16) {
-        throw std::runtime_error("Unsupported hhea version.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     if(hhea.metric_data_format != 0) {
-        throw std::runtime_error("Unsupported metric data format.");
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     return hhea;
 }
@@ -493,10 +495,10 @@ std::expected<TTHmtx, ErrorCode> load_hmtx(const std::vector<TTDirEntry> &dir,
                                            uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
     if(!e) {
-        throw std::runtime_error("Hmtx table missing.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     if(num_hmetrics > num_glyphs) {
-        throw std::runtime_error("Incorrect number of hmetrics.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     TTHmtx hmtx;
     for(uint16_t i = 0; i < num_hmetrics; ++i) {
@@ -511,7 +513,7 @@ std::expected<TTHmtx, ErrorCode> load_hmtx(const std::vector<TTDirEntry> &dir,
         const auto data_offset =
             e->offset + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t);
         if(data_offset < 0) {
-            throw std::runtime_error("Malformet hmtx data.");
+            return std::unexpected(ErrorCode::IndexIsNegative);
         }
         safe_memcpy(&lsb, buf, data_offset);
         byte_swap(lsb);
@@ -527,10 +529,10 @@ std::expected<std::vector<std::string>, ErrorCode> load_glyphs(const std::vector
     std::vector<std::string> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
-        throw std::runtime_error("Glyf table missing.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     if(e->offset > buf.size()) {
-        throw std::runtime_error("Glyf offset too big.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
     auto glyf_start = std::string_view(buf).substr(e->offset);
     for(uint16_t i = 0; i < num_glyphs; ++i) {
@@ -549,17 +551,17 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
         return "";
     }
     if(e->offset > buf.size()) {
-        throw std::runtime_error("Offset is too large.");
+        return std::unexpected(ErrorCode::IndexOutOfBounds);
     }
     auto end_offset = size_t((int64_t)e->offset + (int64_t)e->length);
     if(end_offset >= buf.size()) {
-        throw std::runtime_error("Directory entry points past the end of file.\n");
+        return std::unexpected(ErrorCode::IndexOutOfBounds);
     }
     if(end_offset < 0) {
-        throw std::runtime_error("Negative offset.");
+        return std::unexpected(ErrorCode::IndexIsNegative);
     }
     if(end_offset <= e->offset) {
-        throw std::runtime_error("End offset points earlier than start offset.");
+        return std::unexpected(ErrorCode::IndexOutOfBounds);
     }
     return std::string(buf.data() + e->offset, buf.data() + end_offset);
 }
@@ -788,7 +790,7 @@ std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view 
         ERC(e, extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
         if(e.offset + e.length > buf.length()) {
-            throw std::runtime_error("TTF directory entry points outside of file.");
+            return std::unexpected(ErrorCode::IndexOutOfBounds);
         }
 #ifndef A4FUZZING
         auto checksum = ttf_checksum(std::string_view(buf.data() + e.offset, e.length));
@@ -802,7 +804,7 @@ std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view 
     tf.maxp = maxp;
 #ifdef A4FUZZING
     if(tf.maxp.num_glyphs > 1024) {
-        throw std::runtime_error("Too many glyphs for fuzzer.");
+        return std::unexpected(ErrorCode::MalformedFontFile);
     }
 #endif
     ERC(loca, load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
@@ -830,7 +832,7 @@ std::expected<TrueTypeFontFile, ErrorCode> parse_truetype_font(std::string_view 
         ERC(subtable_format, extract<uint16_t>(cmap, enc.subtable_offset));
         byte_swap(subtable_format);
         if(subtable_format >= 15) {
-            throw std::runtime_error("Bad subtable format.");
+            return std::unexpected(ErrorCode::UnsupportedFormat);
         }
 #ifndef A4FUZZING
         if(subtable_format == 0) {

@@ -36,6 +36,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Writing to file failed.",
 "Required argument is NULL.",
 "Index is negative.",
+"Index out of bounds.",
 "Invalid UTF-8 string.",
 "Incorrect amoung of color channels for this colorspace.",
 "Invalid draw context type for this operation.",
