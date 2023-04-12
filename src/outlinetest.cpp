@@ -32,7 +32,7 @@ int main(int, char **) {
         std::unique_ptr<PdfDrawContext> g{gen.new_page_draw_context()};
         g->cmd_re(10, 10, 10, 10);
         g->cmd_f();
-        auto page_id = gen.add_page(*g);
+        auto page_id = gen.add_page(*g).value();
         auto t1 = gen.add_outline("First toplevel", page_id, {});
         auto t2 = gen.add_outline("Second toplevel", page_id, {});
         (void)t2;

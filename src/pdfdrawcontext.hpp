@@ -136,7 +136,7 @@ public:
     ErrorCode
     set_stroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
-    void set_nonstroke_color(const DeviceGrayColor &c);
+    ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
     ErrorCode set_nonstroke_color(PatternId id);
     ErrorCode
     set_nonstroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);

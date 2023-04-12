@@ -87,7 +87,7 @@ int main() {
             pctx.cmd_f();
             pctx.cmd_re(5, 7.5, 2.5, 2.5);
             pctx.cmd_f();
-            auto patternid = gen.add_pattern(pattern);
+            auto patternid = gen.add_pattern(pattern).value();
 
             ctx.cmd_re(10, 10, 80, 80);
             ctx.set_nonstroke_color(patternid);
@@ -102,7 +102,7 @@ int main() {
             auto &pctx = pattern.pctx;
 
             pctx.render_pdfdoc_text_builtin("g", A4PDF_FONT_TIMES_ROMAN, 3, 0, 2);
-            auto patternid = gen.add_pattern(pattern);
+            auto patternid = gen.add_pattern(pattern).value();
 
             ctx.translate(100, 10);
             ctx.set_nonstroke_color(patternid);

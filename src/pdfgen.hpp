@@ -95,9 +95,9 @@ public:
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
-    PageId add_page(PdfDrawContext &ctx);
+    std::expected<PageId, ErrorCode> add_page(PdfDrawContext &ctx);
     ErrorCode add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxoid);
-    PatternId add_pattern(ColorPatternBuilder &cp);
+    std::expected<PatternId, ErrorCode> add_pattern(ColorPatternBuilder &cp);
 
     OutlineId
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent) {
@@ -111,7 +111,8 @@ public:
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    double utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
+    std::expected<double, ErrorCode>
+    utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
 
 private:
     std::filesystem::path ofilename;

@@ -39,13 +39,13 @@ void center_test() {
     ctx.cmd_l(100, 200);
     ctx.cmd_S();
 
-    auto w = gen.utf8_text_width(text, f1, pt);
+    auto w = gen.utf8_text_width(text, f1, pt).value();
     ctx.render_utf8_text(text, f1, pt, 100 - w / 2, 120);
 
-    w = gen.utf8_text_width(text, f2, pt);
+    w = gen.utf8_text_width(text, f2, pt).value();
     ctx.render_utf8_text(text, f2, pt, 100 - w / 2, 100);
 
-    w = gen.utf8_text_width(text, f3, pt);
+    w = gen.utf8_text_width(text, f3, pt).value();
     ctx.render_utf8_text(text, f3, pt, 100 - w / 2, 80);
 }
 

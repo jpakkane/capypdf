@@ -504,10 +504,10 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
     }
 }
 
-void PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
+ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
     // Assumes that switching to the gray colorspace is always ok.
     // If it is not, fix to do the same switch() as above.
-    cmd_g(c.v.v());
+    return cmd_g(c.v.v());
 }
 
 ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {

@@ -79,8 +79,12 @@ A4PDF_EC a4pdf_generator_new(const char *filename,
 A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
-    gen->add_page(*ctx);
-    return (A4PDF_EC)ErrorCode::NoError;
+
+    auto rc = gen->add_page(*ctx);
+    if(rc) {
+        return (A4PDF_EC)ErrorCode::NoError;
+    }
+    return (A4PDF_EC)rc.error();
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_embed_jpg(A4PDF_Generator *g,
@@ -153,8 +157,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_utf8_text_width(A4PDF_Generator *generator
                                                       double pointsize,
                                                       double *width) A4PDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
-    *width = g->utf8_text_width(utf8_text, font, pointsize);
-    return (A4PDF_EC)ErrorCode::NoError;
+    auto rc = g->utf8_text_width(utf8_text, font, pointsize);
+    if(rc) {
+        *width = rc.value();
+        return (A4PDF_EC)ErrorCode::NoError;
+    }
+    return (A4PDF_EC)rc.error();
 }
 
 // Draw Context
