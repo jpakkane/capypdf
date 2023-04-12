@@ -27,8 +27,6 @@
 
 namespace A4PDF {
 
-struct NoReturnValue {};
-
 struct PdfBox {
     double x;
     double y;

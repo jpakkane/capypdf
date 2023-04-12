@@ -62,6 +62,8 @@ const char *error_text(ErrorCode ec) noexcept;
 // Return value or error.
 template<typename T> using rvoe = std::expected<T, ErrorCode>;
 
+struct NoReturnValue {};
+
 } // namespace A4PDF
 
 #define CHECK_COLORCOMPONENT(c)                                                                    \
