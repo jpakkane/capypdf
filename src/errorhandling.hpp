@@ -101,4 +101,4 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
         }                                                                                          \
     }
 
-#define RETERR(code) return std::unexpected(code)
+#define RETERR(code) return std::unexpected(ErrorCode::code)

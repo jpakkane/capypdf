@@ -37,7 +37,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
 
     auto ret = deflateInit(&strm, Z_BEST_COMPRESSION);
     if(ret != Z_OK) {
-        RETERR(ErrorCode::CompressionFailure);
+        RETERR(CompressionFailure);
     }
     std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
     strm.avail_in = data.size();
@@ -55,7 +55,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
         compressed += buf;
     } while(strm.avail_out == 0);
     if(strm.avail_in != 0) { /* all input will be used */
-        RETERR(ErrorCode::CompressionFailure);
+        RETERR(CompressionFailure);
     }
     /* done when last data in file processed */
     if(ret != Z_STREAM_END) {
@@ -69,7 +69,7 @@ rvoe<std::string> load_file(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         perror(nullptr);
-        RETERR(ErrorCode::CouldNotOpenFile);
+        RETERR(CouldNotOpenFile);
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
     return load_file(f);
@@ -83,7 +83,7 @@ rvoe<std::string> load_file(FILE *f) {
     if(fread(contents.data(), 1, fsize, f) != fsize) {
         fclose(f);
         perror(nullptr);
-        RETERR(ErrorCode::FileReadError);
+        RETERR(FileReadError);
     }
     return contents;
 }
@@ -97,7 +97,7 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     auto cd = iconv_open("UTF-16BE", "UTF-8"); // PDF 1.7 spec 7.9.2.2
     if(errno != 0) {
         perror(nullptr);
-        RETERR(ErrorCode::IconvError);
+        RETERR(IconvError);
     }
     auto in_ptr = (char *)input.data();
     auto out_ptr = (char *)u16buf.data();
@@ -107,14 +107,14 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     iconv_close(cd);
     if(errno != 0) {
         perror(nullptr);
-        RETERR(ErrorCode::IconvError);
+        RETERR(IconvError);
     }
     if(iconv_result == (size_t)-1) {
         perror(nullptr);
-        RETERR(ErrorCode::IconvError);
+        RETERR(IconvError);
     }
     if(in_bytes != 0) {
-        RETERR(ErrorCode::BadUtf8);
+        RETERR(BadUtf8);
     }
 
     auto bi = std::back_inserter(encoded);
