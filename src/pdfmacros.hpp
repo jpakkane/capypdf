@@ -46,7 +46,9 @@
 // For void.
 
 #define ERCV(func)                                                                                 \
-    auto varname##_variant = func;                                                                 \
-    if(!(varname##_variant)) {                                                                     \
-        return std::unexpected(varname##_variant.error());                                         \
+    {                                                                                              \
+        auto placeholder_name_variant = func;                                                      \
+        if(!(placeholder_name_variant)) {                                                          \
+            return std::unexpected(placeholder_name_variant.error());                              \
+        }                                                                                          \
     }

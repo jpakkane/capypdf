@@ -163,8 +163,8 @@ void render_column(const std::vector<std::string> &text_lines,
 }
 
 void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
-    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf");
-    auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
+    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf").value();
+    auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf").value();
     const double titley = cm2pt(29 - 2.5);
     const double authory = cm2pt(29 - 3.5);
     const double titlesize = 28;
@@ -190,7 +190,7 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     const double column2_left = cm2pt(21 - 2 - 8);
     const double leading = 15;
     const double textsize = 10;
-    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
+    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
     ctx.render_utf8_text(
@@ -198,11 +198,11 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
 }
 
 void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
-    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
-    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf");
-    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/freefont/FreeMono.ttf");
+    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
+    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf").value();
+    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/freefont/FreeMono.ttf").value();
     //     auto emailfont =
-    //       gen.load_font("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf");
+    //       gen.load_font("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf").value();
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
     ctx.render_utf8_text(email,

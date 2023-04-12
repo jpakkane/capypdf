@@ -29,9 +29,10 @@ void center_test() {
     opts.mediabox.h = 200;
     GenPopper genpop("centering.pdf", opts);
     PdfGen &gen = *genpop.g;
-    auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
-    auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
-    auto f3 = gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf");
+    auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf").value();
+    auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
+    auto f3 =
+        gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf").value();
     auto ctxpop = gen.guarded_page_context();
     auto &ctx = ctxpop.ctx;
     ctx.cmd_w(1.0);
@@ -75,8 +76,8 @@ int main(int argc, char **argv) {
     opts.title = "Over 255 letters";
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = *genpop.g;
-    auto regular_fid = gen.load_font(regularfont);
-    auto italic_fid = gen.load_font(italicfont);
+    auto regular_fid = gen.load_font(regularfont).value();
+    auto italic_fid = gen.load_font(italicfont).value();
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);

@@ -104,15 +104,12 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
                                                 const char *fname,
                                                 A4PDF_FontId *fid) A4PDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    try {
-        *fid = gen->load_font(fname);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        return (A4PDF_EC)ErrorCode::DynamicError;
-    } catch(...) {
-        return (A4PDF_EC)ErrorCode::DynamicError;
+    auto rc = gen->load_font(fname);
+    if(rc) {
+        *fid = rc.value();
+        return (A4PDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (A4PDF_EC)rc.error();
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,

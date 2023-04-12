@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    auto textfont = gen.load_font(fontfile);
+    auto textfont = gen.load_font(fontfile).value();
     ctx.render_utf8_text(text, textfont, 12, 10, 10);
     return 0;
 }

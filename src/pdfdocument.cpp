@@ -111,7 +111,8 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
+std::expected<std::string, A4PDF::ErrorCode>
+build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
@@ -121,7 +122,7 @@ std::string build_subset_width_array(FT_Face face, const std::vector<A4PDF::TTGl
         if(glyph_id != 0) {
             auto error = FT_Load_Glyph(face, glyph_id, load_flags);
             if(error != 0) {
-                throw std::runtime_error(FT_Error_String(error));
+                return std::unexpected(A4PDF::ErrorCode::FreeTypeError);
             }
             horiadvance = face->glyph->metrics.horiAdvance;
         }
@@ -342,14 +343,14 @@ std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file(FILE *output_
 }
 
 std::expected<NoReturnValue, ErrorCode> PdfDocument::write_to_file_impl() {
-    write_header();
+    ERCV(write_header());
     auto page_objects = write_pages();
-    create_catalog(page_objects);
+    ERCV(create_catalog(page_objects));
     pad_subset_fonts();
     ERC(object_offsets, write_objects());
     const int64_t xref_offset = ftell(ofile);
-    write_cross_reference_table(object_offsets);
-    write_trailer(xref_offset);
+    ERCV(write_cross_reference_table(object_offsets));
+    ERCV(write_trailer(xref_offset));
     return NoReturnValue{};
 }
 
@@ -402,7 +403,8 @@ std::vector<int32_t> PdfDocument::write_pages() {
     fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", page_objects.size());
     const auto actual_number = add_object(FullPDFObject{buf, ""});
     if(actual_number != pages_obj_num) {
-        throw std::runtime_error("Buggy McBugFace!");
+        fprintf(stderr, "Buggy McBugFace!");
+        std::abort();
     }
     return page_objects;
 }
@@ -509,7 +511,8 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
     return limits;
 }
 
-void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
+std::expected<NoReturnValue, ErrorCode>
+PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
     std::string buf;
     auto app = std::back_inserter(buf);
     fmt::format_to(app,
@@ -526,10 +529,10 @@ void PdfDocument::write_cross_reference_table(const std::vector<uint64_t> &objec
             fmt::format_to(app, "{:010} 00000 n \n", i);
         }
     }
-    write_bytes(buf);
+    return write_bytes(buf);
 }
 
-void PdfDocument::write_trailer(int64_t xref_offset) {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_trailer(int64_t xref_offset) {
     const int32_t info = 1;                           // Info object is the first printed.
     const int32_t root = document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
@@ -548,7 +551,7 @@ startxref
                    root,
                    info,
                    xref_offset);
-    write_bytes(buf);
+    return write_bytes(buf);
 }
 
 std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
@@ -580,13 +583,13 @@ std::expected<std::vector<uint64_t>, ErrorCode> PdfDocument::write_objects() {
             write_subset_cmap(i, fonts.at(sscmap.fid.id), sscmap.subset_id);
         } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
             const auto &ssfont = std::get<DelayedSubsetFont>(obj);
-            write_subset_font(i,
-                              fonts.at(ssfont.fid.id),
-                              0,
-                              ssfont.subfont_descriptor_obj,
-                              ssfont.subfont_cmap_obj);
+            ERCV(write_subset_font(i,
+                                   fonts.at(ssfont.fid.id),
+                                   0,
+                                   ssfont.subfont_descriptor_obj,
+                                   ssfont.subfont_cmap_obj));
         } else {
-            throw std::runtime_error("Unreachable code.");
+            return std::unexpected(ErrorCode::Unreachable);
         }
     }
     return object_offsets;
@@ -690,16 +693,16 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
     assert(subset_glyphs.size() == SPACE + 1);
 }
 
-void PdfDocument::write_subset_font(int32_t object_num,
-                                    const FontThingy &font,
-                                    int32_t subset,
-                                    int32_t font_descriptor_obj,
-                                    int32_t tounicode_obj) {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_subset_font(int32_t object_num,
+                                                                       const FontThingy &font,
+                                                                       int32_t subset,
+                                                                       int32_t font_descriptor_obj,
+                                                                       int32_t tounicode_obj) {
     auto face = font.fontdata.face.get();
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
-    auto width_arr = build_subset_width_array(face, subset_glyphs);
+    ERC(width_arr, build_subset_width_array(face, subset_glyphs));
     auto objbuf = fmt::format(R"(<<
   /Type /Font
   /Subtype /TrueType
@@ -718,11 +721,11 @@ void PdfDocument::write_subset_font(int32_t object_num,
                               font_descriptor_obj,
                               tounicode_obj);
     write_finished_object(object_num, objbuf, "");
+    return NoReturnValue{};
 }
 
-void PdfDocument::write_finished_object(int32_t object_number,
-                                        std::string_view dict_data,
-                                        std::string_view stream_data) {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_finished_object(
+    int32_t object_number, std::string_view dict_data, std::string_view stream_data) {
     std::string buf;
     auto appender = std::back_inserter(buf);
     fmt::format_to(appender, "{} 0 obj\n", object_number);
@@ -742,7 +745,7 @@ void PdfDocument::write_finished_object(int32_t object_number,
         buf += '\n';
     }
     buf += "endobj\n";
-    write_bytes(buf);
+    return write_bytes(buf);
 }
 
 std::optional<A4PDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
@@ -776,13 +779,17 @@ A4PDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
     return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 
-void PdfDocument::write_bytes(const char *buf, size_t buf_size) {
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_bytes(const char *buf, size_t buf_size) {
     if(fwrite(buf, 1, buf_size, ofile) != buf_size) {
-        throw std::runtime_error(strerror(errno));
+        perror(nullptr);
+        return std::unexpected(ErrorCode::FileWriteError);
     }
+    return NoReturnValue{};
 }
 
-void PdfDocument::write_header() { write_bytes(PDF_header, strlen(PDF_header)); }
+std::expected<NoReturnValue, ErrorCode> PdfDocument::write_header() {
+    return write_bytes(PDF_header, strlen(PDF_header));
+}
 
 std::expected<NoReturnValue, ErrorCode> PdfDocument::generate_info_object() {
     FullPDFObject obj_data;
@@ -862,7 +869,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::load_image(const char *fnam
     } else if(std::holds_alternative<cmyk_image>(image)) {
         return process_cmyk_image(std::get<cmyk_image>(image));
     } else {
-        throw std::runtime_error("Unsupported image format.");
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
 }
 
@@ -934,7 +941,7 @@ std::expected<A4PDF_ImageId, ErrorCode> PdfDocument::process_rgb_image(const rgb
     }
     case A4PDF_DEVICE_CMYK: {
         if(cmyk_profile_obj == -1) {
-            throw std::runtime_error("Tried to convert image to CMYK without a CMYK profile.");
+            return std::unexpected(ErrorCode::NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
         return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, converted_pixels);
@@ -1127,7 +1134,7 @@ PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoin
     return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
-A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
+std::expected<A4PDF_FontId, ErrorCode> PdfDocument::load_font(FT_Library ft, const char *fname) {
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 load_and_parse_truetype_font(fname)};
     FT_Face face;
@@ -1135,34 +1142,36 @@ A4PDF_FontId PdfDocument::load_font(FT_Library ft, const char *fname) {
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!
-        throw std::runtime_error(fmt::format("Freetype error {}.", error));
+        return std::unexpected(ErrorCode::FreeTypeError);
     }
     ttf.face.reset(face);
 
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
-        throw std::runtime_error(fmt::format("Could not determine "
-                                             "format of font file {}.",
-                                             fname));
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     if(strcmp(font_format,
               "TrueType")) { // != 0 &&
                              // strcmp(font_format,
                              // "CFF") != 0) {
-        throw std::runtime_error(fmt::format("Only TrueType fonts are supported. {} "
-                                             "is a {} font.",
-                                             fname,
-                                             font_format));
+        fprintf(stderr,
+                "Only TrueType fonts are supported. %s "
+                "is a %s font.",
+                fname,
+                font_format);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     FT_Bytes base = nullptr;
     error = FT_OpenType_Validate(face, FT_VALIDATE_BASE, &base, nullptr, nullptr, nullptr, nullptr);
     if(!error) {
-        throw std::runtime_error(fmt::format("Font file {} is an OpenType font. "
-                                             "Only TrueType "
-                                             "fonts are supported. Freetype error "
-                                             "{}.",
-                                             fname,
-                                             error));
+        fprintf(stderr,
+                "Font file %s is an OpenType font. "
+                "Only TrueType "
+                "fonts are supported. Freetype error "
+                "%2.",
+                fname,
+                error);
+        return std::unexpected(ErrorCode::UnsupportedFormat);
     }
     auto font_source_id = fonts.size();
     fonts.emplace_back(FontThingy{std::move(ttf), FontSubsetter(fname, face)});

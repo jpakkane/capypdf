@@ -187,7 +187,7 @@ public:
     std::expected<A4PDF_IccColorSpaceId, ErrorCode> load_icc_file(const char *fname);
 
     // Fonts
-    A4PDF_FontId load_font(FT_Library ft, const char *fname);
+    std::expected<A4PDF_FontId, ErrorCode> load_font(FT_Library ft, const char *fname);
     SubsetGlyph get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
@@ -233,16 +233,20 @@ private:
     std::expected<NoReturnValue, ErrorCode> create_catalog(const std::vector<int32_t> &);
     std::expected<int32_t, ErrorCode> create_outlines(const std::vector<int32_t> &);
     std::vector<int32_t> write_pages();
-    void write_header();
+    std::expected<NoReturnValue, ErrorCode> write_header();
     std::expected<NoReturnValue, ErrorCode> generate_info_object();
-    void write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
-    void write_trailer(int64_t xref_offset);
+    std::expected<NoReturnValue, ErrorCode>
+    write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
+    std::expected<NoReturnValue, ErrorCode> write_trailer(int64_t xref_offset);
 
-    void write_finished_object(int32_t object_number,
-                               std::string_view dict_data,
-                               std::string_view stream_data);
-    void write_bytes(const char *buf, size_t buf_size); // With error checking.
-    void write_bytes(std::string_view view) { write_bytes(view.data(), view.size()); }
+    std::expected<NoReturnValue, ErrorCode> write_finished_object(int32_t object_number,
+                                                                  std::string_view dict_data,
+                                                                  std::string_view stream_data);
+    std::expected<NoReturnValue, ErrorCode> write_bytes(const char *buf,
+                                                        size_t buf_size); // With error checking.
+    std::expected<NoReturnValue, ErrorCode> write_bytes(std::string_view view) {
+        return write_bytes(view.data(), view.size());
+    }
 
     std::expected<NoReturnValue, ErrorCode>
     write_subset_font_data(int32_t object_num, const DelayedSubsetFontData &ssfont);
@@ -251,11 +255,11 @@ private:
                                       int32_t font_data_obj,
                                       int32_t subset_number);
     void write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
-    void write_subset_font(int32_t object_num,
-                           const FontThingy &font,
-                           int32_t subset,
-                           int32_t font_descriptor_obj,
-                           int32_t tounicode_obj);
+    std::expected<NoReturnValue, ErrorCode> write_subset_font(int32_t object_num,
+                                                              const FontThingy &font,
+                                                              int32_t subset,
+                                                              int32_t font_descriptor_obj,
+                                                              int32_t tounicode_obj);
 
     std::expected<A4PDF_ImageId, ErrorCode> add_image_object(int32_t w,
                                                              int32_t h,
@@ -269,7 +273,8 @@ private:
     std::expected<A4PDF_ImageId, ErrorCode> process_mono_image(const mono_image &image);
     std::expected<A4PDF_ImageId, ErrorCode> process_cmyk_image(const cmyk_image &image);
 
-    std::expected<OutlineLimits, ErrorCode> write_outline_tree(const std::vector<int32_t> &page_objects,
+    std::expected<OutlineLimits, ErrorCode>
+    write_outline_tree(const std::vector<int32_t> &page_objects,
                        const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
 
