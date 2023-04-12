@@ -424,7 +424,7 @@ ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
+ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
         cmd_RG(c.r.v(), c.g.v(), c.b.v());
@@ -436,11 +436,16 @@ void PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
         break;
     }
     case A4PDF_DEVICE_CMYK: {
-        DeviceCMYKColor cmyk = cm->to_cmyk(c);
-        cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        auto cmyk_var = cm->to_cmyk(c);
+        if(cmyk_var) {
+            auto &cmyk = cmyk_var.value();
+            return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        }
+        return cmyk_var.error();
         break;
     }
     }
+    return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::set_nonstroke_color(A4PDF_IccColorSpaceId icc_id,
@@ -487,8 +492,12 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
         return cmd_g(gray.v.v());
     }
     case A4PDF_DEVICE_CMYK: {
-        DeviceCMYKColor cmyk = cm->to_cmyk(c);
-        return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        auto cmyk_var = cm->to_cmyk(c);
+        if(cmyk_var) {
+            auto &cmyk = cmyk_var.value();
+            return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        }
+        return cmyk_var.error();
     }
     default:
         return ErrorCode::Unreachable;

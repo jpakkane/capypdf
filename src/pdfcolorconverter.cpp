@@ -108,9 +108,9 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
     return gray;
 }
 
-DeviceCMYKColor PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
+std::expected<DeviceCMYKColor, ErrorCode> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
     if(!cmyk_profile.h) {
-        throw std::runtime_error("Tried to convert to CMYK without a CMYK profile.");
+        return std::unexpected(ErrorCode::NoCmykProfile);
     }
     DeviceCMYKColor cmyk;
     double buf[4]; // PDF uses values [0, 1] but littlecms seems to use [0, 100].

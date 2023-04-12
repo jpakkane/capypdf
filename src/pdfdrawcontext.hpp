@@ -130,7 +130,7 @@ public:
     ErrorCode cmd_Wstar();
     ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
-    void set_stroke_color(const DeviceRGBColor &c);
+    ErrorCode set_stroke_color(const DeviceRGBColor &c);
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(LabId lid, const LabColor &c);
     ErrorCode
