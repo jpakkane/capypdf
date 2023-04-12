@@ -16,7 +16,6 @@
 
 #include <pdfdrawcontext.hpp>
 #include <pdfgen.hpp>
-#include <pdfmacros.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_IMAGE_H

@@ -16,7 +16,6 @@
 
 #include <ft_subsetter.hpp>
 #include <fontsubsetter.hpp>
-#include <pdfmacros.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

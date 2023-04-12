@@ -17,7 +17,7 @@
 #pragma once
 
 #include <a4pdf.h>
-#include <errors.hpp>
+#include <errorhandling.hpp>
 
 #include <optional>
 #include <vector>

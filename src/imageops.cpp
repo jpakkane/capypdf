@@ -17,7 +17,6 @@
 #include <filesystem>
 #include <imageops.hpp>
 #include <utils.hpp>
-#include <pdfmacros.hpp>
 #include <png.h>
 #include <jpeglib.h>
 #include <tiffio.h>

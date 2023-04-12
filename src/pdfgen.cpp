@@ -15,7 +15,6 @@
  */
 
 #include <pdfgen.hpp>
-#include <pdfmacros.hpp>
 #include <cstring>
 #include <cerrno>
 #include <cassert>

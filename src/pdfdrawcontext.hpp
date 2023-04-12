@@ -18,7 +18,7 @@
 
 #include <pdfcommon.hpp>
 #include <pdftext.hpp>
-#include <errors.hpp>
+#include <errorhandling.hpp>
 #include <pdfcolorconverter.hpp>
 #include <pdfdocument.hpp>
 #include <string>

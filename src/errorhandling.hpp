@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Jussi Pakkanen
+ * Copyright 2022-2023 Jussi Pakkanen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,50 @@
  */
 
 #pragma once
+
+#include <cstdint>
+
+namespace A4PDF {
+
+enum class ErrorCode : int32_t {
+    NoError,
+    DynamicError,
+    InvalidIndex,
+    NegativeLineWidth,
+    NoPages,
+    ColorOutOfRange,
+    BadId,
+    BadEnum,
+    NegativeDash,
+    InvalidFlatness,
+    ZeroLengthArray,
+    CouldNotOpenFile,
+    FileWriteError,
+    ArgIsNull,
+    IndexIsNegative,
+    IndexOutOfBounds,
+    BadUtf8,
+    IncorrectColorChannelCount,
+    InvalidDrawContextType,
+    FileReadError,
+    InvalidICCProfile,
+    CompressionFailure,
+    FreeTypeError,
+    Unreachable,
+    PatternNotAccepted,
+    IconvError,
+    BuiltinFontNotSupported,
+    NoCmykProfile,
+    UnsupportedFormat,
+    NonBWColormap,
+    MalformedFontFile,
+    // When you add an error code here, also add the string representation in the .cpp file.
+    NumErrors,
+};
+
+const char *error_text(ErrorCode ec) noexcept;
+
+} // namespace A4PDF
 
 #define CHECK_COLORCOMPONENT(c)                                                                    \
     if(c < 0 || c > 1) {                                                                           \

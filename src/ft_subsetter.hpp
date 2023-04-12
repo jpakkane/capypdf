@@ -17,7 +17,7 @@
 #pragma once
 
 #include <pdfcommon.hpp>
-#include <errors.hpp>
+#include <errorhandling.hpp>
 
 #include <string>
 #include <vector>

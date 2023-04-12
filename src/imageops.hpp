@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <errors.hpp>
+#include <errorhandling.hpp>
 #include <cstdint>
 #include <string>
 #include <optional>

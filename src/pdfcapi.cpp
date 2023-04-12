@@ -15,11 +15,10 @@
  */
 
 #include <a4pdf.h>
-#include <pdfmacros.hpp>
 #include <cstring>
 #include <pdfgen.hpp>
 #include <pdfdrawcontext.hpp>
-#include <errors.hpp>
+#include <errorhandling.hpp>
 
 using namespace A4PDF;
 

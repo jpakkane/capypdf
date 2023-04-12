@@ -16,7 +16,6 @@
 
 #include <pdfcolorconverter.hpp>
 #include <utils.hpp>
-#include <pdfmacros.hpp>
 #include <expected>
 #include <lcms2.h>
 #include <cassert>

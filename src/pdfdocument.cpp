@@ -16,7 +16,6 @@
 
 #include <pdfdocument.hpp>
 #include <utils.hpp>
-#include <pdfmacros.hpp>
 #include <pdfdrawcontext.hpp>
 
 #include <cassert>

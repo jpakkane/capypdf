@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Jussi Pakkanen
+ * Copyright 2022-2023 Jussi Pakkanen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include <errors.hpp>
+#include <errorhandling.hpp>
+#include <array>
 
 namespace A4PDF {
 

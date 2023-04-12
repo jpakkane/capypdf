@@ -19,7 +19,7 @@
 #include <a4pdf.h>
 #include <variant>
 #include <cstdint>
-#include <errors.hpp>
+#include <errorhandling.hpp>
 #include <vector>
 #include <string>
 
