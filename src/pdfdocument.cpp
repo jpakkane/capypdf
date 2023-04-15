@@ -202,15 +202,23 @@ PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
     if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
-    rgb_profile_obj = cm.get_rgb().empty()
-                          ? -1
-                          : icc_profiles.at(store_icc_profile(cm.get_rgb(), 3).id).object_num;
-    gray_profile_obj = cm.get_gray().empty()
-                           ? -1
-                           : icc_profiles.at(store_icc_profile(cm.get_gray(), 1).id).object_num;
-    cmyk_profile_obj = cm.get_cmyk().empty()
-                           ? -1
-                           : icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
+    switch(d.output_colorspace) {
+    case A4PDF_DEVICE_RGB:
+        if(!cm.get_rgb().empty()) {
+            output_profile_object =
+                icc_profiles.at(store_icc_profile(cm.get_rgb(), 3).id).object_num;
+        }
+        break;
+    case A4PDF_DEVICE_GRAY:
+        if(!cm.get_gray().empty()) {
+            output_profile_object =
+                icc_profiles.at(store_icc_profile(cm.get_gray(), 1).id).object_num;
+        }
+        break;
+    case A4PDF_DEVICE_CMYK:
+        output_profile_object = icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
+        break;
+    }
 }
 
 void PdfDocument::add_page(std::string resource_data, std::string page_data) {
@@ -439,6 +447,7 @@ rvoe<int32_t> PdfDocument::create_outlines(const std::vector<int32_t> &page_obje
 )",
                                   limits.first,
                                   limits.last);
+    // FIXME: add output intents here. PDF spec 14.11.5
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
@@ -938,7 +947,7 @@ rvoe<A4PDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
         return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, converted_pixels);
     }
     case A4PDF_DEVICE_CMYK: {
-        if(cmyk_profile_obj == -1) {
+        if(cm.get_cmyk().empty()) {
             RETERR(NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));

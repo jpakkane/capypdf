@@ -293,7 +293,7 @@ private:
     std::vector<Outline> outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
-    int32_t rgb_profile_obj, gray_profile_obj, cmyk_profile_obj;
+    std::optional<int32_t> output_profile_object;
 
     FILE *ofile = nullptr;
 };
