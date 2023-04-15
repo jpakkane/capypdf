@@ -234,7 +234,12 @@ PdfDocument::add_page(std::string resource_data,
     }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
     const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
-    const auto page_num = add_object(DelayedPage{(int32_t)pages.size()});
+    DelayedPage p;
+    p.page_num = (int32_t)pages.size();
+    for(const auto &a : annotations) {
+        p.used_annotations.push_back(a);
+    }
+    const auto page_num = add_object(std::move(p));
     for(const auto &a : annotations) {
         form_use[a] = page_num;
     }
@@ -375,11 +380,11 @@ rvoe<NoReturnValue> PdfDocument::write_to_file_impl() {
     return NoReturnValue{};
 }
 
-rvoe<NoReturnValue> PdfDocument::write_delayed_page(int32_t page_num) {
+rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
     std::string buf;
 
     auto buf_append = std::back_inserter(buf);
-    auto &p = pages.at(page_num);
+    auto &p = pages.at(dp.page_num);
     fmt::format_to(buf_append,
                    R"(<<
   /Type /Page
@@ -403,10 +408,18 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(int32_t page_num) {
     fmt::format_to(buf_append,
                    R"(  /Contents {} 0 R
   /Resources {} 0 R
->>
 )",
                    p.commands_obj_num,
                    p.resource_obj_num);
+
+    if(!dp.used_annotations.empty()) {
+        buf += "  /Annots [\n";
+        for(const auto &a : dp.used_annotations) {
+            fmt::format_to(buf_append, "    {} 0 R\n", annotations.at(a.id).id);
+        }
+        buf += "  ]\n";
+    }
+    buf += "  >>\n";
 
     return write_finished_object(p.page_obj_num, buf, "");
 }
@@ -616,8 +629,8 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
             // const auto &pages = std::get<DelayedPages>(obj);
             write_pages_root();
         } else if(std::holds_alternative<DelayedPage>(obj)) {
-            const auto &page = std::get<DelayedPage>(obj);
-            ERCV(write_delayed_page(page.page_num));
+            const auto &dp = std::get<DelayedPage>(obj);
+            ERCV(write_delayed_page(dp));
         } else if(std::holds_alternative<DelayedCheckboxWidgetAnnotation>(obj)) {
             const auto &checkbox = std::get<DelayedCheckboxWidgetAnnotation>(obj);
             ERCV(write_checkbox_widget(i, checkbox));
@@ -780,6 +793,7 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
       /Off {} 0 R
     >>
   >>
+  /AS /Off
   /P {} 0 R
 >>
 )",

@@ -111,6 +111,7 @@ struct DelayedPages {};
 
 struct DelayedPage {
     int32_t page_num;
+    std::vector<A4PDF_AnnotationId> used_annotations;
 };
 
 struct SubsetGlyph {
@@ -270,7 +271,7 @@ private:
     rvoe<NoReturnValue> create_catalog();
     rvoe<int32_t> create_outlines();
     std::vector<int32_t> write_pages();
-    rvoe<NoReturnValue> write_delayed_page(int32_t page_num);
+    rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
 
     rvoe<NoReturnValue> write_pages_root();
     rvoe<NoReturnValue> write_header();

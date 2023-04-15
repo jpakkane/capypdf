@@ -49,8 +49,12 @@ int main(int argc, char **argv) {
             xobj.cmd_BMC("/Tx");
             xobj.cmd_re(0, 0, 10, 10);
             xobj.cmd_S();
-            xobj.cmd_re(2, 2, 6, 6);
-            xobj.cmd_f();
+            xobj.cmd_w(2);
+            xobj.cmd_m(2, 2);
+            xobj.cmd_l(8, 8);
+            xobj.cmd_m(2, 8);
+            xobj.cmd_l(8, 2);
+            xobj.cmd_S();
             xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
             if(!rv) {
