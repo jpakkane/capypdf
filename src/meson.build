@@ -70,6 +70,10 @@ executable('formxobj', 'formxobj.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('formtest', 'formtest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 executable('loremipsum', 'loremipsum.cpp',
   dependencies: [a4pdf_dep]
 )

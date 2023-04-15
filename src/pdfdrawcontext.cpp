@@ -161,6 +161,14 @@ std::string PdfDrawContext::build_resource_dict() {
     return resources;
 }
 
+ErrorCode PdfDrawContext::add_form_widget(A4PDF_AnnotationId widget) {
+    if(used_annotations.find(widget) != used_annotations.end()) {
+        return ErrorCode::FormWidgetReuse;
+    }
+    used_annotations.insert(widget);
+    return ErrorCode::NoError;
+}
+
 GstatePopper PdfDrawContext::push_gstate() {
     cmd_q();
     return GstatePopper(this);
@@ -248,6 +256,7 @@ ErrorCode PdfDrawContext::cmd_EMC() {
         return ErrorCode::EmcOnEmpty;
     }
     --marked_depth;
+    commands += "EMC\n";
     return ErrorCode::NoError;
 }
 

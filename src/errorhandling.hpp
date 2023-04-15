@@ -55,6 +55,7 @@ enum class ErrorCode : int32_t {
     MalformedFontFile,
     EmcOnEmpty,
     UnclosedMarkedContent,
+    FormWidgetReuse,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
@@ -76,6 +77,11 @@ struct NoReturnValue {};
 #define CHECK_INDEXNESS(ind, container)                                                            \
     if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
         return ErrorCode::BadId;                                                                   \
+    }
+
+#define CHECK_INDEXNESS_V(ind, container)                                                          \
+    if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
+        return std::unexpected(ErrorCode::BadId);                                                  \
     }
 
 #define CHECK_ENUM(v, max_enum_val)                                                                \

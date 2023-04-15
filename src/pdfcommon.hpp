@@ -22,8 +22,35 @@
 #include <optional>
 #include <vector>
 #include <array>
+#include <functional>
 
 #include <cstdint>
+
+#define DEF_BASIC_OPERATORS(TNAME)                                                                 \
+    inline bool operator==(const TNAME &object_number_1, const TNAME &object_number_2) {           \
+        return object_number_1.id == object_number_2.id;                                           \
+    }                                                                                              \
+                                                                                                   \
+    inline std::strong_ordering operator<=>(const TNAME &object_number_1,                          \
+                                            const TNAME &object_number_2) {                        \
+        return object_number_1.id <=> object_number_2.id;                                          \
+    }                                                                                              \
+                                                                                                   \
+    template<> struct std::hash<TNAME> {                                                           \
+        std::size_t operator()(const TNAME &tobj) const noexcept {                                 \
+            return std::hash<int32_t>{}(tobj.id);                                                  \
+        }                                                                                          \
+    }
+
+DEF_BASIC_OPERATORS(A4PDF_ImageId);
+
+DEF_BASIC_OPERATORS(A4PDF_FontId);
+
+DEF_BASIC_OPERATORS(A4PDF_IccColorSpaceId);
+
+DEF_BASIC_OPERATORS(A4PDF_FormXObjectId);
+
+DEF_BASIC_OPERATORS(A4PDF_AnnotationId);
 
 namespace A4PDF {
 

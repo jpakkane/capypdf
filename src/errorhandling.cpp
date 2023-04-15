@@ -55,6 +55,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Malformed font file.",
 "EMC called even though no marked content block is active.",
 "Marked content not closed.",
+"Form widgets can only be used once.",
 };
 
 // clang-format on

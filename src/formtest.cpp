@@ -24,53 +24,55 @@ int main(int argc, char **argv) {
     PdfGenerationData opts;
 
     opts.mediabox.w = opts.mediabox.h = 200;
-    opts.title = "Acroform  test";
+    opts.title = "Form XObject test";
     opts.author = "Test Person";
     opts.output_colorspace = A4PDF_DEVICE_RGB;
     {
-        GenPopper genpop("foxbj_test.pdf", opts);
+        GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        A4PDF_FormXObjectId xid;
+        A4PDF_FormXObjectId offstate, onstate;
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
-            xobj.cmd_w(1);
+            xobj.cmd_BMC("/Tx");
             xobj.cmd_re(0, 0, 10, 10);
             xobj.cmd_S();
-            xobj.cmd_w(2);
-            xobj.cmd_m(2, 2);
-            xobj.cmd_l(8, 8);
-            xobj.cmd_m(2, 8);
-            xobj.cmd_l(8, 2);
-            xobj.cmd_S();
+            xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
             if(!rv) {
                 fprintf(stderr, "%s\n", error_text(rv.error()));
                 return 1;
             }
-            xid = *rv;
+            offstate = *rv;
+        }
+        {
+            PdfDrawContext xobj = gen.new_form_xobject(10, 10);
+            xobj.cmd_BMC("/Tx");
+            xobj.cmd_re(0, 0, 10, 10);
+            xobj.cmd_S();
+            xobj.cmd_re(2, 2, 6, 6);
+            xobj.cmd_f();
+            xobj.cmd_EMC();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            onstate = *rv;
         }
 
-        auto ctxguard = gen.guarded_page_context();
-        auto &ctx = ctxguard.ctx;
+        auto checkbox_widget =
+            gen.create_form_checkbox(PdfBox{10, 80, 20, 90}, onstate, offstate, "checkbox1")
+                .value();
         {
-            auto g = ctx.push_gstate();
-            ctx.translate(10, 95);
-            ctx.cmd_Do(xid);
-        }
-        {
-            auto g = ctx.push_gstate();
-            ctx.translate(180, 95);
-            ctx.cmd_Do(xid);
-        }
-        {
-            auto g = ctx.push_gstate();
-            ctx.translate(95, 10);
-            ctx.cmd_Do(xid);
-        }
-        {
-            auto g = ctx.push_gstate();
-            ctx.translate(95, 180);
-            ctx.cmd_Do(xid);
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
+            // mark widget annotations as used
+            ctx.render_pdfdoc_text_builtin("A checkbox", A4PDF_FONT_HELVETICA, 12, 25, 80);
+            auto rc = ctx.add_form_widget(checkbox_widget);
+            if(rc != ErrorCode::NoError) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
         }
     }
     return 0;

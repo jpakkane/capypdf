@@ -41,9 +41,14 @@ void LcmsHolder::deallocate() {
 
 DrawContextPopper::~DrawContextPopper() {
     switch(ctx.draw_context_type()) {
-    case A4PDF_Page_Context:
-        g->add_page(ctx);
+    case A4PDF_Page_Context: {
+        auto rc = g->add_page(ctx);
+        if(!rc) {
+            fprintf(stderr, "%s\n", error_text(rc.error()));
+            std::abort();
+        }
         break;
+    }
     default:
         std::abort();
     }
@@ -82,7 +87,10 @@ ErrorCode PdfGen::write() {
     }
 
     try {
-        pdoc.write_to_file(ofile);
+        auto rc = pdoc.write_to_file(ofile);
+        if(!rc) {
+            return rc.error();
+        }
     } catch(const std::exception &e) {
         fprintf(stderr, "%s", e.what());
         fclose(ofile);
@@ -126,7 +134,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
     auto &sc = std::get<SerializedBasicContext>(sc_var);
-    pdoc.add_page(std::move(sc.dict), std::move(sc.commands));
+    ERCV(pdoc.add_page(std::move(sc.dict), std::move(sc.commands), ctx.get_annotations()));
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }

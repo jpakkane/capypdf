@@ -81,6 +81,13 @@ public:
         return pdoc.load_icc_file(fname);
     }
 
+    rvoe<A4PDF_AnnotationId> create_form_checkbox(PdfBox loc,
+                                                  A4PDF_FormXObjectId onstate,
+                                                  A4PDF_FormXObjectId offstate,
+                                                  std::string_view partial_name) {
+        return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
+    }
+
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
@@ -118,7 +125,13 @@ struct GenPopper {
     std::unique_ptr<PdfGen> g;
     GenPopper(const char *ofname, const PdfGenerationData &d)
         : g(PdfGen::construct(ofname, d).value()) {}
-    ~GenPopper() { g->write(); }
+    ~GenPopper() {
+        auto rc = g->write();
+        if(rc != ErrorCode::NoError) {
+            fprintf(stderr, "%s\n", error_text(rc));
+            std::abort();
+        }
+    }
 };
 
 } // namespace A4PDF

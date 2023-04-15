@@ -26,6 +26,7 @@
 #include <expected>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <variant>
 
@@ -161,6 +162,23 @@ class PdfGen;
 class PdfDrawContext;
 struct ColorPatternBuilder;
 
+struct DelayedCheckboxWidgetAnnotation {
+    int32_t form_annotation_id;
+
+    // Annotation dict values.
+    PdfBox rect;
+    A4PDF_FormXObjectId on;
+    A4PDF_FormXObjectId off;
+    // uint32_t F; // Annotation flags;
+
+    // Field dict values.
+    std::string T;
+};
+
+// Other types here.
+
+// typedef std::variant<all annotation types> DelayedAnnotations;
+
 typedef std::variant<DummyIndexZero,
                      FullPDFObject,
                      DeflatePDFObject,
@@ -169,7 +187,8 @@ typedef std::variant<DummyIndexZero,
                      DelayedSubsetCMap,
                      DelayedSubsetFont,
                      DelayedPages,
-                     DelayedPage>
+                     DelayedPage,
+                     DelayedCheckboxWidgetAnnotation>
     ObjectType;
 
 typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
@@ -186,7 +205,9 @@ public:
     rvoe<NoReturnValue> write_to_file(FILE *output_file);
 
     // Pages
-    void add_page(std::string resource_data, std::string page_data);
+    rvoe<NoReturnValue> add_page(std::string resource_data,
+                                 std::string page_data,
+                                 const std::unordered_set<A4PDF_AnnotationId> &annotations);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -222,6 +243,12 @@ public:
     // Outlines
     OutlineId
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
+
+    // Forms
+    rvoe<A4PDF_AnnotationId> create_form_checkbox(PdfBox loc,
+                                                  A4PDF_FormXObjectId onstate,
+                                                  A4PDF_FormXObjectId offstate,
+                                                  std::string_view partial_name);
 
     std::optional<double>
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
@@ -272,6 +299,8 @@ private:
                                           int32_t subset,
                                           int32_t font_descriptor_obj,
                                           int32_t tounicode_obj);
+    rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
+                                              const DelayedCheckboxWidgetAnnotation &checkbox);
 
     rvoe<A4PDF_ImageId> add_image_object(int32_t w,
                                          int32_t h,
@@ -304,6 +333,10 @@ private:
     std::vector<Outline> outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
+    std::vector<A4PDF_AnnotationId> annotations;
+    std::vector<int32_t> form_annotations;
+    // A form widget can be used on one and only one page.
+    std::unordered_map<A4PDF_AnnotationId, int32_t> form_use;
     std::optional<int32_t> output_profile_object;
     int32_t pages_object;
 

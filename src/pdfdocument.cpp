@@ -223,11 +223,23 @@ PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
     pages_object = document_objects.size() - 1;
 }
 
-void PdfDocument::add_page(std::string resource_data, std::string page_data) {
+rvoe<NoReturnValue>
+PdfDocument::add_page(std::string resource_data,
+                      std::string page_data,
+                      const std::unordered_set<A4PDF_AnnotationId> &annotations) {
+    for(const auto &a : annotations) {
+        if(form_use.find(a) != form_use.cend()) {
+            RETERR(FormWidgetReuse);
+        }
+    }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
     const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
     const auto page_num = add_object(DelayedPage{(int32_t)pages.size()});
+    for(const auto &a : annotations) {
+        form_use[a] = page_num;
+    }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
+    return NoReturnValue{};
 }
 
 void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
@@ -415,19 +427,30 @@ rvoe<NoReturnValue> PdfDocument::write_pages_root() {
 
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
+    auto app = std::back_inserter(buf);
     std::string outline;
     if(!outlines.empty()) {
         ERC(outlines, create_outlines());
         outline = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
-    fmt::format_to(std::back_inserter(buf),
+    fmt::format_to(app,
                    R"(<<
   /Type /Catalog
   /Pages {} 0 R
-{}>>
+{}
 )",
                    pages_object,
                    outline);
+    if(!form_annotations.empty()) {
+        buf += R"(  /AcroForm <<
+    /Fields [
+)";
+        for(const auto &i : form_annotations) {
+            fmt::format_to(app, "      {} 0 R\n", annotations.at(i).id);
+        }
+        buf += "      ]\n  >>\n";
+    }
+    buf += "  /NeedAppearances true\n>>\n";
     add_object(FullPDFObject{buf, ""});
     return NoReturnValue{};
 }
@@ -594,7 +617,10 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
             write_pages_root();
         } else if(std::holds_alternative<DelayedPage>(obj)) {
             const auto &page = std::get<DelayedPage>(obj);
-            write_delayed_page(page.page_num);
+            ERCV(write_delayed_page(page.page_num));
+        } else if(std::holds_alternative<DelayedCheckboxWidgetAnnotation>(obj)) {
+            const auto &checkbox = std::get<DelayedCheckboxWidgetAnnotation>(obj);
+            ERCV(write_checkbox_widget(i, checkbox));
         } else {
             RETERR(Unreachable);
         }
@@ -618,7 +644,7 @@ rvoe<NoReturnValue> PdfDocument::write_subset_font_data(int32_t object_num,
 )",
                                       compressed_bytes.size(),
                                       subset_font.size());
-    write_finished_object(object_num, dictbuf, compressed_bytes);
+    ERCV(write_finished_object(object_num, dictbuf, compressed_bytes));
     return NoReturnValue{};
 }
 
@@ -728,7 +754,44 @@ rvoe<NoReturnValue> PdfDocument::write_subset_font(int32_t object_num,
                               width_arr,
                               font_descriptor_obj,
                               tounicode_obj);
-    write_finished_object(object_num, objbuf, "");
+    ERCV(write_finished_object(object_num, objbuf, ""));
+    return NoReturnValue{};
+}
+
+rvoe<NoReturnValue>
+PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotation &checkbox) {
+    auto forma_id = form_annotations.at(checkbox.form_annotation_id);
+    // SUPER FIXME.
+    auto anno_id = A4PDF_AnnotationId{(int32_t)forma_id}; // annotations.at(forma_id);
+    auto loc = form_use.find(anno_id);
+    if(loc == form_use.end()) {
+        std::abort();
+    }
+
+    std::string dict = fmt::format(R"(<<
+  /Type /Annot
+  /Subtype /Widget
+  /FT /Btn
+  /Rect [ {} {} {} {} ]
+  /T ({})
+  /AP <<
+    /N <<
+      /On {} 0 R
+      /Off {} 0 R
+    >>
+  >>
+  /P {} 0 R
+>>
+)",
+                                   checkbox.rect.x,
+                                   checkbox.rect.y,
+                                   checkbox.rect.w,
+                                   checkbox.rect.h,
+                                   checkbox.T,
+                                   form_xobjects.at(checkbox.on.id).xobj_num,
+                                   form_xobjects.at(checkbox.off.id).xobj_num,
+                                   loc->second);
+    ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};
 }
 
@@ -1129,6 +1192,20 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
                                    std::optional<OutlineId> parent) {
     outlines.emplace_back(Outline{std::string{title_utf8}, dest, parent});
     return OutlineId{(int32_t)outlines.size() - 1};
+}
+
+rvoe<A4PDF_AnnotationId> PdfDocument::create_form_checkbox(PdfBox loc,
+                                                           A4PDF_FormXObjectId onstate,
+                                                           A4PDF_FormXObjectId offstate,
+                                                           std::string_view partial_name) {
+    CHECK_INDEXNESS_V(onstate.id, form_xobjects);
+    CHECK_INDEXNESS_V(offstate.id, form_xobjects);
+    DelayedCheckboxWidgetAnnotation formobj{
+        (int32_t)form_annotations.size(), loc, onstate, offstate, std::string{partial_name}};
+    auto obj_id = add_object(std::move(formobj));
+    annotations.push_back(A4PDF_AnnotationId{(int32_t)obj_id});
+    form_annotations.push_back(annotations.size() - 1);
+    return A4PDF_AnnotationId{(int32_t)form_annotations.size() - 1};
 }
 
 std::optional<double>

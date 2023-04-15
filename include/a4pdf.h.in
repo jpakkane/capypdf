@@ -30,6 +30,8 @@ extern "C" {
 #define A4PDF_NOEXCEPT
 #endif
 
+// FIXME: canonicalize the appearance of enums.
+
 enum A4PDF_Builtin_Fonts {
     A4PDF_FONT_TIMES_ROMAN,
     A4PDF_FONT_HELVETICA,
@@ -118,6 +120,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } A4PDF_FormXObjectId;
+
+typedef struct {
+    int32_t id;
+} A4PDF_AnnotationId;
 
 // Options
 
