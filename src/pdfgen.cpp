@@ -120,6 +120,9 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
         RETERR(InvalidDrawContextType);
     }
+    if(ctx.marked_content_depth() != 0) {
+        RETERR(UnclosedMarkedContent);
+    }
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
     auto &sc = std::get<SerializedBasicContext>(sc_var);
@@ -128,22 +131,29 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }
 
-ErrorCode PdfGen::add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxoid) {
+rvoe<A4PDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != A4PDF_Form_XObject_Context) {
-        return ErrorCode::InvalidDrawContextType;
+        RETERR(InvalidDrawContextType);
+    }
+    if(ctx.marked_content_depth() != 0) {
+        RETERR(UnclosedMarkedContent);
     }
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedXObject>(sc_var));
     auto &sc = std::get<SerializedXObject>(sc_var);
     pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.stream));
     ctx.clear();
+    A4PDF_FormXObjectId fxoid;
     fxoid.id = (int32_t)pdoc.form_xobjects.size() - 1;
-    return ErrorCode::NoError;
+    return rvoe<A4PDF_FormXObjectId>{fxoid};
 }
 
 rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
     if(cp.pctx.draw_context_type() != A4PDF_Color_Tiling_Pattern_Context) {
         RETERR(InvalidDrawContextType);
+    }
+    if(cp.pctx.marked_content_depth() != 0) {
+        RETERR(UnclosedMarkedContent);
     }
     auto resources = cp.pctx.build_resource_dict();
     auto commands = cp.pctx.get_command_stream();

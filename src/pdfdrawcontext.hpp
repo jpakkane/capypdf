@@ -90,12 +90,14 @@ public:
     ErrorCode cmd_B();
     ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
+    ErrorCode cmd_BMC(std::string_view tag);
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
     ErrorCode cmd_CS(std::string_view cspace_name);
     ErrorCode cmd_cs(std::string_view cspace_name);
     ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
     ErrorCode cmd_Do(A4PDF_FormXObjectId fxoid);
+    ErrorCode cmd_EMC();
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
     ErrorCode cmd_fstar();
@@ -174,6 +176,8 @@ public:
     double get_form_xobj_w() const { return form_xobj_w; }
     double get_form_xobj_h() const { return form_xobj_h; }
 
+    int32_t marked_content_depth() const { return marked_depth; }
+
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
                                                std::string &serialisation,
@@ -201,6 +205,7 @@ private:
     bool uses_all_colorspace = false;
     double form_xobj_w = -1;
     double form_xobj_h = -1;
+    int32_t marked_depth = 0;
 };
 
 struct ColorPatternBuilder {

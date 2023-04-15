@@ -53,6 +53,8 @@ enum class ErrorCode : int32_t {
     UnsupportedFormat,
     NonBWColormap,
     MalformedFontFile,
+    EmcOnEmpty,
+    UnclosedMarkedContent,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

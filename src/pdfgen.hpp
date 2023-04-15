@@ -91,7 +91,7 @@ public:
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
-    ErrorCode add_form_xobject(PdfDrawContext &ctx, A4PDF_FormXObjectId &fxoid);
+    rvoe<A4PDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
 
     OutlineId

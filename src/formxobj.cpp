@@ -42,11 +42,12 @@ int main(int argc, char **argv) {
             xobj.cmd_m(2, 8);
             xobj.cmd_l(8, 2);
             xobj.cmd_S();
-            auto ec = gen.add_form_xobject(xobj, xid);
-            if(ec != ErrorCode::NoError) {
-                fprintf(stderr, "%s\n", error_text(ec));
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
                 return 1;
             }
+            xid = *rv;
         }
 
         auto ctxguard = gen.guarded_page_context();

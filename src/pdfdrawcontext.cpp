@@ -34,8 +34,8 @@ GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
 PdfDrawContext::PdfDrawContext(
     PdfDocument *doc, PdfColorConverter *cm, A4PDF_Draw_Context_Type dtype, double w, double h)
-    : doc(doc), cm(cm), context_type{dtype},
-      cmd_appender(commands), form_xobj_w{w}, form_xobj_h{h} {}
+    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), form_xobj_w{w},
+      form_xobj_h{h} {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
@@ -186,6 +186,15 @@ ErrorCode PdfDrawContext::cmd_Bstar() {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
+    if(tag.empty() || tag.front() != '/') {
+        std::abort();
+    }
+    ++marked_depth;
+    fmt::format_to(cmd_appender, "{} BMC\n", tag);
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
     fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
     return ErrorCode::NoError;
@@ -231,6 +240,14 @@ ErrorCode PdfDrawContext::cmd_Do(A4PDF_FormXObjectId fxoid) {
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
     fmt::format_to(cmd_appender, "/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_EMC() {
+    if(marked_depth == 0) {
+        return ErrorCode::EmcOnEmpty;
+    }
+    --marked_depth;
     return ErrorCode::NoError;
 }
 
@@ -683,10 +700,10 @@ ErrorCode PdfDrawContext::render_utf8_text(
 }
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
-                                       std::string &serialisation,
-                                       A4PDF_FontId &current_font,
-                                       int32_t &current_subset,
-                                       double &current_pointsize) {
+                                                           std::string &serialisation,
+                                                           A4PDF_FontId &current_font,
+                                                           int32_t &current_subset,
+                                                           double &current_pointsize) {
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     bool is_first = true;
     for(const auto &e : charseq) {

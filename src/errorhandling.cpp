@@ -53,6 +53,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Unsupported file format.",
 "Only monochrome colormap images supported.",
 "Malformed font file.",
+"EMC called even though no marked content block is active.",
+"Marked content not closed.",
 };
 
 // clang-format on
