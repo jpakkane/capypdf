@@ -48,6 +48,7 @@ struct TtfFont {
 struct PageOffsets {
     int32_t resource_obj_num;
     int32_t commands_obj_num;
+    int32_t page_obj_num;
 };
 
 struct ImageSize {
@@ -105,6 +106,12 @@ struct DelayedSubsetFont {
     int32_t subfont_cmap_obj;
 };
 
+struct DelayedPages {};
+
+struct DelayedPage {
+    int32_t page_num;
+};
+
 struct SubsetGlyph {
     FontSubset ss;
     uint8_t glyph_id;
@@ -160,7 +167,9 @@ typedef std::variant<DummyIndexZero,
                      DelayedSubsetFontData,
                      DelayedSubsetFontDescriptor,
                      DelayedSubsetCMap,
-                     DelayedSubsetFont>
+                     DelayedSubsetFont,
+                     DelayedPages,
+                     DelayedPage>
     ObjectType;
 
 typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
@@ -231,9 +240,12 @@ private:
 
     rvoe<std::vector<uint64_t>> write_objects();
 
-    rvoe<NoReturnValue> create_catalog(const std::vector<int32_t> &);
-    rvoe<int32_t> create_outlines(const std::vector<int32_t> &);
+    rvoe<NoReturnValue> create_catalog();
+    rvoe<int32_t> create_outlines();
     std::vector<int32_t> write_pages();
+    rvoe<NoReturnValue> write_delayed_page(int32_t page_num);
+
+    rvoe<NoReturnValue> write_pages_root();
     rvoe<NoReturnValue> write_header();
     rvoe<NoReturnValue> generate_info_object();
     rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
@@ -274,8 +286,7 @@ private:
     rvoe<A4PDF_ImageId> process_cmyk_image(const cmyk_image &image);
 
     rvoe<OutlineLimits>
-    write_outline_tree(const std::vector<int32_t> &page_objects,
-                       const std::unordered_map<int32_t, std::vector<int32_t>> &children,
+    write_outline_tree(const std::unordered_map<int32_t, std::vector<int32_t>> &children,
                        int32_t node_id);
 
     void pad_subset_fonts();
@@ -294,6 +305,7 @@ private:
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
     std::optional<int32_t> output_profile_object;
+    int32_t pages_object;
 
     FILE *ofile = nullptr;
 };

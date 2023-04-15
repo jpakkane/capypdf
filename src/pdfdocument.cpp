@@ -195,8 +195,8 @@ const std::array<const char *, 4> rendering_intent_names{
 
 PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
     : opts{d}, cm{std::move(cm)} {
-    // PDF uses 1-based indexing so let's add a dummy thing in this vector
-    // so PDF and vector indices are the same.
+    // PDF uses 1-based indexing so add a dummy thing in this vector
+    // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
     if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
@@ -219,12 +219,15 @@ PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
         output_profile_object = icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
         break;
     }
+    document_objects.push_back(DelayedPages{});
+    pages_object = document_objects.size() - 1;
 }
 
 void PdfDocument::add_page(std::string resource_data, std::string page_data) {
     const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
-    const auto page_num = add_object(FullPDFObject{std::move(page_data), ""});
-    pages.emplace_back(PageOffsets{resource_num, page_num});
+    const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
+    const auto page_num = add_object(DelayedPage{(int32_t)pages.size()});
+    pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
 }
 
 void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
@@ -351,8 +354,7 @@ rvoe<NoReturnValue> PdfDocument::write_to_file(FILE *output_file) {
 
 rvoe<NoReturnValue> PdfDocument::write_to_file_impl() {
     ERCV(write_header());
-    auto page_objects = write_pages();
-    ERCV(create_catalog(page_objects));
+    ERCV(create_catalog());
     pad_subset_fonts();
     ERC(object_offsets, write_objects());
     const int64_t xref_offset = ftell(ofile);
@@ -361,67 +363,61 @@ rvoe<NoReturnValue> PdfDocument::write_to_file_impl() {
     return NoReturnValue{};
 }
 
-std::vector<int32_t> PdfDocument::write_pages() {
-    const auto pages_obj_num = (int32_t)(document_objects.size() + pages.size());
-
+rvoe<NoReturnValue> PdfDocument::write_delayed_page(int32_t page_num) {
     std::string buf;
 
-    std::vector<int32_t> page_objects;
     auto buf_append = std::back_inserter(buf);
-    for(const auto &i : pages) {
-        buf.clear();
-        fmt::format_to(buf_append,
-                       R"(<<
+    auto &p = pages.at(page_num);
+    fmt::format_to(buf_append,
+                   R"(<<
   /Type /Page
   /Parent {} 0 R
 )",
-                       pages_obj_num);
-        write_box(buf_append, "MediaBox", opts.mediabox);
+                   pages_object);
+    write_box(buf_append, "MediaBox", opts.mediabox);
 
-        if(opts.cropbox) {
-            write_box(buf_append, "CropBox", *opts.cropbox);
-        }
-        if(opts.bleedbox) {
-            write_box(buf_append, "BleedBox", *opts.bleedbox);
-        }
-        if(opts.trimbox) {
-            write_box(buf_append, "TrimBox", *opts.trimbox);
-        }
-        if(opts.artbox) {
-            write_box(buf_append, "ArtBox", *opts.artbox);
-        }
-        fmt::format_to(buf_append,
-                       R"(  /Contents {} 0 R
+    if(opts.cropbox) {
+        write_box(buf_append, "CropBox", *opts.cropbox);
+    }
+    if(opts.bleedbox) {
+        write_box(buf_append, "BleedBox", *opts.bleedbox);
+    }
+    if(opts.trimbox) {
+        write_box(buf_append, "TrimBox", *opts.trimbox);
+    }
+    if(opts.artbox) {
+        write_box(buf_append, "ArtBox", *opts.artbox);
+    }
+    fmt::format_to(buf_append,
+                   R"(  /Contents {} 0 R
   /Resources {} 0 R
 >>
 )",
-                       i.commands_obj_num,
-                       i.resource_obj_num);
+                   p.commands_obj_num,
+                   p.resource_obj_num);
 
-        page_objects.push_back(add_object(FullPDFObject{buf, ""}));
-    }
-    buf = R"(<<
-  /Type /Pages
-  /Kids [
-)";
-    for(const auto &i : page_objects) {
-        fmt::format_to(buf_append, "    {} 0 R\n", i);
-    }
-    fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", page_objects.size());
-    const auto actual_number = add_object(FullPDFObject{buf, ""});
-    if(actual_number != pages_obj_num) {
-        fprintf(stderr, "Buggy McBugFace!");
-        std::abort();
-    }
-    return page_objects;
+    return write_finished_object(p.page_obj_num, buf, "");
 }
 
-rvoe<NoReturnValue> PdfDocument::create_catalog(const std::vector<int32_t> &page_objects) {
-    const int32_t pages_obj_num = (int32_t)document_objects.size() - 1;
+rvoe<NoReturnValue> PdfDocument::write_pages_root() {
+    std::string buf;
+    auto buf_append = std::back_inserter(buf);
+    buf = fmt::format(R"(<<
+  /Type /Pages
+  /Kids [
+  )");
+    for(const auto &i : pages) {
+        fmt::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
+    }
+    fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", pages.size());
+    return write_finished_object(pages_object, buf, "");
+}
+
+rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
     std::string outline;
     if(!outlines.empty()) {
-        ERC(outlines, create_outlines(page_objects));
+        ERC(outlines, create_outlines());
         outline = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
     fmt::format_to(std::back_inserter(buf),
@@ -430,15 +426,15 @@ rvoe<NoReturnValue> PdfDocument::create_catalog(const std::vector<int32_t> &page
   /Pages {} 0 R
 {}>>
 )",
-                   pages_obj_num,
+                   pages_object,
                    outline);
     add_object(FullPDFObject{buf, ""});
     return NoReturnValue{};
 }
 
-rvoe<int32_t> PdfDocument::create_outlines(const std::vector<int32_t> &page_objects) {
+rvoe<int32_t> PdfDocument::create_outlines() {
     const auto otree = compute_children(outlines);
-    ERC(limits, write_outline_tree(page_objects, otree, -1));
+    ERC(limits, write_outline_tree(otree, -1));
     std::string buf = fmt::format(R"(<<
   /Type /Outlines
   /First {} 0 R
@@ -452,8 +448,7 @@ rvoe<int32_t> PdfDocument::create_outlines(const std::vector<int32_t> &page_obje
 }
 
 rvoe<OutlineLimits>
-PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
-                                const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
+PdfDocument::write_outline_tree(const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
                                 int32_t node_id) {
     std::optional<int32_t> first;
     std::optional<int32_t> last;
@@ -470,7 +465,7 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
         std::optional<OutlineLimits> cur_limit;
         auto it = otree.find(current_nodes[i]);
         if(it != otree.end()) {
-            ERC(limit, write_outline_tree(page_objects, otree, current_nodes[i]));
+            ERC(limit, write_outline_tree(otree, current_nodes[i]));
             cur_limit = limit;
         }
         child_limits.emplace_back(std::move(cur_limit));
@@ -488,7 +483,7 @@ PdfDocument::write_outline_tree(const std::vector<int32_t> &page_objects,
   /Dest [ {} 0 R /XYZ null null null]
 )",
                        titlestr,
-                       page_objects.at(o.dest.id));
+                       pages.at(o.dest.id).page_obj_num);
         if(i != 0) {
             fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 2);
         } else {
@@ -594,6 +589,12 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
                                    0,
                                    ssfont.subfont_descriptor_obj,
                                    ssfont.subfont_cmap_obj));
+        } else if(std::holds_alternative<DelayedPages>(obj)) {
+            // const auto &pages = std::get<DelayedPages>(obj);
+            write_pages_root();
+        } else if(std::holds_alternative<DelayedPage>(obj)) {
+            const auto &page = std::get<DelayedPage>(obj);
+            write_delayed_page(page.page_num);
         } else {
             RETERR(Unreachable);
         }
