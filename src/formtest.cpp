@@ -34,8 +34,6 @@ int main(int argc, char **argv) {
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_BMC("/Tx");
-            xobj.cmd_re(0, 0, 10, 10);
-            xobj.cmd_S();
             xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
             if(!rv) {
@@ -47,14 +45,9 @@ int main(int argc, char **argv) {
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_BMC("/Tx");
-            xobj.cmd_re(0, 0, 10, 10);
-            xobj.cmd_S();
-            xobj.cmd_w(2);
-            xobj.cmd_m(2, 2);
-            xobj.cmd_l(8, 8);
-            xobj.cmd_m(2, 8);
-            xobj.cmd_l(8, 2);
-            xobj.cmd_S();
+            xobj.cmd_q();
+            xobj.render_pdfdoc_text_builtin("X", A4PDF_FONT_HELVETICA, 12, 0, 0);
+            xobj.cmd_Q();
             xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
             if(!rv) {
@@ -70,7 +63,10 @@ int main(int argc, char **argv) {
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
-            // mark widget annotations as used
+
+            ctx.cmd_re(10, 80, 10, 10);
+            ctx.cmd_S();
+
             ctx.render_pdfdoc_text_builtin("A checkbox", A4PDF_FONT_HELVETICA, 12, 25, 80);
             auto rc = ctx.add_form_widget(checkbox_widget);
             if(rc != ErrorCode::NoError) {

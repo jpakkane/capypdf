@@ -784,27 +784,29 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
     std::string dict = fmt::format(R"(<<
   /Type /Annot
   /Subtype /Widget
-  /FT /Btn
   /Rect [ {} {} {} {} ]
+  /FT /Btn
+  /P {} 0 R
   /T ({})
+  /V /Off
+  /MK<</CA(8)>>
   /AP <<
     /N <<
-      /On {} 0 R
+      /Yes {} 0 R
       /Off {} 0 R
     >>
   >>
   /AS /Off
-  /P {} 0 R
 >>
 )",
                                    checkbox.rect.x,
                                    checkbox.rect.y,
                                    checkbox.rect.w,
                                    checkbox.rect.h,
+                                   loc->second,
                                    checkbox.T,
                                    form_xobjects.at(checkbox.on.id).xobj_num,
-                                   form_xobjects.at(checkbox.off.id).xobj_num,
-                                   loc->second);
+                                   form_xobjects.at(checkbox.off.id).xobj_num);
     ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};
 }
