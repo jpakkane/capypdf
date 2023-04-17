@@ -32,6 +32,8 @@ namespace A4PDF {
 
 namespace {
 
+std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
+
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
     if(face) {
@@ -193,34 +195,53 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
+rvoe<PdfDocument> PdfDocument::construct(const PdfGenerationData &d, PdfColorConverter cm) {
+    PdfDocument newdoc(d, std::move(cm));
+    ERCV(newdoc.init());
+    return std::move(newdoc);
+}
+
 PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
-    : opts{d}, cm{std::move(cm)} {
+    : opts{d}, cm{std::move(cm)} {}
+
+rvoe<NoReturnValue> PdfDocument::init() {
     // PDF uses 1-based indexing so add a dummy thing in this vector
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    if(d.output_colorspace == A4PDF_DEVICE_CMYK) {
+    if(opts.output_colorspace == A4PDF_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
-    switch(d.output_colorspace) {
+    switch(opts.output_colorspace) {
     case A4PDF_DEVICE_RGB:
         if(!cm.get_rgb().empty()) {
-            output_profile_object =
-                icc_profiles.at(store_icc_profile(cm.get_rgb(), 3).id).object_num;
+            output_profile = store_icc_profile(cm.get_rgb(), 3);
         }
         break;
     case A4PDF_DEVICE_GRAY:
         if(!cm.get_gray().empty()) {
-            output_profile_object =
-                icc_profiles.at(store_icc_profile(cm.get_gray(), 1).id).object_num;
+            output_profile = store_icc_profile(cm.get_gray(), 1);
         }
         break;
     case A4PDF_DEVICE_CMYK:
-        output_profile_object = icc_profiles.at(store_icc_profile(cm.get_cmyk(), 4).id).object_num;
+        if(!cm.get_cmyk().empty()) {
+            RETERR(OutputProfileMissing);
+        }
+        output_profile = store_icc_profile(cm.get_cmyk(), 4);
         break;
     }
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
+    if(opts.subtype) {
+        if(!output_profile) {
+            RETERR(OutputProfileMissing);
+        }
+        if(opts.intent_condition_identifier.empty()) {
+            RETERR(MissingIntentIdentifier);
+        }
+        create_output_intent();
+    }
+    return NoReturnValue{};
 }
 
 rvoe<NoReturnValue>
@@ -454,6 +475,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 )",
                    pages_object,
                    outline);
+    if(output_intent_object) {
+        fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
+    }
     if(!form_use.empty()) {
         buf += R"(  /AcroForm <<
     /Fields [
@@ -462,10 +486,28 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
             fmt::format_to(app, "      {} 0 R\n", i.id);
         }
         buf += "      ]\n  >>\n";
+        buf += "  /NeedAppearances true\n";
     }
-    buf += "  /NeedAppearances true\n>>\n";
+    buf += ">>\n";
     add_object(FullPDFObject{buf, ""});
     return NoReturnValue{};
+}
+
+void PdfDocument::create_output_intent() {
+    std::string buf;
+    assert(output_profile);
+    assert(opts.subtype);
+    buf = fmt::format(R"(<<
+  /Type /OutputIntent
+  /S {}
+  /OutputConditionIdentifier ({})
+  /DestOutputProfile {} 0 R
+>>
+)",
+                      intentnames.at((int)*opts.subtype),
+                      opts.intent_condition_identifier,
+                      icc_profiles.at(output_profile->id).stream_num);
+    output_intent_object = add_object(FullPDFObject{buf, ""});
 }
 
 rvoe<int32_t> PdfDocument::create_outlines() {
@@ -858,9 +900,10 @@ A4PDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
   /N {}
 )",
                    num_channels);
-    auto data_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
-    auto obj_id = add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", data_obj_id), ""});
-    icc_profiles.emplace_back(IccInfo{obj_id, num_channels});
+    auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
+    auto obj_id =
+        add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), ""});
+    icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
     return A4PDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 

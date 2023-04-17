@@ -60,12 +60,13 @@ rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const char *ofname, const PdfGen
     if(error) {
         RETERR(FreeTypeError);
     }
-    std::filesystem::path opath(ofname);
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
+    std::filesystem::path opath(ofname);
     ERC(cm,
         PdfColorConverter::construct(
             d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
-    return std::make_unique<PdfGen>(std::move(opath), std::move(ft), PdfDocument(d, std::move(cm)));
+    ERC(pdoc, PdfDocument::construct(d, std::move(cm)));
+    return std::unique_ptr<PdfGen>(new PdfGen(std::move(opath), std::move(ft), std::move(pdoc)));
 }
 
 PdfGen::~PdfGen() {

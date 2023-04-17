@@ -932,11 +932,14 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
     return ErrorCode::NoError;
 }
 
-void PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                                A4PDF_Builtin_Fonts font_id,
-                                                double pointsize,
-                                                double x,
-                                                double y) {
+ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
+                                                     A4PDF_Builtin_Fonts font_id,
+                                                     double pointsize,
+                                                     double x,
+                                                     double y) {
+    if(doc->opts.subtype) {
+        return ErrorCode::BadOperationForIntent;
+    }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
     std::string cleaned_text;
@@ -965,6 +968,7 @@ ET
                    x,
                    y,
                    cleaned_text);
+    return ErrorCode::NoError;
 }
 
 void PdfDrawContext::draw_unit_circle() {

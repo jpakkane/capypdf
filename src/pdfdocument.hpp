@@ -131,8 +131,15 @@ struct ColorProfiles {
 };
 
 struct IccInfo {
+    int32_t stream_num;
     int32_t object_num;
     int32_t num_channels;
+};
+
+enum IntentSubtype {
+    SUBTYPE_PDFX,
+    SUBTYPE_PDFA,
+    // SUBTYPE_PDFE,
 };
 
 struct PdfGenerationData {
@@ -146,6 +153,8 @@ struct PdfGenerationData {
     std::string author;
     A4PDF_Colorspace output_colorspace = A4PDF_DEVICE_RGB;
     ColorProfiles prof;
+    std::optional<IntentSubtype> subtype;
+    std::string intent_condition_identifier;
 };
 
 struct Outline {
@@ -196,7 +205,7 @@ typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
 
 class PdfDocument {
 public:
-    PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
+    static rvoe<PdfDocument> construct(const PdfGenerationData &d, PdfColorConverter cm);
 
     PdfDocument(PdfDocument &&o) = default;
 
@@ -255,6 +264,9 @@ public:
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
 private:
+    PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
+    rvoe<NoReturnValue> init();
+
     rvoe<NoReturnValue> write_to_file_impl();
 
     int32_t add_object(ObjectType object);
@@ -269,6 +281,7 @@ private:
     rvoe<std::vector<uint64_t>> write_objects();
 
     rvoe<NoReturnValue> create_catalog();
+    void create_output_intent();
     rvoe<int32_t> create_outlines();
     std::vector<int32_t> write_pages();
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
@@ -337,7 +350,8 @@ private:
     std::vector<A4PDF_FormWidgetId> form_widgets;
     // A form widget can be used on one and only one page.
     std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
-    std::optional<int32_t> output_profile_object;
+    std::optional<A4PDF_IccColorSpaceId> output_profile;
+    std::optional<int32_t> output_intent_object;
     int32_t pages_object;
 
     FILE *ofile = nullptr;

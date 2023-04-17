@@ -56,11 +56,16 @@ enum class ErrorCode : int32_t {
     EmcOnEmpty,
     UnclosedMarkedContent,
     FormWidgetReuse,
+    BadOperationForIntent,
+    OutputProfileMissing,
+    MissingIntentIdentifier,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
 
 const char *error_text(ErrorCode ec) noexcept;
+
+void abortif(ErrorCode ec) noexcept;
 
 // Return value or error.
 template<typename T> using rvoe = std::expected<T, ErrorCode>;

@@ -49,10 +49,6 @@ struct DrawContextPopper {
 class PdfGen {
 public:
     static rvoe<std::unique_ptr<PdfGen>> construct(const char *ofname, const PdfGenerationData &d);
-    PdfGen(std::filesystem::path ofilename,
-           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
-           PdfDocument pdoc)
-        : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
@@ -116,6 +112,11 @@ public:
     rvoe<double> utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
 
 private:
+    PdfGen(std::filesystem::path ofilename,
+           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
+           PdfDocument pdoc)
+        : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
+
     std::filesystem::path ofilename;
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;
     PdfDocument pdoc;
@@ -123,8 +124,14 @@ private:
 
 struct GenPopper {
     std::unique_ptr<PdfGen> g;
-    GenPopper(const char *ofname, const PdfGenerationData &d)
-        : g(PdfGen::construct(ofname, d).value()) {}
+    GenPopper(const char *ofname, const PdfGenerationData &d) : g() {
+        auto rc = PdfGen::construct(ofname, d);
+        if(!rc) {
+            fprintf(stderr, "%s\n", error_text(rc.error()));
+            std::abort();
+        }
+        g = std::move(rc.value());
+    }
     ~GenPopper() {
         auto rc = g->write();
         if(rc != ErrorCode::NoError) {

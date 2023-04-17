@@ -16,6 +16,8 @@
 
 #include <errorhandling.hpp>
 #include <array>
+#include <cstdio>
+#include <cstdlib>
 
 namespace A4PDF {
 
@@ -49,13 +51,16 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Pattern can not be used in this operation.",
 "Iconv error.",
 "Builtin fonts can not be used in this operation.",
-"Output CMYK profile not defined.',"
+"Output CMYK profile not defined.",
 "Unsupported file format.",
 "Only monochrome colormap images supported.",
 "Malformed font file.",
 "EMC called even though no marked content block is active.",
 "Marked content not closed.",
 "Form widgets can only be used once.",
+"Operation prohibited by current output intent.",
+"Output color profile not defined.",
+"Output intent identifier missing.",
 };
 
 // clang-format on
@@ -66,6 +71,13 @@ const char *error_text(ErrorCode ec) noexcept {
         return "Invalid error code.";
     }
     return error_texts[index];
+}
+
+void abortif(ErrorCode ec) noexcept {
+    if(ec != ErrorCode::NoError) {
+        fprintf(stderr, "%s\n", error_text(ec));
+        std::abort();
+    }
 }
 
 } // namespace A4PDF
