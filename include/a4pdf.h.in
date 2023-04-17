@@ -123,7 +123,7 @@ typedef struct {
 
 typedef struct {
     int32_t id;
-} A4PDF_AnnotationId;
+} A4PDF_FormWidgetId;
 
 // Options
 

@@ -111,7 +111,7 @@ struct DelayedPages {};
 
 struct DelayedPage {
     int32_t page_num;
-    std::vector<A4PDF_AnnotationId> used_annotations;
+    std::vector<A4PDF_FormWidgetId> used_form_widgets;
 };
 
 struct SubsetGlyph {
@@ -164,7 +164,7 @@ class PdfDrawContext;
 struct ColorPatternBuilder;
 
 struct DelayedCheckboxWidgetAnnotation {
-    int32_t form_annotation_id;
+    A4PDF_FormWidgetId widget;
 
     // Annotation dict values.
     PdfBox rect;
@@ -208,7 +208,7 @@ public:
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_data,
                                  std::string page_data,
-                                 const std::unordered_set<A4PDF_AnnotationId> &annotations);
+                                 const std::unordered_set<A4PDF_FormWidgetId> &form_widgets);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -246,7 +246,7 @@ public:
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
 
     // Forms
-    rvoe<A4PDF_AnnotationId> create_form_checkbox(PdfBox loc,
+    rvoe<A4PDF_FormWidgetId> create_form_checkbox(PdfBox loc,
                                                   A4PDF_FormXObjectId onstate,
                                                   A4PDF_FormXObjectId offstate,
                                                   std::string_view partial_name);
@@ -334,10 +334,9 @@ private:
     std::vector<Outline> outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
-    std::vector<A4PDF_AnnotationId> annotations;
-    std::vector<int32_t> form_annotations;
+    std::vector<A4PDF_FormWidgetId> form_widgets;
     // A form widget can be used on one and only one page.
-    std::unordered_map<A4PDF_AnnotationId, int32_t> form_use;
+    std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
     std::optional<int32_t> output_profile_object;
     int32_t pages_object;
 

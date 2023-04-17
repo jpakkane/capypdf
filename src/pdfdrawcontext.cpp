@@ -161,11 +161,11 @@ std::string PdfDrawContext::build_resource_dict() {
     return resources;
 }
 
-ErrorCode PdfDrawContext::add_form_widget(A4PDF_AnnotationId widget) {
-    if(used_annotations.find(widget) != used_annotations.end()) {
+ErrorCode PdfDrawContext::add_form_widget(A4PDF_FormWidgetId widget) {
+    if(used_widgets.find(widget) != used_widgets.end()) {
         return ErrorCode::FormWidgetReuse;
     }
-    used_annotations.insert(widget);
+    used_widgets.insert(widget);
     return ErrorCode::NoError;
 }
 

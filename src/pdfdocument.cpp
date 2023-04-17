@@ -226,8 +226,8 @@ PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
 rvoe<NoReturnValue>
 PdfDocument::add_page(std::string resource_data,
                       std::string page_data,
-                      const std::unordered_set<A4PDF_AnnotationId> &annotations) {
-    for(const auto &a : annotations) {
+                      const std::unordered_set<A4PDF_FormWidgetId> &form_widgets) {
+    for(const auto &a : form_widgets) {
         if(form_use.find(a) != form_use.cend()) {
             RETERR(FormWidgetReuse);
         }
@@ -236,12 +236,12 @@ PdfDocument::add_page(std::string resource_data,
     const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
-    for(const auto &a : annotations) {
-        p.used_annotations.push_back(a);
+    for(const auto &a : form_widgets) {
+        p.used_form_widgets.push_back(a);
     }
     const auto page_num = add_object(std::move(p));
-    for(const auto &a : annotations) {
-        form_use[a] = page_num;
+    for(const auto &fw : form_widgets) {
+        form_use[fw] = page_num;
     }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
     return NoReturnValue{};
@@ -412,10 +412,10 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
                    p.commands_obj_num,
                    p.resource_obj_num);
 
-    if(!dp.used_annotations.empty()) {
+    if(!dp.used_form_widgets.empty()) {
         buf += "  /Annots [\n";
-        for(const auto &a : dp.used_annotations) {
-            fmt::format_to(buf_append, "    {} 0 R\n", annotations.at(a.id).id);
+        for(const auto &a : dp.used_form_widgets) {
+            fmt::format_to(buf_append, "    {} 0 R\n", form_widgets.at(a.id).id);
         }
         buf += "  ]\n";
     }
@@ -454,12 +454,12 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 )",
                    pages_object,
                    outline);
-    if(!form_annotations.empty()) {
+    if(!form_use.empty()) {
         buf += R"(  /AcroForm <<
     /Fields [
 )";
-        for(const auto &i : form_annotations) {
-            fmt::format_to(app, "      {} 0 R\n", annotations.at(i).id);
+        for(const auto &i : form_widgets) {
+            fmt::format_to(app, "      {} 0 R\n", i.id);
         }
         buf += "      ]\n  >>\n";
     }
@@ -773,10 +773,7 @@ rvoe<NoReturnValue> PdfDocument::write_subset_font(int32_t object_num,
 
 rvoe<NoReturnValue>
 PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotation &checkbox) {
-    auto forma_id = form_annotations.at(checkbox.form_annotation_id);
-    // SUPER FIXME.
-    auto anno_id = A4PDF_AnnotationId{(int32_t)forma_id}; // annotations.at(forma_id);
-    auto loc = form_use.find(anno_id);
+    auto loc = form_use.find(checkbox.widget);
     if(loc == form_use.end()) {
         std::abort();
     }
@@ -1210,18 +1207,17 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
     return OutlineId{(int32_t)outlines.size() - 1};
 }
 
-rvoe<A4PDF_AnnotationId> PdfDocument::create_form_checkbox(PdfBox loc,
+rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
                                                            A4PDF_FormXObjectId onstate,
                                                            A4PDF_FormXObjectId offstate,
                                                            std::string_view partial_name) {
     CHECK_INDEXNESS_V(onstate.id, form_xobjects);
     CHECK_INDEXNESS_V(offstate.id, form_xobjects);
     DelayedCheckboxWidgetAnnotation formobj{
-        (int32_t)form_annotations.size(), loc, onstate, offstate, std::string{partial_name}};
+        (int32_t)form_widgets.size(), loc, onstate, offstate, std::string{partial_name}};
     auto obj_id = add_object(std::move(formobj));
-    annotations.push_back(A4PDF_AnnotationId{(int32_t)obj_id});
-    form_annotations.push_back(annotations.size() - 1);
-    return A4PDF_AnnotationId{(int32_t)form_annotations.size() - 1};
+    form_widgets.push_back(A4PDF_FormWidgetId{(int32_t)obj_id});
+    return A4PDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
 std::optional<double>

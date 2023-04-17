@@ -81,7 +81,7 @@ public:
         return pdoc.load_icc_file(fname);
     }
 
-    rvoe<A4PDF_AnnotationId> create_form_checkbox(PdfBox loc,
+    rvoe<A4PDF_FormWidgetId> create_form_checkbox(PdfBox loc,
                                                   A4PDF_FormXObjectId onstate,
                                                   A4PDF_FormXObjectId offstate,
                                                   std::string_view partial_name) {
