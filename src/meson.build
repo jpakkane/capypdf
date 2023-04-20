@@ -94,3 +94,5 @@ executable('fonttester', 'fonttester.cpp',
 if tiff_dep.found()
   executable('tifftest', 'tifftest.cpp', dependencies: tiff_dep)
 endif
+
+executable('pdfparser', 'pdfparser.cpp', dependencies: fmt_dep)
