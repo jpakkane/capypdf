@@ -39,7 +39,7 @@ const std::regex arraystart{R"(^\[)"};
 const std::regex arrayend{R"(^\])"};
 const std::regex objname{R"(^(\d+)\s+(\d+)\s+obj)"};
 const std::regex objref{R"((^\d+)\s+(\d+)\s+R)"};
-const std::regex stringlit{R"(^/([a-zA-Z][a-zA-Z0-9]+))"};
+const std::regex stringlit{R"(^/([a-zA-Z][-a-zA-Z0-9+]+))"};
 const std::regex stringobj{R"(^\()"};
 const std::regex endobj{R"(^endobj)"};
 const std::regex number{R"(^-?\d+)"};
@@ -48,8 +48,21 @@ const std::regex hexstr{R"(^<([0-9a-fA-F]+)>)"};
 
 } // namespace
 
-const char *text =
+const char *text1 =
     R"(3 0 obj << /key /value /otherkey [ 1 0 R ] /StringKey (a \(b(c)) /intkey 55 /realkey 9.34 /hexkey <03830A0b> >> endobj)";
+
+const char *text2 = R"(9 0 obj
+<</Type/FontDescriptor/FontName/BAAAAA+LiberationSerif
+/Flags 4
+/FontBBox[-543 -303 1278 982]/ItalicAngle 0
+/Ascent 891
+/Descent -216
+/CapHeight 981
+/StemV 80
+/FontFile2 7 0 R
+>>
+endobj
+)";
 
 int PdfLexer::lex_string(const char *t) {
     bool prev_was_backslash = false;
@@ -333,7 +346,7 @@ private:
 int main() {
     // PdfLexer plex(text);
     // PdfToken t = plex.next();
-    PdfParser p(text);
+    PdfParser p(text2);
     auto result = p.parse();
     if(result) {
         PrettyPrinter pp(*result);
