@@ -65,9 +65,15 @@ enum class ErrorCode : int32_t {
 
 const char *error_text(ErrorCode ec) noexcept;
 
-void abortif(ErrorCode ec) noexcept;
+[[noreturn]] void printandabort(ErrorCode ec) noexcept;
+
+#define ABORTIF(ec)                                                                                \
+    if(ec != ErrorCode::NoError) {                                                                 \
+        printandabort(ec);                                                                         \
+    }
 
 // Return value or error.
+// Would be nice to tag  [[nodiscard]] but it does not seem to be possible.
 template<typename T> using rvoe = std::expected<T, ErrorCode>;
 
 struct NoReturnValue {};

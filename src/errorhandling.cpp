@@ -73,11 +73,9 @@ const char *error_text(ErrorCode ec) noexcept {
     return error_texts[index];
 }
 
-void abortif(ErrorCode ec) noexcept {
-    if(ec != ErrorCode::NoError) {
-        fprintf(stderr, "%s\n", error_text(ec));
-        std::abort();
-    }
+[[noreturn]] void abortif(ErrorCode ec) noexcept {
+    fprintf(stderr, "%s\n", error_text(ec));
+    std::abort();
 }
 
 } // namespace A4PDF
