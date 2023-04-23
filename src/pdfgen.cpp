@@ -93,7 +93,7 @@ ErrorCode PdfGen::write() {
             return rc.error();
         }
     } catch(const std::exception &e) {
-        fprintf(stderr, "%s", e.what());
+        fprintf(stderr, "%s\n", e.what());
         fclose(ofile);
         return ErrorCode::DynamicError;
     } catch(...) {

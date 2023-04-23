@@ -41,6 +41,7 @@ int main(int, char **) {
         (void)t1c1;
         auto t1c2 = gen.add_outline("Top1 child2", page_id, t1);
         gen.add_outline("Top1 child2 child1", page_id, t1c2);
+        gen.add_outline("Fourth toplevel", page_id, {});
     }
     return 0;
 }

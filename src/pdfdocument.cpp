@@ -174,18 +174,6 @@ end
     return buf;
 }
 
-std::unordered_map<int32_t, std::vector<int32_t>>
-compute_children(const std::vector<A4PDF::Outline> &outlines) {
-    std::unordered_map<int32_t, std::vector<int32_t>> otree;
-    int32_t id = 0;
-    for(const auto &o : outlines) {
-        const int32_t parent_ind = o.parent ? o.parent->id : -1;
-        otree[parent_ind].push_back(id);
-        ++id;
-    }
-    return otree;
-}
-
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -463,7 +451,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
     auto app = std::back_inserter(buf);
     std::string outline;
-    if(!outlines.empty()) {
+    if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
         outline = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
@@ -511,83 +499,65 @@ void PdfDocument::create_output_intent() {
 }
 
 rvoe<int32_t> PdfDocument::create_outlines() {
-    const auto otree = compute_children(outlines);
-    ERC(limits, write_outline_tree(otree, -1));
+    int32_t first_obj_num = (int32_t)document_objects.size();
+    int32_t catalog_obj_num = first_obj_num + (int32_t)outlines.items.size();
+    for(int32_t cur_id = 0; cur_id < (int32_t)outlines.items.size(); ++cur_id) {
+        const auto &cur_obj = outlines.items[cur_id];
+        ERC(titlestr, utf8_to_pdfmetastr(cur_obj.title));
+        auto parent_id = outlines.parent.at(cur_id);
+        const auto &siblings = outlines.children.at(parent_id);
+        std::string oitem = fmt::format(R"(<<
+  /Title {}
+  /Dest [ {} 0 R /XYZ null null null]
+)",
+                                        titlestr,
+                                        pages.at(cur_obj.dest.id).page_obj_num);
+        auto app = std::back_inserter(oitem);
+        if(siblings.size() > 1) {
+            auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
+            assert(loc != siblings.end());
+            if(loc != siblings.begin()) {
+                auto prevloc = loc;
+                --prevloc;
+                fmt::format_to(app, "  /Prev {} 0 R\n", first_obj_num + *prevloc);
+            }
+            auto nextloc = loc;
+            nextloc++;
+            if(nextloc != siblings.end()) {
+                fmt::format_to(app, "  /Next {} 0 R\n", first_obj_num + *nextloc);
+            }
+        }
+        auto childs = outlines.children.find(cur_id);
+        if(childs != outlines.children.end()) {
+            const auto &children = childs->second;
+            fmt::format_to(app, "  /First {} 0 R\n", first_obj_num + children.front());
+            fmt::format_to(app, "  /Last {} 0 R\n", first_obj_num + children.back());
+            fmt::format_to(app, "  /Count {}\n", -(int32_t)children.size());
+        }
+        /*
+        if(node_counts[cur_id] > 0) {
+            fmt::format_to(app, "  /Count {}\n", -node_counts[cur_id]);
+        }*/
+        fmt::format_to(app,
+                       "  /Parent {} 0 R\n>>",
+                       parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
+        add_object(FullPDFObject{std::move(oitem), ""});
+    }
+    const auto &top_level = outlines.children.at(-1);
     std::string buf = fmt::format(R"(<<
   /Type /Outlines
   /First {} 0 R
   /Last {} 0 R
+  /Count {}
 >>
 )",
-                                  limits.first,
-                                  limits.last);
+                                  first_obj_num + top_level.front(),
+                                  first_obj_num + top_level.back(),
+                                  outlines.children.at(-1).size());
+
+    assert(catalog_obj_num == (int32_t)document_objects.size());
     // FIXME: add output intents here. PDF spec 14.11.5
     return add_object(FullPDFObject{std::move(buf), ""});
-}
-
-rvoe<OutlineLimits>
-PdfDocument::write_outline_tree(const std::unordered_map<int32_t, std::vector<int32_t>> &otree,
-                                int32_t node_id) {
-    std::optional<int32_t> first;
-    std::optional<int32_t> last;
-    OutlineLimits limits;
-    std::string buf;
-    auto app = std::back_inserter(buf);
-    assert(otree.find(node_id) != otree.end());
-    const auto &current_nodes = otree.at(node_id);
-    std::vector<std::optional<OutlineLimits>> child_limits;
-    child_limits.reserve(current_nodes.size());
-
-    // Serialize _all_ children before _any_ parents.
-    for(size_t i = 0; i < current_nodes.size(); ++i) {
-        std::optional<OutlineLimits> cur_limit;
-        auto it = otree.find(current_nodes[i]);
-        if(it != otree.end()) {
-            ERC(limit, write_outline_tree(otree, current_nodes[i]));
-            cur_limit = limit;
-        }
-        child_limits.emplace_back(std::move(cur_limit));
-    }
-    assert(child_limits.size() == current_nodes.size());
-    for(size_t i = 0; i < current_nodes.size(); ++i) {
-        buf.clear();
-        auto &child_data = child_limits[i];
-        const auto &o = outlines[current_nodes[i]];
-        const int32_t current_obj_num = document_objects.size();
-        ERC(titlestr, utf8_to_pdfmetastr(o.title));
-        fmt::format_to(app,
-                       R"(<<
-  /Title {}
-  /Dest [ {} 0 R /XYZ null null null]
-)",
-                       titlestr,
-                       pages.at(o.dest.id).page_obj_num);
-        if(i != 0) {
-            fmt::format_to(app, "  /Prev {} 0 R\n", current_obj_num - 2);
-        } else {
-            first = current_obj_num;
-        }
-        if(i == current_nodes.size() - 1) {
-            last = current_obj_num;
-        } else {
-            fmt::format_to(app, "  /Next {} 0 R\n", current_obj_num + 1);
-        }
-        if(child_data) {
-            fmt::format_to(app,
-                           R"(  /First {} 0 R
-  /Last {} 0 R
-)",
-                           child_data->first,
-                           child_data->last);
-        }
-        buf += ">>\n";
-        add_object(FullPDFObject{std::move(buf), ""});
-    }
-    assert(first);
-    assert(last);
-    limits.first = *first;
-    limits.last = *last;
-    return limits;
 }
 
 rvoe<NoReturnValue>
@@ -1246,8 +1216,12 @@ PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_vi
 OutlineId PdfDocument::add_outline(std::string_view title_utf8,
                                    PageId dest,
                                    std::optional<OutlineId> parent) {
-    outlines.emplace_back(Outline{std::string{title_utf8}, dest, parent});
-    return OutlineId{(int32_t)outlines.size() - 1};
+    const auto cur_id = (int32_t)outlines.items.size();
+    const auto par_id = parent.value_or(OutlineId{-1}).id;
+    outlines.parent[cur_id] = par_id;
+    outlines.children[par_id].push_back(cur_id);
+    outlines.items.emplace_back(Outline{std::string{title_utf8}, dest, parent});
+    return OutlineId{cur_id};
 }
 
 rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,

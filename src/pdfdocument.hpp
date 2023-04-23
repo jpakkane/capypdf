@@ -185,6 +185,12 @@ struct DelayedCheckboxWidgetAnnotation {
     std::string T;
 };
 
+struct OutlineData {
+    std::vector<Outline> items;
+    std::unordered_map<int32_t, std::vector<int32_t>> children;
+    std::unordered_map<int32_t, int32_t> parent;
+};
+
 // Other types here.
 
 // typedef std::variant<all annotation types> DelayedAnnotations;
@@ -328,10 +334,6 @@ private:
     rvoe<A4PDF_ImageId> process_mono_image(const mono_image &image);
     rvoe<A4PDF_ImageId> process_cmyk_image(const cmyk_image &image);
 
-    rvoe<OutlineLimits>
-    write_outline_tree(const std::unordered_map<int32_t, std::vector<int32_t>> &children,
-                       int32_t node_id);
-
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
 
@@ -344,7 +346,7 @@ private:
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
-    std::vector<Outline> outlines;
+    OutlineData outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
     std::vector<A4PDF_FormWidgetId> form_widgets;
