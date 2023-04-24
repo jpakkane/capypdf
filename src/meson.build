@@ -78,6 +78,10 @@ executable('subtypetest', 'subtype.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('fembedtest', 'fembedtest.cpp',
+  dependencies: [a4pdf_dep]
+)
+
 
 executable('loremipsum', 'loremipsum.cpp',
   dependencies: [a4pdf_dep]

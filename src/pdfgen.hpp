@@ -57,6 +57,7 @@ public:
 
     rvoe<A4PDF_ImageId> load_image(const char *fname) { return pdoc.load_image(fname); }
     rvoe<A4PDF_ImageId> embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
+    rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname) { return pdoc.embed_file(fname); }
     rvoe<A4PDF_FontId> load_font(const char *fname) { return pdoc.load_font(ft.get(), fname); };
     ImageSize get_image_info(A4PDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {

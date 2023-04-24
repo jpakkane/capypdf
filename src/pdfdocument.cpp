@@ -21,6 +21,7 @@
 #include <cassert>
 #include <array>
 #include <map>
+#include <filesystem>
 #include <algorithm>
 #include <fmt/core.h>
 #include <ft2build.h>
@@ -447,22 +448,48 @@ rvoe<NoReturnValue> PdfDocument::write_pages_root() {
     return write_finished_object(pages_object, buf, "");
 }
 
+rvoe<int32_t> PdfDocument::create_name_dict() {
+    assert(!embedded_files.empty());
+    std::string buf = fmt::format(R"(<<
+/EmbeddedFiles <<
+  /Limits [ (embobj{:05}) (embojb{:05}) ]
+  /Names [
+)",
+                                  0,
+                                  embedded_files.size() - 1);
+    auto app = std::back_inserter(buf);
+    for(size_t i = 0; i < embedded_files.size(); ++i) {
+        fmt::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
+    }
+    buf += "]\n>>\n";
+    return add_object(FullPDFObject{std::move(buf), ""});
+}
+
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
     auto app = std::back_inserter(buf);
     std::string outline;
+    std::string name;
+    if(!embedded_files.empty()) {
+        ERC(names, create_name_dict());
+        name = fmt::format("  /Names {} 0 R\n", names);
+    }
     if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
-        outline = fmt::format("  /Outlines {} 0 R\n", outlines);
+        name = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
     fmt::format_to(app,
                    R"(<<
   /Type /Catalog
   /Pages {} 0 R
-{}
 )",
-                   pages_object,
-                   outline);
+                   pages_object);
+    if(!outline.empty()) {
+        buf += outline;
+    }
+    if(!name.empty()) {
+        buf += name;
+    }
     if(output_intent_object) {
         fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
     }
@@ -1235,6 +1262,28 @@ rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(A4PDF_FormWidgetId{(int32_t)obj_id});
     return A4PDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
+}
+
+rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
+    ERC(contents, load_file(fname));
+    std::filesystem::path p(fname);
+    std::string dict = fmt::format(R"(<<
+  /Type /EmbeddedFile
+  /Length {}
+>>)",
+                                   contents.size());
+    auto fileobj_id = add_object(FullPDFObject{std::move(dict), std::move(contents)});
+    dict = fmt::format(R"(<<
+  /Type /Filespec
+  /F ({})
+  /EF << /F {} 0 R >>
+>>
+)",
+                       p.filename().c_str(),
+                       fileobj_id);
+    auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
+    embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
+    return A4PDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
 std::optional<double>

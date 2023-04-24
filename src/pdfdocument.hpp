@@ -191,6 +191,11 @@ struct OutlineData {
     std::unordered_map<int32_t, int32_t> parent;
 };
 
+struct EmbeddedFileObject {
+    int32_t filespec_obj;
+    int32_t contents_obj;
+};
+
 // Other types here.
 
 // typedef std::variant<all annotation types> DelayedAnnotations;
@@ -266,6 +271,9 @@ public:
                                                   A4PDF_FormXObjectId offstate,
                                                   std::string_view partial_name);
 
+    // Raw files
+    rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname);
+
     std::optional<double>
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
@@ -288,6 +296,7 @@ private:
 
     rvoe<NoReturnValue> create_catalog();
     void create_output_intent();
+    rvoe<int32_t> create_name_dict();
     rvoe<int32_t> create_outlines();
     std::vector<int32_t> write_pages();
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
@@ -350,6 +359,7 @@ private:
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
     std::vector<A4PDF_FormWidgetId> form_widgets;
+    std::vector<EmbeddedFileObject> embedded_files;
     // A form widget can be used on one and only one page.
     std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
     std::optional<A4PDF_IccColorSpaceId> output_profile;
