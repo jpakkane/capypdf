@@ -380,7 +380,7 @@ private:
     OutlineData outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
-    std::vector<A4PDF_FormWidgetId> form_widgets;
+    std::vector<int32_t> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
     std::vector<int32_t> annotations;
     // A form widget can be used on one and only one page.

@@ -436,7 +436,7 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
     if(!dp.used_form_widgets.empty() || !dp.used_annotations.empty()) {
         buf += "  /Annots [\n";
         for(const auto &a : dp.used_form_widgets) {
-            fmt::format_to(buf_append, "    {} 0 R\n", form_widgets.at(a.id).id);
+            fmt::format_to(buf_append, "    {} 0 R\n", form_widgets.at(a.id));
         }
         for(const auto &a : dp.used_annotations) {
             fmt::format_to(buf_append, "    {} 0 R\n", annotations.at(a.id));
@@ -512,7 +512,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     /Fields [
 )";
         for(const auto &i : form_widgets) {
-            fmt::format_to(app, "      {} 0 R\n", i.id);
+            fmt::format_to(app, "      {} 0 R\n", i);
         }
         buf += "      ]\n  >>\n";
         buf += "  /NeedAppearances true\n";
@@ -1316,7 +1316,7 @@ rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     DelayedCheckboxWidgetAnnotation formobj{
         (int32_t)form_widgets.size(), loc, onstate, offstate, std::string{partial_name}};
     auto obj_id = add_object(std::move(formobj));
-    form_widgets.push_back(A4PDF_FormWidgetId{(int32_t)obj_id});
+    form_widgets.push_back(obj_id);
     return A4PDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
