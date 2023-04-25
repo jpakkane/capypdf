@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <optional>
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <pdfcolorconverter.hpp>
@@ -112,6 +113,7 @@ struct DelayedPages {};
 struct DelayedPage {
     int32_t page_num;
     std::vector<A4PDF_FormWidgetId> used_form_widgets;
+    std::vector<A4PDF_AnnotationId> used_annotations;
 };
 
 struct SubsetGlyph {
@@ -198,7 +200,20 @@ struct EmbeddedFileObject {
 
 // Other types here.
 
-// typedef std::variant<all annotation types> DelayedAnnotations;
+struct FileAttachmentAnnotation {
+    A4PDF_EmbeddedFileId fileid;
+};
+
+struct TextAnnotation {};
+
+typedef std::variant<TextAnnotation, FileAttachmentAnnotation> AnnotationSubType;
+
+struct DelayedAnnotation {
+    A4PDF_AnnotationId id;
+    PdfBox rect;
+    std::string contents;
+    AnnotationSubType sub;
+};
 
 typedef std::variant<DummyIndexZero,
                      FullPDFObject,
@@ -209,7 +224,8 @@ typedef std::variant<DummyIndexZero,
                      DelayedSubsetFont,
                      DelayedPages,
                      DelayedPage,
-                     DelayedCheckboxWidgetAnnotation>
+                     DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
+                     DelayedAnnotation>
     ObjectType;
 
 typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
@@ -228,7 +244,8 @@ public:
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_data,
                                  std::string page_data,
-                                 const std::unordered_set<A4PDF_FormWidgetId> &form_widgets);
+                                 const std::unordered_set<A4PDF_FormWidgetId> &form_widgets,
+                                 const std::unordered_set<A4PDF_AnnotationId> &annots);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -273,6 +290,10 @@ public:
 
     // Raw files
     rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname);
+
+    // Annotations.
+    rvoe<A4PDF_AnnotationId>
+    create_annotation(PdfBox rect, std::string contents, AnnotationSubType subtype);
 
     std::optional<double>
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
@@ -330,6 +351,7 @@ private:
                                           int32_t tounicode_obj);
     rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
                                               const DelayedCheckboxWidgetAnnotation &checkbox);
+    rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
 
     rvoe<A4PDF_ImageId> add_image_object(int32_t w,
                                          int32_t h,
@@ -360,8 +382,10 @@ private:
     std::vector<FormXObjectInfo> form_xobjects;
     std::vector<A4PDF_FormWidgetId> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
+    std::vector<int32_t> annotations;
     // A form widget can be used on one and only one page.
     std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
+    std::unordered_map<A4PDF_AnnotationId, int32_t> annotation_use;
     std::optional<A4PDF_IccColorSpaceId> output_profile;
     std::optional<int32_t> output_intent_object;
     int32_t pages_object;

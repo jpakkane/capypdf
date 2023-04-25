@@ -52,6 +52,8 @@ DEF_BASIC_OPERATORS(A4PDF_FormXObjectId);
 
 DEF_BASIC_OPERATORS(A4PDF_FormWidgetId);
 
+DEF_BASIC_OPERATORS(A4PDF_AnnotationId);
+
 namespace A4PDF {
 
 struct PdfBox {

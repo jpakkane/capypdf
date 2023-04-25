@@ -55,7 +55,7 @@ enum class ErrorCode : int32_t {
     MalformedFontFile,
     EmcOnEmpty,
     UnclosedMarkedContent,
-    FormWidgetReuse,
+    AnnotationReuse,
     BadOperationForIntent,
     OutputProfileMissing,
     MissingIntentIdentifier,

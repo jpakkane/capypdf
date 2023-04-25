@@ -135,7 +135,10 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
     auto &sc = std::get<SerializedBasicContext>(sc_var);
-    ERCV(pdoc.add_page(std::move(sc.dict), std::move(sc.commands), ctx.get_form_usage()));
+    ERCV(pdoc.add_page(std::move(sc.dict),
+                       std::move(sc.commands),
+                       ctx.get_form_usage(),
+                       ctx.get_annotation_usage()));
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }

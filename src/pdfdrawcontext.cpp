@@ -89,6 +89,8 @@ void PdfDrawContext::clear() {
     used_gstates.clear();
     used_shadings.clear();
     used_patterns.clear();
+    used_widgets.clear();
+    used_annotations.clear();
     is_finalized = false;
     uses_all_colorspace = false;
 }
@@ -163,9 +165,17 @@ std::string PdfDrawContext::build_resource_dict() {
 
 ErrorCode PdfDrawContext::add_form_widget(A4PDF_FormWidgetId widget) {
     if(used_widgets.find(widget) != used_widgets.end()) {
-        return ErrorCode::FormWidgetReuse;
+        return ErrorCode::AnnotationReuse;
     }
     used_widgets.insert(widget);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::annotate(A4PDF_AnnotationId annotation) {
+    if(used_annotations.find(annotation) != used_annotations.end()) {
+        return ErrorCode::AnnotationReuse;
+    }
+    used_annotations.insert(annotation);
     return ErrorCode::NoError;
 }
 

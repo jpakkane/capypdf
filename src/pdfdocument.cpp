@@ -233,25 +233,36 @@ rvoe<NoReturnValue> PdfDocument::init() {
     return NoReturnValue{};
 }
 
-rvoe<NoReturnValue>
-PdfDocument::add_page(std::string resource_data,
-                      std::string page_data,
-                      const std::unordered_set<A4PDF_FormWidgetId> &form_widgets) {
-    for(const auto &a : form_widgets) {
+rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
+                                          std::string page_data,
+                                          const std::unordered_set<A4PDF_FormWidgetId> &fws,
+                                          const std::unordered_set<A4PDF_AnnotationId> &annots) {
+    for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
-            RETERR(FormWidgetReuse);
+            RETERR(AnnotationReuse);
+        }
+    }
+    for(const auto &a : annots) {
+        if(annotation_use.find(a) != annotation_use.cend()) {
+            RETERR(AnnotationReuse);
         }
     }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
     const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
-    for(const auto &a : form_widgets) {
+    for(const auto &a : fws) {
         p.used_form_widgets.push_back(a);
     }
+    for(const auto &a : annots) {
+        p.used_annotations.push_back(A4PDF_AnnotationId{a});
+    }
     const auto page_num = add_object(std::move(p));
-    for(const auto &fw : form_widgets) {
+    for(const auto &fw : fws) {
         form_use[fw] = page_num;
+    }
+    for(const auto &a : annots) {
+        annotation_use[A4PDF_AnnotationId{a}] = page_num;
     }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
     return NoReturnValue{};
@@ -422,10 +433,13 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
                    p.commands_obj_num,
                    p.resource_obj_num);
 
-    if(!dp.used_form_widgets.empty()) {
+    if(!dp.used_form_widgets.empty() || !dp.used_annotations.empty()) {
         buf += "  /Annots [\n";
         for(const auto &a : dp.used_form_widgets) {
             fmt::format_to(buf_append, "    {} 0 R\n", form_widgets.at(a.id).id);
+        }
+        for(const auto &a : dp.used_annotations) {
+            fmt::format_to(buf_append, "    {} 0 R\n", annotations.at(a.id));
         }
         buf += "  ]\n";
     }
@@ -461,7 +475,7 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
     for(size_t i = 0; i < embedded_files.size(); ++i) {
         fmt::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
     }
-    buf += "]\n>>\n";
+    buf += "  ]\n>>\n";
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
@@ -673,6 +687,9 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
         } else if(std::holds_alternative<DelayedCheckboxWidgetAnnotation>(obj)) {
             const auto &checkbox = std::get<DelayedCheckboxWidgetAnnotation>(obj);
             ERCV(write_checkbox_widget(i, checkbox));
+        } else if(std::holds_alternative<DelayedAnnotation>(obj)) {
+            const auto &annotation = std::get<DelayedAnnotation>(obj);
+            ERCV(write_annotation(i, annotation));
         } else {
             RETERR(Unreachable);
         }
@@ -843,6 +860,45 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
                                    checkbox.T,
                                    form_xobjects.at(checkbox.on.id).xobj_num,
                                    form_xobjects.at(checkbox.off.id).xobj_num);
+    ERCV(write_finished_object(obj_num, dict, ""));
+    return NoReturnValue{};
+}
+
+rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
+                                                  const DelayedAnnotation &annotation) {
+    auto loc = annotation_use.find(annotation.id);
+    // It is ok for an annotation not to be used.
+
+    std::string dict = fmt::format(R"(<<
+  /Type /Annot
+  /Rect [ {} {} {} {} ]
+)",
+                                   annotation.rect.x,
+                                   annotation.rect.y,
+                                   annotation.rect.w,
+                                   annotation.rect.h);
+    auto app = std::back_inserter(dict);
+    if(!annotation.contents.empty()) {
+        // FIXME
+        fmt::format_to(app, "  /Content ({})\n", annotation.contents);
+    }
+    if(loc != annotation_use.end()) {
+        fmt::format_to(app, "  /p {} 0 R\n", loc->second);
+    }
+    if(std::holds_alternative<TextAnnotation>(annotation.sub)) {
+        std::abort();
+    } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.sub)) {
+        auto &faa = std::get<FileAttachmentAnnotation>(annotation.sub);
+
+        fmt::format_to(app,
+                       R"(  /Subtype /FileAttachment
+  /FS {} 0 R
+)",
+                       embedded_files[faa.fileid.id].filespec_obj);
+    } else {
+        std::abort();
+    }
+    dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};
 }
@@ -1284,6 +1340,15 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
     auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
     return A4PDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
+}
+
+rvoe<A4PDF_AnnotationId>
+PdfDocument::create_annotation(PdfBox rect, std::string contents, AnnotationSubType sub) {
+    auto annot_id = (int32_t)annotations.size();
+    auto obj_id =
+        add_object(DelayedAnnotation{annot_id, rect, std::move(contents), std::move(sub)});
+    annotations.push_back((int32_t)obj_id);
+    return A4PDF_AnnotationId{annot_id};
 }
 
 std::optional<double>

@@ -29,14 +29,19 @@ int main(int argc, char **argv) {
     {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        auto efid = gen.embed_file("embed.txt");
+        auto efid = gen.embed_file("embed.txt").value();
+        auto annoid =
+            gen.create_annotation(PdfBox{35, 95, 45, 105}, "", FileAttachmentAnnotation{efid})
+                .value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
 
             ctx.render_pdfdoc_text_builtin(
                 "<- an embedded file.", A4PDF_FONT_HELVETICA, 12, 50, 100);
+            ctx.annotate(annoid);
         }
     }
+
     return 0;
 }

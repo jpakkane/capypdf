@@ -167,6 +167,7 @@ public:
     void clear();
 
     ErrorCode add_form_widget(A4PDF_FormWidgetId widget);
+    ErrorCode annotate(A4PDF_AnnotationId annotation);
 
     A4PDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
@@ -181,6 +182,9 @@ public:
     int32_t marked_content_depth() const { return marked_depth; }
 
     const std::unordered_set<A4PDF_FormWidgetId> get_form_usage() const { return used_widgets; }
+    const std::unordered_set<A4PDF_AnnotationId> get_annotation_usage() const {
+        return used_annotations;
+    }
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
@@ -206,6 +210,7 @@ private:
     std::unordered_set<int32_t> used_patterns;
     std::unordered_set<int32_t> used_form_xobjects;
     std::unordered_set<A4PDF_FormWidgetId> used_widgets;
+    std::unordered_set<A4PDF_AnnotationId> used_annotations;
     bool is_finalized = false;
     bool uses_all_colorspace = false;
     double form_xobj_w = -1;
