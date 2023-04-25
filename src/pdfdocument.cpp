@@ -880,13 +880,13 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     auto app = std::back_inserter(dict);
     if(!annotation.contents.empty()) {
         // FIXME
-        fmt::format_to(app, "  /Content ({})\n", annotation.contents);
+        fmt::format_to(app, "  /Contents ({})\n", annotation.contents);
     }
     if(loc != annotation_use.end()) {
-        fmt::format_to(app, "  /p {} 0 R\n", loc->second);
+        fmt::format_to(app, "  /P {} 0 R\n", loc->second);
     }
     if(std::holds_alternative<TextAnnotation>(annotation.sub)) {
-        std::abort();
+        fmt::format_to(app, "  /Subtype /Text\n");
     } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.sub)) {
         auto &faa = std::get<FileAttachmentAnnotation>(annotation.sub);
 

@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         auto efid = gen.embed_file("embed.txt").value();
-        auto annoid =
+        auto fileannoid =
             gen.create_annotation(PdfBox{35, 95, 45, 105}, "", FileAttachmentAnnotation{efid})
                 .value();
         {
@@ -39,7 +39,12 @@ int main(int argc, char **argv) {
 
             ctx.render_pdfdoc_text_builtin(
                 "<- an embedded file.", A4PDF_FONT_HELVETICA, 12, 50, 100);
-            ctx.annotate(annoid);
+            ctx.annotate(fileannoid);
+            auto textannoid = gen.create_annotation(PdfBox{150, 60, 180, 90},
+                                                    "This is a text annotation",
+                                                    TextAnnotation{})
+                                  .value();
+            ctx.annotate(textannoid);
         }
     }
 
