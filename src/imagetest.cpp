@@ -18,7 +18,7 @@
 #include <filesystem>
 using namespace A4PDF;
 
-int main(int argc, char **argv) {
+int basictest(int argc, char **argv) {
     PdfGenerationData opts;
 
     std::filesystem::path datadir = argc > 1 ? argv[1] : "../pdfgen/images";
@@ -71,5 +71,72 @@ int main(int argc, char **argv) {
             ctx.draw_image(cmyk_img);
         }
     }
+    return 0;
+}
+
+void masktest(int argc, char **argv) {
+    std::filesystem::path datadir = argc > 1 ? argv[1] : "../pdfgen/images";
+    const char *icc_out =
+        "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
+    PdfGenerationData opts;
+    std::filesystem::path lines = datadir / "comic-lines.png";
+    std::filesystem::path richblack = datadir / "comic-richblack.png";
+    std::filesystem::path colors = datadir / "comic-colors.png";
+    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.title = "PDF image masking test";
+    opts.author = "Test Person";
+    opts.output_colorspace = A4PDF_DEVICE_CMYK;
+    opts.prof.cmyk_profile_file = icc_out;
+    {
+        GenPopper genpop("imagemask_test.pdf", opts);
+        PdfGen &gen = *genpop.g;
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
+        auto stencil_img = gen.load_mask_image(lines.c_str()).value();
+        GraphicsState gstate;
+        gstate.OP = true;
+        gstate.op = true;
+        gstate.OPM = 1;
+        auto sid = gen.add_graphics_state(gstate);
+        {
+            auto q = ctx.push_gstate();
+            ctx.cmd_k(0, 1, 0, 0);
+            ctx.cmd_re(10, 130, 40, 10);
+            ctx.cmd_f();
+            ctx.cmd_k(0.5, 0, 0.5, 0);
+            ctx.cmd_re(15, 135, 10, 10);
+            ctx.cmd_gs(sid);
+            ctx.cmd_f();
+            ctx.cmd_re(35, 135, 10, 10);
+            ctx.cmd_f();
+            ctx.cmd_k(0.4, 1.0, 0.1, 0);
+        }
+        {
+            auto q = ctx.push_gstate();
+            ctx.cmd_k(0.3, 1, 0.2, 0);
+            ctx.translate(10, 10);
+            ctx.scale(72, 72);
+            ctx.draw_image(stencil_img);
+        }
+
+        auto line_img = gen.load_image(lines.c_str()).value();
+        auto richblack_img = gen.load_mask_image(richblack.c_str()).value();
+        auto color_img = gen.load_image(colors.c_str()).value();
+        ctx.cmd_k(0.2, 0.2, 0.2, 0);
+        {
+            auto q = ctx.push_gstate();
+            ctx.translate(110, 10);
+            ctx.scale(72, 72);
+            ctx.draw_image(color_img);
+            ctx.draw_image(richblack_img);
+            ctx.cmd_gs(sid);
+            ctx.draw_image(line_img);
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+    basictest(argc, argv);
+    masktest(argc, argv);
     return 0;
 }

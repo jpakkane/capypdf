@@ -135,6 +135,9 @@ struct OutlineId {
 struct GraphicsState {
     std::optional<A4PDF_Rendering_Intent> intent;
     std::optional<A4PDF_Blend_Mode> blend_mode;
+    std::optional<bool> OP;
+    std::optional<bool> op;
+    std::optional<int32_t> OPM;
 };
 
 struct DeviceRGBColor {

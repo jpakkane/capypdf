@@ -263,6 +263,7 @@ public:
 
     // Images
     rvoe<A4PDF_ImageId> load_image(const char *fname);
+    rvoe<A4PDF_ImageId> load_mask_image(const char *fname);
     rvoe<A4PDF_ImageId> embed_jpg(const char *fname);
 
     // Graphics states
@@ -358,6 +359,7 @@ private:
                                          int32_t bits_per_component,
                                          ColorspaceType colorspace,
                                          std::optional<int32_t> smask_id,
+                                         bool is_mask,
                                          std::string_view uncompressed_bytes);
 
     rvoe<A4PDF_ImageId> process_rgb_image(const rgb_image &image);
@@ -365,6 +367,7 @@ private:
     rvoe<A4PDF_ImageId> process_mono_image(const mono_image &image);
     rvoe<A4PDF_ImageId> process_cmyk_image(const cmyk_image &image);
 
+    int32_t create_page_group();
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
 
@@ -389,6 +392,7 @@ private:
     std::optional<A4PDF_IccColorSpaceId> output_profile;
     std::optional<int32_t> output_intent_object;
     int32_t pages_object;
+    int32_t page_group_object;
 
     FILE *ofile = nullptr;
 };

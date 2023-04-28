@@ -213,12 +213,13 @@ rvoe<NoReturnValue> PdfDocument::init() {
         }
         break;
     case A4PDF_DEVICE_CMYK:
-        if(!cm.get_cmyk().empty()) {
+        if(cm.get_cmyk().empty()) {
             RETERR(OutputProfileMissing);
         }
         output_profile = store_icc_profile(cm.get_cmyk(), 4);
         break;
     }
+    page_group_object = create_page_group();
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
     if(opts.subtype) {
@@ -231,6 +232,16 @@ rvoe<NoReturnValue> PdfDocument::init() {
         create_output_intent();
     }
     return NoReturnValue{};
+}
+
+int32_t PdfDocument::create_page_group() {
+    std::string buf = fmt::format(R"(<<
+  /S /Transparency
+  /CS {}
+>>
+)",
+                                  colorspace_names.at((int)opts.output_colorspace));
+    return add_object(FullPDFObject{std::move(buf), ""});
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
@@ -410,8 +421,10 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
                    R"(<<
   /Type /Page
   /Parent {} 0 R
+  /Group {} 0 R
 )",
-                   pages_object);
+                   pages_object,
+                   page_group_object);
     write_box(buf_append, "MediaBox", opts.mediabox);
 
     if(opts.cropbox) {
@@ -1054,11 +1067,22 @@ rvoe<A4PDF_ImageId> PdfDocument::load_image(const char *fname) {
     }
 }
 
+rvoe<A4PDF_ImageId> PdfDocument::load_mask_image(const char *fname) {
+    ERC(image, load_image_file(fname));
+    if(!std::holds_alternative<mono_image>(image)) {
+        RETERR(UnsupportedFormat);
+    }
+    auto &im = std::get<mono_image>(image);
+    return add_image_object(
+        im.w, im.h, 1, A4PDF_DEVICE_GRAY, std::optional<int32_t>{}, true, im.pixels);
+}
+
 rvoe<A4PDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                   int32_t h,
                                                   int32_t bits_per_component,
                                                   ColorspaceType colorspace,
                                                   std::optional<int32_t> smask_id,
+                                                  bool is_mask,
                                                   std::string_view uncompressed_bytes) {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -1077,15 +1101,20 @@ rvoe<A4PDF_ImageId> PdfDocument::add_image_object(int32_t w,
                    h,
                    bits_per_component,
                    compressed.size());
-    if(std::holds_alternative<A4PDF_Colorspace>(colorspace)) {
-        const auto &cs = std::get<A4PDF_Colorspace>(colorspace);
-        fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
-    } else if(std::holds_alternative<int32_t>(colorspace)) {
-        const auto icc_obj = std::get<int32_t>(colorspace);
-        fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
+    // An image may only have ImageMask or ColorSpace key, not both.
+    if(is_mask) {
+        buf += "  /ImageMask true\n";
     } else {
-        fprintf(stderr, "Unknown colorspace.");
-        std::abort();
+        if(std::holds_alternative<A4PDF_Colorspace>(colorspace)) {
+            const auto &cs = std::get<A4PDF_Colorspace>(colorspace);
+            fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
+        } else if(std::holds_alternative<int32_t>(colorspace)) {
+            const auto icc_obj = std::get<int32_t>(colorspace);
+            fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
+        } else {
+            fprintf(stderr, "Unknown colorspace.");
+            std::abort();
+        }
     }
     if(smask_id) {
         fmt::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
@@ -1099,32 +1128,37 @@ rvoe<A4PDF_ImageId> PdfDocument::add_image_object(int32_t w,
 rvoe<A4PDF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
-        ERC(imobj, add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        ERC(imobj,
+            add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
-    return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
+    return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
-        ERC(imobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        ERC(imobj,
+            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     switch(opts.output_colorspace) {
     case A4PDF_DEVICE_RGB: {
-        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, image.pixels);
+        return add_image_object(
+            image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, false, image.pixels);
     }
     case A4PDF_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
-        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, converted_pixels);
+        return add_image_object(
+            image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, false, converted_pixels);
     }
     case A4PDF_DEVICE_CMYK: {
         if(cm.get_cmyk().empty()) {
             RETERR(NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
-        return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, converted_pixels);
+        return add_image_object(
+            image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, false, converted_pixels);
     }
     default:
         RETERR(Unreachable);
@@ -1137,10 +1171,11 @@ rvoe<A4PDF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
 
     if(image.alpha) {
-        ERC(imgobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        ERC(imgobj,
+            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imgobj.id).obj;
     }
-    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, image.pixels);
+    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
@@ -1158,10 +1193,11 @@ rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
         cs = A4PDF_DEVICE_CMYK;
     }
     if(image.alpha) {
-        ERC(imobj, add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, *image.alpha));
+        ERC(imobj,
+            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
-    return add_image_object(image.w, image.h, 8, cs, smask_id, image.pixels);
+    return add_image_object(image.w, image.h, 8, cs, smask_id, false, image.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::embed_jpg(const char *fname) {
@@ -1202,7 +1238,16 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
                        "  /RenderingIntent /{}\n",
                        rendering_intent_names.at(*state.intent));
     }
-    fmt::format_to(resource_appender, ">>\n");
+    if(state.OP) {
+        fmt::format_to(resource_appender, "  /OP {}\n", *state.OP ? "true" : "false");
+    }
+    if(state.op) {
+        fmt::format_to(resource_appender, "  /op {}\n", *state.op ? "true" : "false");
+    }
+    if(state.OPM) {
+        fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
+    }
+    buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});
     return GstateId{id};
 }
