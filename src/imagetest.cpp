@@ -105,11 +105,10 @@ void masktest(int argc, char **argv) {
             ctx.cmd_f();
             ctx.cmd_k(0.5, 0, 0.5, 0);
             ctx.cmd_re(15, 135, 10, 10);
-            ctx.cmd_gs(sid);
             ctx.cmd_f();
+            ctx.cmd_gs(sid);
             ctx.cmd_re(35, 135, 10, 10);
             ctx.cmd_f();
-            ctx.cmd_k(0.4, 1.0, 0.1, 0);
         }
         {
             auto q = ctx.push_gstate();
@@ -119,7 +118,7 @@ void masktest(int argc, char **argv) {
             ctx.draw_image(stencil_img);
         }
 
-        auto line_img = gen.load_image(lines.c_str()).value();
+        auto line_img = gen.load_mask_image(lines.c_str()).value();
         auto richblack_img = gen.load_mask_image(richblack.c_str()).value();
         auto color_img = gen.load_image(colors.c_str()).value();
         ctx.cmd_k(0.2, 0.2, 0.2, 0);
@@ -130,6 +129,7 @@ void masktest(int argc, char **argv) {
             ctx.draw_image(color_img);
             ctx.draw_image(richblack_img);
             ctx.cmd_gs(sid);
+            ctx.cmd_k(0, 0, 0, 1);
             ctx.draw_image(line_img);
         }
     }
