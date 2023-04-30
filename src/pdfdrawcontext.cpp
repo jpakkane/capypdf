@@ -211,6 +211,7 @@ ErrorCode PdfDrawContext::cmd_Bstar() {
 
 ErrorCode PdfDrawContext::cmd_BDC(A4PDF_StructureItemId sid) {
     ++marked_depth;
+    used_structures.insert(sid);
     fmt::format_to(cmd_appender,
                    R"({}/P << /MCID {} >>
 {}BDC
@@ -835,6 +836,14 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(std::holds_alternative<Tz_arg>(e)) {
             const auto &tz = std::get<Tz_arg>(e);
             fmt::format_to(app, "{}{} Tz\n", ind, tz.scaling);
+        } else if(std::holds_alternative<A4PDF_StructureItemId>(e)) {
+            const auto &sid = std::get<A4PDF_StructureItemId>(e);
+            used_structures.insert(sid);
+            fmt::format_to(app, "{}/P << MCID {} >>\n{}BMC\n", ind, sid.id, ind);
+            indent();
+        } else if(std::holds_alternative<Emc_arg>(e)) {
+            dedent();
+            fmt::format_to(app, "{}/EMC\n", ind);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();

@@ -138,7 +138,8 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     ERCV(pdoc.add_page(std::move(sc.dict),
                        std::move(sc.commands),
                        ctx.get_form_usage(),
-                       ctx.get_annotation_usage()));
+                       ctx.get_annotation_usage(),
+                       ctx.get_structure_usage()));
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }

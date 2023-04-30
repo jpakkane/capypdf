@@ -143,6 +143,7 @@ void render_column(const std::vector<std::string> &text_lines,
     textobj.cmd_Tf(textfont, textsize);
     textobj.cmd_Td(column_left, column_top);
     textobj.cmd_TL(leading);
+    textobj.cmd_BDC(gen.add_structure_item("p", document_root).value());
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -157,10 +158,14 @@ void render_column(const std::vector<std::string> &text_lines,
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
                 textobj.cmd_Tw(word_spacing);
                 textobj.render_text(l);
+            } else {
+                textobj.cmd_EMC();
+                textobj.cmd_BDC(gen.add_structure_item("p", document_root).value());
             }
             textobj.cmd_Tstar();
         }
     }
+    textobj.cmd_EMC();
     ctx.render_text(textobj);
 }
 

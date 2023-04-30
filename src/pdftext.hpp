@@ -78,6 +78,8 @@ struct Tz_arg {
     double scaling;
 };
 
+struct Emc_arg {};
+
 typedef std::variant<TStar_arg,
                      Tc_arg,
                      Td_arg,
@@ -90,12 +92,24 @@ typedef std::variant<TStar_arg,
                      Tr_arg,
                      Ts_arg,
                      Tw_arg,
-                     Tz_arg>
+                     Tz_arg,
+                     A4PDF_StructureItemId,
+                     Emc_arg>
     TextEvent;
 
 class PdfText {
 public:
     PdfText();
+
+    ErrorCode cmd_BDC(A4PDF_StructureItemId sid) {
+        events.emplace_back(sid);
+        return ErrorCode::NoError;
+    }
+
+    ErrorCode cmd_EMC() {
+        events.emplace_back(Emc_arg{});
+        return ErrorCode::NoError;
+    }
 
     ErrorCode cmd_Tstar() {
         events.emplace_back(TStar_arg{});

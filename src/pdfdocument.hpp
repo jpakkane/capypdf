@@ -216,6 +216,11 @@ struct DelayedAnnotation {
 };
 
 struct DelayedStructItem {
+    A4PDF_StructureItemId sid;
+};
+
+struct StructItem {
+    int32_t obj_id;
     std::string stype;
     std::optional<A4PDF_StructureItemId> parent;
 };
@@ -251,7 +256,8 @@ public:
     rvoe<NoReturnValue> add_page(std::string resource_data,
                                  std::string page_data,
                                  const std::unordered_set<A4PDF_FormWidgetId> &form_widgets,
-                                 const std::unordered_set<A4PDF_AnnotationId> &annots);
+                                 const std::unordered_set<A4PDF_AnnotationId> &annots,
+                                 const std::unordered_set<A4PDF_StructureItemId> &structs);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -330,6 +336,7 @@ private:
     void create_output_intent();
     rvoe<int32_t> create_name_dict();
     rvoe<int32_t> create_outlines();
+    void create_structure_root_dict();
     std::vector<int32_t> write_pages();
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
 
@@ -397,12 +404,14 @@ private:
     std::vector<int32_t> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
     std::vector<int32_t> annotations;
-    std::vector<int32_t> structure_items;
+    std::vector<StructItem> structure_items;
     // A form widget can be used on one and only one page.
     std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
     std::unordered_map<A4PDF_AnnotationId, int32_t> annotation_use;
+    std::unordered_map<A4PDF_StructureItemId, int32_t> structure_use;
     std::optional<A4PDF_IccColorSpaceId> output_profile;
     std::optional<int32_t> output_intent_object;
+    std::optional<int32_t> structure_root_object;
     int32_t pages_object;
     int32_t page_group_object;
 

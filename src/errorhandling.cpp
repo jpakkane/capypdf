@@ -58,6 +58,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "EMC called even though no marked content block is active.",
 "Marked content not closed.",
 "Annotations (including widgets) can only be used once.",
+"Structures can only be used once.",
 "Operation prohibited by current output intent.",
 "Output color profile not defined.",
 "Output intent identifier missing.",

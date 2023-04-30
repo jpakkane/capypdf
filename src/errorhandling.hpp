@@ -56,6 +56,7 @@ enum class ErrorCode : int32_t {
     EmcOnEmpty,
     UnclosedMarkedContent,
     AnnotationReuse,
+    StructureReuse,
     BadOperationForIntent,
     OutputProfileMissing,
     MissingIntentIdentifier,

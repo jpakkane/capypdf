@@ -186,6 +186,9 @@ public:
     const std::unordered_set<A4PDF_AnnotationId> get_annotation_usage() const {
         return used_annotations;
     }
+    const std::unordered_set<A4PDF_StructureItemId> get_structure_usage() const {
+        return used_structures;
+    }
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
@@ -222,6 +225,7 @@ private:
     std::unordered_set<int32_t> used_form_xobjects;
     std::unordered_set<A4PDF_FormWidgetId> used_widgets;
     std::unordered_set<A4PDF_AnnotationId> used_annotations;
+    std::unordered_set<A4PDF_StructureItemId> used_structures;
     // Reminder: If you add stuff  here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;

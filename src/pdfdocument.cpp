@@ -244,10 +244,12 @@ int32_t PdfDocument::create_page_group() {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
-                                          std::string page_data,
-                                          const std::unordered_set<A4PDF_FormWidgetId> &fws,
-                                          const std::unordered_set<A4PDF_AnnotationId> &annots) {
+rvoe<NoReturnValue>
+PdfDocument::add_page(std::string resource_data,
+                      std::string page_data,
+                      const std::unordered_set<A4PDF_FormWidgetId> &fws,
+                      const std::unordered_set<A4PDF_AnnotationId> &annots,
+                      const std::unordered_set<A4PDF_StructureItemId> &structs) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
             RETERR(AnnotationReuse);
@@ -256,6 +258,11 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
     for(const auto &a : annots) {
         if(annotation_use.find(a) != annotation_use.cend()) {
             RETERR(AnnotationReuse);
+        }
+    }
+    for(const auto &s : structs) {
+        if(structure_use.find(s) != structure_use.cend()) {
+            RETERR(StructureReuse);
         }
     }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
@@ -273,7 +280,10 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
         form_use[fw] = page_num;
     }
     for(const auto &a : annots) {
-        annotation_use[A4PDF_AnnotationId{a}] = page_num;
+        annotation_use[a] = page_num;
+    }
+    for(const auto &s : structs) {
+        structure_use[s] = page_num;
     }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
     return NoReturnValue{};
@@ -497,13 +507,19 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     auto app = std::back_inserter(buf);
     std::string outline;
     std::string name;
+    std::string structure;
+
     if(!embedded_files.empty()) {
         ERC(names, create_name_dict());
         name = fmt::format("  /Names {} 0 R\n", names);
     }
     if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
-        name = fmt::format("  /Outlines {} 0 R\n", outlines);
+        outline = fmt::format("  /Outlines {} 0 R\n", outlines);
+    }
+    if(!structure_items.empty()) {
+        create_structure_root_dict();
+        structure = fmt::format("  /StructureTreeRoot {} 0 R\n", *structure_root_object);
     }
     fmt::format_to(app,
                    R"(<<
@@ -516,6 +532,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     }
     if(!name.empty()) {
         buf += name;
+    }
+    if(!structure.empty()) {
+        buf += structure;
     }
     if(output_intent_object) {
         fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
@@ -612,6 +631,18 @@ rvoe<int32_t> PdfDocument::create_outlines() {
     assert(catalog_obj_num == (int32_t)document_objects.size());
     // FIXME: add output intents here. PDF spec 14.11.5
     return add_object(FullPDFObject{std::move(buf), ""});
+}
+
+void PdfDocument::create_structure_root_dict() {
+    std::string buf;
+    // /ParentTree
+    buf = fmt::format(R"(<<
+  /Type /StructTreeRoot
+  /K []
+>>
+)",
+                      -1);
+    structure_root_object = add_object(FullPDFObject{buf, ""});
 }
 
 rvoe<NoReturnValue>
@@ -920,10 +951,12 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 }
 
 rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
-                                                              const DelayedStructItem &si) {
-    int32_t parent_object = -1; // FIXME, structure root
+                                                              const DelayedStructItem &dsi) {
+    const auto &si = structure_items.at(dsi.sid.id);
+    assert(structure_root_object);
+    int32_t parent_object = *structure_root_object;
     if(si.parent) {
-        parent_object = structure_items.at(si.parent->id);
+        parent_object = structure_items.at(si.parent->id).obj_id;
     }
     std::string dict = fmt::format(R"(<<
   /Type /StructElem
@@ -1423,8 +1456,9 @@ PdfDocument::add_structure_item(std::string_view stype,
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
-    auto obj_id = add_object(DelayedStructItem{std::string{stype}, parent});
-    structure_items.push_back(obj_id);
+    auto stritem_id = (int32_t)structure_items.size();
+    auto obj_id = add_object(DelayedStructItem{stritem_id});
+    structure_items.push_back(StructItem{obj_id, std::string(stype), parent});
     return A4PDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
