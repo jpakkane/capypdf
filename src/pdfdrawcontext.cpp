@@ -653,98 +653,11 @@ struct IconvCloser {
 
 ErrorCode PdfDrawContext::render_utf8_text(
     std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y) {
-    // FIXME convert this to use PdfText.
-    CHECK_INDEXNESS(fid.id, doc->font_objects);
-    if(text.empty()) {
-        return ErrorCode::NoError;
-    }
-    errno = 0;
-    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
-    if(errno != 0) {
-        perror(nullptr);
-        return ErrorCode::IconvError;
-    }
-    IconvCloser ic{to_codepoint};
-    FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
-    if(!face) {
-        return ErrorCode::BuiltinFontNotSupported;
-    }
-
-    uint32_t previous_codepoint = -1;
-    auto in_ptr = (char *)text.data();
-    auto in_bytes = text.length();
-    FontSubset previous_subset;
-    previous_subset.fid.id = -1;
-    previous_subset.subset_id = -1;
-    // Freetype does not support GPOS kerning because it is context-sensitive.
-    // So this method might produce incorrect kerning. Users that need precision
-    // need to use the glyph based rendering method.
-    const bool has_kerning = FT_HAS_KERNING(face);
-    while(in_ptr < text.data() + text.size()) {
-        uint32_t codepoint{0};
-        auto out_ptr = (char *)&codepoint;
-        auto out_bytes = sizeof(codepoint);
-        errno = 0;
-        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
-        if(iconv_result == (size_t)-1 && errno != E2BIG) {
-            perror(nullptr);
-            return ErrorCode::BadUtf8;
-        }
-        // FIXME: check if we need to change font subset,
-        auto rc = doc->get_subset_glyph(fid, codepoint);
-        if(!rc) {
-            return rc.error();
-        }
-        auto current_subset_glyph = rc.value();
-        const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
-        used_subset_fonts.insert(current_subset_glyph.ss);
-        if(previous_subset.subset_id == -1) {
-            fmt::format_to(cmd_appender,
-                           R"(BT
-  /SFont{}-{} {} Tf
-  {} {} Td
-  [ <)",
-                           bob.font_obj,
-                           current_subset_glyph.ss.subset_id,
-                           pointsize,
-                           x,
-                           y);
-            previous_subset = current_subset_glyph.ss;
-            // Add to used fonts.
-        } else if(current_subset_glyph.ss != previous_subset) {
-            fmt::format_to(cmd_appender,
-                           R"() ] TJ
-  /SFont{}-{} {} Tf
-  [ <)",
-                           bob.font_obj,
-                           current_subset_glyph.ss.subset_id,
-                           pointsize);
-            previous_subset = current_subset_glyph.ss;
-            // Add to used fonts.
-        }
-
-        if(has_kerning && previous_codepoint != (uint32_t)-1) {
-            FT_Vector kerning;
-            const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
-            const auto index_right = FT_Get_Char_Index(face, codepoint);
-            auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
-            if(ec != 0) {
-                return ErrorCode::FreeTypeError;
-            }
-            if(kerning.x != 0) {
-                // The value might be a integer, fraction or something else.
-                // None of the fonts I tested had kerning that Freetype recognized,
-                // so don't know if this actually works.
-                fmt::format_to(cmd_appender, ">{}<", int(kerning.x));
-            }
-        }
-        fmt::format_to(cmd_appender, "{:02x}", (unsigned char)current_subset_glyph.glyph_id);
-        // fmt::format_to(cmd_appender, "<{:02x}>", (unsigned char)current_subset_glyph.glyph_id);
-        previous_codepoint = codepoint;
-    }
-    fmt::format_to(cmd_appender, "> ] TJ\nET\n");
-    assert(in_bytes == 0);
-    return ErrorCode::NoError;
+    PdfText t;
+    t.cmd_Tf(fid, pointsize);
+    t.cmd_Td(x, y);
+    t.render_text(text);
+    return render_text(t);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
