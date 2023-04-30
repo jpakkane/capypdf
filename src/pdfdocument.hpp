@@ -215,6 +215,11 @@ struct DelayedAnnotation {
     AnnotationSubType sub;
 };
 
+struct DelayedStructItem {
+    std::string stype;
+    std::optional<A4PDF_StructureItemId> parent;
+};
+
 typedef std::variant<DummyIndexZero,
                      FullPDFObject,
                      DeflatePDFObject,
@@ -225,7 +230,8 @@ typedef std::variant<DummyIndexZero,
                      DelayedPages,
                      DelayedPage,
                      DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
-                     DelayedAnnotation>
+                     DelayedAnnotation,
+                     DelayedStructItem>
     ObjectType;
 
 typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
@@ -296,6 +302,10 @@ public:
     rvoe<A4PDF_AnnotationId>
     create_annotation(PdfBox rect, std::string contents, AnnotationSubType subtype);
 
+    // Structure items
+    rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,
+                                                   std::optional<A4PDF_StructureItemId> parent);
+
     std::optional<double>
     glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
@@ -353,6 +363,7 @@ private:
     rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
                                               const DelayedCheckboxWidgetAnnotation &checkbox);
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
+    rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 
     rvoe<A4PDF_ImageId> add_image_object(int32_t w,
                                          int32_t h,
@@ -386,6 +397,7 @@ private:
     std::vector<int32_t> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
     std::vector<int32_t> annotations;
+    std::vector<int32_t> structure_items;
     // A form widget can be used on one and only one page.
     std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
     std::unordered_map<A4PDF_AnnotationId, int32_t> annotation_use;

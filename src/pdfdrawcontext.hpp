@@ -90,6 +90,7 @@ public:
     ErrorCode cmd_B();
     ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
+    ErrorCode cmd_BDC(A4PDF_StructureItemId sid);
     ErrorCode cmd_BMC(std::string_view tag);
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);

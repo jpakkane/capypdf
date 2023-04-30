@@ -26,6 +26,7 @@
 
 #include <cstdint>
 
+// This macro must not be used from within a namespace.
 #define DEF_BASIC_OPERATORS(TNAME)                                                                 \
     inline bool operator==(const TNAME &object_number_1, const TNAME &object_number_2) {           \
         return object_number_1.id == object_number_2.id;                                           \
@@ -53,6 +54,8 @@ DEF_BASIC_OPERATORS(A4PDF_FormXObjectId);
 DEF_BASIC_OPERATORS(A4PDF_FormWidgetId);
 
 DEF_BASIC_OPERATORS(A4PDF_AnnotationId);
+
+DEF_BASIC_OPERATORS(A4PDF_StructureItemId);
 
 namespace A4PDF {
 

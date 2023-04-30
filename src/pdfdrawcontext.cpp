@@ -209,6 +209,19 @@ ErrorCode PdfDrawContext::cmd_Bstar() {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_BDC(A4PDF_StructureItemId sid) {
+    ++marked_depth;
+    fmt::format_to(cmd_appender,
+                   R"({}/P << /MCID {} >>
+{}BDC
+)",
+                   ind,
+                   sid.id,
+                   ind);
+    indent();
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
     if(tag.empty() || tag.front() != '/') {
         std::abort();
@@ -670,7 +683,8 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
     for(const auto &e : charseq) {
         if(std::holds_alternative<double>(e)) {
             if(is_first) {
-                serialisation += "  [ ";
+                serialisation += ind;
+                serialisation += "[ ";
             }
             fmt::format_to(app, "{} ", std::get<double>(e));
         } else {
@@ -683,13 +697,16 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
                     serialisation += "] TJ\n";
                 }
                 fmt::format_to(app,
-                               "  /SFont{}-{} {} Tf\n  [ ",
+                               "{}/SFont{}-{} {} Tf\n{}[ ",
+                               ind,
                                doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
                                current_subset_glyph.ss.subset_id,
-                               current_pointsize);
+                               current_pointsize,
+                               ind);
             } else {
                 if(is_first) {
-                    serialisation += "  [";
+                    serialisation += ind;
+                    serialisation += "[ ";
                 }
             }
             current_font = current_subset_glyph.ss.fid;

@@ -22,6 +22,8 @@
 
 namespace {
 
+A4PDF_StructureItemId document_root;
+
 const std::vector<std::string> column1{
     "Lorem ipsum dolor sit amet, consectetur",
     "adipiscing elit, sed do eiusmod tempor",
@@ -170,16 +172,20 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double titlesize = 28;
     const double authorsize = 18;
 
+    ctx.cmd_BDC(gen.add_structure_item("title", document_root).value());
     ctx.render_utf8_text(title,
                          titlefont,
                          titlesize,
                          midx - text_width(title, gen, titlefont, titlesize) / 2,
                          titley);
+    ctx.cmd_EMC();
+    ctx.cmd_BDC(gen.add_structure_item("author", document_root).value());
     ctx.render_utf8_text(author,
                          authorfont,
                          authorsize,
                          midx - text_width(author, gen, authorfont, authorsize) / 2,
                          authory);
+    ctx.cmd_EMC();
 }
 
 void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
@@ -199,17 +205,15 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
 
 void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
-    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf").value();
-    // auto emailfont = gen.load_font("/usr/share/fonts/truetype/freefont/FreeMono.ttf").value();
-    //     auto emailfont =
-    //       gen.load_font("/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf").value();
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
+    ctx.cmd_BDC(gen.add_structure_item("email", {}).value());
     ctx.render_utf8_text(email,
                          emailfont,
                          emailsize,
                          midx - text_width(email, gen, emailfont, emailsize) / 2,
                          emaily);
+    ctx.cmd_EMC();
 }
 
 int main() {
@@ -220,6 +224,7 @@ int main() {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
+    document_root = gen.add_structure_item("document", {}).value();
     draw_headings(gen, ctx);
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);

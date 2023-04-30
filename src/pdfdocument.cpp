@@ -703,6 +703,9 @@ rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
         } else if(std::holds_alternative<DelayedAnnotation>(obj)) {
             const auto &annotation = std::get<DelayedAnnotation>(obj);
             ERCV(write_annotation(i, annotation));
+        } else if(std::holds_alternative<DelayedStructItem>(obj)) {
+            const auto &si = std::get<DelayedStructItem>(obj);
+            ERCV(write_delayed_structure_item(i, si));
         } else {
             RETERR(Unreachable);
         }
@@ -912,6 +915,24 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
         std::abort();
     }
     dict += ">>\n";
+    ERCV(write_finished_object(obj_num, dict, ""));
+    return NoReturnValue{};
+}
+
+rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
+                                                              const DelayedStructItem &si) {
+    int32_t parent_object = -1; // FIXME, structure root
+    if(si.parent) {
+        parent_object = structure_items.at(si.parent->id);
+    }
+    std::string dict = fmt::format(R"(<<
+  /Type /StructElem
+  /S /{}
+  /P {} 0 R
+>>
+)",
+                                   si.stype,
+                                   parent_object);
     ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};
 }
@@ -1394,6 +1415,17 @@ PdfDocument::create_annotation(PdfBox rect, std::string contents, AnnotationSubT
         add_object(DelayedAnnotation{annot_id, rect, std::move(contents), std::move(sub)});
     annotations.push_back((int32_t)obj_id);
     return A4PDF_AnnotationId{annot_id};
+}
+
+rvoe<A4PDF_StructureItemId>
+PdfDocument::add_structure_item(std::string_view stype,
+                                std::optional<A4PDF_StructureItemId> parent) {
+    if(parent) {
+        CHECK_INDEXNESS_V(parent->id, structure_items);
+    }
+    auto obj_id = add_object(DelayedStructItem{std::string{stype}, parent});
+    structure_items.push_back(obj_id);
+    return A4PDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
 std::optional<double>

@@ -109,6 +109,11 @@ public:
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 
+    rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,
+                                                   std::optional<A4PDF_StructureItemId> parent) {
+        return pdoc.add_structure_item(stype, parent);
+    }
+
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
     std::optional<double>

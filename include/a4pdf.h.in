@@ -133,6 +133,10 @@ typedef struct {
     int32_t id;
 } A4PDF_AnnotationId;
 
+typedef struct {
+    int32_t id;
+} A4PDF_StructureItemId;
+
 // Options
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT;
