@@ -91,6 +91,7 @@ void PdfDrawContext::clear() {
     used_patterns.clear();
     used_widgets.clear();
     used_annotations.clear();
+    ind.clear();
     is_finalized = false;
     uses_all_colorspace = false;
 }
@@ -185,21 +186,25 @@ GstatePopper PdfDrawContext::push_gstate() {
 }
 
 ErrorCode PdfDrawContext::cmd_b() {
+    commands += ind;
     commands += "b\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_B() {
+    commands += ind;
     commands += "B\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_bstar() {
+    commands += ind;
     commands += "b*\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Bstar() {
+    commands += ind;
     commands += "B*\n";
     return ErrorCode::NoError;
 }
@@ -209,28 +214,36 @@ ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
         std::abort();
     }
     ++marked_depth;
-    fmt::format_to(cmd_appender, "{} BMC\n", tag);
+    fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);
+    indent();
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{} {} {} {} {} {} c\n", x1, y1, x2, y2, x3, y3);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} {} {} c\n", ind, x1, y1, x2, y2, x3, y3);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    fmt::format_to(
-        cmd_appender, "{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n", m1, m2, m3, m4, m5, m6);
+    fmt::format_to(cmd_appender,
+                   "{}{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n",
+                   ind,
+                   m1,
+                   m2,
+                   m3,
+                   m4,
+                   m5,
+                   m6);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_CS(std::string_view cspace_name) {
-    fmt::format_to(cmd_appender, "{} CS\n", cspace_name);
+    fmt::format_to(cmd_appender, "{}{} CS\n", ind, cspace_name);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_cs(std::string_view cspace_name) {
-    fmt::format_to(cmd_appender, "{} cs\n", cspace_name);
+    fmt::format_to(cmd_appender, "{}{} cs\n", ind, cspace_name);
     return ErrorCode::NoError;
 }
 
@@ -243,6 +256,7 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
             return ErrorCode::NegativeDash;
         }
     }
+    commands += ind;
     commands += "[ ";
     for(size_t i = 0; i < dash_array_length; ++i) {
         fmt::format_to(cmd_appender, "{} ", dash_array[i]);
@@ -256,7 +270,7 @@ ErrorCode PdfDrawContext::cmd_Do(A4PDF_FormXObjectId fxoid) {
         return ErrorCode::InvalidDrawContextType;
     }
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
-    fmt::format_to(cmd_appender, "/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);
+    fmt::format_to(cmd_appender, "{}/FXO{} Do\n", ind, doc->form_xobjects[fxoid.id].xobj_num);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
     return ErrorCode::NoError;
 }
@@ -266,40 +280,45 @@ ErrorCode PdfDrawContext::cmd_EMC() {
         return ErrorCode::EmcOnEmpty;
     }
     --marked_depth;
+    dedent();
+    commands += ind;
     commands += "EMC\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_f() {
+    commands += ind;
     commands += "f\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_fstar() {
+    commands += ind;
     commands += "f*\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_G(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{} G\n", gray);
+    fmt::format_to(cmd_appender, "{}{} G\n", gray, ind);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_g(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{} g\n", gray);
+    fmt::format_to(cmd_appender, "{}{} g\n", gray, ind);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
-    fmt::format_to(cmd_appender, "/GS{} gs\n", gid.id);
+    fmt::format_to(cmd_appender, "{}/GS{} gs\n", gid.id, ind);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_h() {
+    commands += ind;
     commands += "h\n";
     return ErrorCode::NoError;
 }
@@ -308,19 +327,19 @@ ErrorCode PdfDrawContext::cmd_i(double flatness) {
     if(flatness < 0 || flatness > 100) {
         return ErrorCode::InvalidFlatness;
     }
-    fmt::format_to(cmd_appender, "{} i\n", flatness);
+    fmt::format_to(cmd_appender, "{}{} i\n", ind, flatness);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
     CHECK_ENUM(join_style, A4PDF_Bevel_Join);
-    fmt::format_to(cmd_appender, "{} j\n", (int)join_style);
+    fmt::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
     CHECK_ENUM(cap_style, A4PDF_Projection_Square_Cap);
-    fmt::format_to(cmd_appender, "{} J\n", (int)cap_style);
+    fmt::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
     return ErrorCode::NoError;
 }
 
@@ -329,7 +348,7 @@ ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
     CHECK_COLORCOMPONENT(m);
     CHECK_COLORCOMPONENT(y);
     CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{} {} {} {} K\n", c, m, y, k);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} K\n", ind, c, m, y, k);
     return ErrorCode::NoError;
 }
 ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
@@ -337,42 +356,47 @@ ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
     CHECK_COLORCOMPONENT(m);
     CHECK_COLORCOMPONENT(y);
     CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{} {} {} {} k\n", c, m, y, k);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} k\n", ind, c, m, y, k);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_l(double x, double y) {
-    fmt::format_to(cmd_appender, "{} {} l\n", x, y);
+    fmt::format_to(cmd_appender, "{}{} {} l\n", ind, x, y);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_m(double x, double y) {
-    fmt::format_to(cmd_appender, "{} {} m\n", x, y);
+    fmt::format_to(cmd_appender, "{}{} {} m\n", ind, x, y);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_M(double miterlimit) {
-    fmt::format_to(cmd_appender, "{} M\n", miterlimit);
+    fmt::format_to(cmd_appender, "{}{} M\n", ind, miterlimit);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_n() {
+    commands += ind;
     commands += "n\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_q() {
+    commands += ind;
     commands += "q\n";
+    indent();
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Q() {
+    dedent();
+    commands += ind;
     commands += "Q\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
-    fmt::format_to(cmd_appender, "{} {} {} {} re\n", x, y, w, h);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} re\n", ind, x, y, w, h);
     return ErrorCode::NoError;
 }
 
@@ -380,7 +404,7 @@ ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
     CHECK_COLORCOMPONENT(r);
     CHECK_COLORCOMPONENT(g);
     CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{} {} {} RG\n", r, g, b);
+    fmt::format_to(cmd_appender, "{}{} {} {} RG\n", ind, r, g, b);
     return ErrorCode::NoError;
 }
 
@@ -388,51 +412,53 @@ ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
     CHECK_COLORCOMPONENT(r);
     CHECK_COLORCOMPONENT(g);
     CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{} {} {} rg\n", r, g, b);
+    fmt::format_to(cmd_appender, "{}{} {} {} rg\n", ind, r, g, b);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_ri(A4PDF_Rendering_Intent ri) {
     CHECK_ENUM(ri, A4PDF_RI_PERCEPTUAL);
-    fmt::format_to(cmd_appender, "/{} ri\n", rendering_intent_names.at((int)ri));
+    fmt::format_to(cmd_appender, "{}/{} ri\n", ind, rendering_intent_names.at((int)ri));
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_s() {
+    commands += ind;
     commands += "s\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_S() {
+    commands += ind;
     commands += "S\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_SCN(double value) {
-    fmt::format_to(cmd_appender, "{} SCN\n", value);
+    fmt::format_to(cmd_appender, "{}{} SCN\n", ind, value);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_scn(double value) {
-    fmt::format_to(cmd_appender, "{} scn\n", value);
+    fmt::format_to(cmd_appender, "{}{} scn\n", ind, value);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
     CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
-    fmt::format_to(cmd_appender, "/SH{} sh\n", shid.id);
+    fmt::format_to(cmd_appender, "{}/SH{} sh\n", ind, shid.id);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
     CHECK_ENUM(mode, A4PDF_Text_Clip);
-    fmt::format_to(cmd_appender, "{} Tr\n", (int)mode);
+    fmt::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{} {} {} {} v\n", x2, y2, x3, y3);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} v\n", ind, x2, y2, x3, y3);
     return ErrorCode::NoError;
 }
 
@@ -440,22 +466,24 @@ ErrorCode PdfDrawContext::cmd_w(double w) {
     if(w < 0) {
         return ErrorCode::NegativeLineWidth;
     }
-    fmt::format_to(cmd_appender, "{} w\n", w);
+    fmt::format_to(cmd_appender, "{}{} w\n", ind, w);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_W() {
+    commands += ind;
     commands += "W\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Wstar() {
+    commands += ind;
     commands += "W*\n";
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{} {} {} {} y\n", x1, y1, x3, y3);
+    fmt::format_to(cmd_appender, "{}{} {} {} {} y\n", ind, x1, y1, x3, y3);
     return ErrorCode::NoError;
 }
 
@@ -492,7 +520,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(A4PDF_IccColorSpaceId icc_id,
         return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
-    fmt::format_to(cmd_appender, "/CSpace{} cs\n", icc_info.object_num);
+    fmt::format_to(cmd_appender, "{}/CSpace{} cs\n", ind, icc_info.object_num);
     for(int32_t i = 0; i < num_values; ++i) {
         fmt::format_to(cmd_appender, "{:} ", values[i]);
     }
@@ -509,7 +537,7 @@ ErrorCode PdfDrawContext::set_stroke_color(A4PDF_IccColorSpaceId icc_id,
         return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
-    fmt::format_to(cmd_appender, "/CSpace{} CS\n", icc_info.object_num);
+    fmt::format_to(cmd_appender, "{}/CSpace{} CS\n", ind, icc_info.object_num);
     for(int32_t i = 0; i < num_values; ++i) {
         fmt::format_to(cmd_appender, "{:} ", values[i]);
     }
@@ -554,7 +582,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
     if(rc != ErrorCode::NoError) {
         return rc;
     }
-    fmt::format_to(cmd_appender, "/Pattern-{} scn\n", id.id);
+    fmt::format_to(cmd_appender, "{}/Pattern-{} scn\n", ind, id.id);
     return ErrorCode::NoError;
 }
 
@@ -583,7 +611,7 @@ ErrorCode PdfDrawContext::set_stroke_color(LabId lid, const LabColor &c) {
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_CS(csname);
-    fmt::format_to(cmd_appender, "{:f} {:f} {:f} SCN\n", c.l, c.a, c.b);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} SCN\n", ind, c.l, c.a, c.b);
     return ErrorCode::NoError;
 }
 
@@ -592,7 +620,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(LabId lid, const LabColor &c) {
     used_colorspaces.insert(lid.id);
     std::string csname = fmt::format("/CSpace{}", lid.id);
     cmd_cs(csname);
-    fmt::format_to(cmd_appender, "{:f} {:f} {:f} scn\n", c.l, c.a, c.b);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} scn\n", ind, c.l, c.a, c.b);
     return ErrorCode::NoError;
 }
 
@@ -606,7 +634,7 @@ ErrorCode PdfDrawContext::draw_image(A4PDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
-    fmt::format_to(cmd_appender, "/Image{} Do\n", obj_num);
+    fmt::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
     return ErrorCode::NoError;
 }
 
@@ -625,6 +653,7 @@ struct IconvCloser {
 
 ErrorCode PdfDrawContext::render_utf8_text(
     std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y) {
+    // FIXME convert this to use PdfText.
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     if(text.empty()) {
         return ErrorCode::NoError;
@@ -818,23 +847,25 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
 }
 
 ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
-    std::string serialisation{"BT\n"};
+    std::string serialisation{ind + "BT\n"};
+    indent();
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     int32_t current_subset{-1};
     A4PDF_FontId current_font{-1};
     double current_pointsize{-1};
     for(const auto &e : textobj.get_events()) {
         if(std::holds_alternative<TStar_arg>(e)) {
-            serialisation += "  T*\n";
+            serialisation += ind;
+            serialisation += "T*\n";
         } else if(std::holds_alternative<Tc_arg>(e)) {
             const auto &tc = std::get<Tc_arg>(e);
-            fmt::format_to(app, "  {} Tc\n", tc.val);
+            fmt::format_to(app, "{}{} Tc\n", ind, tc.val);
         } else if(std::holds_alternative<Td_arg>(e)) {
             const auto &td = std::get<Td_arg>(e);
-            fmt::format_to(app, "  {} {} Td\n", td.tx, td.ty);
+            fmt::format_to(app, "{}{} {} Td\n", ind, td.tx, td.ty);
         } else if(std::holds_alternative<TD_arg>(e)) {
             const auto &tD = std::get<TD_arg>(e);
-            fmt::format_to(app, "  {} {} TD\n", tD.tx, tD.ty);
+            fmt::format_to(app, "{}{} {} TD\n", ind, tD.tx, tD.ty);
         } else if(std::holds_alternative<Tf_arg>(e)) {
             current_font = std::get<Tf_arg>(e).font;
             current_subset = -1;
@@ -860,24 +891,27 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             }
         } else if(std::holds_alternative<TL_arg>(e)) {
             const auto &tL = std::get<TL_arg>(e);
-            fmt::format_to(app, "  {} TL\n", tL.leading);
+            fmt::format_to(app, "{}{} TL\n", ind, tL.leading);
         } else if(std::holds_alternative<Tm_arg>(e)) {
             const auto &tm = std::get<Tm_arg>(e);
-            fmt::format_to(app, "  {} {} {} {} {} {} Tm\n", tm.a, tm.b, tm.c, tm.d, tm.e, tm.f);
+            fmt::format_to(
+                app, "{}{} {} {} {} {} {} Tm\n", ind, tm.a, tm.b, tm.c, tm.d, tm.e, tm.f);
         } else if(std::holds_alternative<Ts_arg>(e)) {
             const auto &ts = std::get<Ts_arg>(e);
-            fmt::format_to(app, "  {} Ts\n", ts.rise);
+            fmt::format_to(app, "{}{} Ts\n", ind, ts.rise);
         } else if(std::holds_alternative<Tw_arg>(e)) {
             const auto &tw = std::get<Tw_arg>(e);
-            fmt::format_to(app, "  {} Tw\n", tw.width);
+            fmt::format_to(app, "{}{} Tw\n", ind, tw.width);
         } else if(std::holds_alternative<Tz_arg>(e)) {
             const auto &tz = std::get<Tz_arg>(e);
-            fmt::format_to(app, "  {} Tz\n", tz.scaling);
+            fmt::format_to(app, "{}{} Tz\n", ind, tz.scaling);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();
         }
     }
+    dedent();
+    serialisation += ind;
     serialisation += "ET\n";
     commands += serialisation;
     return ErrorCode::NoError;
@@ -891,17 +925,22 @@ void PdfDrawContext::render_raw_glyph(
     const auto font_glyph_id = doc->glyph_for_codepoint(
         doc->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
     fmt::format_to(cmd_appender,
-                   R"(BT
-  /Font{} {} Tf
-  {} {} Td
-  (\{:o}) Tj
-ET
+                   R"({}BT
+{}  /Font{} {} Tf
+{}  {} {} Td
+{}  (\{:o}) Tj
+{}ET
 )",
+                   ind,
+                   ind,
                    font_data.font_obj,
                    pointsize,
+                   ind,
                    x,
                    y,
-                   font_glyph_id);
+                   ind,
+                   font_glyph_id,
+                   ind);
 }
 
 ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
@@ -918,9 +957,11 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
     // const auto &bob =
     //    doc->font_objects.at(doc->get_subset_glyph(fid, glyphs.front().codepoint).ss.fid.id);
     fmt::format_to(cmd_appender,
-                   R"(BT
-  /SFont{}-{} {} Tf
+                   R"({}BT
+{}  /SFont{}-{} {} Tf
 )",
+                   ind,
+                   ind,
                    font_data.font_obj,
                    0,
                    pointsize);
@@ -938,7 +979,7 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
         fmt::format_to(
             cmd_appender, "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
     }
-    fmt::format_to(cmd_appender, "ET\n");
+    fmt::format_to(cmd_appender, "{}ET\n", ind);
     return ErrorCode::NoError;
 }
 
@@ -967,17 +1008,22 @@ ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_
         }
     }
     fmt::format_to(cmd_appender,
-                   R"(BT
-  /Font{} {} Tf
-  {} {} Td
-  ({}) Tj
-ET
+                   R"({}BT
+{}  /Font{} {} Tf
+{}  {} {} Td
+{}  ({}) Tj
+{}ET
 )",
+                   ind,
+                   ind,
                    font_object,
                    pointsize,
+                   ind,
                    x,
                    y,
-                   cleaned_text);
+                   ind,
+                   cleaned_text,
+                   ind);
     return ErrorCode::NoError;
 }
 

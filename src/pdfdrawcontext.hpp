@@ -196,6 +196,16 @@ private:
                                    std::vector<CharItem> &charseq,
                                    A4PDF_FontId fid);
 
+    void indent() { ind += "  "; }
+
+    void dedent() {
+        if(ind.size() < 2) {
+            std::abort();
+        }
+        ind.pop_back();
+        ind.pop_back();
+    }
+
     PdfDocument *doc;
     PdfColorConverter *cm;
     A4PDF_Draw_Context_Type context_type;
@@ -211,11 +221,13 @@ private:
     std::unordered_set<int32_t> used_form_xobjects;
     std::unordered_set<A4PDF_FormWidgetId> used_widgets;
     std::unordered_set<A4PDF_AnnotationId> used_annotations;
+    // Reminder: If you add stuff  here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;
     double form_xobj_w = -1;
     double form_xobj_h = -1;
     int32_t marked_depth = 0;
+    std::string ind;
 };
 
 struct ColorPatternBuilder {
