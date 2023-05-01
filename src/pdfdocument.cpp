@@ -635,13 +635,23 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 
 void PdfDocument::create_structure_root_dict() {
     std::string buf;
+    std::optional<A4PDF_StructureItemId> rootobj;
+
+    for(int32_t i = 0; i < (int32_t)structure_items.size(); ++i) {
+        if(!structure_items[i].parent) {
+            rootobj = A4PDF_StructureItemId{i};
+            break;
+        }
+        // FIXME, check that there is only one.
+    }
+    assert(rootobj);
     // /ParentTree
     buf = fmt::format(R"(<<
   /Type /StructTreeRoot
-  /K []
+  /K [ {} 0 R ]
 >>
 )",
-                      -1);
+                      structure_items[rootobj->id].obj_id);
     structure_root_object = add_object(FullPDFObject{buf, ""});
 }
 
@@ -952,20 +962,39 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 
 rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
                                                               const DelayedStructItem &dsi) {
+    std::vector<A4PDF_StructureItemId> children;
     const auto &si = structure_items.at(dsi.sid.id);
     assert(structure_root_object);
     int32_t parent_object = *structure_root_object;
     if(si.parent) {
         parent_object = structure_items.at(si.parent->id).obj_id;
     }
+
+    // Yes, this is O(n^2). I got lazy.
+    for(int32_t i = 0; i < (int32_t)structure_items.size(); ++i) {
+        if(structure_items[i].parent) {
+            auto current_parent = structure_items.at(structure_items[i].parent->id).obj_id;
+            if(current_parent == si.obj_id) {
+                children.emplace_back(A4PDF_StructureItemId{i});
+            }
+        }
+    }
     std::string dict = fmt::format(R"(<<
   /Type /StructElem
   /S /{}
   /P {} 0 R
->>
 )",
                                    si.stype,
                                    parent_object);
+    auto app = std::back_inserter(dict);
+    if(!children.empty()) {
+        dict += "  /K [\n";
+        for(const auto &c : children) {
+            fmt::format_to(app, "    {} 0 R\n", structure_items.at(c.id).obj_id);
+        }
+        dict += "  ]\n";
+    }
+    dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};
 }

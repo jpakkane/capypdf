@@ -26,6 +26,7 @@
 #include <vector>
 #include <optional>
 #include <span>
+#include <stack>
 
 template<> struct std::hash<A4PDF::FontSubset> {
     size_t operator()(A4PDF::FontSubset const &s) const noexcept {
@@ -65,6 +66,12 @@ typedef std::variant<SerializedBasicContext, SerializedXObject> DCSerialization;
 struct PdfGlyph {
     uint32_t codepoint;
     double x, y;
+};
+
+enum class DrawStateType {
+    MarkedContent,
+    SaveState,
+    Text,
 };
 
 class PdfDrawContext {
@@ -200,14 +207,25 @@ private:
                                    std::vector<CharItem> &charseq,
                                    A4PDF_FontId fid);
 
-    void indent() { ind += "  "; }
+    void indent(DrawStateType dtype) {
+        dstates.push(dtype);
+        ind += "  ";
+    }
 
-    void dedent() {
+    rvoe<NoReturnValue> dedent(DrawStateType dtype) {
+        if(dstates.empty()) {
+            RETERR(DrawStateEndMismatch);
+        }
+        if(dstates.top() != dtype) {
+            RETERR(DrawStateEndMismatch);
+        }
         if(ind.size() < 2) {
             std::abort();
         }
+        dstates.pop();
         ind.pop_back();
         ind.pop_back();
+        return NoReturnValue{};
     }
 
     PdfDocument *doc;
@@ -226,6 +244,7 @@ private:
     std::unordered_set<A4PDF_FormWidgetId> used_widgets;
     std::unordered_set<A4PDF_AnnotationId> used_annotations;
     std::unordered_set<A4PDF_StructureItemId> used_structures;
+    std::stack<DrawStateType> dstates;
     // Reminder: If you add stuff  here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;

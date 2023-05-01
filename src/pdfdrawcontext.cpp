@@ -219,7 +219,7 @@ ErrorCode PdfDrawContext::cmd_BDC(A4PDF_StructureItemId sid) {
                    ind,
                    sid.id,
                    ind);
-    indent();
+    indent(DrawStateType::MarkedContent);
     return ErrorCode::NoError;
 }
 
@@ -229,7 +229,7 @@ ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
     }
     ++marked_depth;
     fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);
-    indent();
+    indent(DrawStateType::MarkedContent);
     return ErrorCode::NoError;
 }
 
@@ -294,7 +294,10 @@ ErrorCode PdfDrawContext::cmd_EMC() {
         return ErrorCode::EmcOnEmpty;
     }
     --marked_depth;
-    dedent();
+    auto rc = dedent(DrawStateType::MarkedContent);
+    if(!rc) {
+        return rc.error();
+    }
     commands += ind;
     commands += "EMC\n";
     return ErrorCode::NoError;
@@ -398,12 +401,15 @@ ErrorCode PdfDrawContext::cmd_n() {
 ErrorCode PdfDrawContext::cmd_q() {
     commands += ind;
     commands += "q\n";
-    indent();
+    indent(DrawStateType::SaveState);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_Q() {
-    dedent();
+    auto rc = dedent(DrawStateType::SaveState);
+    if(!rc) {
+        return rc.error();
+    }
     commands += ind;
     commands += "Q\n";
     return ErrorCode::NoError;
@@ -779,7 +785,7 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
 
 ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     std::string serialisation{ind + "BT\n"};
-    indent();
+    indent(DrawStateType::Text);
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     int32_t current_subset{-1};
     A4PDF_FontId current_font{-1};
@@ -839,17 +845,23 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(std::holds_alternative<A4PDF_StructureItemId>(e)) {
             const auto &sid = std::get<A4PDF_StructureItemId>(e);
             used_structures.insert(sid);
-            fmt::format_to(app, "{}/P << MCID {} >>\n{}BMC\n", ind, sid.id, ind);
-            indent();
+            fmt::format_to(app, "{}/P << /MCID {} >>\n{}BDC\n", ind, sid.id, ind);
+            indent(DrawStateType::MarkedContent);
         } else if(std::holds_alternative<Emc_arg>(e)) {
-            dedent();
-            fmt::format_to(app, "{}/EMC\n", ind);
+            auto rc = dedent(DrawStateType::MarkedContent);
+            if(!rc) {
+                return rc.error();
+            }
+            fmt::format_to(app, "{}EMC\n", ind);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();
         }
     }
-    dedent();
+    auto rc = dedent(DrawStateType::Text);
+    if(!rc) {
+        return rc.error();
+    }
     serialisation += ind;
     serialisation += "ET\n";
     commands += serialisation;

@@ -20,9 +20,25 @@
 #include <string>
 #include <algorithm>
 
+#define CHCK(command)                                                                              \
+    {                                                                                              \
+        auto rc = command;                                                                         \
+        if(rc != ErrorCode::NoError) {                                                             \
+            std::abort();                                                                          \
+        }                                                                                          \
+    }
+
 namespace {
 
 A4PDF_StructureItemId document_root;
+
+// #define YOLO
+
+#ifdef YOLO
+const std::vector<std::string> column1{
+    "Lorem ipsum dolor sit amet, consectetur",
+};
+#else
 
 const std::vector<std::string> column1{
     "Lorem ipsum dolor sit amet, consectetur",
@@ -63,6 +79,7 @@ const std::vector<std::string> column1{
     "pellentesque habitant morbi tristique senectus",
     "et. Nisi porta lorem mollis aliquam. Feugiat",
 };
+#endif
 
 const std::vector<std::string> column2{
     "pretium nibh ipsum consequat. Morbi leo urna",
@@ -140,33 +157,33 @@ void render_column(const std::vector<std::string> &text_lines,
                    double column_top) {
     const double target_width = cm2pt(8);
     auto textobj = PdfText();
-    textobj.cmd_Tf(textfont, textsize);
-    textobj.cmd_Td(column_left, column_top);
-    textobj.cmd_TL(leading);
-    textobj.cmd_BDC(gen.add_structure_item("p", document_root).value());
+    CHCK(textobj.cmd_Tf(textfont, textsize));
+    CHCK(textobj.cmd_Td(column_left, column_top));
+    CHCK(textobj.cmd_TL(leading));
+    CHCK(textobj.cmd_BDC(gen.add_structure_item("p", document_root).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
-            textobj.cmd_Tw(0);
-            textobj.render_text(l);
-            textobj.cmd_Tstar();
+            CHCK(textobj.cmd_Tw(0));
+            CHCK(textobj.render_text(l));
+            CHCK(textobj.cmd_Tstar());
         } else {
             if(!l.empty()) {
                 double total_w = text_width(l, gen, textfont, textsize);
                 const double extra_w = target_width - total_w;
                 const int ns = num_spaces(l);
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
-                textobj.cmd_Tw(word_spacing);
-                textobj.render_text(l);
+                CHCK(textobj.cmd_Tw(word_spacing));
+                CHCK(textobj.render_text(l));
             } else {
-                textobj.cmd_EMC();
-                textobj.cmd_BDC(gen.add_structure_item("p", document_root).value());
+                CHCK(textobj.cmd_EMC());
+                CHCK(textobj.cmd_BDC(gen.add_structure_item("p", document_root).value()));
             }
-            textobj.cmd_Tstar();
+            CHCK(textobj.cmd_Tstar());
         }
     }
-    textobj.cmd_EMC();
-    ctx.render_text(textobj);
+    CHCK(textobj.cmd_EMC());
+    CHCK(ctx.render_text(textobj));
 }
 
 void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
@@ -177,20 +194,20 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double titlesize = 28;
     const double authorsize = 18;
 
-    ctx.cmd_BDC(gen.add_structure_item("title", document_root).value());
-    ctx.render_utf8_text(title,
-                         titlefont,
-                         titlesize,
-                         midx - text_width(title, gen, titlefont, titlesize) / 2,
-                         titley);
-    ctx.cmd_EMC();
-    ctx.cmd_BDC(gen.add_structure_item("author", document_root).value());
-    ctx.render_utf8_text(author,
-                         authorfont,
-                         authorsize,
-                         midx - text_width(author, gen, authorfont, authorsize) / 2,
-                         authory);
-    ctx.cmd_EMC();
+    CHCK(ctx.cmd_BDC(gen.add_structure_item("Title", document_root).value()));
+    CHCK(ctx.render_utf8_text(title,
+                              titlefont,
+                              titlesize,
+                              midx - text_width(title, gen, titlefont, titlesize) / 2,
+                              titley));
+    CHCK(ctx.cmd_EMC());
+    CHCK(ctx.cmd_BDC(gen.add_structure_item("Author", document_root).value()));
+    CHCK(ctx.render_utf8_text(author,
+                              authorfont,
+                              authorsize,
+                              midx - text_width(author, gen, authorfont, authorsize) / 2,
+                              authory));
+    CHCK(ctx.cmd_EMC());
 }
 
 void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
@@ -204,21 +221,21 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    ctx.render_utf8_text(
-        "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy);
+    CHCK(ctx.render_utf8_text(
+        "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy));
 }
 
 void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
-    ctx.cmd_BDC(gen.add_structure_item("email", {}).value());
-    ctx.render_utf8_text(email,
-                         emailfont,
-                         emailsize,
-                         midx - text_width(email, gen, emailfont, emailsize) / 2,
-                         emaily);
-    ctx.cmd_EMC();
+    CHCK(ctx.cmd_BDC(gen.add_structure_item("Email", document_root).value()));
+    CHCK(ctx.render_utf8_text(email,
+                              emailfont,
+                              emailsize,
+                              midx - text_width(email, gen, emailfont, emailsize) / 2,
+                              emaily));
+    CHCK(ctx.cmd_EMC());
 }
 
 int main() {
@@ -229,7 +246,7 @@ int main() {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    document_root = gen.add_structure_item("document", {}).value();
+    document_root = gen.add_structure_item("Document", {}).value();
     draw_headings(gen, ctx);
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);

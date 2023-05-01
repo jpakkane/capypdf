@@ -62,6 +62,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Operation prohibited by current output intent.",
 "Output color profile not defined.",
 "Output intent identifier missing.",
+"Draw state end mismatch.",
 };
 
 // clang-format on
