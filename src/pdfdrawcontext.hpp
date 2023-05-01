@@ -197,6 +197,8 @@ public:
         return used_structures;
     }
 
+    bool has_unclosed_state() const { return !dstates.empty(); }
+
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
                                                std::string &serialisation,

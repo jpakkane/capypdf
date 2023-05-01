@@ -132,6 +132,9 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
+    if(ctx.has_unclosed_state()) {
+        RETERR(DrawStateEndMismatch);
+    }
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
     auto &sc = std::get<SerializedBasicContext>(sc_var);
