@@ -125,7 +125,8 @@ ErrorCode PdfGen::write() {
     return ErrorCode::NoError;
 }
 
-rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
+rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx,
+                              const std::optional<PageTransition> &transition) {
     if(ctx.draw_context_type() != A4PDF_Page_Context) {
         RETERR(InvalidDrawContextType);
     }
@@ -142,7 +143,8 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
                        std::move(sc.commands),
                        ctx.get_form_usage(),
                        ctx.get_annotation_usage(),
-                       ctx.get_structure_usage()));
+                       ctx.get_structure_usage(),
+                       transition));
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }

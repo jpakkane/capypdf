@@ -35,6 +35,21 @@ namespace {
 
 std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
+std::array<const char *, 12> transition_names{
+    "/Split",
+    "/Blinds",
+    "/Box",
+    "/Wipe",
+    "/Dissolve",
+    "/Glitter",
+    "/R",
+    "/Fly",
+    "/Push",
+    "/Cover",
+    "/Uncover",
+    "/Fade",
+};
+
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
     if(face) {
@@ -244,12 +259,12 @@ int32_t PdfDocument::create_page_group() {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-rvoe<NoReturnValue>
-PdfDocument::add_page(std::string resource_data,
-                      std::string page_data,
-                      const std::unordered_set<A4PDF_FormWidgetId> &fws,
-                      const std::unordered_set<A4PDF_AnnotationId> &annots,
-                      const std::unordered_set<A4PDF_StructureItemId> &structs) {
+rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
+                                          std::string page_data,
+                                          const std::unordered_set<A4PDF_FormWidgetId> &fws,
+                                          const std::unordered_set<A4PDF_AnnotationId> &annots,
+                                          const std::unordered_set<A4PDF_StructureItemId> &structs,
+                                          const std::optional<PageTransition> &transition) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
             RETERR(AnnotationReuse);
@@ -275,6 +290,7 @@ PdfDocument::add_page(std::string resource_data,
     for(const auto &a : annots) {
         p.used_annotations.push_back(A4PDF_AnnotationId{a});
     }
+    p.transition = transition;
     const auto page_num = add_object(std::move(p));
     for(const auto &fw : fws) {
         form_use[fw] = page_num;
@@ -466,7 +482,21 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
         }
         buf += "  ]\n";
     }
-    buf += "  >>\n";
+    if(dp.transition) {
+        const auto &t = *dp.transition;
+        buf += "  /Trans <<\n";
+        if(t.type) {
+            fmt::format_to(buf_append, "    /S {}\n", transition_names.at((int32_t)*t.type));
+        }
+        if(t.duration) {
+            fmt::format_to(buf_append, "    /D {}\n", *t.duration);
+        }
+        if(t.Dm) {
+            fmt::format_to(buf_append, "    /Dm {}\n", *t.Dm ? "/H" : "/V");
+        }
+        buf += "  >>\n";
+    }
+    buf += ">>\n";
 
     return write_finished_object(p.page_obj_num, buf, "");
 }

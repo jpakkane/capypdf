@@ -9,7 +9,6 @@ a4pdf_lib = library('a4pdf',
   'ft_subsetter.cpp',
   'pdfcapi.cpp',
   'errorhandling.cpp',
-  'pdftext.cpp',
   include_directories: [pubinc],
   #link_args: ['-static-libstdc++'],
   dependencies: [fmt_dep, png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep],
@@ -82,6 +81,9 @@ executable('fembedtest', 'fembedtest.cpp',
   dependencies: [a4pdf_dep]
 )
 
+executable('presentation', 'presentation.cpp',
+  dependencies: [a4pdf_dep]
+)
 
 executable('loremipsum', 'loremipsum.cpp',
   dependencies: [a4pdf_dep]

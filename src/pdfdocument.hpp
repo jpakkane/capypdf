@@ -114,6 +114,7 @@ struct DelayedPage {
     int32_t page_num;
     std::vector<A4PDF_FormWidgetId> used_form_widgets;
     std::vector<A4PDF_AnnotationId> used_annotations;
+    std::optional<PageTransition> transition;
 };
 
 struct SubsetGlyph {
@@ -257,7 +258,7 @@ public:
                                  std::string page_data,
                                  const std::unordered_set<A4PDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<A4PDF_AnnotationId> &annots,
-                                 const std::unordered_set<A4PDF_StructureItemId> &structs);
+                                 const std::unordered_set<A4PDF_StructureItemId> &structs, const std::optional<PageTransition> &transition);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);

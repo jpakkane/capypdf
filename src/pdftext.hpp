@@ -99,7 +99,7 @@ typedef std::variant<TStar_arg,
 
 class PdfText {
 public:
-    PdfText();
+    PdfText(){};
 
     ErrorCode cmd_BDC(A4PDF_StructureItemId sid) {
         events.emplace_back(sid);
