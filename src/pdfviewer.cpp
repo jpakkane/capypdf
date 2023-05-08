@@ -379,16 +379,23 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     auto buf = gtk_text_view_get_buffer(a->obj_text);
     assert(index >= 0);
     assert((size_t)index < a->objects.size());
-    const char *raw_dict = a->objects[index].bd.dict.c_str();
+    const auto &raw_dict = a->objects[index].bd.dict;
+    std::string cleaned_dict;
     PdfParser pparser(raw_dict);
     auto parseout = pparser.parse();
     if(parseout) {
         PrettyPrinter pp(*parseout);
-        auto prettified = pp.prettyprint();
-        gtk_text_buffer_set_text(buf, prettified.c_str(), prettified.size());
+        cleaned_dict = pp.prettyprint();
     } else {
-        gtk_text_buffer_set_text(buf, raw_dict, a->objects[index].bd.dict.size());
+        cleaned_dict = raw_dict;
     }
+    for(auto &c : cleaned_dict) {
+        if(int(c) > 127 || int(c) <= 0) {
+            c = '?';
+        }
+    }
+    gtk_text_buffer_set_text(buf, cleaned_dict.c_str(), cleaned_dict.size());
+
     buf = gtk_text_view_get_buffer(a->stream_text);
     const auto &streamtext = a->objects[index].bd.stream;
     if(a->objects[index].bd.dict.find("FlateDecode") != std::string::npos) {

@@ -92,6 +92,7 @@ typedef std::variant<PdfTokenDictStart,
 class PdfLexer {
 public:
     explicit PdfLexer(const char *t) : text(t), offset(0) {}
+    explicit PdfLexer(std::string_view t) : text(t), offset(0) {}
 
     int lex_string(const char *t);
     PdfToken next();
@@ -145,6 +146,7 @@ struct PdfObjectDefinition {
 class PdfParser {
 public:
     explicit PdfParser(const char *t) : lex(t) {}
+    explicit PdfParser(const std::string_view t) : lex(t) {}
 
     std::optional<PdfObjectDefinition> parse();
 
