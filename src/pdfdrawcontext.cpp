@@ -944,25 +944,11 @@ ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
-    std::string cleaned_text;
-    std::string_view textview(pdfdoc_encoded_text);
-    cleaned_text.reserve(textview.size());
-    for(const auto c : textview) {
-        if(c == '(') {
-            cleaned_text += "\\(";
-        } else if(c == '\\') {
-            cleaned_text += "\\\\";
-        } else if(c == ')') {
-            cleaned_text += "\\)";
-        } else {
-            cleaned_text += c;
-        }
-    }
     fmt::format_to(cmd_appender,
                    R"({}BT
 {}  /Font{} {} Tf
 {}  {} {} Td
-{}  ({}) Tj
+{}  {} Tj
 {}ET
 )",
                    ind,
@@ -973,7 +959,7 @@ ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_
                    x,
                    y,
                    ind,
-                   cleaned_text,
+                   pdfstring_quote(pdfdoc_encoded_text),
                    ind);
     return ErrorCode::NoError;
 }

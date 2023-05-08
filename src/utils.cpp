@@ -149,4 +149,24 @@ std::string current_date_string() {
     return std::string(buf);
 }
 
+std::string pdfstring_quote(std::string_view raw_string) {
+    std::string result;
+    result.reserve(raw_string.size() * 2 + 2);
+    result.push_back('(');
+    for(const char c : raw_string) {
+        switch(c) {
+        case '(':
+        case ')':
+        case '\\':
+            result.push_back('\\');
+            break;
+        default:
+            break;
+        }
+        result.push_back(c);
+    }
+    result.push_back(')');
+    return result;
+}
+
 } // namespace A4PDF

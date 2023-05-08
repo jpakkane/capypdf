@@ -591,12 +591,12 @@ void PdfDocument::create_output_intent() {
     buf = fmt::format(R"(<<
   /Type /OutputIntent
   /S {}
-  /OutputConditionIdentifier ({})
+  /OutputConditionIdentifier {}
   /DestOutputProfile {} 0 R
 >>
 )",
                       intentnames.at((int)*opts.subtype),
-                      opts.intent_condition_identifier,
+                      pdfstring_quote(opts.intent_condition_identifier),
                       icc_profiles.at(output_profile->id).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, ""});
 }
@@ -927,7 +927,7 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
   /Rect [ {} {} {} {} ]
   /FT /Btn
   /P {} 0 R
-  /T ({})
+  /T {}
   /V /Off
   /MK<</CA(8)>>
   /AP <<
@@ -944,7 +944,7 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
                                    checkbox.rect.w,
                                    checkbox.rect.h,
                                    loc->second,
-                                   checkbox.T,
+                                   pdfstring_quote(checkbox.T),
                                    form_xobjects.at(checkbox.on.id).xobj_num,
                                    form_xobjects.at(checkbox.off.id).xobj_num);
     ERCV(write_finished_object(obj_num, dict, ""));
@@ -967,7 +967,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     auto app = std::back_inserter(dict);
     if(!annotation.contents.empty()) {
         // FIXME
-        fmt::format_to(app, "  /Contents ({})\n", annotation.contents);
+        fmt::format_to(app, "  /Contents {}\n", pdfstring_quote(annotation.contents));
     }
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);
@@ -1489,11 +1489,11 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
     auto fileobj_id = add_object(FullPDFObject{std::move(dict), std::move(contents)});
     dict = fmt::format(R"(<<
   /Type /Filespec
-  /F ({})
+  /F {}
   /EF << /F {} 0 R >>
 >>
 )",
-                       p.filename().c_str(),
+                       pdfstring_quote(p.filename().c_str()),
                        fileobj_id);
     auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});

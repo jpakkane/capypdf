@@ -34,4 +34,6 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
 
 std::string current_date_string();
 
+std::string pdfstring_quote(std::string_view raw_string);
+
 } // namespace A4PDF
