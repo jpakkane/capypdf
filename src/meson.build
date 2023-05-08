@@ -90,8 +90,10 @@ executable('loremipsum', 'loremipsum.cpp',
 )
 
 if gtk_dep.found()
-  executable('pdfviewer', 'pdfviewer.cpp',
-    dependencies: [zlib_dep, gtk_dep])
+  executable('pdfviewer',
+    'pdfviewer.cpp',
+    'pdfparser.cpp',
+    dependencies: [zlib_dep, gtk_dep, fmt_dep])
 endif
 
 executable('fonttester', 'fonttester.cpp',
@@ -100,5 +102,3 @@ executable('fonttester', 'fonttester.cpp',
 if tiff_dep.found()
   executable('tifftest', 'tifftest.cpp', dependencies: tiff_dep)
 endif
-
-executable('pdfparser', 'pdfparser.cpp', dependencies: fmt_dep)

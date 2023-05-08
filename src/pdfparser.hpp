@@ -176,3 +176,22 @@ private:
     PdfToken pending;
     PdfObjectDefinition objdef;
 };
+
+class PrettyPrinter {
+public:
+    explicit PrettyPrinter(PdfObjectDefinition p) : def{p}, app{std::back_inserter(output)} {}
+
+    std::string prettyprint();
+
+private:
+    void print_array(const PdfArray &a);
+
+    void print_dict(const PdfDict &d);
+
+    void print_value(const PdfValueElement &e, bool with_indent = true);
+
+    PdfObjectDefinition def;
+    std::string indent;
+    std::string output;
+    std::back_insert_iterator<std::string> app;
+};

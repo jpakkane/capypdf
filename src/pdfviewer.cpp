@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <pdfparser.hpp>
 #include <gtk/gtk.h>
 #include <sys/mman.h>
 #include <zlib.h>
@@ -378,8 +379,16 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     auto buf = gtk_text_view_get_buffer(a->obj_text);
     assert(index >= 0);
     assert((size_t)index < a->objects.size());
-    gtk_text_buffer_set_text(
-        buf, a->objects[index].bd.dict.c_str(), a->objects[index].bd.dict.size());
+    const char *raw_dict = a->objects[index].bd.dict.c_str();
+    PdfParser pparser(raw_dict);
+    auto parseout = pparser.parse();
+    if(parseout) {
+        PrettyPrinter pp(*parseout);
+        auto prettified = pp.prettyprint();
+        gtk_text_buffer_set_text(buf, prettified.c_str(), prettified.size());
+    } else {
+        gtk_text_buffer_set_text(buf, raw_dict, a->objects[index].bd.dict.size());
+    }
     buf = gtk_text_view_get_buffer(a->stream_text);
     const auto &streamtext = a->objects[index].bd.stream;
     if(a->objects[index].bd.dict.find("FlateDecode") != std::string::npos) {

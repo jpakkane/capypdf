@@ -266,83 +266,77 @@ std::optional<size_t> PdfParser::parse_array() {
     }
 }
 
-class PrettyPrinter {
-public:
-    explicit PrettyPrinter(PdfObjectDefinition p) : def{p}, app{std::back_inserter(output)} {}
+std::string PrettyPrinter::prettyprint() {
+    fmt::format_to(app, "{}obj {} {}\n", indent, def.number, def.version);
+    print_value(def.root);
+    return std::move(output);
+}
 
-    std::string prettyprint() {
-        fmt::format_to(app, "{}obj {} {}\n", indent, def.number, def.version);
-        print_value(def.root);
-        return std::move(output);
+void PrettyPrinter::print_array(const PdfArray &a) {
+    for(const auto &i : a) {
+        print_value(i);
+    }
+}
+
+void PrettyPrinter::print_dict(const PdfDict &d) {
+    std::vector<std::string> keys;
+    for(const auto &[key, value] : d) {
+        keys.push_back(key);
     }
 
-private:
-    void print_array(const PdfArray &a) {
-        for(const auto &i : a) {
-            print_value(i);
-        }
+    std::sort(keys.begin(), keys.end(), [](const std::string &s1, const std::string &s2) {
+        return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+    });
+    for(const auto &key : keys) {
+        fmt::format_to(app, "{}/{} ", indent, key);
+        print_value(d.at(key), false);
     }
+}
 
-    void print_dict(const PdfDict &d) {
-        std::vector<std::string> keys;
-        for(const auto &[key, value] : d) {
-            keys.push_back(key);
-        }
-
-        std::sort(keys.begin(), keys.end(), [](const std::string &s1, const std::string &s2) {
-            return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-        });
-        for(const auto &key : keys) {
-            fmt::format_to(app, "{}/{} ", indent, key);
-            print_value(d.at(key), false);
-        }
+void PrettyPrinter::print_value(const PdfValueElement &e, bool with_indent) {
+    const char *ind = with_indent ? indent.c_str() : "";
+    if(std::holds_alternative<int64_t>(e)) {
+        const auto &v = std::get<int64_t>(e);
+        fmt::format_to(app, "{}{}\n", ind, v);
+    } else if(std::holds_alternative<double>(e)) {
+        const auto &v = std::get<double>(e);
+        fmt::format_to(app, "{}{}\n", ind, v);
+    } else if(std::holds_alternative<PdfNodeArray>(e)) {
+        const auto &v = std::get<PdfNodeArray>(e);
+        fmt::format_to(app, "{}[\n", ind);
+        indent += "    ";
+        print_array(def.arrays[v.i]);
+        indent.pop_back();
+        indent.pop_back();
+        indent.pop_back();
+        indent.pop_back();
+        fmt::format_to(app, "{}]\n", indent);
+    } else if(std::holds_alternative<PdfNodeDict>(e)) {
+        const auto &v = std::get<PdfNodeDict>(e);
+        fmt::format_to(app, "{}<<\n", ind);
+        indent += "    ";
+        print_dict(def.dicts[v.i]);
+        indent.pop_back();
+        indent.pop_back();
+        indent.pop_back();
+        indent.pop_back();
+        fmt::format_to(app, "{}>>\n", indent);
+    } else if(std::holds_alternative<PdfNodeObjRef>(e)) {
+        const auto &v = std::get<PdfNodeObjRef>(e);
+        fmt::format_to(app, "{}{} {} R\n", ind, v.obj, v.version);
+    } else if(std::holds_alternative<PdfNodeString>(e)) {
+        const auto &v = std::get<PdfNodeString>(e);
+        fmt::format_to(app, "{}({})\n", ind, v.value);
+    } else if(std::holds_alternative<PdfNodeStringLiteral>(e)) {
+        const auto &v = std::get<PdfNodeStringLiteral>(e);
+        fmt::format_to(app, "{}/{}\n", ind, v.value);
+    } else if(std::holds_alternative<PdfNodeHexString>(e)) {
+        const auto &v = std::get<PdfNodeHexString>(e);
+        fmt::format_to(app, "{}<{}>\n", ind, v.value);
     }
+}
 
-    void print_value(const PdfValueElement &e, bool with_indent = true) {
-        const char *ind = with_indent ? indent.c_str() : "";
-        if(std::holds_alternative<int64_t>(e)) {
-            const auto &v = std::get<int64_t>(e);
-            fmt::format_to(app, "{}{}\n", ind, v);
-        } else if(std::holds_alternative<double>(e)) {
-            const auto &v = std::get<double>(e);
-            fmt::format_to(app, "{}{}\n", ind, v);
-        } else if(std::holds_alternative<PdfNodeArray>(e)) {
-            const auto &v = std::get<PdfNodeArray>(e);
-            fmt::format_to(app, "{}[\n", ind);
-            indent += "  ";
-            print_array(def.arrays[v.i]);
-            indent.pop_back();
-            indent.pop_back();
-            fmt::format_to(app, "{}]\n", indent);
-        } else if(std::holds_alternative<PdfNodeDict>(e)) {
-            const auto &v = std::get<PdfNodeDict>(e);
-            fmt::format_to(app, "{}<<\n", ind);
-            indent += "  ";
-            print_dict(def.dicts[v.i]);
-            indent.pop_back();
-            indent.pop_back();
-            fmt::format_to(app, "{}>>\n", indent);
-        } else if(std::holds_alternative<PdfNodeObjRef>(e)) {
-            const auto &v = std::get<PdfNodeObjRef>(e);
-            fmt::format_to(app, "{}{} {} R\n", ind, v.obj, v.version);
-        } else if(std::holds_alternative<PdfNodeString>(e)) {
-            const auto &v = std::get<PdfNodeString>(e);
-            fmt::format_to(app, "{}({})\n", ind, v.value);
-        } else if(std::holds_alternative<PdfNodeStringLiteral>(e)) {
-            const auto &v = std::get<PdfNodeStringLiteral>(e);
-            fmt::format_to(app, "{}/{}\n", ind, v.value);
-        } else if(std::holds_alternative<PdfNodeHexString>(e)) {
-            const auto &v = std::get<PdfNodeHexString>(e);
-            fmt::format_to(app, "{}<{}>\n", ind, v.value);
-        }
-    }
-
-    PdfObjectDefinition def;
-    std::string indent;
-    std::string output;
-    std::back_insert_iterator<std::string> app;
-};
-
+/*
 int main() {
     // PdfLexer plex(text);
     // PdfToken t = plex.next();
@@ -357,3 +351,4 @@ int main() {
     }
     return 0;
 }
+*/
