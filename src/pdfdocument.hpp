@@ -217,7 +217,7 @@ typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation> An
 
 struct DelayedAnnotation {
     A4PDF_AnnotationId id;
-    PdfBox rect;
+    PdfRectangle rect;
     AnnotationSubType sub;
 };
 
@@ -312,7 +312,7 @@ public:
     rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname);
 
     // Annotations.
-    rvoe<A4PDF_AnnotationId> create_annotation(PdfBox rect, AnnotationSubType subtype);
+    rvoe<A4PDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype);
 
     // Structure items
     rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,

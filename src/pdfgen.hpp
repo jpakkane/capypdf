@@ -86,7 +86,7 @@ public:
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
-    rvoe<A4PDF_AnnotationId> create_annotation(PdfBox rect, AnnotationSubType subtype) {
+    rvoe<A4PDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
         return pdoc.create_annotation(rect, std::move(subtype));
     }
 

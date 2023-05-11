@@ -960,10 +960,10 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
   /Type /Annot
   /Rect [ {} {} {} {} ]
 )",
-                                   annotation.rect.x,
-                                   annotation.rect.y,
-                                   annotation.rect.w,
-                                   annotation.rect.h);
+                                   annotation.rect.x1,
+                                   annotation.rect.y1,
+                                   annotation.rect.x2,
+                                   annotation.rect.y2);
     auto app = std::back_inserter(dict);
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);
@@ -1514,7 +1514,7 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
     return A4PDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
-rvoe<A4PDF_AnnotationId> PdfDocument::create_annotation(PdfBox rect, AnnotationSubType sub) {
+rvoe<A4PDF_AnnotationId> PdfDocument::create_annotation(PdfRectangle rect, AnnotationSubType sub) {
     if(std::holds_alternative<UriAnnotation>(sub)) {
         auto &u = std::get<UriAnnotation>(sub);
         if(!is_ascii(u.uri)) {

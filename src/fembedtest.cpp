@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
         PdfGen &gen = *genpop.g;
         auto efid = gen.embed_file("embed.txt").value();
         auto fileannoid =
-            gen.create_annotation(PdfBox{35, 95, 45, 105}, FileAttachmentAnnotation{efid}).value();
+            gen.create_annotation(PdfRectangle{35, 95, 45, 105}, FileAttachmentAnnotation{efid})
+                .value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
@@ -39,14 +40,14 @@ int main(int argc, char **argv) {
             ctx.render_pdfdoc_text_builtin(
                 "<- an embedded file.", A4PDF_FONT_HELVETICA, 12, 50, 100);
             ctx.annotate(fileannoid);
-            auto textannoid = gen.create_annotation(PdfBox{150, 60, 180, 90},
+            auto textannoid = gen.create_annotation(PdfRectangle{150, 60, 180, 90},
                                                     TextAnnotation{"This is a text annotation"})
                                   .value();
             ctx.annotate(textannoid);
             ctx.cmd_rg(0, 0, 1);
             ctx.render_pdfdoc_text_builtin("Link", A4PDF_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
-                gen.create_annotation(PdfBox{10, 10, 32, 20},
+                gen.create_annotation(PdfRectangle{10, 10, 32, 20},
                                       UriAnnotation{"https://github.com/mesonbuild/meson"})
                     .value();
             ctx.annotate(linkannoid);
