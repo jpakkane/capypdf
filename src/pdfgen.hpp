@@ -86,9 +86,8 @@ public:
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
-    rvoe<A4PDF_AnnotationId>
-    create_annotation(PdfBox rect, std::string contents, AnnotationSubType subtype) {
-        return pdoc.create_annotation(rect, std::move(contents), std::move(subtype));
+    rvoe<A4PDF_AnnotationId> create_annotation(PdfBox rect, AnnotationSubType subtype) {
+        return pdoc.create_annotation(rect, std::move(subtype));
     }
 
     DrawContextPopper guarded_page_context();

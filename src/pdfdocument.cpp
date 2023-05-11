@@ -965,15 +965,16 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
                                    annotation.rect.w,
                                    annotation.rect.h);
     auto app = std::back_inserter(dict);
-    if(!annotation.contents.empty()) {
-        // FIXME
-        fmt::format_to(app, "  /Contents {}\n", pdfstring_quote(annotation.contents));
-    }
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);
     }
     if(std::holds_alternative<TextAnnotation>(annotation.sub)) {
-        fmt::format_to(app, "  /Subtype /Text\n");
+        const auto &ta = std::get<TextAnnotation>(annotation.sub);
+        fmt::format_to(app,
+                       R"(  /Subtype /Text
+  /Contents {}
+)",
+                       pdfstring_quote(ta.content));
     } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.sub)) {
         auto &faa = std::get<FileAttachmentAnnotation>(annotation.sub);
 
@@ -982,6 +983,19 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
   /FS {} 0 R
 )",
                        embedded_files[faa.fileid.id].filespec_obj);
+    } else if(std::holds_alternative<UriAnnotation>(annotation.sub)) {
+        auto &ua = std::get<UriAnnotation>(annotation.sub);
+        auto uri_as_str = pdfstring_quote(ua.uri);
+        fmt::format_to(app,
+                       R"(  /Subtype /Link
+  /Contents {}
+  /A <<
+    /S /URI
+    /URI {}
+  >>
+)",
+                       uri_as_str,
+                       uri_as_str);
     } else {
         std::abort();
     }
@@ -1500,11 +1514,15 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
     return A4PDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
-rvoe<A4PDF_AnnotationId>
-PdfDocument::create_annotation(PdfBox rect, std::string contents, AnnotationSubType sub) {
+rvoe<A4PDF_AnnotationId> PdfDocument::create_annotation(PdfBox rect, AnnotationSubType sub) {
+    if(std::holds_alternative<UriAnnotation>(sub)) {
+        auto &u = std::get<UriAnnotation>(sub);
+        if(!is_ascii(u.uri)) {
+            RETERR(UriNotAscii);
+        }
+    }
     auto annot_id = (int32_t)annotations.size();
-    auto obj_id =
-        add_object(DelayedAnnotation{annot_id, rect, std::move(contents), std::move(sub)});
+    auto obj_id = add_object(DelayedAnnotation{annot_id, rect, std::move(sub)});
     annotations.push_back((int32_t)obj_id);
     return A4PDF_AnnotationId{annot_id};
 }

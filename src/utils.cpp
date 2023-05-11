@@ -169,4 +169,14 @@ std::string pdfstring_quote(std::string_view raw_string) {
     return result;
 }
 
+bool is_ascii(std::string_view text) {
+    for(const auto c : text) {
+        auto ci = int32_t((unsigned char)c);
+        if(ci > 127) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace A4PDF

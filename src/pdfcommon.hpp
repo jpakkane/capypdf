@@ -68,6 +68,13 @@ struct PdfBox {
     static PdfBox a4() { return PdfBox{0, 0, 595.28, 841.89}; }
 };
 
+struct PdfRectangle {
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+};
+
 class LimitDouble {
 public:
     LimitDouble() : value(minval) {}

@@ -205,14 +205,19 @@ struct FileAttachmentAnnotation {
     A4PDF_EmbeddedFileId fileid;
 };
 
-struct TextAnnotation {};
+struct TextAnnotation {
+    std::string content;
+};
 
-typedef std::variant<TextAnnotation, FileAttachmentAnnotation> AnnotationSubType;
+struct UriAnnotation {
+    std::string uri;
+};
+
+typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation> AnnotationSubType;
 
 struct DelayedAnnotation {
     A4PDF_AnnotationId id;
     PdfBox rect;
-    std::string contents;
     AnnotationSubType sub;
 };
 
@@ -258,7 +263,8 @@ public:
                                  std::string page_data,
                                  const std::unordered_set<A4PDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<A4PDF_AnnotationId> &annots,
-                                 const std::unordered_set<A4PDF_StructureItemId> &structs, const std::optional<PageTransition> &transition);
+                                 const std::unordered_set<A4PDF_StructureItemId> &structs,
+                                 const std::optional<PageTransition> &transition);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -306,8 +312,7 @@ public:
     rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname);
 
     // Annotations.
-    rvoe<A4PDF_AnnotationId>
-    create_annotation(PdfBox rect, std::string contents, AnnotationSubType subtype);
+    rvoe<A4PDF_AnnotationId> create_annotation(PdfBox rect, AnnotationSubType subtype);
 
     // Structure items
     rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,
