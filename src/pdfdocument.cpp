@@ -1194,7 +1194,7 @@ rvoe<A4PDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname) 
     }
 }
 
-rvoe<A4PDF_ImageId> PdfDocument::load_mask_image(const char *fname) {
+rvoe<A4PDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &fname) {
     ERC(image, load_image_file(fname));
     if(!std::holds_alternative<mono_image>(image)) {
         RETERR(UnsupportedFormat);
@@ -1327,7 +1327,7 @@ rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
     return add_image_object(image.w, image.h, 8, cs, smask_id, false, image.pixels);
 }
 
-rvoe<A4PDF_ImageId> PdfDocument::embed_jpg(const char *fname) {
+rvoe<A4PDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname) {
     ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -1492,7 +1492,7 @@ rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     return A4PDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
-rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const char *fname) {
+rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
     std::filesystem::path p(fname);
     std::string dict = fmt::format(R"(<<
@@ -1550,12 +1550,12 @@ PdfDocument::glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoin
     return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
-rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const char *fname) {
+rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
     ERC(fontdata, load_and_parse_truetype_font(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 std::move(fontdata)};
     FT_Face face;
-    auto error = FT_New_Face(ft, fname, 0, &face);
+    auto error = FT_New_Face(ft, fname.string().c_str(), 0, &face);
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!

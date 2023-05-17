@@ -16,6 +16,7 @@
 
 #include <ft_subsetter.hpp>
 #include <fontsubsetter.hpp>
+#include <utils.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -932,20 +933,8 @@ rvoe<std::string> generate_font(FT_Face face,
     return bytes;
 }
 
-rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname) {
-    FILE *f = fopen(fname, "rb");
-    if(!f) {
-        RETERR(CouldNotOpenFile);
-    }
-    fseek(f, 0, SEEK_END);
-    const auto fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    std::vector<char> buf(fsize, 0);
-    if(fread(buf.data(), 1, fsize, f) != (size_t)fsize) {
-        fclose(f);
-        RETERR(FileReadError);
-    }
-    fclose(f);
+rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname) {
+    ERC(buf, load_file(fname));
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});
 }
 

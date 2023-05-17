@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <pdfcommon.hpp>
 #include <errorhandling.hpp>
 
@@ -199,7 +200,7 @@ rvoe<std::string> generate_font(FT_Face face,
                                 const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
 rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf);
-rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const char *fname);
+rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname);
 
 uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g);
 

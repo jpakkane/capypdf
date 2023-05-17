@@ -276,15 +276,15 @@ public:
     rvoe<A4PDF_IccColorSpaceId> load_icc_file(const char *fname);
 
     // Fonts
-    rvoe<A4PDF_FontId> load_font(FT_Library ft, const char *fname);
+    rvoe<A4PDF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
     rvoe<SubsetGlyph> get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
     rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname);
-    rvoe<A4PDF_ImageId> load_mask_image(const char *fname);
-    rvoe<A4PDF_ImageId> embed_jpg(const char *fname);
+    rvoe<A4PDF_ImageId> load_mask_image(const std::filesystem::path &fname);
+    rvoe<A4PDF_ImageId> embed_jpg(const std::filesystem::path &fname);
 
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
@@ -310,7 +310,7 @@ public:
                                                   std::string_view partial_name);
 
     // Raw files
-    rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname);
+    rvoe<A4PDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
 
     // Annotations.
     rvoe<A4PDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype);

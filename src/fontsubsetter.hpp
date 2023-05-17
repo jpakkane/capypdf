@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <ft_subsetter.hpp>
 
 #include <vector>
@@ -44,7 +45,7 @@ struct FontSubsetData {
 
 class FontSubsetter {
 public:
-    static rvoe<FontSubsetter> construct(const char *fontfile, FT_Face face);
+    static rvoe<FontSubsetter> construct(const std::filesystem::path &fontfile, FT_Face face);
 
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, std::vector<FontSubsetData> subsets)
         : ttfile{ttfile}, face{face}, subsets{subsets} {}
