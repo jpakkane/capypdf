@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#define _USE_MATH_DEFINES
 #include <pdfgen.hpp>
 #include <cmath>
 

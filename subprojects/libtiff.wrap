@@ -1,0 +1,12 @@
+[wrap-file]
+directory = tiff-4.5.0
+source_url = http://download.osgeo.org/libtiff/tiff-4.5.0.tar.gz
+source_filename = tiff-4.5.0.tar.gz
+source_hash = c7a1d9296649233979fa3eacffef3fa024d73d05d589cb622727b5b08c423464
+patch_filename = libtiff_4.5.0-3_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/libtiff_4.5.0-3/get_patch
+patch_hash = 2b1135e559fa33eca9ecc91ad8b3e38ac0731797b7a18b506691558f14548436
+wrapdb_version = 4.5.0-3
+
+[provide]
+libtiff-4 = libtiff4_dep
