@@ -15,11 +15,11 @@
  */
 
 #include <pdfgen.hpp>
+#include <utils.hpp>
 #include <cstring>
 #include <cerrno>
 #include <cassert>
 #include <lcms2.h>
-#include <iconv.h>
 #include <stdexcept>
 #include <array>
 #include <fmt/core.h>
@@ -214,40 +214,19 @@ ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
 
 rvoe<double>
 PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
-    double w = 0;
-    errno = 0;
-    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
-    if(errno != 0) {
-        perror(nullptr);
-        RETERR(IconvError);
+    if(utf8_text[0] == '\0') {
+        return 0;
     }
-    std::unique_ptr<void, int (*)(void *)> iconvcloser(to_codepoint, iconv_close);
+    double w = 0;
     FT_Face face = pdoc.fonts.at(pdoc.font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }
+    ERC(glyphs, utf8_to_glyphs(utf8_text));
 
     uint32_t previous_codepoint = -1;
-    auto in_ptr = (char *)utf8_text;
-    const auto text_length = strlen(utf8_text);
-    auto in_bytes = text_length;
-    // Freetype does not support GPOS kerning because it is context-sensitive.
-    // So this method might produce incorrect kerning. Users that need precision
-    // need to use the glyph based rendering method.
     const bool has_kerning = FT_HAS_KERNING(face);
-    if(has_kerning) {
-        printf("HAS KERNING\n");
-    }
-    while(in_bytes > 0) {
-        uint32_t codepoint{0};
-        auto out_ptr = (char *)&codepoint;
-        auto out_bytes = sizeof(codepoint);
-        errno = 0;
-        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
-        if(iconv_result == (size_t)-1 && errno != E2BIG) {
-            perror(nullptr);
-            RETERR(IconvError);
-        }
+    for(const auto codepoint : glyphs) {
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
             const auto index_left = FT_Get_Char_Index(face, previous_codepoint);

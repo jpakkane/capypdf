@@ -18,13 +18,62 @@
 #include <zlib.h>
 #include <cassert>
 #include <cstring>
-#include <iconv.h>
 #include <sys/time.h>
 
 #include <fmt/core.h>
 #include <memory>
 
 namespace A4PDF {
+
+namespace {
+
+struct UtfDecodeStep {
+    uint32_t byte1_data_mask;
+    uint32_t num_subsequent_bytes;
+};
+
+rvoe<uint32_t> unpack_one(std::string_view input, size_t cur, const UtfDecodeStep &par) {
+    const uint32_t byte1 = uint32_t((unsigned char)input[cur]);
+    const uint32_t subsequent_header_mask = 0b011000000;
+    const uint32_t subsequent_header_value = 0b10000000;
+    const uint32_t subsequent_data_mask = 0b111111;
+    const uint32_t subsequent_num_data_bits = 6;
+
+    if(cur + par.num_subsequent_bytes >= input.size()) {
+        RETERR(BadUtf8);
+    }
+    uint32_t unpacked = byte1 & par.byte1_data_mask;
+    for(uint32_t i = 0; i < par.num_subsequent_bytes; ++i) {
+        unpacked <<= subsequent_num_data_bits;
+        const uint32_t subsequent = uint32_t((unsigned char)input[cur + 1 + i]);
+        if((subsequent & subsequent_header_mask) != subsequent_header_value) {
+            RETERR(BadUtf8);
+        }
+        assert((unpacked & subsequent_data_mask) == 0);
+        unpacked |= subsequent & subsequent_data_mask;
+    }
+
+    return unpacked;
+}
+
+std::vector<uint16_t> glyphs_to_utf16be(const std::vector<uint32_t> &glyphs) {
+    std::vector<uint16_t> u16buf;
+    u16buf.reserve(glyphs.size());
+    for(const auto &g : glyphs) {
+        if(g < 0x10000) {
+            u16buf.push_back((uint16_t)g);
+        } else {
+            const auto reduced = g - 0x10000;
+            const auto high_surrogate = (reduced >> 10) + 0xD800;
+            const auto low_surrogate = (reduced & 0b1111111111) + 0xDC00;
+            u16buf.push_back((uint16_t)high_surrogate);
+            u16buf.push_back((uint16_t)low_surrogate);
+        }
+    }
+    return u16buf;
+}
+
+} // namespace
 
 rvoe<std::string> flate_compress(std::string_view data) {
     std::string compressed;
@@ -93,69 +142,19 @@ rvoe<std::string> load_file(FILE *f) {
 }
 
 rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
+    ERC(glyphs, utf8_to_glyphs(input));
     // For now put everything into UTF-16 bracketstrings.
     std::string encoded = "<FEFF";
 
-    std::string u16buf(input.length() * 4 + 10, '\0');
-    errno = 0;
-    auto cd = iconv_open("UTF-16BE", "UTF-8"); // PDF 1.7 spec 7.9.2.2
-    if(errno != 0) {
-        perror(nullptr);
-        RETERR(IconvError);
-    }
-    auto in_ptr = (char *)input.data();
-    auto out_ptr = (char *)u16buf.data();
-    auto in_bytes = input.length();
-    auto out_bytes = u16buf.length();
-    auto iconv_result = iconv(cd, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
-    iconv_close(cd);
-    if(errno != 0) {
-        perror(nullptr);
-        RETERR(IconvError);
-    }
-    if(iconv_result == (size_t)-1) {
-        perror(nullptr);
-        RETERR(IconvError);
-    }
-    if(in_bytes != 0) {
-        RETERR(BadUtf8);
-    }
-
+    auto u16buf = glyphs_to_utf16be(glyphs);
     auto bi = std::back_inserter(encoded);
-    for(const char *i = u16buf.data(); i != out_ptr; ++i) {
-        fmt::format_to(bi, "{:02X}", (unsigned char)(*i));
+    for(const auto &u16 : u16buf) {
+        const auto *lower_byte = (const unsigned char *)&u16;
+        const auto *upper_byte = lower_byte + 1;
+        fmt::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
     }
     encoded += '>';
     return std::move(encoded);
-}
-
-struct UtfDecodeStep {
-    uint32_t byte1_data_mask;
-    uint32_t num_subsequent_bytes;
-};
-
-rvoe<uint32_t> unpack_one(std::string_view input, size_t cur, const UtfDecodeStep &par) {
-    const uint32_t byte1 = uint32_t((unsigned char)input[cur]);
-    const uint32_t subsequent_header_mask = 0b011000000;
-    const uint32_t subsequent_header_value = 0b10000000;
-    const uint32_t subsequent_data_mask = 0b111111;
-    const uint32_t subsequent_num_data_bits = 6;
-
-    if(cur + par.num_subsequent_bytes >= input.size()) {
-        RETERR(BadUtf8);
-    }
-    uint32_t unpacked = byte1 & par.byte1_data_mask;
-    for(uint32_t i = 0; i < par.num_subsequent_bytes; ++i) {
-        unpacked <<= subsequent_num_data_bits;
-        const uint32_t subsequent = uint32_t((unsigned char)input[cur + 1 + i]);
-        if((subsequent & subsequent_header_mask) != subsequent_header_value) {
-            RETERR(BadUtf8);
-        }
-        assert((unpacked & subsequent_data_mask) == 0);
-        unpacked |= subsequent & subsequent_data_mask;
-    }
-
-    return unpacked;
 }
 
 rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input) {
