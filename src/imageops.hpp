@@ -22,6 +22,7 @@
 #include <optional>
 #include <variant>
 #include <expected>
+#include <filesystem>
 
 namespace A4PDF {
 
@@ -62,8 +63,8 @@ struct cmyk_image {
 
 typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
 
-rvoe<RasterImage> load_image_file(const char *fname);
+rvoe<RasterImage> load_image_file(const std::filesystem::path &fname);
 
-rvoe<jpg_image> load_jpg(const char *fname);
+rvoe<jpg_image> load_jpg(const std::filesystem::path &fname);
 
 } // namespace A4PDF

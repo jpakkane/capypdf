@@ -75,6 +75,10 @@ rvoe<std::string> load_file(const char *fname) {
     return load_file(f);
 }
 
+rvoe<std::string> load_file(const std::filesystem::path &fname) {
+    return load_file(fname.string().c_str());
+}
+
 rvoe<std::string> load_file(FILE *f) {
     fseek(f, 0, SEEK_END);
     auto fsize = (size_t)ftell(f);

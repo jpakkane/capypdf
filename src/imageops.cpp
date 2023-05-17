@@ -230,14 +230,14 @@ std::expected<std::optional<mono_image>, ErrorCode> try_load_mono_alpha_png(png_
     return std::move(result);
 }
 
-std::expected<RasterImage, ErrorCode> load_png_file(const char *fname) {
+std::expected<RasterImage, ErrorCode> load_png_file(const std::filesystem::path &fname) {
     png_image image;
     std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
 
     memset(&image, 0, (sizeof image));
     image.version = PNG_IMAGE_VERSION;
 
-    if(png_image_begin_read_from_file(&image, fname) != 0) {
+    if(png_image_begin_read_from_file(&image, fname.string().c_str()) != 0) {
         if(image.format == PNG_FORMAT_RGBA) {
             return load_rgba_png(image);
         } else if(image.format == PNG_FORMAT_RGB) {
@@ -268,9 +268,9 @@ std::expected<RasterImage, ErrorCode> load_png_file(const char *fname) {
     RETERR(Unreachable);
 }
 
-RasterImage load_tif_file(const char *fname) {
+RasterImage load_tif_file(const std::filesystem::path &fname) {
     cmyk_image image;
-    TIFF *tif = TIFFOpen(fname, "rb");
+    TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
     if(!tif) {
         std::abort();
     }
@@ -342,7 +342,7 @@ RasterImage load_tif_file(const char *fname) {
 
 } // namespace
 
-rvoe<jpg_image> load_jpg(const char *fname) {
+rvoe<jpg_image> load_jpg(const std::filesystem::path &fname) {
     jpg_image im;
     ERC(contents, load_file(fname));
     im.file_contents = std::move(contents);
@@ -365,8 +365,8 @@ rvoe<jpg_image> load_jpg(const char *fname) {
     return std::move(im);
 }
 
-rvoe<RasterImage> load_image_file(const char *fname) {
-    auto extension = std::filesystem::path(fname).extension();
+rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
+    auto extension = fname.extension();
     if(extension == ".png" || extension == ".PNG") {
         return load_png_file(fname);
     }

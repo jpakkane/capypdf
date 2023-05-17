@@ -1179,7 +1179,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(A4PDF_FontId fid, uint32_t glyph
     return fss;
 }
 
-rvoe<A4PDF_ImageId> PdfDocument::load_image(const char *fname) {
+rvoe<A4PDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname) {
     ERC(image, load_image_file(fname));
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));

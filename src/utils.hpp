@@ -21,12 +21,15 @@
 #include <expected>
 #include <cstdio>
 #include <string_view>
+#include <filesystem>
 
 namespace A4PDF {
 
 rvoe<std::string> flate_compress(std::string_view data);
 
 rvoe<std::string> load_file(const char *fname);
+
+rvoe<std::string> load_file(const std::filesystem::path &fname);
 
 rvoe<std::string> load_file(FILE *f);
 

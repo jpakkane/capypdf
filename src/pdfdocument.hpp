@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <optional>
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
@@ -281,7 +282,7 @@ public:
     A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
 
     // Images
-    rvoe<A4PDF_ImageId> load_image(const char *fname);
+    rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname);
     rvoe<A4PDF_ImageId> load_mask_image(const char *fname);
     rvoe<A4PDF_ImageId> embed_jpg(const char *fname);
 

@@ -55,7 +55,9 @@ public:
     ErrorCode write();
     void new_page();
 
-    rvoe<A4PDF_ImageId> load_image(const char *fname) { return pdoc.load_image(fname); }
+    rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname) {
+        return pdoc.load_image(fname);
+    }
     rvoe<A4PDF_ImageId> load_mask_image(const char *fname) { return pdoc.load_mask_image(fname); }
     rvoe<A4PDF_ImageId> embed_jpg(const char *fname) { return pdoc.embed_jpg(fname); }
     rvoe<A4PDF_EmbeddedFileId> embed_file(const char *fname) { return pdoc.embed_file(fname); }
