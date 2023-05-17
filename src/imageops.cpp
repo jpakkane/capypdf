@@ -373,7 +373,7 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     if(extension == ".tif" || extension == ".tiff" || extension == ".TIF" || extension == ".TIFF") {
         return load_tif_file(fname);
     }
-    fprintf(stderr, "Unsupported image file format: %s\n", fname);
+    fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
     std::abort();
 }
 

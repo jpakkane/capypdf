@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <string_view>
 #include <filesystem>
+#include <vector>
 
 namespace A4PDF {
 
@@ -34,6 +35,8 @@ rvoe<std::string> load_file(const std::filesystem::path &fname);
 rvoe<std::string> load_file(FILE *f);
 
 rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
+
+rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input);
 
 std::string current_date_string();
 

@@ -115,6 +115,13 @@ struct NoReturnValue {};
     }                                                                                              \
     auto &varname = varname##_variant.value();
 
+#define ERC_CONV(varname, func)                                                                    \
+    auto varname##_variant = func;                                                                 \
+    if(!(varname##_variant)) {                                                                     \
+        return varname##_variant.error();                                                          \
+    }                                                                                              \
+    auto &varname = varname##_variant.value();
+
 // For void.
 
 #define ERCV(func)                                                                                 \

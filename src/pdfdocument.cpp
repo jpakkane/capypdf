@@ -1574,7 +1574,7 @@ rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::
         fprintf(stderr,
                 "Only TrueType fonts are supported. %s "
                 "is a %s font.",
-                fname,
+                fname.string().c_str(),
                 font_format);
         RETERR(UnsupportedFormat);
     }
@@ -1586,7 +1586,7 @@ rvoe<A4PDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::
                 "Only TrueType "
                 "fonts are supported. Freetype error "
                 "%d.",
-                fname,
+                fname.string().c_str(),
                 error);
         RETERR(UnsupportedFormat);
     }

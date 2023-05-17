@@ -21,7 +21,6 @@
 #include FT_IMAGE_H
 #include <utils.hpp>
 #include <lcms2.h>
-#include <iconv.h>
 #include <fmt/core.h>
 #include <array>
 #include <cmath>
@@ -666,11 +665,6 @@ void PdfDrawContext::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
-struct IconvCloser {
-    iconv_t t;
-    ~IconvCloser() { iconv_close(t); }
-};
-
 ErrorCode PdfDrawContext::render_utf8_text(
     std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y) {
     PdfText t;
@@ -733,35 +727,18 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
     if(utf8_text.empty()) {
         return ErrorCode::NoError;
     }
-    errno = 0;
-    auto to_codepoint = iconv_open("UCS-4LE", "UTF-8");
-    if(errno != 0) {
-        perror(nullptr);
-        return ErrorCode::IconvError;
-    }
-    IconvCloser ic{to_codepoint};
     FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
         return ErrorCode::BuiltinFontNotSupported;
     }
+    ERC_CONV(glyphs, utf8_to_glyphs(utf8_text));
 
     uint32_t previous_codepoint = -1;
-    auto in_ptr = (char *)utf8_text.data();
-    auto in_bytes = utf8_text.length();
     // Freetype does not support GPOS kerning because it is context-sensitive.
     // So this method might produce incorrect kerning. Users that need precision
     // need to use the glyph based rendering method.
     const bool has_kerning = FT_HAS_KERNING(face);
-    while(in_ptr < utf8_text.data() + utf8_text.size()) {
-        uint32_t codepoint{0};
-        auto out_ptr = (char *)&codepoint;
-        auto out_bytes = sizeof(codepoint);
-        errno = 0;
-        auto iconv_result = iconv(to_codepoint, &in_ptr, &in_bytes, &out_ptr, &out_bytes);
-        if(iconv_result == (size_t)-1 && errno != E2BIG) {
-            return ErrorCode::BadUtf8;
-        }
-
+    for(const auto codepoint : glyphs) {
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
             const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
