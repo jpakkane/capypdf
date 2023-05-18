@@ -22,6 +22,19 @@ directly.
 - Data conversions in general (apart from colorspaces)
 - Supporting PDF versions earlier than 1.7
 
+## API stability guarantees
+
+Until 1.0 there is no guarantee of any kind. Anything can be changed.
+However we try not to change things without a good reason. Once 1.0
+happens, we aim to provide the following:
+
+- The plain C is both API and ABI stable
+- The internal C++ implementation "API" is not stable in any way
+- Only C symbols are exported so in order to get to the C++ API you
+  have to change build settings. If you do that, there is no stability
+  guarantee.
+- The Python API shall be stable as well
+
 ## Status
 
 The basic functionality is there but it's not even close to feature
