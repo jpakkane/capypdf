@@ -52,7 +52,7 @@ public:
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
-    ErrorCode write();
+    rvoe<NoReturnValue> write();
     void new_page();
 
     rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname) {
@@ -160,8 +160,8 @@ struct GenPopper {
     }
     ~GenPopper() {
         auto rc = g->write();
-        if(rc != ErrorCode::NoError) {
-            fprintf(stderr, "%s\n", error_text(rc));
+        if(!rc) {
+            fprintf(stderr, "%s\n", error_text(rc.error()));
             std::abort();
         }
     }

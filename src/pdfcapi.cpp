@@ -136,14 +136,17 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,
 
 A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
-    return (A4PDF_EC)g->write();
+    auto rc = g->write();
+    if(rc) {
+        return (A4PDF_EC)ErrorCode::NoError;
+    }
+    return (A4PDF_EC)rc.error();
 }
 
 A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
-    auto rc = (A4PDF_EC)ErrorCode::NoError;
     delete g;
-    return rc;
+    return (A4PDF_EC)ErrorCode::NoError;
 }
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_generator_utf8_text_width(A4PDF_Generator *generator,

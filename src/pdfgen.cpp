@@ -74,9 +74,9 @@ PdfGen::~PdfGen() {
     pdoc.fonts.clear();
 }
 
-ErrorCode PdfGen::write() {
+rvoe<NoReturnValue> PdfGen::write() {
     if(pdoc.pages.size() == 0) {
-        return ErrorCode::NoPages;
+        RETERR(NoPages);
     }
 
     std::string tempfname = ofilename.c_str();
@@ -84,45 +84,42 @@ ErrorCode PdfGen::write() {
     FILE *ofile = fopen(tempfname.c_str(), "wb");
     if(!ofile) {
         perror(nullptr);
-        return ErrorCode::CouldNotOpenFile;
+        RETERR(CouldNotOpenFile);
     }
 
     try {
-        auto rc = pdoc.write_to_file(ofile);
-        if(!rc) {
-            return rc.error();
-        }
+        ERCV(pdoc.write_to_file(ofile));
     } catch(const std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
         fclose(ofile);
-        return ErrorCode::DynamicError;
+        RETERR(DynamicError);
     } catch(...) {
         fprintf(stderr, "Unexpected error.\n");
         fclose(ofile);
-        return ErrorCode::DynamicError;
+        RETERR(DynamicError);
     }
 
     if(fflush(ofile) != 0) {
         perror(nullptr);
         fclose(ofile);
-        return ErrorCode::DynamicError;
+        RETERR(DynamicError);
     }
     if(fsync(fileno(ofile)) != 0) {
         perror(nullptr);
         fclose(ofile);
-        return ErrorCode::FileWriteError;
+        RETERR(FileWriteError);
     }
     if(fclose(ofile) != 0) {
         perror(nullptr);
-        return ErrorCode::FileWriteError;
+        RETERR(FileWriteError);
     }
 
     // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
     if(rename(tempfname.c_str(), ofilename.c_str()) != 0) {
         perror(nullptr);
-        return ErrorCode::FileWriteError;
+        RETERR(FileWriteError);
     }
-    return ErrorCode::NoError;
+    return NoReturnValue{};
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx,
