@@ -20,6 +20,21 @@
 
 using namespace A4PDF;
 
+const std::array<const char *, 12> trnames{
+    "Split",
+    "Blinds",
+    "Box",
+    "Wipe",
+    "Dissolve",
+    "Glitter",
+    "R",
+    "Fly",
+    "Push",
+    "Cover",
+    "Uncover",
+    "Fade",
+};
+
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
@@ -35,23 +50,31 @@ int main(int argc, char **argv) {
         PdfGen &gen = *genpop.g;
         PageTransition transition;
         transition.duration = 1.0;
+        transition.Dm = true;
+        transition.M = false;
+        transition.Di = 90;
         {
             auto ctxh = std::unique_ptr<PdfDrawContext>{gen.new_page_draw_context()};
             auto &ctx = *ctxh;
-            ctx.cmd_rg(1, 0, 0);
-            ctx.cmd_re(0, 0, w, h);
-            ctx.cmd_f();
             ctx.cmd_rg(0, 0, 0);
-            ctx.render_pdfdoc_text_builtin("Title", A4PDF_FONT_HELVETICA_BOLD, 16, 60, 45);
+            ctx.render_pdfdoc_text_builtin(
+                "Transition styles", A4PDF_FONT_HELVETICA_BOLD, 16, 10, 45);
             gen.add_page(ctx);
-            transition.type = TransitionType::Blinds;
-            ctx.cmd_rg(0, 1, 0);
-            ctx.cmd_re(0, 0, w, h);
-            ctx.cmd_f();
-            ctx.cmd_rg(0, 0, 0);
-            ctx.render_pdfdoc_text_builtin("Heading", A4PDF_FONT_HELVETICA_BOLD, 14, 30, 75);
-            ctx.set_transition(transition);
-            gen.add_page(ctx);
+            for(size_t i = 0; i < trnames.size(); ++i) {
+                transition.type = TransitionType(i);
+                if(i % 2) {
+                    ctx.cmd_rg(0.9, 0, 0.0);
+                } else {
+                    ctx.cmd_rg(0, 0.7, 0.0);
+                }
+                ctx.cmd_re(0, 0, w, h);
+                ctx.cmd_f();
+                ctx.cmd_rg(0, 0, 0);
+                ctx.render_pdfdoc_text_builtin(
+                    trnames.at(i), A4PDF_FONT_HELVETICA_BOLD, 14, 30, 35);
+                ctx.set_transition(transition);
+                gen.add_page(ctx);
+            }
         }
     }
     return 0;

@@ -494,6 +494,18 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
         if(t.Dm) {
             fmt::format_to(buf_append, "    /Dm {}\n", *t.Dm ? "/H" : "/V");
         }
+        if(t.Di) {
+            fmt::format_to(buf_append, "    /Di {}\n", *t.Di);
+        }
+        if(t.M) {
+            fmt::format_to(buf_append, "    /M {}\n", *t.M ? "/I" : "/O");
+        }
+        if(t.SS) {
+            fmt::format_to(buf_append, "    /SS {}\n", *t.SS);
+        }
+        if(t.B) {
+            fmt::format_to(buf_append, "    /B {}\n", *t.B ? "true" : "false");
+        }
         buf += "  >>\n";
     }
     buf += ">>\n";
