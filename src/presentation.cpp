@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
             ctx.cmd_f();
             ctx.cmd_rg(0, 0, 0);
             ctx.render_pdfdoc_text_builtin("Heading", A4PDF_FONT_HELVETICA_BOLD, 14, 30, 75);
-            gen.add_page(ctx, transition);
+            ctx.set_transition(transition);
+            gen.add_page(ctx);
         }
     }
     return 0;

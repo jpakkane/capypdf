@@ -91,6 +91,7 @@ void PdfDrawContext::clear() {
     used_widgets.clear();
     used_annotations.clear();
     ind.clear();
+    transition.reset();
     is_finalized = false;
     uses_all_colorspace = false;
 }
@@ -951,5 +952,13 @@ void PdfDrawContext::draw_unit_circle() {
 }
 
 void PdfDrawContext::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
+
+rvoe<NoReturnValue> PdfDrawContext::set_transition(const PageTransition &tr) {
+    if(context_type != A4PDF_Page_Context) {
+        RETERR(InvalidDrawContextType);
+    }
+    transition = tr;
+    return NoReturnValue{};
+}
 
 } // namespace A4PDF

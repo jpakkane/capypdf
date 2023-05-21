@@ -189,15 +189,19 @@ public:
 
     int32_t marked_content_depth() const { return marked_depth; }
 
-    const std::unordered_set<A4PDF_FormWidgetId> get_form_usage() const { return used_widgets; }
-    const std::unordered_set<A4PDF_AnnotationId> get_annotation_usage() const {
+    const std::unordered_set<A4PDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
+    const std::unordered_set<A4PDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
-    const std::unordered_set<A4PDF_StructureItemId> get_structure_usage() const {
+    const std::unordered_set<A4PDF_StructureItemId> &get_structure_usage() const {
         return used_structures;
     }
 
+    const std::optional<PageTransition> &get_transition() const { return transition; }
+
     bool has_unclosed_state() const { return !dstates.empty(); }
+
+    rvoe<NoReturnValue> set_transition(const PageTransition &tr);
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
@@ -247,6 +251,7 @@ private:
     std::unordered_set<A4PDF_AnnotationId> used_annotations;
     std::unordered_set<A4PDF_StructureItemId> used_structures;
     std::stack<DrawStateType> dstates;
+    std::optional<PageTransition> transition;
     // Reminder: If you add stuff  here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;

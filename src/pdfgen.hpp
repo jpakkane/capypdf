@@ -110,11 +110,7 @@ public:
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
-    rvoe<PageId> add_page(PdfDrawContext &ctx, const std::optional<PageTransition> &transition);
-    rvoe<PageId> add_page(PdfDrawContext &ctx) {
-        std::optional<PageTransition> t;
-        return add_page(ctx, t);
-    }
+    rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<A4PDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
 
