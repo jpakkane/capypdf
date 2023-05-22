@@ -18,7 +18,12 @@
 #include <zlib.h>
 #include <cassert>
 #include <cstring>
+#ifdef _WIN32
+#include <time.h>
+#include <windows.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <fmt/core.h>
 #include <memory>
@@ -108,7 +113,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
     }
     /* done when last data in file processed */
     if(ret != Z_STREAM_END) {
-        std::unexpected(ErrorCode::CompressionFailure);
+        RETERR(CompressionFailure);
     }
 
     return std::move(compressed);
@@ -197,18 +202,16 @@ std::string current_date_string() {
     char buf[bufsize];
     time_t timepoint;
     struct tm utctime;
-    struct timespec tp;
     if(getenv("SOURCE_DATE_EPOCH")) {
         timepoint = strtol(getenv("SOURCE_DATE_EPOCH"), nullptr, 10);
     } else {
-        if(clock_gettime(CLOCK_REALTIME, &tp) != 0) {
-            // This is so rare we're just going to ignore it.
-            perror(nullptr);
-            std::abort();
-        }
-        timepoint = tp.tv_sec;
+        timepoint = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     }
+#ifdef _WIN32
+    if(gmtime_s(&utctime, &timepoint) != 0) {
+#else
     if(gmtime_r(&timepoint, &utctime) == nullptr) {
+#endif
         perror(nullptr);
         std::abort();
     }

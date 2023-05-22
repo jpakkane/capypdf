@@ -1519,7 +1519,7 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &
   /EF << /F {} 0 R >>
 >>
 )",
-                       pdfstring_quote(p.filename().c_str()),
+                       pdfstring_quote(p.filename().string()),
                        fileobj_id);
     auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});

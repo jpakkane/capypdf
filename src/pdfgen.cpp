@@ -27,6 +27,9 @@
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
+#ifdef _WIN32
+#include<io.h>
+#endif
 
 namespace A4PDF {
 
@@ -79,7 +82,7 @@ rvoe<NoReturnValue> PdfGen::write() {
         RETERR(NoPages);
     }
 
-    std::string tempfname = ofilename.c_str();
+    std::string tempfname = ofilename.string();
     tempfname += "~";
     FILE *ofile = fopen(tempfname.c_str(), "wb");
     if(!ofile) {
@@ -104,7 +107,14 @@ rvoe<NoReturnValue> PdfGen::write() {
         fclose(ofile);
         RETERR(DynamicError);
     }
-    if(fsync(fileno(ofile)) != 0) {
+    if(
+    #ifdef _WIN32
+       _commit(fileno(ofile))
+    #else
+               fsync(fileno(ofile))
+    #endif
+              != 0) {
+
         perror(nullptr);
         fclose(ofile);
         RETERR(FileWriteError);
@@ -115,7 +125,7 @@ rvoe<NoReturnValue> PdfGen::write() {
     }
 
     // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
-    if(rename(tempfname.c_str(), ofilename.c_str()) != 0) {
+    if(rename(tempfname.c_str(), ofilename.string().c_str()) != 0) {
         perror(nullptr);
         RETERR(FileWriteError);
     }

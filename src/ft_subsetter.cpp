@@ -21,7 +21,9 @@
 #include FT_FREETYPE_H
 
 #include <cassert>
+#ifndef _WIN32
 #include <byteswap.h>
+#endif
 #include <cmath>
 
 #include <stdexcept>
@@ -34,12 +36,21 @@ namespace {
 
 const uint32_t SPACE = ' ';
 
+#ifdef _WIN32
+void byte_swap(int16_t &val) { val = _byteswap_ushort(val); }
+void byte_swap(uint16_t &val) { val = _byteswap_ushort(val); }
+void byte_swap(int32_t &val) { val = _byteswap_ulong(val); }
+void byte_swap(uint32_t &val) { val = _byteswap_ulong(val); }
+// void byte_swap(int64_t &val) { val = bswap_64(val); }
+void byte_swap(uint64_t &val) { val = _byteswap_uint64(val); }
+#else
 void byte_swap(int16_t &val) { val = bswap_16(val); }
 void byte_swap(uint16_t &val) { val = bswap_16(val); }
 void byte_swap(int32_t &val) { val = bswap_32(val); }
 void byte_swap(uint32_t &val) { val = bswap_32(val); }
 // void byte_swap(int64_t &val) { val = bswap_64(val); }
 void byte_swap(uint64_t &val) { val = bswap_64(val); }
+#endif
 
 uint32_t ttf_checksum(std::string_view data) {
     uint32_t checksum = 0;
