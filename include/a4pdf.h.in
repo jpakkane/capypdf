@@ -20,8 +20,19 @@
 
 #mesondefine A4PDF_VERSION_STR
 
-// Fixme, add properly.
+#if defined _WIN32
+#ifdef BUILDING_A4PDF
+#define A4PDF_PUBLIC __declspec(dllexport)
+#else
+#define A4PDF_PUBLIC __declspec(dllimport)
+#endif
+#else
+#ifdef BUILDING_A4PDF
+#define A4PDF_PUBLIC __attribute__((visibility("default")))
+#else
 #define A4PDF_PUBLIC
+#endif
+#endif
 
 #ifdef __cplusplus
 #define A4PDF_NOEXCEPT noexcept
