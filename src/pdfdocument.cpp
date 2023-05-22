@@ -1506,7 +1506,6 @@ rvoe<A4PDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
 
 rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
-    std::filesystem::path p(fname);
     std::string dict = fmt::format(R"(<<
   /Type /EmbeddedFile
   /Length {}
@@ -1519,7 +1518,7 @@ rvoe<A4PDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &
   /EF << /F {} 0 R >>
 >>
 )",
-                       pdfstring_quote(p.filename().string()),
+                       pdfstring_quote(fname.filename().string()),
                        fileobj_id);
     auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
