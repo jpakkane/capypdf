@@ -330,6 +330,14 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_text_obj(A4PDF_DrawContext *ctx,
     return (A4PDF_EC)c->render_text(*t);
 }
 
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_page_transition(
+    A4PDF_DrawContext *dc, A4PDF_Page_Transition *transition) A4PDF_NOEXCEPT {
+    auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    auto t = reinterpret_cast<PageTransition *>(transition);
+    auto rc = ctx->set_transition(*t);
+    return (A4PDF_EC)(rc ? ErrorCode::NoError : rc.error());
+}
+
 A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
     return (A4PDF_EC)ErrorCode::NoError;
@@ -365,6 +373,22 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tf(A4PDF_Text *text,
 
 A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT {
     delete reinterpret_cast<PdfText *>(text);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_new(A4PDF_Page_Transition **out_ptr,
+                                                A4PDF_Page_Transition_Type type,
+                                                double duration) A4PDF_NOEXCEPT {
+    auto pt = new PageTransition{};
+    pt->type = type;
+    pt->duration = duration;
+    *out_ptr = reinterpret_cast<A4PDF_Page_Transition *>(pt);
+    return (A4PDF_EC)ErrorCode::NoError;
+}
+
+A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_destroy(A4PDF_Page_Transition *transition)
+    A4PDF_NOEXCEPT {
+    delete reinterpret_cast<PageTransition *>(transition);
     return (A4PDF_EC)ErrorCode::NoError;
 }
 

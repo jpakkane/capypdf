@@ -237,23 +237,8 @@ struct FontSubset {
 
 extern const std::array<const char *, 4> rendering_intent_names;
 
-enum class TransitionType : int32_t {
-    Split,
-    Blinds,
-    Box,
-    Wipe,
-    Dissolve,
-    Glitter,
-    R,
-    Fly,
-    Push,
-    Cover,
-    Uncover,
-    Fade,
-};
-
 struct PageTransition {
-    std::optional<TransitionType> type;
+    std::optional<A4PDF_Page_Transition_Type> type;
     std::optional<double> duration;
     std::optional<bool> Dm;    // true is horizontal
     std::optional<bool> M;     // true is inward

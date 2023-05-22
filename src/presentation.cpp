@@ -35,7 +35,7 @@ const std::array<const char *, 12> trnames{
     "Fade",
 };
 
-int main(int argc, char **argv) {
+int main(int, char **) {
     PdfGenerationData opts;
 
     const int32_t w = 160;
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
                 "Transition styles", A4PDF_FONT_HELVETICA_BOLD, 16, 10, 45);
             gen.add_page(ctx);
             for(size_t i = 0; i < trnames.size(); ++i) {
-                transition.type = TransitionType(i);
+                transition.type = A4PDF_Page_Transition_Type(i);
                 if(i % 2) {
                     ctx.cmd_rg(0.9, 0, 0.0);
                 } else {

@@ -79,6 +79,19 @@ def validate_image(basename, w, h):
         return wrapper_validate
     return decorator_validate
 
+def cleanup(ofilename):
+    import functools
+    def decorator_validate(func):
+        @functools.wraps(func)
+        def wrapper_validate(*args, **kwargs):
+            args = tuple([args[0], ofilename] + list(args)[1:])
+            value = func(*args, **kwargs)
+            os.unlink(ofilename)
+            return value
+        return wrapper_validate
+    return decorator_validate
+
+
 class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_simple', 480, 640)
@@ -208,6 +221,21 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_w(2)
                 ctx.cmd_re(10, 10, 80, 80)
                 ctx.cmd_B()
+
+    @cleanup('transitions.pdf')
+    def test_transitions(self, ofilename):
+        opts = a4pdf.Options()
+        opts.set_mediabox(0, 0, 160, 90)
+        with a4pdf.Generator(ofilename, opts) as g:
+            with g.page_draw_context() as ctx:
+                pass
+            with g.page_draw_context() as ctx:
+                tr = a4pdf.PageTransition(a4pdf.PageTransitionType.Blinds, 1.0)
+                ctx.set_page_transition(tr)
+                ctx.cmd_rg(0.5, 0.5, 0.5)
+                ctx.cmd_re(0, 0, 160, 90)
+                ctx.cmd_f()
+
 
 if __name__ == "__main__":
     unittest.main()

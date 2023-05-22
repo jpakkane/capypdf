@@ -33,6 +33,20 @@ class Colorspace(Enum):
     DeviceGray = 1
     DeviceCMYK = 2
 
+class PageTransitionType(Enum):
+    Split = 0
+    Blinds = 1
+    Box = 2
+    Wipe = 3
+    Dissolve = 4
+    Glitter = 5
+    R = 6
+    Fly = 7
+    Push = 8
+    Cover = 9
+    Uncover = 10
+    Fade = 11
+
 class A4PDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -98,6 +112,7 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_set_icc_stroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
 ('a4pdf_dc_set_icc_nonstroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
+('a4pdf_dc_set_page_transition', [ctypes.c_void_p, ctypes.c_void_p]),
 ('a4pdf_dc_destroy', [ctypes.c_void_p]),
 
 ('a4pdf_text_new', [ctypes.c_void_p]),
@@ -106,6 +121,10 @@ cfunc_types = (
 ('a4pdf_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('a4pdf_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('a4pdf_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
+
+('a4pdf_page_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
+('a4pdf_page_transition_destroy', [ctypes.c_void_p]),
+
 )
 
 libfile_name = 'liba4pdf.so'
@@ -281,6 +300,11 @@ class DrawContext:
             raise A4PDFException('Image id argument is not an image id object.')
         check_error(libfile.a4pdf_dc_draw_image(self, iid))
 
+    def set_page_transition(self, tr):
+        if not isinstance(tr, PageTransition):
+            raise A4PDFException('Argument is not a transition object.')
+        check_error(libfile.a4pdf_dc_set_page_transition(self, tr))
+
     def translate(self, xtran, ytran):
         self.cmd_cm(1.0, 0, 0, 1.0, xtran, ytran)
 
@@ -390,3 +414,15 @@ class Text:
         if not isinstance(fontid, FontId):
             raise RuntimeError('Font id is not a font object.')
         check_error(libfile.a4pdf_text_cmd_Tf(self, fontid, ptsize))
+
+class PageTransition:
+    def __init__(self, ttype, duration):
+        self._as_parameter_ = None
+        opt = ctypes.c_void_p()
+        if not isinstance(ttype, PageTransitionType):
+            raise A4PDFException('Argument is not a transition type.')
+        check_error(libfile.a4pdf_page_transition_new(ctypes.pointer(opt), ttype.value, duration))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.a4pdf_page_transition_destroy(self))
