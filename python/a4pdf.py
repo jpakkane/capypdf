@@ -127,7 +127,11 @@ cfunc_types = (
 
 )
 
-libfile_name = 'liba4pdf.so'
+if os.name == 'nt':
+    libfile_name = 'a4pdf.dll'
+else:
+    libfile_name = 'liba4pdf.so'
+
 if 'A4PDF_SO_OVERRIDE' in os.environ:
     libfile_name = os.environ['A4PDF_SO_OVERRIDE'] + '/' + libfile_name
 libfile = ctypes.cdll.LoadLibrary(libfile_name)
