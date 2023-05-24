@@ -131,10 +131,28 @@ if os.name == 'nt':
     libfile_name = 'a4pdf.dll'
 else:
     libfile_name = 'liba4pdf.so'
+libfile = None
 
 if 'A4PDF_SO_OVERRIDE' in os.environ:
-    libfile_name = os.environ['A4PDF_SO_OVERRIDE'] + '/' + libfile_name
-libfile = ctypes.cdll.LoadLibrary(libfile_name)
+    libfile = ctypes.cdll.LoadLibrary(os.path.join(os.environ['A4PDF_SO_OVERRIDE'], libfile_name))
+
+if libfile is None:
+    try:
+        ctypes.cdll.LoadLibrary(libfile_name)
+    except FileNotFoundError:
+        pass
+
+if libfile is None:
+    # Most likely a wheel installation with embedded libs.
+    from glob import glob
+    if 'site-packages' in __file__:
+        sdir = os.path.split(__file__)[0]
+        matches = glob(os.path.join(sdir, '.*a4pdf*', libfile_name))
+        if len(matches) == 1:
+            libfile = ctypes.cdll.LoadLibrary(matches[0])
+
+if libfile is None:
+    raise A4PDFException('Could not locate shared library.')
 
 for funcname, argtypes in cfunc_types:
     funcobj = getattr(libfile, funcname)

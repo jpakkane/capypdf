@@ -1,0 +1,18 @@
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python']
+
+[project]
+name = 'a4pdf'
+version = '0.2.0'
+description = 'A PDF generation library'
+readme = 'README.md'
+requires-python = '>=3.8'
+license = {file = 'COPYING'}
+authors = [
+  {name = 'Jussi Pakkanen', email = 'jpakkane@gmail.com'},
+]
+
+[tool.meson-python.args]
+setup = ['-Dcpp_std=c++latest']
+install = ['--tags=runtime,python-runtime']
