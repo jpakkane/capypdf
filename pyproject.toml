@@ -5,12 +5,20 @@ requires = ['meson-python']
 [project]
 name = 'a4pdf'
 version = '0.2.0'
-description = 'A PDF generation library'
+description = 'A color managed PDF generation library tech preview'
 readme = 'README.md'
 requires-python = '>=3.8'
 license = {file = 'COPYING'}
 authors = [
   {name = 'Jussi Pakkanen', email = 'jpakkane@gmail.com'},
+]
+classifiers = [
+    'Development Status :: 2 - Pre-Alpha',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: Microsoft :: Windows',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: C++',
+    'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
 [tool.meson-python.args]
