@@ -21,9 +21,7 @@
 #include FT_FREETYPE_H
 
 #include <cassert>
-#ifndef _WIN32
 #include <bit>
-#endif
 #include <cmath>
 
 #include <stdexcept>
@@ -36,21 +34,8 @@ namespace {
 
 const uint32_t SPACE = ' ';
 
-#ifdef _WIN32
-void byte_swap(int16_t &val) { val = _byteswap_ushort(val); }
-void byte_swap(uint16_t &val) { val = _byteswap_ushort(val); }
-void byte_swap(int32_t &val) { val = _byteswap_ulong(val); }
-void byte_swap(uint32_t &val) { val = _byteswap_ulong(val); }
-// void byte_swap(int64_t &val) { val = bswap_64(val); }
-void byte_swap(uint64_t &val) { val = _byteswap_uint64(val); }
-#else
-void byte_swap(int16_t &val) { val = std::byteswap(val); }
-void byte_swap(uint16_t &val) { val = std::byteswap(val); }
-void byte_swap(int32_t &val) { val = std::byteswap(val); }
-void byte_swap(uint32_t &val) { val = std::byteswap(val); }
-// void byte_swap(int64_t &val) { val = std::byteswap(val); }
-void byte_swap(uint64_t &val) { val = std::byteswap(val); }
-#endif
+template<typename T>
+void byte_swap_inplace(T &val) { val = std::byteswap(val); }
 
 uint32_t ttf_checksum(std::string_view data) {
     uint32_t checksum = 0;
@@ -58,14 +43,14 @@ uint32_t ttf_checksum(std::string_view data) {
     uint32_t offset = 0;
     for(; (offset + sizeof(uint32_t)) <= data.size(); offset += sizeof(uint32_t)) {
         memcpy(&current, data.data() + offset, sizeof(uint32_t));
-        byte_swap(current);
+        byte_swap_inplace(current);
         checksum += current;
     }
     current = 0;
     const auto tail_size = data.size() % sizeof(uint32_t);
     if(tail_size != 0) {
         memcpy(&current, data.data() + offset, tail_size);
-        byte_swap(current);
+        byte_swap_inplace(current);
         checksum += current;
     }
     return checksum;
@@ -123,11 +108,11 @@ struct TTOffsetTable {
     int16_t range_shift;
 
     void swap_endian() {
-        byte_swap(scaler);
-        byte_swap(num_tables);
-        byte_swap(search_range);
-        byte_swap(entry_selector);
-        byte_swap(range_shift);
+        byte_swap_inplace(scaler);
+        byte_swap_inplace(num_tables);
+        byte_swap_inplace(search_range);
+        byte_swap_inplace(entry_selector);
+        byte_swap_inplace(range_shift);
     }
 
     void set_table_size(int16_t new_size) {
@@ -149,23 +134,23 @@ struct TTOffsetTable {
 };
 
 void TTHead::swap_endian() {
-    byte_swap(version);
-    byte_swap(revision);
-    byte_swap(checksum_adjustment);
-    byte_swap(magic);
-    byte_swap(flags);
-    byte_swap(units_per_em);
-    byte_swap(created);
-    byte_swap(modified);
-    byte_swap(x_min);
-    byte_swap(y_min);
-    byte_swap(x_max);
-    byte_swap(y_max);
-    byte_swap(mac_style);
-    byte_swap(lowest_rec_pppem);
-    byte_swap(font_direction_hint);
-    byte_swap(index_to_loc_format);
-    byte_swap(glyph_data_format);
+    byte_swap_inplace(version);
+    byte_swap_inplace(revision);
+    byte_swap_inplace(checksum_adjustment);
+    byte_swap_inplace(magic);
+    byte_swap_inplace(flags);
+    byte_swap_inplace(units_per_em);
+    byte_swap_inplace(created);
+    byte_swap_inplace(modified);
+    byte_swap_inplace(x_min);
+    byte_swap_inplace(y_min);
+    byte_swap_inplace(x_max);
+    byte_swap_inplace(y_max);
+    byte_swap_inplace(mac_style);
+    byte_swap_inplace(lowest_rec_pppem);
+    byte_swap_inplace(font_direction_hint);
+    byte_swap_inplace(index_to_loc_format);
+    byte_swap_inplace(glyph_data_format);
 }
 
 struct TTDirEntry {
@@ -199,10 +184,10 @@ struct TTDirEntry {
     }
 
     void swap_endian() {
-        // byte_swap(tag);
-        byte_swap(checksum);
-        byte_swap(offset);
-        byte_swap(length);
+        // byte_swap_inplace(tag);
+        byte_swap_inplace(checksum);
+        byte_swap_inplace(offset);
+        byte_swap_inplace(length);
     }
 };
 
@@ -213,9 +198,9 @@ struct TTDsig {
     // Signature array follows
 
     void swap_endian() {
-        byte_swap(version);
-        byte_swap(num_signatures);
-        byte_swap(flags);
+        byte_swap_inplace(version);
+        byte_swap_inplace(num_signatures);
+        byte_swap_inplace(flags);
     }
 };
 
@@ -230,12 +215,12 @@ struct TTGDEF {
     uint32_t item_var_offset = -1;        // Since version 1.3
 
     void swap_endian() {
-        byte_swap(major);
-        byte_swap(minor);
-        byte_swap(glyph_class_offset);
-        byte_swap(attach_list_offset);
-        byte_swap(lig_caret_offset);
-        byte_swap(mark_attach_offset);
+        byte_swap_inplace(major);
+        byte_swap_inplace(minor);
+        byte_swap_inplace(glyph_class_offset);
+        byte_swap_inplace(attach_list_offset);
+        byte_swap_inplace(lig_caret_offset);
+        byte_swap_inplace(mark_attach_offset);
     }
 };
 
@@ -245,28 +230,28 @@ struct TTClassRangeRecord {
     uint16_t gclass;
 
     void swap_endian() {
-        byte_swap(start_glyph_id);
-        byte_swap(end_glyph_id);
-        byte_swap(gclass);
+        byte_swap_inplace(start_glyph_id);
+        byte_swap_inplace(end_glyph_id);
+        byte_swap_inplace(gclass);
     }
 };
 
 void TTMaxp10::swap_endian() {
-    byte_swap(version);
-    byte_swap(num_glyphs);
-    byte_swap(max_points);
-    byte_swap(max_contours);
-    byte_swap(max_composite_points);
-    byte_swap(max_composite_contours);
-    byte_swap(max_zones);
-    byte_swap(max_twilight_points);
-    byte_swap(max_storage);
-    byte_swap(max_function_defs);
-    byte_swap(max_instruction_defs);
-    byte_swap(max_stack_elements);
-    byte_swap(max_sizeof_instructions);
-    byte_swap(max_component_elements);
-    byte_swap(max_component_depth);
+    byte_swap_inplace(version);
+    byte_swap_inplace(num_glyphs);
+    byte_swap_inplace(max_points);
+    byte_swap_inplace(max_contours);
+    byte_swap_inplace(max_composite_points);
+    byte_swap_inplace(max_composite_contours);
+    byte_swap_inplace(max_zones);
+    byte_swap_inplace(max_twilight_points);
+    byte_swap_inplace(max_storage);
+    byte_swap_inplace(max_function_defs);
+    byte_swap_inplace(max_instruction_defs);
+    byte_swap_inplace(max_stack_elements);
+    byte_swap_inplace(max_sizeof_instructions);
+    byte_swap_inplace(max_component_elements);
+    byte_swap_inplace(max_component_depth);
 }
 
 struct TTGlyphHeader {
@@ -277,37 +262,37 @@ struct TTGlyphHeader {
     int16_t y_max;
 
     void swap_endian() {
-        byte_swap(num_contours);
-        byte_swap(x_min);
-        byte_swap(y_min);
-        byte_swap(x_max);
-        byte_swap(y_max);
+        byte_swap_inplace(num_contours);
+        byte_swap_inplace(x_min);
+        byte_swap_inplace(y_min);
+        byte_swap_inplace(x_max);
+        byte_swap_inplace(y_max);
     }
 };
 
 void TTHhea::swap_endian() {
-    byte_swap(version);
-    byte_swap(ascender);
-    byte_swap(descender);
-    byte_swap(linegap);
-    byte_swap(advance_width_max);
-    byte_swap(min_left_side_bearing);
-    byte_swap(min_right_side_bearing);
-    byte_swap(x_max_extent);
-    byte_swap(caret_slope_rise);
-    byte_swap(caret_slope_run);
-    byte_swap(caret_offset);
-    byte_swap(reserved0);
-    byte_swap(reserved1);
-    byte_swap(reserved2);
-    byte_swap(reserved3);
-    byte_swap(metric_data_format);
-    byte_swap(num_hmetrics);
+    byte_swap_inplace(version);
+    byte_swap_inplace(ascender);
+    byte_swap_inplace(descender);
+    byte_swap_inplace(linegap);
+    byte_swap_inplace(advance_width_max);
+    byte_swap_inplace(min_left_side_bearing);
+    byte_swap_inplace(min_right_side_bearing);
+    byte_swap_inplace(x_max_extent);
+    byte_swap_inplace(caret_slope_rise);
+    byte_swap_inplace(caret_slope_run);
+    byte_swap_inplace(caret_offset);
+    byte_swap_inplace(reserved0);
+    byte_swap_inplace(reserved1);
+    byte_swap_inplace(reserved2);
+    byte_swap_inplace(reserved3);
+    byte_swap_inplace(metric_data_format);
+    byte_swap_inplace(num_hmetrics);
 }
 
 void TTLongHorMetric::swap_endian() {
-    byte_swap(advance_width);
-    byte_swap(lsb);
+    byte_swap_inplace(advance_width);
+    byte_swap_inplace(lsb);
 }
 
 struct TTCmapHeader {
@@ -315,8 +300,8 @@ struct TTCmapHeader {
     uint16_t num_tables;
 
     void swap_endian() {
-        byte_swap(version);
-        byte_swap(num_tables);
+        byte_swap_inplace(version);
+        byte_swap_inplace(num_tables);
     }
 };
 
@@ -326,9 +311,9 @@ struct TTEncodingRecord {
     int32_t subtable_offset;
 
     void swap_endian() {
-        byte_swap(platform_id);
-        byte_swap(encoding_id);
-        byte_swap(subtable_offset);
+        byte_swap_inplace(platform_id);
+        byte_swap_inplace(encoding_id);
+        byte_swap_inplace(subtable_offset);
     }
 };
 
@@ -339,9 +324,9 @@ struct TTEncodingSubtable0 {
     uint8_t glyphids[256];
 
     void swap_endian() {
-        byte_swap(format);
-        byte_swap(length);
-        byte_swap(language);
+        byte_swap_inplace(format);
+        byte_swap_inplace(length);
+        byte_swap_inplace(language);
     }
 };
 
@@ -358,16 +343,16 @@ struct TTPost {
     uint32_t max_mem_type_1;
 
     void swap_endian() {
-        byte_swap(version_major);
-        byte_swap(version_minor);
-        byte_swap(italic_angle);
-        byte_swap(underline_position);
-        byte_swap(underline_thickness);
-        byte_swap(is_fixed_pitch);
-        byte_swap(min_mem_type_42);
-        byte_swap(max_mem_type_42);
-        byte_swap(min_mem_type_1);
-        byte_swap(max_mem_type_1);
+        byte_swap_inplace(version_major);
+        byte_swap_inplace(version_minor);
+        byte_swap_inplace(italic_angle);
+        byte_swap_inplace(underline_position);
+        byte_swap_inplace(underline_thickness);
+        byte_swap_inplace(is_fixed_pitch);
+        byte_swap_inplace(min_mem_type_42);
+        byte_swap_inplace(max_mem_type_42);
+        byte_swap_inplace(min_mem_type_1);
+        byte_swap_inplace(max_mem_type_1);
     }
 };
 
@@ -416,7 +401,7 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view bu
     }
     uint32_t version;
     safe_memcpy(&version, buf, e->offset);
-    byte_swap(version);
+    byte_swap_inplace(version);
     if(version != 1 << 16) {
         RETERR(UnsupportedFormat);
     }
@@ -455,14 +440,14 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             uint16_t offset;
             ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(uint16_t)));
-            byte_swap(offset);
+            byte_swap_inplace(offset);
             offsets.push_back(offset * 2);
         }
     } else if(index_to_loc_format == 1) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
             int32_t offset;
             ERCV(safe_memcpy(&offset, buf, loca->offset + i * sizeof(int32_t)));
-            byte_swap(offset);
+            byte_swap_inplace(offset);
             if(offset < 0) {
                 RETERR(IndexIsNegative);
             }
@@ -522,7 +507,7 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
             RETERR(IndexIsNegative);
         }
         safe_memcpy(&lsb, buf, data_offset);
-        byte_swap(lsb);
+        byte_swap_inplace(lsb);
         hmtx.left_side_bearings.push_back(lsb);
     }
     return hmtx;
@@ -586,7 +571,7 @@ subset_glyphs(FT_Face face,
         subset.push_back(source.glyphs[gid]);
         if(!subset.back().empty()) {
             ERC(num_contours, extract<int16_t>(subset.back(), 0));
-            byte_swap(num_contours);
+            byte_swap_inplace(num_contours);
             if(num_contours < 0) {
                 ERCV(reassign_composite_glyph_numbers(subset.back(), comp_mapping));
             }
@@ -707,7 +692,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     e.set_tag("loca");
     e.offset = odata.size();
     for(auto offset : loca) {
-        byte_swap(offset);
+        byte_swap_inplace(offset);
         append_bytes(odata, offset);
     }
     e.length = odata.size() - e.offset;
@@ -720,7 +705,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
         append_bytes(odata, hm);
     }
     for(auto lsb : tf.hmtx.left_side_bearings) {
-        byte_swap(lsb);
+        byte_swap_inplace(lsb);
         append_bytes(odata, lsb);
     }
     e.length = odata.size() - e.offset;
@@ -736,7 +721,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     const uint32_t magic = 0xB1B0AFBA;
     const uint32_t full_checksum = ttf_checksum(full_view);
     uint32_t adjustment = magic - full_checksum;
-    byte_swap(adjustment);
+    byte_swap_inplace(adjustment);
     memcpy(odata.data() + head_offset + offsetof(TTHead, checksum_adjustment),
            &adjustment,
            sizeof(uint32_t));
@@ -778,7 +763,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
 
 rvoe<int16_t> num_contours(std::string_view buf) {
     ERC(num_contours, extract<int16_t>(buf, 0));
-    byte_swap(num_contours);
+    byte_swap_inplace(num_contours);
     return num_contours;
 }
 
@@ -836,7 +821,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
                                       2 * sizeof(uint16_t) + table_num * sizeof(TTEncodingRecord)));
         enc.swap_endian();
         ERC(subtable_format, extract<uint16_t>(cmap, enc.subtable_offset));
-        byte_swap(subtable_format);
+        byte_swap_inplace(subtable_format);
         if(subtable_format >= 15) {
             RETERR(UnsupportedFormat);
         }
@@ -874,13 +859,13 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
             memcpy(&classdef_version,
                    buf.data() + e.offset + gdef.glyph_class_offset,
                    sizeof(classdef_version));
-            byte_swap(classdef_version);
+            byte_swap_inplace(classdef_version);
             assert(classdef_version == 2);
             uint16_t num_records;
             memcpy(&num_records,
                    buf.data() + e.offset + gdef.glyph_class_offset + sizeof(classdef_version),
                    sizeof(num_records));
-            byte_swap(num_records);
+            byte_swap_inplace(num_records);
             const char *array_start = buf.data() + e.offset + gdef.glyph_class_offset +
                                       sizeof(classdef_version) + sizeof(num_records);
             for(uint16_t i = 0; i < num_records; ++i) {
@@ -965,10 +950,10 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
     do {
         ERC(rv, extract<uint16_t>(composite_data, composite_offset));
         component_flag = rv;
-        byte_swap(component_flag);
+        byte_swap_inplace(component_flag);
         composite_offset += sizeof(uint16_t);
         ERC(glyph_index, extract<uint16_t>(composite_data, composite_offset));
-        byte_swap(glyph_index);
+        byte_swap_inplace(glyph_index);
         composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
             composite_offset += 2 * sizeof(int16_t);
@@ -993,11 +978,11 @@ reassign_composite_glyph_numbers(std::string &buf,
     do {
         ERC(rv, extract<uint16_t>(composite_data, composite_offset));
         component_flag = rv;
-        byte_swap(component_flag);
+        byte_swap_inplace(component_flag);
         composite_offset += sizeof(uint16_t);
         const auto index_offset = composite_offset;
         ERC(glyph_index, extract<uint16_t>(composite_data, composite_offset));
-        byte_swap(glyph_index);
+        byte_swap_inplace(glyph_index);
         composite_offset += sizeof(uint16_t);
         if(component_flag & ARGS_ARE_WORDS) {
             composite_offset += 2 * sizeof(int16_t);
@@ -1010,7 +995,7 @@ reassign_composite_glyph_numbers(std::string &buf,
             std::abort();
         }
         glyph_index = it->second;
-        byte_swap(glyph_index);
+        byte_swap_inplace(glyph_index);
         memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);
     return NoReturnValue{};
