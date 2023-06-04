@@ -22,7 +22,7 @@
 
 #include <cassert>
 #ifndef _WIN32
-#include <byteswap.h>
+#include <bit>
 #endif
 #include <cmath>
 
@@ -44,12 +44,12 @@ void byte_swap(uint32_t &val) { val = _byteswap_ulong(val); }
 // void byte_swap(int64_t &val) { val = bswap_64(val); }
 void byte_swap(uint64_t &val) { val = _byteswap_uint64(val); }
 #else
-void byte_swap(int16_t &val) { val = bswap_16(val); }
-void byte_swap(uint16_t &val) { val = bswap_16(val); }
-void byte_swap(int32_t &val) { val = bswap_32(val); }
-void byte_swap(uint32_t &val) { val = bswap_32(val); }
-// void byte_swap(int64_t &val) { val = bswap_64(val); }
-void byte_swap(uint64_t &val) { val = bswap_64(val); }
+void byte_swap(int16_t &val) { val = std::byteswap(val); }
+void byte_swap(uint16_t &val) { val = std::byteswap(val); }
+void byte_swap(int32_t &val) { val = std::byteswap(val); }
+void byte_swap(uint32_t &val) { val = std::byteswap(val); }
+// void byte_swap(int64_t &val) { val = std::byteswap(val); }
+void byte_swap(uint64_t &val) { val = std::byteswap(val); }
 #endif
 
 uint32_t ttf_checksum(std::string_view data) {
