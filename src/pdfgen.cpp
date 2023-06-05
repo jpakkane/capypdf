@@ -28,7 +28,7 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 #ifdef _WIN32
-#include<io.h>
+#include <io.h>
 #endif
 
 namespace A4PDF {
@@ -82,9 +82,9 @@ rvoe<NoReturnValue> PdfGen::write() {
         RETERR(NoPages);
     }
 
-    std::string tempfname = ofilename.string();
-    tempfname += "~";
-    FILE *ofile = fopen(tempfname.c_str(), "wb");
+    auto tempfname = ofilename;
+    tempfname.replace_extension(".pdf~");
+    FILE *ofile = fopen(tempfname.string().c_str(), "wb");
     if(!ofile) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
@@ -108,12 +108,12 @@ rvoe<NoReturnValue> PdfGen::write() {
         RETERR(DynamicError);
     }
     if(
-    #ifdef _WIN32
-       _commit(fileno(ofile))
-    #else
-               fsync(fileno(ofile))
-    #endif
-              != 0) {
+#ifdef _WIN32
+        _commit(fileno(ofile))
+#else
+        fsync(fileno(ofile))
+#endif
+        != 0) {
 
         perror(nullptr);
         fclose(ofile);
@@ -125,8 +125,10 @@ rvoe<NoReturnValue> PdfGen::write() {
     }
 
     // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
-    if(rename(tempfname.c_str(), ofilename.string().c_str()) != 0) {
-        perror(nullptr);
+    std::error_code ec;
+    std::filesystem::rename(tempfname, ofilename, ec);
+    if(ec) {
+        fprintf(stderr, "%s\n", ec.category().message(ec.value()).c_str());
         RETERR(FileWriteError);
     }
     return NoReturnValue{};
