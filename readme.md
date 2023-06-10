@@ -1,4 +1,4 @@
-# A4PDF
+# CapyPDF
 
 This is a library for generating PDF files. It aims to be very low level.
 It does not have its own document model, it merely exposes PDF primitives
