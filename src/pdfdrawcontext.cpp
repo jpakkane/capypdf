@@ -39,7 +39,7 @@ PdfDrawContext::PdfDrawContext(
 PdfDrawContext::~PdfDrawContext() {}
 
 void PdfDrawContext::set_form_xobject_size(double w, double h) {
-    assert(context_type == A4PDF_DC_Form_XObject);
+    assert(context_type == A4PDF_DC_FORM_XOBJECT);
     form_xobj_w = w;
     form_xobj_h = h;
 }
@@ -47,7 +47,7 @@ void PdfDrawContext::set_form_xobject_size(double w, double h) {
 DCSerialization PdfDrawContext::serialize() {
     SerializedBasicContext sc;
     sc.dict = build_resource_dict();
-    if(context_type == A4PDF_DC_Form_XObject) {
+    if(context_type == A4PDF_DC_FORM_XOBJECT) {
         std::string dict = fmt::format(
             R"(<<
   /Type /XObject
@@ -280,7 +280,7 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
 }
 
 ErrorCode PdfDrawContext::cmd_Do(A4PDF_FormXObjectId fxoid) {
-    if(context_type != A4PDF_DC_Page) {
+    if(context_type != A4PDF_DC_PAGE) {
         return ErrorCode::InvalidDrawContextType;
     }
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
@@ -594,7 +594,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
 }
 
 ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
-    if(context_type != A4PDF_DC_Page) {
+    if(context_type != A4PDF_DC_PAGE) {
         return ErrorCode::PatternNotAccepted;
     }
     used_patterns.insert(id.id);
@@ -954,7 +954,7 @@ void PdfDrawContext::draw_unit_circle() {
 void PdfDrawContext::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
 
 rvoe<NoReturnValue> PdfDrawContext::set_transition(const PageTransition &tr) {
-    if(context_type != A4PDF_DC_Page) {
+    if(context_type != A4PDF_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }
     transition = tr;
