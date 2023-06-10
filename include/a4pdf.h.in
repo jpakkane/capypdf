@@ -19,6 +19,9 @@
 #include <stdint.h>
 
 #mesondefine A4PDF_VERSION_STR
+#mesondefine A4PDF_VERSION_MAJOR
+#mesondefine A4PDF_VERSION_MINOR
+#mesondefine A4PDF_VERSION_MICRO
 
 #if defined _WIN32
 #ifdef BUILDING_A4PDF

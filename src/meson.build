@@ -1,6 +1,6 @@
 a4deps = [fmt_dep, png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
 
-a4pdf_lib = library('a4pdf',
+a4pdf_lib = shared_library('a4pdf',
   'pdfgen.cpp',
   'pdfdrawcontext.cpp',
   'pdfdocument.cpp',
@@ -16,6 +16,8 @@ a4pdf_lib = library('a4pdf',
   cpp_args: ['-DBUILDING_A4PDF'],
   dependencies: a4deps,
   gnu_symbol_visibility: 'inlineshidden',
+  version: version,
+  soversion: soversion,
   install: true,
 )
 
