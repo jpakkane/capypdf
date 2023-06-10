@@ -84,7 +84,7 @@ void clipping(PdfDrawContext &ctx, A4PDF_ImageId image) {
     {
         auto pop = ctx.push_gstate();
         ctx.translate(100, 0);
-        ctx.cmd_Tr(A4PDF_Text_Clip);
+        ctx.cmd_Tr(A4PDF_TEXT_CLIP);
         ctx.render_pdfdoc_text_builtin("Awesome!", A4PDF_FONT_TIMES_ROMAN, 18, 10, 50);
         ctx.scale(100, 100);
         ctx.draw_image(image);

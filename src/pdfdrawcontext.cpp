@@ -472,7 +472,7 @@ ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
 }
 
 ErrorCode PdfDrawContext::cmd_Tr(A4PDF_Text_Rendering_Mode mode) {
-    CHECK_ENUM(mode, A4PDF_Text_Clip);
+    CHECK_ENUM(mode, A4PDF_TEXT_CLIP);
     fmt::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
     return ErrorCode::NoError;
 }

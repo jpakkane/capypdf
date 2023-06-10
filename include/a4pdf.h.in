@@ -65,14 +65,14 @@ enum A4PDF_Rendering_Intent {
 };
 
 enum A4PDF_Text_Rendering_Mode {
-    A4PDF_Text_Fill,
-    A4PDF_Text_Stroke,
-    A4PDF_Text_Fill_Stroke,
-    A4PDF_Text_Invisible,
-    A4PDF_Text_Fill_Clip,
-    A4PDF_Text_Stroke_Clip,
-    A4PDF_Text_Fill_Stroke_Clip,
-    A4PDF_Text_Clip,
+    A4PDF_TEXT_FILL,
+    A4PDF_TEXT_STROKE,
+    A4PDF_TEXT_FILL_STROKE,
+    A4PDF_TEXT_INVISIBLE,
+    A4PDF_TEXT_FILL_CLIP,
+    A4PDF_TEXT_STROKE_CLIP,
+    A4PDF_TEXT_FILL_STROKE_CLIP,
+    A4PDF_TEXT_CLIP,
 };
 
 enum A4PDF_Blend_Mode {
