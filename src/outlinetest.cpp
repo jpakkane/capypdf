@@ -25,7 +25,7 @@ int main(int, char **) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "Outline test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_DEVICE_RGB;
+    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("outline_test.pdf", opts);
         PdfGen &gen = *genpop.g;

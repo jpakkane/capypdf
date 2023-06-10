@@ -24,7 +24,7 @@ void center_test() {
     const char *text = "Centered text!";
     const double pt = 12;
     PdfGenerationData opts;
-    opts.output_colorspace = A4PDF_DEVICE_GRAY;
+    opts.output_colorspace = A4PDF_CS_DEVICE_GRAY;
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
     GenPopper genpop("centering.pdf", opts);
@@ -52,7 +52,7 @@ void center_test() {
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.output_colorspace = A4PDF_DEVICE_GRAY;
+    opts.output_colorspace = A4PDF_CS_DEVICE_GRAY;
     const char *regularfont;
     const char *italicfont;
     if(argc > 1) {

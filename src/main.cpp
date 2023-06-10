@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     opts.title = "PDF experiment";
     opts.author = "Peter David Foster, esq";
-    opts.output_colorspace = A4PDF_DEVICE_CMYK;
+    opts.output_colorspace = A4PDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 

@@ -23,7 +23,7 @@ int main() {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF pattern test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_DEVICE_RGB;
+    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("pattern_test.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -36,7 +36,7 @@ int main() {
             auto funcid = gen.add_function(rgbfunc);
 
             ShadingType2 shade;
-            shade.colorspace = A4PDF_DEVICE_RGB;
+            shade.colorspace = A4PDF_CS_DEVICE_RGB;
             shade.x0 = 10;
             shade.y0 = 50;
             shade.x1 = 90;
@@ -59,7 +59,7 @@ int main() {
             FunctionType2 rgbfunc{{0.0, 1.0}, {1.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 0.7};
             auto funcid = gen.add_function(rgbfunc);
             ShadingType3 shade;
-            shade.colorspace = A4PDF_DEVICE_RGB;
+            shade.colorspace = A4PDF_CS_DEVICE_RGB;
             shade.x0 = 50;
             shade.y0 = 50;
             shade.r0 = 40;

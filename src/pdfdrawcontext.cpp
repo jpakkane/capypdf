@@ -509,16 +509,16 @@ ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
 
 ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
-    case A4PDF_DEVICE_RGB: {
+    case A4PDF_CS_DEVICE_RGB: {
         cmd_RG(c.r.v(), c.g.v(), c.b.v());
         break;
     }
-    case A4PDF_DEVICE_GRAY: {
+    case A4PDF_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         cmd_G(gray.v.v());
         break;
     }
-    case A4PDF_DEVICE_CMYK: {
+    case A4PDF_CS_DEVICE_CMYK: {
         auto cmyk_var = cm->to_cmyk(c);
         if(cmyk_var) {
             auto &cmyk = cmyk_var.value();
@@ -567,14 +567,14 @@ ErrorCode PdfDrawContext::set_stroke_color(A4PDF_IccColorSpaceId icc_id,
 
 ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
-    case A4PDF_DEVICE_RGB: {
+    case A4PDF_CS_DEVICE_RGB: {
         return cmd_rg(c.r.v(), c.g.v(), c.b.v());
     }
-    case A4PDF_DEVICE_GRAY: {
+    case A4PDF_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         return cmd_g(gray.v.v());
     }
-    case A4PDF_DEVICE_CMYK: {
+    case A4PDF_CS_DEVICE_CMYK: {
         auto cmyk_var = cm->to_cmyk(c);
         if(cmyk_var) {
             auto &cmyk = cmyk_var.value();

@@ -213,21 +213,21 @@ rvoe<NoReturnValue> PdfDocument::init() {
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    if(opts.output_colorspace == A4PDF_DEVICE_CMYK) {
+    if(opts.output_colorspace == A4PDF_CS_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
     switch(opts.output_colorspace) {
-    case A4PDF_DEVICE_RGB:
+    case A4PDF_CS_DEVICE_RGB:
         if(!cm.get_rgb().empty()) {
             output_profile = store_icc_profile(cm.get_rgb(), 3);
         }
         break;
-    case A4PDF_DEVICE_GRAY:
+    case A4PDF_CS_DEVICE_GRAY:
         if(!cm.get_gray().empty()) {
             output_profile = store_icc_profile(cm.get_gray(), 1);
         }
         break;
-    case A4PDF_DEVICE_CMYK:
+    case A4PDF_CS_DEVICE_CMYK:
         if(cm.get_cmyk().empty()) {
             RETERR(OutputProfileMissing);
         }
@@ -1213,7 +1213,7 @@ rvoe<A4PDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &fn
     }
     auto &im = std::get<mono_image>(image);
     return add_image_object(
-        im.w, im.h, 1, A4PDF_DEVICE_GRAY, std::optional<int32_t>{}, true, im.pixels);
+        im.w, im.h, 1, A4PDF_CS_DEVICE_GRAY, std::optional<int32_t>{}, true, im.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::add_image_object(int32_t w,
@@ -1268,36 +1268,37 @@ rvoe<A4PDF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(image.w, image.h, 1, A4PDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
-    return add_image_object(image.w, image.h, 1, A4PDF_DEVICE_GRAY, smask_id, false, image.pixels);
+    return add_image_object(
+        image.w, image.h, 1, A4PDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(image.w, image.h, 8, A4PDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     switch(opts.output_colorspace) {
-    case A4PDF_DEVICE_RGB: {
+    case A4PDF_CS_DEVICE_RGB: {
         return add_image_object(
-            image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, false, image.pixels);
+            image.w, image.h, 8, A4PDF_CS_DEVICE_RGB, smask_id, false, image.pixels);
     }
-    case A4PDF_DEVICE_GRAY: {
+    case A4PDF_CS_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
         return add_image_object(
-            image.w, image.h, 8, A4PDF_DEVICE_RGB, smask_id, false, converted_pixels);
+            image.w, image.h, 8, A4PDF_CS_DEVICE_RGB, smask_id, false, converted_pixels);
     }
-    case A4PDF_DEVICE_CMYK: {
+    case A4PDF_CS_DEVICE_CMYK: {
         if(cm.get_cmyk().empty()) {
             RETERR(NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
         return add_image_object(
-            image.w, image.h, 8, A4PDF_DEVICE_CMYK, smask_id, false, converted_pixels);
+            image.w, image.h, 8, A4PDF_CS_DEVICE_CMYK, smask_id, false, converted_pixels);
     }
     default:
         RETERR(Unreachable);
@@ -1311,10 +1312,11 @@ rvoe<A4PDF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
 
     if(image.alpha) {
         ERC(imgobj,
-            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(image.w, image.h, 8, A4PDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imgobj.id).obj;
     }
-    return add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, smask_id, false, image.pixels);
+    return add_image_object(
+        image.w, image.h, 8, A4PDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
 rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
@@ -1329,11 +1331,11 @@ rvoe<A4PDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
             cs = icc_profiles.at(icc_obj.id).object_num;
         }
     } else {
-        cs = A4PDF_DEVICE_CMYK;
+        cs = A4PDF_CS_DEVICE_CMYK;
     }
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 8, A4PDF_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(image.w, image.h, 8, A4PDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     return add_image_object(image.w, image.h, 8, cs, smask_id, false, image.pixels);

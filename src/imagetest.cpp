@@ -30,7 +30,7 @@ int basictest(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF image test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_DEVICE_RGB;
+    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("image_test.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -85,7 +85,7 @@ void masktest(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF image masking test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_DEVICE_CMYK;
+    opts.output_colorspace = A4PDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file = icc_out;
     {
         GenPopper genpop("imagemask_test.pdf", opts);
