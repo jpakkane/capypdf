@@ -44,7 +44,7 @@ void LcmsHolder::deallocate() {
 
 DrawContextPopper::~DrawContextPopper() {
     switch(ctx.draw_context_type()) {
-    case A4PDF_Page_Context: {
+    case A4PDF_DC_Page: {
         auto rc = g->add_page(ctx);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));
@@ -135,7 +135,7 @@ rvoe<NoReturnValue> PdfGen::write() {
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
-    if(ctx.draw_context_type() != A4PDF_Page_Context) {
+    if(ctx.draw_context_type() != A4PDF_DC_Page) {
         RETERR(InvalidDrawContextType);
     }
     if(ctx.marked_content_depth() != 0) {
@@ -158,7 +158,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
 }
 
 rvoe<A4PDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
-    if(ctx.draw_context_type() != A4PDF_Form_XObject_Context) {
+    if(ctx.draw_context_type() != A4PDF_DC_Form_XObject) {
         RETERR(InvalidDrawContextType);
     }
     if(ctx.marked_content_depth() != 0) {
@@ -175,7 +175,7 @@ rvoe<A4PDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
 }
 
 rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
-    if(cp.pctx.draw_context_type() != A4PDF_Color_Tiling_Pattern_Context) {
+    if(cp.pctx.draw_context_type() != A4PDF_DC_Color_Tiling) {
         RETERR(InvalidDrawContextType);
     }
     if(cp.pctx.marked_content_depth() != 0) {
@@ -208,16 +208,15 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
 }
 
 DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{this, &pdoc, &pdoc.cm, A4PDF_Page_Context};
+    return DrawContextPopper{this, &pdoc, &pdoc.cm, A4PDF_DC_Page};
 }
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
-    return new PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Page_Context};
+    return new PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_DC_Page};
 }
 
 ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
-    return ColorPatternBuilder{
-        PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_Color_Tiling_Pattern_Context}, w, h};
+    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_DC_Color_Tiling}, w, h};
 }
 
 rvoe<double>

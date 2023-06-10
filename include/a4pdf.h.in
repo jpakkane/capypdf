@@ -103,10 +103,10 @@ enum A4PDF_Line_Join {
 };
 
 enum A4PDF_Draw_Context_Type {
-    A4PDF_Page_Context,
-    A4PDF_Color_Tiling_Pattern_Context,
-    A4PDF_Uncolored_Tiling_Pattern_Context,
-    A4PDF_Form_XObject_Context,
+    A4PDF_DC_Page,
+    A4PDF_DC_Color_Tiling,
+    A4PDF_DC_Uncolored_Tiling,
+    A4PDF_DC_Form_XObject,
 };
 
 enum A4PDF_Page_Transition_Type {

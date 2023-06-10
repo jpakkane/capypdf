@@ -105,7 +105,7 @@ public:
     PdfDrawContext *new_page_draw_context();
 
     PdfDrawContext new_form_xobject(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, A4PDF_Form_XObject_Context, w, h);
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, A4PDF_DC_Form_XObject, w, h);
     }
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
