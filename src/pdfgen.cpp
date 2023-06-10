@@ -31,7 +31,7 @@
 #include <io.h>
 #endif
 
-namespace A4PDF {
+namespace capypdf {
 
 LcmsHolder::~LcmsHolder() { deallocate(); }
 
@@ -44,7 +44,7 @@ void LcmsHolder::deallocate() {
 
 DrawContextPopper::~DrawContextPopper() {
     switch(ctx.draw_context_type()) {
-    case A4PDF_DC_PAGE: {
+    case CAPY_DC_PAGE: {
         auto rc = g->add_page(ctx);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));
@@ -135,7 +135,7 @@ rvoe<NoReturnValue> PdfGen::write() {
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
-    if(ctx.draw_context_type() != A4PDF_DC_PAGE) {
+    if(ctx.draw_context_type() != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }
     if(ctx.marked_content_depth() != 0) {
@@ -157,8 +157,8 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }
 
-rvoe<A4PDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
-    if(ctx.draw_context_type() != A4PDF_DC_FORM_XOBJECT) {
+rvoe<CapyPdF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
+    if(ctx.draw_context_type() != CAPY_DC_FORM_XOBJECT) {
         RETERR(InvalidDrawContextType);
     }
     if(ctx.marked_content_depth() != 0) {
@@ -169,13 +169,13 @@ rvoe<A4PDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     auto &sc = std::get<SerializedXObject>(sc_var);
     pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.stream));
     ctx.clear();
-    A4PDF_FormXObjectId fxoid;
+    CapyPdF_FormXObjectId fxoid;
     fxoid.id = (int32_t)pdoc.form_xobjects.size() - 1;
-    return rvoe<A4PDF_FormXObjectId>{fxoid};
+    return rvoe<CapyPdF_FormXObjectId>{fxoid};
 }
 
 rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
-    if(cp.pctx.draw_context_type() != A4PDF_DC_COLOR_TILING) {
+    if(cp.pctx.draw_context_type() != CAPY_DC_COLOR_TILING) {
         RETERR(InvalidDrawContextType);
     }
     if(cp.pctx.marked_content_depth() != 0) {
@@ -208,19 +208,19 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
 }
 
 DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{this, &pdoc, &pdoc.cm, A4PDF_DC_PAGE};
+    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE};
 }
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
-    return new PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_DC_PAGE};
+    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE};
 }
 
 ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
-    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, A4PDF_DC_COLOR_TILING}, w, h};
+    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING}, w, h};
 }
 
 rvoe<double>
-PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const {
+PdfGen::utf8_text_width(const char *utf8_text, CapyPdF_FontId fid, double pointsize) const {
     if(utf8_text[0] == '\0') {
         return 0;
     }
@@ -256,4 +256,4 @@ PdfGen::utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsiz
     return w;
 }
 
-} // namespace A4PDF
+} // namespace capypdf

@@ -14,384 +14,391 @@
  * limitations under the License.
  */
 
-#include <a4pdf.h>
+#include <capypdf.h>
 #include <cstring>
 #include <pdfgen.hpp>
 #include <pdfdrawcontext.hpp>
 #include <errorhandling.hpp>
 
-using namespace A4PDF;
+using namespace capypdf;
 
-A4PDF_EC a4pdf_options_new(A4PDF_Options **out_ptr) A4PDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<A4PDF_Options *>(new PdfGenerationData());
-    return (A4PDF_EC)ErrorCode::NoError;
+CAPYPDF_EC capy_options_new(CapyPdF_Options **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPdF_Options *>(new PdfGenerationData());
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC a4pdf_options_destroy(A4PDF_Options *opt) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_options_destroy(CapyPdF_Options *opt) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfGenerationData *>(opt);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC a4pdf_options_set_title(A4PDF_Options *opt, const char *utf8_title) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_options_set_title(CapyPdF_Options *opt, const char *utf8_title) CAPYPDF_NOEXCEPT {
     reinterpret_cast<PdfGenerationData *>(opt)->title = utf8_title;
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_author(A4PDF_Options *opt,
-                                               const char *utf8_author) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPdF_Options *opt,
+                                                  const char *utf8_author) CAPYPDF_NOEXCEPT {
     reinterpret_cast<PdfGenerationData *>(opt)->author = utf8_author;
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_mediabox(
-    A4PDF_Options *opt, double x, double y, double w, double h) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_mediabox(
+    CapyPdF_Options *opt, double x, double y, double w, double h) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     opts->mediabox.x = x;
     opts->mediabox.y = y;
     opts->mediabox.w = w;
     opts->mediabox.h = h;
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_options_set_colorspace(A4PDF_Options *opt,
-                                                   enum A4PDF_Colorspace cs) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPdF_Options *opt,
+                                                      enum CapyPdF_Colorspace cs) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     opts->output_colorspace = cs;
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC a4pdf_generator_new(const char *filename,
-                             const A4PDF_Options *options,
-                             A4PDF_Generator **out_ptr) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_generator_new(const char *filename,
+                              const CapyPdF_Options *options,
+                              CapyPdF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_NULL(filename);
     CHECK_NULL(options);
     CHECK_NULL(out_ptr);
     auto opts = reinterpret_cast<const PdfGenerationData *>(options);
     auto genconstruct = PdfGen::construct(filename, *opts);
     if(!genconstruct) {
-        return (A4PDF_EC)genconstruct.error();
+        return (CAPYPDF_EC)genconstruct.error();
     }
-    *out_ptr = reinterpret_cast<A4PDF_Generator *>(genconstruct.value().release());
-    return (A4PDF_EC)ErrorCode::NoError;
+    *out_ptr = reinterpret_cast<CapyPdF_Generator *>(genconstruct.value().release());
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC a4pdf_generator_add_page(A4PDF_Generator *g, A4PDF_DrawContext *dctx) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_generator_add_page(CapyPdF_Generator *g,
+                                   CapyPdF_DrawContext *dctx) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
 
     auto rc = gen->add_page(*ctx);
     if(rc) {
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)rc.error();
+    return (CAPYPDF_EC)rc.error();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_generator_embed_jpg(A4PDF_Generator *g,
-                                                const char *fname,
-                                                A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPdF_Generator *g,
+                                                   const char *fname,
+                                                   CapyPdF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto res = gen->embed_jpg(fname);
     if(res) {
         *iid = res.value();
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)res.error();
+    return (CAPYPDF_EC)res.error();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_font(A4PDF_Generator *g,
-                                                const char *fname,
-                                                A4PDF_FontId *fid) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPdF_Generator *g,
+                                                   const char *fname,
+                                                   CapyPdF_FontId *fid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_font(fname);
     if(rc) {
         *fid = rc.value();
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)rc.error();
+    return (CAPYPDF_EC)rc.error();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_image(A4PDF_Generator *g,
-                                                 const char *fname,
-                                                 A4PDF_ImageId *iid) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPdF_Generator *g,
+                                                    const char *fname,
+                                                    CapyPdF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto load_result = gen->load_image(fname);
     if(load_result) {
         *iid = load_result.value();
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)load_result.error();
+    return (CAPYPDF_EC)load_result.error();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_generator_load_icc_profile(A4PDF_Generator *g,
-                                                       const char *fname,
-                                                       A4PDF_IccColorSpaceId *iid) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_icc_profile(
+    CapyPdF_Generator *g, const char *fname, CapyPdF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto res = gen->load_icc_file(fname);
     if(res) {
         *iid = res.value();
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)res.error();
+    return (CAPYPDF_EC)res.error();
 }
 
-A4PDF_EC a4pdf_generator_write(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_generator_write(CapyPdF_Generator *generator) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = g->write();
     if(rc) {
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)rc.error();
+    return (CAPYPDF_EC)rc.error();
 }
 
-A4PDF_EC a4pdf_generator_destroy(A4PDF_Generator *generator) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_generator_destroy(CapyPdF_Generator *generator) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     delete g;
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_generator_utf8_text_width(A4PDF_Generator *generator,
-                                                      const char *utf8_text,
-                                                      A4PDF_FontId font,
-                                                      double pointsize,
-                                                      double *width) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_utf8_text_width(CapyPdF_Generator *generator,
+                                                         const char *utf8_text,
+                                                         CapyPdF_FontId font,
+                                                         double pointsize,
+                                                         double *width) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = g->utf8_text_width(utf8_text, font, pointsize);
     if(rc) {
         *width = rc.value();
-        return (A4PDF_EC)ErrorCode::NoError;
+        return (CAPYPDF_EC)ErrorCode::NoError;
     }
-    return (A4PDF_EC)rc.error();
+    return (CAPYPDF_EC)rc.error();
 }
 
 // Draw Context
 
-A4PDF_EC a4pdf_page_draw_context_new(A4PDF_Generator *g,
-                                     A4PDF_DrawContext **out_ptr) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_page_draw_context_new(CapyPdF_Generator *g,
+                                      CapyPdF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    *out_ptr = reinterpret_cast<A4PDF_DrawContext *>(gen->new_page_draw_context());
-    return (A4PDF_EC)ErrorCode::NoError;
+    *out_ptr = reinterpret_cast<CapyPdF_DrawContext *>(gen->new_page_draw_context());
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_B(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_B();
+    return (CAPYPDF_EC)c->cmd_B();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_Bstar(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Bstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_Bstar();
+    return (CAPYPDF_EC)c->cmd_Bstar();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_c(A4PDF_DrawContext *ctx,
-                                     double x1,
-                                     double y1,
-                                     double x2,
-                                     double y2,
-                                     double x3,
-                                     double y3) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_c(CapyPdF_DrawContext *ctx,
+                                        double x1,
+                                        double y1,
+                                        double x2,
+                                        double y2,
+                                        double x3,
+                                        double y3) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_c(x1, y1, x2, y2, x3, y3);
+    return (CAPYPDF_EC)c->cmd_c(x1, y1, x2, y2, x3, y3);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_cm(A4PDF_DrawContext *ctx,
-                                      double m1,
-                                      double m2,
-                                      double m3,
-                                      double m4,
-                                      double m5,
-                                      double m6) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPdF_DrawContext *ctx,
+                                         double m1,
+                                         double m2,
+                                         double m3,
+                                         double m4,
+                                         double m5,
+                                         double m6) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_cm(m1, m2, m3, m4, m5, m6);
+    return (CAPYPDF_EC)c->cmd_cm(m1, m2, m3, m4, m5, m6);
 }
 
-A4PDF_EC a4pdf_dc_cmd_f(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_dc_cmd_f(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_f();
+    return (CAPYPDF_EC)c->cmd_f();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_S(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_S();
+    return (CAPYPDF_EC)c->cmd_S();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_h(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_h();
+    return (CAPYPDF_EC)c->cmd_h();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_j(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Join join_style) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_j(CapyPdF_DrawContext *ctx,
+                                        CAPYPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_j(join_style);
+    return (CAPYPDF_EC)c->cmd_j(join_style);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_J(A4PDF_DrawContext *ctx,
-                                     A4PDF_Line_Cap cap_style) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_J(CapyPdF_DrawContext *ctx,
+                                        CAPYPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_J(cap_style);
+    return (CAPYPDF_EC)c->cmd_J(cap_style);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_k(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
-    A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_k(CapyPdF_DrawContext *ctx, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)dc->cmd_k(c, m, y, k);
+    return (CAPYPDF_EC)dc->cmd_k(c, m, y, k);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_K(A4PDF_DrawContext *ctx, double c, double m, double y, double k)
-    A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_K(CapyPdF_DrawContext *ctx, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)dc->cmd_K(c, m, y, k);
+    return (CAPYPDF_EC)dc->cmd_K(c, m, y, k);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_l(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_l(CapyPdF_DrawContext *ctx,
+                                        double x,
+                                        double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_l(x, y);
+    return (CAPYPDF_EC)c->cmd_l(x, y);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_m(A4PDF_DrawContext *ctx, double x, double y) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_m(CapyPdF_DrawContext *ctx,
+                                        double x,
+                                        double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_m(x, y);
+    return (CAPYPDF_EC)c->cmd_m(x, y);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_q();
+    return (CAPYPDF_EC)c->cmd_q();
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_Q(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_Q();
+    return (CAPYPDF_EC)c->cmd_Q();
 }
 
-A4PDF_EC
-a4pdf_dc_cmd_re(A4PDF_DrawContext *ctx, double x, double y, double w, double h) A4PDF_NOEXCEPT {
+CAPYPDF_EC
+capy_dc_cmd_re(CapyPdF_DrawContext *ctx, double x, double y, double w, double h) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_re(x, y, w, h);
+    return (CAPYPDF_EC)c->cmd_re(x, y, w, h);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_cmd_w(A4PDF_DrawContext *ctx, double line_width) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPdF_DrawContext *ctx,
+                                        double line_width) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->cmd_w(line_width);
+    return (CAPYPDF_EC)c->cmd_w(line_width);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_stroke(A4PDF_DrawContext *ctx,
-                                              A4PDF_IccColorSpaceId icc_id,
-                                              double *values,
-                                              int32_t num_values) A4PDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->set_stroke_color(icc_id, values, num_values);
-}
-
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_icc_nonstroke(A4PDF_DrawContext *ctx,
-                                                 A4PDF_IccColorSpaceId icc_id,
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_stroke(CapyPdF_DrawContext *ctx,
+                                                 CapyPdF_IccColorSpaceId icc_id,
                                                  double *values,
-                                                 int32_t num_values) A4PDF_NOEXCEPT {
+                                                 int32_t num_values) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->set_nonstroke_color(icc_id, values, num_values);
+    return (CAPYPDF_EC)c->set_stroke_color(icc_id, values, num_values);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_draw_image(A4PDF_DrawContext *ctx,
-                                          A4PDF_ImageId iid) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_nonstroke(CapyPdF_DrawContext *ctx,
+                                                    CapyPdF_IccColorSpaceId icc_id,
+                                                    double *values,
+                                                    int32_t num_values) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)c->draw_image(iid);
+    return (CAPYPDF_EC)c->set_nonstroke_color(icc_id, values, num_values);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
-                                                const char *text,
-                                                A4PDF_FontId fid,
-                                                double point_size,
-                                                double x,
-                                                double y) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPdF_DrawContext *ctx,
+                                             CapyPdF_ImageId iid) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->draw_image(iid);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPdF_DrawContext *ctx,
+                                                   const char *text,
+                                                   CapyPdF_FontId fid,
+                                                   double point_size,
+                                                   double x,
+                                                   double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     c->render_utf8_text(text, fid, point_size, x, y);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC
-a4pdf_dc_cmd_RG(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
+CAPYPDF_EC
+capy_dc_cmd_RG(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_stroke_color(rgb);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_EC
-a4pdf_dc_cmd_rg(A4PDF_DrawContext *ctx, double r, double g, double b) A4PDF_NOEXCEPT {
+CAPYPDF_EC
+capy_dc_cmd_rg(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     DeviceRGBColor rgb{r, g, b};
     c->set_nonstroke_color(rgb);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_text_obj(A4PDF_DrawContext *ctx,
-                                               A4PDF_Text *text) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPdF_DrawContext *ctx,
+                                                  CapyPdF_Text *text) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     auto t = reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)c->render_text(*t);
+    return (CAPYPDF_EC)c->render_text(*t);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_page_transition(
-    A4PDF_DrawContext *dc, A4PDF_PageTransition *transition) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
+    CapyPdF_DrawContext *dc, CAPYPDF_PageTransition *transition) CAPYPDF_NOEXCEPT {
     auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
     auto t = reinterpret_cast<PageTransition *>(transition);
     auto rc = ctx->set_transition(*t);
-    return (A4PDF_EC)(rc ? ErrorCode::NoError : rc.error());
+    return (CAPYPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
 
-A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *ctx) A4PDF_NOEXCEPT {
+CAPYPDF_EC capy_dc_destroy(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_new(A4PDF_Text **out_ptr) A4PDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<A4PDF_Text *>(new A4PDF::PdfText());
-    return (A4PDF_EC)ErrorCode::NoError;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPdF_Text **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPdF_Text *>(new capypdf::PdfText());
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_render_utf8_text(A4PDF_Text *text,
-                                                  const char *utf8_text) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPdF_Text *text,
+                                                     const char *utf8_text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
+    return (CAPYPDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tc(A4PDF_Text *text, double spacing) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tc(CapyPdF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)t->cmd_Tc(spacing);
+    return (CAPYPDF_EC)t->cmd_Tc(spacing);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Td(A4PDF_Text *text, double x, double y) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Td(CapyPdF_Text *text,
+                                           double x,
+                                           double y) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)t->cmd_Td(x, y);
+    return (CAPYPDF_EC)t->cmd_Td(x, y);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tf(A4PDF_Text *text,
-                                        A4PDF_FontId font,
-                                        double pointsize) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPdF_Text *text,
+                                           CapyPdF_FontId font,
+                                           double pointsize) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)t->cmd_Tf(font, pointsize);
+    return (CAPYPDF_EC)t->cmd_Tf(font, pointsize);
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_text_destroy(A4PDF_Text *text) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPdF_Text *text) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfText *>(text);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_new(A4PDF_PageTransition **out_ptr,
-                                                A4PDF_Transition_Type type,
-                                                double duration) A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,
+                                                   CAPYPDF_Transition_Type type,
+                                                   double duration) CAPYPDF_NOEXCEPT {
     auto pt = new PageTransition{};
     pt->type = type;
     pt->duration = duration;
-    *out_ptr = reinterpret_cast<A4PDF_PageTransition *>(pt);
-    return (A4PDF_EC)ErrorCode::NoError;
+    *out_ptr = reinterpret_cast<CAPYPDF_PageTransition *>(pt);
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_destroy(A4PDF_PageTransition *transition)
-    A4PDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_destroy(CAPYPDF_PageTransition *transition)
+    CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PageTransition *>(transition);
-    return (A4PDF_EC)ErrorCode::NoError;
+    return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-const char *a4pdf_error_message(A4PDF_EC error_code) A4PDF_NOEXCEPT {
+const char *capy_error_message(CAPYPDF_EC error_code) CAPYPDF_NOEXCEPT {
     return error_text((ErrorCode)error_code);
 }

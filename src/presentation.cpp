@@ -18,7 +18,7 @@
 #include <cmath>
 #include <span>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 const std::array<const char *, 12> trnames{
     "Split",
@@ -44,7 +44,7 @@ int main(int, char **) {
     opts.mediabox.h = h;
     opts.title = "Presentation test";
     opts.author = "Joe Speaker";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("presentation.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -58,10 +58,10 @@ int main(int, char **) {
             auto &ctx = *ctxh;
             ctx.cmd_rg(0, 0, 0);
             ctx.render_pdfdoc_text_builtin(
-                "Transition styles", A4PDF_FONT_HELVETICA_BOLD, 16, 10, 45);
+                "Transition styles", CAPY_FONT_HELVETICA_BOLD, 16, 10, 45);
             gen.add_page(ctx);
             for(size_t i = 0; i < trnames.size(); ++i) {
-                transition.type = A4PDF_Transition_Type(i);
+                transition.type = CAPYPDF_Transition_Type(i);
                 if(i % 2) {
                     ctx.cmd_rg(0.9, 0, 0.0);
                 } else {
@@ -70,8 +70,7 @@ int main(int, char **) {
                 ctx.cmd_re(0, 0, w, h);
                 ctx.cmd_f();
                 ctx.cmd_rg(0, 0, 0);
-                ctx.render_pdfdoc_text_builtin(
-                    trnames.at(i), A4PDF_FONT_HELVETICA_BOLD, 14, 30, 35);
+                ctx.render_pdfdoc_text_builtin(trnames.at(i), CAPY_FONT_HELVETICA_BOLD, 14, 30, 35);
                 ctx.set_transition(transition);
                 gen.add_page(ctx);
             }

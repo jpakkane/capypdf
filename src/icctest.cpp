@@ -17,7 +17,7 @@
 #include <pdfgen.hpp>
 #include <cmath>
 #include <span>
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "ICC test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("icc_test.pdf", opts);
         PdfGen &gen = *genpop.g;

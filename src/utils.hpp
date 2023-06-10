@@ -24,7 +24,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace A4PDF {
+namespace capypdf {
 
 rvoe<std::string> flate_compress(std::string_view data);
 
@@ -44,4 +44,4 @@ std::string pdfstring_quote(std::string_view raw_string);
 
 bool is_ascii(std::string_view text);
 
-} // namespace A4PDF
+} // namespace capypdf

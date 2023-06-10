@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <a4pdf.h>
+#include <capypdf.h>
 #include <errorhandling.hpp>
 
 #include <optional>
@@ -43,21 +43,21 @@
         }                                                                                          \
     }
 
-DEF_BASIC_OPERATORS(A4PDF_ImageId);
+DEF_BASIC_OPERATORS(CapyPdF_ImageId);
 
-DEF_BASIC_OPERATORS(A4PDF_FontId);
+DEF_BASIC_OPERATORS(CapyPdF_FontId);
 
-DEF_BASIC_OPERATORS(A4PDF_IccColorSpaceId);
+DEF_BASIC_OPERATORS(CapyPdF_IccColorSpaceId);
 
-DEF_BASIC_OPERATORS(A4PDF_FormXObjectId);
+DEF_BASIC_OPERATORS(CapyPdF_FormXObjectId);
 
-DEF_BASIC_OPERATORS(A4PDF_FormWidgetId);
+DEF_BASIC_OPERATORS(CapyPdF_FormWidgetId);
 
-DEF_BASIC_OPERATORS(A4PDF_AnnotationId);
+DEF_BASIC_OPERATORS(CapyPdF_AnnotationId);
 
-DEF_BASIC_OPERATORS(A4PDF_StructureItemId);
+DEF_BASIC_OPERATORS(CapyPdF_StructureItemId);
 
-namespace A4PDF {
+namespace capypdf {
 
 struct PdfBox {
     double x;
@@ -143,8 +143,8 @@ struct OutlineId {
 };
 
 struct GraphicsState {
-    std::optional<A4PDF_Rendering_Intent> intent;
-    std::optional<A4PDF_Blend_Mode> blend_mode;
+    std::optional<CapyPdF_Rendering_Intent> intent;
+    std::optional<CAPYPDF_Blend_Mode> blend_mode;
     std::optional<bool> OP;
     std::optional<bool> op;
     std::optional<int32_t> OPM;
@@ -200,7 +200,7 @@ struct FunctionType2 {
 
 // Linear
 struct ShadingType2 {
-    A4PDF_Colorspace colorspace;
+    CapyPdF_Colorspace colorspace;
     double x0, y0, x1, y1;
     FunctionId function;
     bool extend0, extend1;
@@ -208,7 +208,7 @@ struct ShadingType2 {
 
 // Radial
 struct ShadingType3 {
-    A4PDF_Colorspace colorspace;
+    CapyPdF_Colorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     FunctionId function;
     bool extend0, extend1;
@@ -219,13 +219,13 @@ struct TextStateParameters {
     std::optional<double> word_spacing;
     std::optional<double> horizontal_scaling;
     std::optional<double> leading;
-    std::optional<A4PDF_Text_Mode> render_mode;
+    std::optional<CapyPdF_Text_Mode> render_mode;
     std::optional<double> rise;
     // Knockout can only be set with gs.
 };
 
 struct FontSubset {
-    A4PDF_FontId fid;
+    CapyPdF_FontId fid;
     int32_t subset_id;
 
     bool operator==(const FontSubset &other) const {
@@ -238,7 +238,7 @@ struct FontSubset {
 extern const std::array<const char *, 4> rendering_intent_names;
 
 struct PageTransition {
-    std::optional<A4PDF_Transition_Type> type;
+    std::optional<CAPYPDF_Transition_Type> type;
     std::optional<double> duration;
     std::optional<bool> Dm;    // true is horizontal
     std::optional<bool> M;     // true is inward
@@ -247,4 +247,4 @@ struct PageTransition {
     std::optional<bool> B;
 };
 
-} // namespace A4PDF
+} // namespace capypdf

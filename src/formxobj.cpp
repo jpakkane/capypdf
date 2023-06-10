@@ -18,7 +18,7 @@
 #include <cmath>
 #include <span>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
@@ -26,11 +26,11 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "Acroform  test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("foxbj_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        A4PDF_FormXObjectId xid;
+        CapyPdF_FormXObjectId xid;
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_w(1);

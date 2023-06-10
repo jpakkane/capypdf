@@ -35,7 +35,7 @@ const std::array<const char *, 16> gstate_names{"NORMAL",
                                                 "COLOR",
                                                 "LUMINOSITY"};
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     if(argc != 3) {
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     PdfGenerationData opts;
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     opts.mediabox.x = opts.mediabox.y = 0;
     opts.mediabox.w = 300;
     opts.mediabox.h = 300;
@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     GraphicsState gs;
-    gs.blend_mode = A4PDF_BM_MULTIPLY;
-    gs.intent = A4PDF_RI_PERCEPTUAL;
+    gs.blend_mode = CAPY_BM_MULTIPLY;
+    gs.intent = CAPY_RI_PERCEPTUAL;
     auto bg_img = gen.load_image(argv[1]).value();
     auto fg_img = gen.load_image(argv[2]).value();
     ctx.cmd_q();
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     ctx.cmd_Q();
     // There are 16 blend modes.
     const int imsize = 40;
-    A4PDF_Blend_Mode bm = A4PDF_BM_NORMAL;
+    CAPYPDF_Blend_Mode bm = CAPY_BM_NORMAL;
     for(int j = 3; j >= 0; --j) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
@@ -77,9 +77,9 @@ int main(int argc, char **argv) {
             ctx.cmd_Q();
             ctx.cmd_q();
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.3) * 1.5 * imsize);
-            ctx.render_pdfdoc_text_builtin(gstate_names.at(bm), A4PDF_FONT_HELVETICA, 8, 0, 0);
+            ctx.render_pdfdoc_text_builtin(gstate_names.at(bm), CAPY_FONT_HELVETICA, 8, 0, 0);
             ctx.cmd_Q();
-            bm = (A4PDF_Blend_Mode)((int)bm + 1);
+            bm = (CAPYPDF_Blend_Mode)((int)bm + 1);
         }
     }
     return 0;

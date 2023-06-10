@@ -18,7 +18,7 @@
 #include <cmath>
 #include <span>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
@@ -38,14 +38,14 @@ int main(int argc, char **argv) {
             auto &ctx = ctxguard.ctx;
 
             ctx.render_pdfdoc_text_builtin(
-                "<- an embedded file.", A4PDF_FONT_HELVETICA, 12, 50, 100);
+                "<- an embedded file.", CAPY_FONT_HELVETICA, 12, 50, 100);
             ctx.annotate(fileannoid);
             auto textannoid = gen.create_annotation(PdfRectangle{150, 60, 180, 90},
                                                     TextAnnotation{"This is a text annotation"})
                                   .value();
             ctx.annotate(textannoid);
             ctx.cmd_rg(0, 0, 1);
-            ctx.render_pdfdoc_text_builtin("Link", A4PDF_FONT_HELVETICA, 12, 10, 10);
+            ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
                 gen.create_annotation(PdfRectangle{10, 10, 32, 20},
                                       UriAnnotation{"https://github.com/mesonbuild/meson"})

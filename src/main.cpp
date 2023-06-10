@@ -16,14 +16,14 @@
 
 #include <pdfgen.hpp>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
     opts.title = "PDF experiment";
     opts.author = "Peter David Foster, esq";
-    opts.output_colorspace = A4PDF_CS_DEVICE_CMYK;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
@@ -38,17 +38,17 @@ int main(int argc, char **argv) {
             ctx.cmd_re(300, 100, 200, 100);
             ctx.cmd_S();
             ctx.render_pdfdoc_text_builtin(
-                "This is text in Times New Roman.", A4PDF_FONT_TIMES_ROMAN, 12, 100, 500);
+                "This is text in Times New Roman.", CAPY_FONT_TIMES_ROMAN, 12, 100, 500);
             ctx.render_pdfdoc_text_builtin(
-                "This is text in Helvetica.", A4PDF_FONT_HELVETICA, 12, 100, 480);
+                "This is text in Helvetica.", CAPY_FONT_HELVETICA, 12, 100, 480);
             ctx.render_pdfdoc_text_builtin(
-                "This is text in Courier.", A4PDF_FONT_COURIER, 12, 100, 460);
+                "This is text in Courier.", CAPY_FONT_COURIER, 12, 100, 460);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.9});
             ctx.cmd_re(200, 300, 200, 100);
             ctx.cmd_f();
             const auto sep = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
             ctx.set_separation_nonstroke_color(sep, 1.0);
-            ctx.render_pdfdoc_text_builtin("GOLD!", A4PDF_FONT_HELVETICA_BOLD, 32, 250, 340);
+            ctx.render_pdfdoc_text_builtin("GOLD!", CAPY_FONT_HELVETICA_BOLD, 32, 250, 340);
         }
         gen.add_page(ctx);
         {

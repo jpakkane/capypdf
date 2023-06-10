@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <a4pdf.h>
+#include <capypdf.h>
 #include <variant>
 #include <cstdint>
 #include <errorhandling.hpp>
 #include <vector>
 #include <string>
 
-namespace A4PDF {
+namespace capypdf {
 
 typedef std::variant<uint32_t, double> CharItem;
 
@@ -42,7 +42,7 @@ struct TD_arg {
 };
 
 struct Tf_arg {
-    A4PDF_FontId font;
+    CapyPdF_FontId font;
     double pointsize;
 };
 
@@ -63,7 +63,7 @@ struct Tm_arg {
 };
 
 struct Tr_arg {
-    A4PDF_Text_Mode rmode;
+    CapyPdF_Text_Mode rmode;
 };
 
 struct Ts_arg {
@@ -93,7 +93,7 @@ typedef std::variant<TStar_arg,
                      Ts_arg,
                      Tw_arg,
                      Tz_arg,
-                     A4PDF_StructureItemId,
+                     CapyPdF_StructureItemId,
                      Emc_arg>
     TextEvent;
 
@@ -101,7 +101,7 @@ class PdfText {
 public:
     PdfText(){};
 
-    ErrorCode cmd_BDC(A4PDF_StructureItemId sid) {
+    ErrorCode cmd_BDC(CapyPdF_StructureItemId sid) {
         events.emplace_back(sid);
         return ErrorCode::NoError;
     }
@@ -131,7 +131,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tf(A4PDF_FontId font, double pointsize) {
+    ErrorCode cmd_Tf(CapyPdF_FontId font, double pointsize) {
         events.emplace_back(Tf_arg{font, pointsize});
         return ErrorCode::NoError;
     }
@@ -158,7 +158,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tr(A4PDF_Text_Mode rmode) {
+    ErrorCode cmd_Tr(CapyPdF_Text_Mode rmode) {
         events.emplace_back(Tr_arg{rmode});
         return ErrorCode::NoError;
     }
@@ -184,4 +184,4 @@ private:
     std::vector<TextEvent> events;
 };
 
-} // namespace A4PDF
+} // namespace capypdf

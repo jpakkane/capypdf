@@ -1,0 +1,307 @@
+/*
+ * Copyright 2023 Jussi Pakkanen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <stdint.h>
+
+#mesondefine CAPYPDF_VERSION_STR
+#mesondefine CAPYPDF_VERSION_MAJOR
+#mesondefine CAPYPDF_VERSION_MINOR
+#mesondefine CAPYPDF_VERSION_MICRO
+
+#if defined _WIN32
+#ifdef BUILDING_CAPYPDF
+#define CAPYPDF_PUBLIC __declspec(dllexport)
+#else
+#define CAPYPDF_PUBLIC __declspec(dllimport)
+#endif
+#else
+#ifdef BUILDING_CAPYPDF
+#define CAPYPDF_PUBLIC __attribute__((visibility("default")))
+#else
+#define CAPYPDF_PUBLIC
+#endif
+#endif
+
+#ifdef __cplusplus
+#define CAPYPDF_NOEXCEPT noexcept
+extern "C" {
+#else
+#define CAPYPDF_NOEXCEPT
+#endif
+
+enum CapyPdF_Builtin_Fonts {
+    CAPY_FONT_TIMES_ROMAN,
+    CAPY_FONT_HELVETICA,
+    CAPY_FONT_COURIER,
+    CAPY_FONT_TIMES_ROMAN_BOLD,
+    CAPY_FONT_HELVETICA_BOLD,
+    CAPY_FONT_COURIER_BOLD,
+    CAPY_FONT_TIMES_ROMAN_ITALIC,
+    CAPY_FONT_HELVETICA_OBLIQUE,
+    CAPY_FONT_COURIER_OBLIQUE,
+};
+
+enum CapyPdF_Colorspace { CAPYPDF_CS_DEVICE_RGB, CAPYPDF_CS_DEVICE_GRAY, CAPYPDF_CS_DEVICE_CMYK };
+
+enum CapyPdF_Rendering_Intent {
+    CAPY_RI_RELATIVE_COLORIMETRIC,
+    CAPY_RI_ABSOLUTE_COLORIMETRIC,
+    CAPY_RI_SATURATION,
+    CAPY_RI_PERCEPTUAL
+};
+
+enum CapyPdF_Text_Mode {
+    CAPY_TEXT_FILL,
+    CAPY_TEXT_STROKE,
+    CAPY_TEXT_FILL_STROKE,
+    CAPY_TEXT_INVISIBLE,
+    CAPY_TEXT_FILL_CLIP,
+    CAPY_TEXT_STROKE_CLIP,
+    CAPY_TEXT_FILL_STROKE_CLIP,
+    CAPY_TEXT_CLIP,
+};
+
+enum CAPYPDF_Blend_Mode {
+    CAPY_BM_NORMAL,
+    CAPY_BM_MULTIPLY,
+    CAPY_BM_SCREEN,
+    CAPY_BM_OVERLAY,
+    CAPY_BM_DARKEN,
+    CAPY_BM_LIGHTEN,
+    CAPY_BM_COLORDODGE,
+    CAPY_BM_COLORBURN,
+    CAPY_BM_HARDLIGHT,
+    CAPY_BM_SOFTLIGHT,
+    CAPY_BM_DIFFERENCE,
+    CAPY_BM_EXCLUSION,
+    CAPY_BM_HUE,
+    CAPY_BM_SATURATION,
+    CAPY_BM_COLOR,
+    CAPY_BM_LUMINOSITY,
+};
+
+enum CAPYPDF_Line_Cap { CAPY_LC_BUTT, CAPY_LC_ROUND, CAPY_LC_PROJECTION };
+
+enum CAPYPDF_Line_Join {
+    CAPY_LJ_MITER,
+    CAPY_LJ_ROUND,
+    CAPY_LJ_BEVEL,
+};
+
+enum CAPYPDF_Draw_Context_Type {
+    CAPY_DC_PAGE,
+    CAPY_DC_COLOR_TILING,
+    CAPY_DC_UCOLORED_TILING,
+    CAPY_DC_FORM_XOBJECT,
+};
+
+enum CAPYPDF_Transition_Type {
+    CAPY_TR_SPLIT,
+    CAPY_TR_BLINDS,
+    CAPY_TR_BOX,
+    CAPY_TR_WIPE,
+    CAPY_TR_DISSOLVE,
+    CAPY_TR_GLITTER,
+    CAPY_TR_R,
+    CAPY_TR_FLY,
+    CAPY_TR_PUSH,
+    CAPY_TR_COVER,
+    CAPY_TR_UNCOVER,
+    CAPY_TR_FADE,
+};
+
+typedef struct _CapyPdF_Options CapyPdF_Options;
+typedef struct _CapyPdF_Generator CapyPdF_Generator;
+typedef struct _CapyPdF_DrawContext CapyPdF_DrawContext;
+typedef struct _CapyPdF_Text CapyPdF_Text;
+typedef struct _CAPYPDF_PageTransition CAPYPDF_PageTransition;
+
+typedef int32_t CAPYPDF_EC;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_ImageId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_FontId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_IccColorSpaceId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_FormXObjectId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_FormWidgetId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_EmbeddedFileId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_AnnotationId;
+
+typedef struct {
+    int32_t id;
+} CapyPdF_StructureItemId;
+
+// Options
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_new(CapyPdF_Options **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_destroy(CapyPdF_Options *) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_title(CapyPdF_Options *opt,
+                                                 const char *utf8_title) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPdF_Options *opt,
+                                                  const char *utf8_author) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_mediabox(
+    CapyPdF_Options *opt, double x, double y, double w, double h) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPdF_Options *opt,
+                                                      enum CapyPdF_Colorspace cs) CAPYPDF_NOEXCEPT;
+
+// Generator
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_new(const char *filename,
+                                             const CapyPdF_Options *options,
+                                             CapyPdF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_page(CapyPdF_Generator *g,
+                                                  CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPdF_Generator *g,
+                                                   const char *fname,
+                                                   CapyPdF_ImageId *iid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPdF_Generator *g,
+                                                   const char *fname,
+                                                   CapyPdF_FontId *fid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPdF_Generator *g,
+                                                    const char *fname,
+                                                    CapyPdF_ImageId *iid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_icc_profile(
+    CapyPdF_Generator *g, const char *fname, CapyPdF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_write(CapyPdF_Generator *g) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_destroy(CapyPdF_Generator *g) CAPYPDF_NOEXCEPT;
+
+// Probably not final API.
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_utf8_text_width(CapyPdF_Generator *g,
+                                                         const char *utf8_text,
+                                                         CapyPdF_FontId font,
+                                                         double pointsize,
+                                                         double *width) CAPYPDF_NOEXCEPT;
+
+// Draw context
+
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_page_draw_context_new(CapyPdF_Generator *g, CapyPdF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Bstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_c(CapyPdF_DrawContext *ctx,
+                                        double x1,
+                                        double y1,
+                                        double x2,
+                                        double y2,
+                                        double x3,
+                                        double y3) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPdF_DrawContext *ctx,
+                                         double m1,
+                                         double m2,
+                                         double m3,
+                                         double m4,
+                                         double m5,
+                                         double m6) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_f(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_j(CapyPdF_DrawContext *ctx,
+                                        enum CAPYPDF_Line_Join join_style) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_J(CapyPdF_DrawContext *ctx,
+                                        enum CAPYPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_k(CapyPdF_DrawContext *ctx, double c, double m, double y, double k) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_K(CapyPdF_DrawContext *ctx, double c, double m, double y, double k) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_l(CapyPdF_DrawContext *ctx,
+                                        double x,
+                                        double y) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_m(CapyPdF_DrawContext *ctx,
+                                        double x,
+                                        double y) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_RG(CapyPdF_DrawContext *ctx, double r, double g, double b)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_rg(CapyPdF_DrawContext *ctx, double r, double g, double b)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_re(CapyPdF_DrawContext *ctx, double x, double y, double w, double h) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPdF_DrawContext *ctx,
+                                        double line_width) CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_stroke(CapyPdF_DrawContext *ctx,
+                                                 CapyPdF_IccColorSpaceId icc_id,
+                                                 double *values,
+                                                 int32_t num_values) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_nonstroke(CapyPdF_DrawContext *ctx,
+                                                    CapyPdF_IccColorSpaceId icc_id,
+                                                    double *values,
+                                                    int32_t num_values) CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPdF_DrawContext *ctx,
+                                             CapyPdF_ImageId iid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPdF_DrawContext *ctx,
+                                                   const char *text,
+                                                   CapyPdF_FontId fid,
+                                                   double point_size,
+                                                   double x,
+                                                   double y) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPdF_DrawContext *ctx,
+                                                  CapyPdF_Text *text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
+    CapyPdF_DrawContext *dc, CAPYPDF_PageTransition *transition) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPdF_DrawContext *) CAPYPDF_NOEXCEPT;
+
+// Text
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPdF_Text **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPdF_Text *text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPdF_Text *text,
+                                                     const char *utf8_text) CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tc(CapyPdF_Text *text, double spacing) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Td(CapyPdF_Text *text, double x, double y) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPdF_Text *text,
+                                           CapyPdF_FontId font,
+                                           double pointsize) CAPYPDF_NOEXCEPT;
+
+// Transition
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,
+                                                   enum CAPYPDF_Transition_Type type,
+                                                   double duration) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_destroy(CAPYPDF_PageTransition *transition)
+    CAPYPDF_NOEXCEPT;
+
+// Error
+
+CAPYPDF_PUBLIC const char *capy_error_message(CAPYPDF_EC error_code) CAPYPDF_NOEXCEPT;
+
+#ifdef __cplusplus
+}
+#endif

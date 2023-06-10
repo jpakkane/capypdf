@@ -16,7 +16,7 @@
 
 #include <pdfgen.hpp>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 static void draw_intersect_shape(PdfDrawContext &ctx) {
     ctx.cmd_m(50, 90);
@@ -31,7 +31,7 @@ void basic_painting(PdfDrawContext &ctx) {
     ctx.cmd_w(5);
     {
         auto pop = ctx.push_gstate();
-        ctx.cmd_J(A4PDF_LC_ROUND);
+        ctx.cmd_J(CAPY_LC_ROUND);
         ctx.cmd_m(10, 10);
         ctx.cmd_c(80, 10, 20, 90, 90, 90);
         ctx.cmd_S();
@@ -42,7 +42,7 @@ void basic_painting(PdfDrawContext &ctx) {
         ctx.translate(100, 0);
         ctx.set_stroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
         ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.0});
-        ctx.cmd_j(A4PDF_LJ_BEVEL);
+        ctx.cmd_j(CAPY_LJ_BEVEL);
         ctx.cmd_m(50, 90);
         ctx.cmd_l(10, 10);
         ctx.cmd_l(90, 10);
@@ -56,7 +56,7 @@ void basic_painting(PdfDrawContext &ctx) {
         ctx.cmd_w(3);
         ctx.set_nonstroke_color(DeviceRGBColor{0, 1, 0});
         ctx.set_stroke_color(DeviceRGBColor{0.5, 0.1, 0.5});
-        ctx.cmd_j(A4PDF_LJ_ROUND);
+        ctx.cmd_j(CAPY_LJ_ROUND);
         ctx.cmd_B();
     }
     {
@@ -70,7 +70,7 @@ void basic_painting(PdfDrawContext &ctx) {
     }
 }
 
-void clipping(PdfDrawContext &ctx, A4PDF_ImageId image) {
+void clipping(PdfDrawContext &ctx, CapyPdF_ImageId image) {
     ctx.cmd_w(0.1);
     {
         auto pop = ctx.push_gstate();
@@ -84,8 +84,8 @@ void clipping(PdfDrawContext &ctx, A4PDF_ImageId image) {
     {
         auto pop = ctx.push_gstate();
         ctx.translate(100, 0);
-        ctx.cmd_Tr(A4PDF_TEXT_CLIP);
-        ctx.render_pdfdoc_text_builtin("Awesome!", A4PDF_FONT_TIMES_ROMAN, 18, 10, 50);
+        ctx.cmd_Tr(CAPY_TEXT_CLIP);
+        ctx.render_pdfdoc_text_builtin("Awesome!", CAPY_FONT_TIMES_ROMAN, 18, 10, 50);
         ctx.scale(100, 100);
         ctx.draw_image(image);
     }
@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF path test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("path_test.pdf", opts);
         PdfGen &gen = *genpop.g;

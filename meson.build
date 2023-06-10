@@ -1,17 +1,17 @@
-project('a4pdf', 'cpp', 'c',
+project('capypdf', 'cpp', 'c',
   version: '0.3.0',
   default_options : ['cpp_std=c++23'])
 
 version = meson.project_version()
 varr = version.split('.')
 cdata = configuration_data()
-cdata.set_quoted('A4PDF_VERSION_STR', version)
-cdata.set('A4PDF_VERSION_MAJOR', varr[0])
-cdata.set('A4PDF_VERSION_MINOR', varr[1])
-cdata.set('A4PDF_VERSION_MICRO', varr[2])
+cdata.set_quoted('CAPYPDF_VERSION_STR', version)
+cdata.set('CAPYPDF_VERSION_MAJOR', varr[0])
+cdata.set('CAPYPDF_VERSION_MINOR', varr[1])
+cdata.set('CAPYPDF_VERSION_MICRO', varr[2])
 soversion = 0
 
-header_install_subdir = 'a4pdf-@0@'.format(soversion)
+header_install_subdir = 'capypdf-@0@'.format(soversion)
 
 fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
@@ -30,7 +30,7 @@ subdir('python')
 subdir('test')
 
 pkg_mod = import('pkgconfig')
-pkg_mod.generate(a4pdf_lib,
-  name: 'a4pdf',
-  filebase: 'a4pdf',
+pkg_mod.generate(capypdf_lib,
+  name: 'capypdf',
+  filebase: 'capypdf',
   subdirs: header_install_subdir)

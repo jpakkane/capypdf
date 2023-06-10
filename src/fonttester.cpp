@@ -25,7 +25,7 @@
 #include <cstdio>
 #include <cmath>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     const char *fontfile;

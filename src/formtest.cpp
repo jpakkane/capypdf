@@ -18,7 +18,7 @@
 #include <cmath>
 #include <span>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
@@ -26,11 +26,11 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "Form XObject test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        A4PDF_FormXObjectId offstate, onstate;
+        CapyPdF_FormXObjectId offstate, onstate;
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_BMC("/Tx");
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_BMC("/Tx");
             xobj.cmd_q();
-            xobj.render_pdfdoc_text_builtin("X", A4PDF_FONT_HELVETICA, 12, 0, 0);
+            xobj.render_pdfdoc_text_builtin("X", CAPY_FONT_HELVETICA, 12, 0, 0);
             xobj.cmd_Q();
             xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
             ctx.cmd_re(10, 80, 10, 10);
             ctx.cmd_S();
 
-            ctx.render_pdfdoc_text_builtin("A checkbox", A4PDF_FONT_HELVETICA, 12, 25, 80);
+            ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 80);
             auto rc = ctx.add_form_widget(checkbox_widget);
             if(rc != ErrorCode::NoError) {
                 fprintf(stderr, "FAIL\n");

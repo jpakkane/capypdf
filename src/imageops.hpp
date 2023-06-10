@@ -24,7 +24,7 @@
 #include <expected>
 #include <filesystem>
 
-namespace A4PDF {
+namespace capypdf {
 
 struct mono_image {
     int32_t w;
@@ -67,4 +67,4 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname);
 
 rvoe<jpg_image> load_jpg(const std::filesystem::path &fname);
 
-} // namespace A4PDF
+} // namespace capypdf

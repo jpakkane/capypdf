@@ -28,15 +28,15 @@
 #include <span>
 #include <stack>
 
-template<> struct std::hash<A4PDF::FontSubset> {
-    size_t operator()(A4PDF::FontSubset const &s) const noexcept {
+template<> struct std::hash<capypdf::FontSubset> {
+    size_t operator()(capypdf::FontSubset const &s) const noexcept {
         const size_t x = (size_t)s.fid.id;
         const size_t y = s.subset_id;
         return (x << 32) + y;
     }
 };
 
-namespace A4PDF {
+namespace capypdf {
 
 class PdfDrawContext;
 
@@ -79,7 +79,7 @@ class PdfDrawContext {
 public:
     PdfDrawContext(PdfDocument *g,
                    PdfColorConverter *cm,
-                   A4PDF_Draw_Context_Type dtype,
+                   CAPYPDF_Draw_Context_Type dtype,
                    double w = -1,
                    double h = -1);
     ~PdfDrawContext();
@@ -97,14 +97,14 @@ public:
     ErrorCode cmd_B();
     ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
-    ErrorCode cmd_BDC(A4PDF_StructureItemId sid);
+    ErrorCode cmd_BDC(CapyPdF_StructureItemId sid);
     ErrorCode cmd_BMC(std::string_view tag);
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
     ErrorCode cmd_CS(std::string_view cspace_name);
     ErrorCode cmd_cs(std::string_view cspace_name);
     ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
-    ErrorCode cmd_Do(A4PDF_FormXObjectId fxoid);
+    ErrorCode cmd_Do(CapyPdF_FormXObjectId fxoid);
     ErrorCode cmd_EMC();
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
@@ -114,8 +114,8 @@ public:
     ErrorCode cmd_gs(GstateId id);
     ErrorCode cmd_h();
     ErrorCode cmd_i(double flatness);
-    ErrorCode cmd_j(A4PDF_Line_Join join_style);
-    ErrorCode cmd_J(A4PDF_Line_Cap cap_style);
+    ErrorCode cmd_j(CAPYPDF_Line_Join join_style);
+    ErrorCode cmd_J(CAPYPDF_Line_Cap cap_style);
     ErrorCode cmd_K(double c, double m, double y, double k);
     ErrorCode cmd_k(double c, double m, double y, double k);
     ErrorCode cmd_l(double x, double y);
@@ -127,13 +127,13 @@ public:
     ErrorCode cmd_re(double x, double y, double w, double h);
     ErrorCode cmd_RG(double r, double g, double b);
     ErrorCode cmd_rg(double r, double g, double b);
-    ErrorCode cmd_ri(A4PDF_Rendering_Intent ri);
+    ErrorCode cmd_ri(CapyPdF_Rendering_Intent ri);
     ErrorCode cmd_s();
     ErrorCode cmd_S();
     ErrorCode cmd_SCN(double value);
     ErrorCode cmd_scn(double value);
     ErrorCode cmd_sh(ShadingId shid);
-    ErrorCode cmd_Tr(A4PDF_Text_Mode mode);
+    ErrorCode cmd_Tr(CapyPdF_Text_Mode mode);
     ErrorCode cmd_v(double x2, double y2, double x3, double y3);
     ErrorCode cmd_w(double w);
     ErrorCode cmd_W();
@@ -144,27 +144,27 @@ public:
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(LabId lid, const LabColor &c);
     ErrorCode
-    set_stroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    set_stroke_color(CapyPdF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
     ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
     ErrorCode set_nonstroke_color(PatternId id);
     ErrorCode
-    set_nonstroke_color(A4PDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    set_nonstroke_color(CapyPdF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
     ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
-    ErrorCode draw_image(A4PDF_ImageId obj_num);
+    ErrorCode draw_image(CapyPdF_ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    ErrorCode
-    render_utf8_text(std::string_view text, A4PDF_FontId fid, double pointsize, double x, double y);
+    ErrorCode render_utf8_text(
+        std::string_view text, CapyPdF_FontId fid, double pointsize, double x, double y);
     ErrorCode render_text(const PdfText &textobj);
-    void render_raw_glyph(uint32_t glyph, A4PDF_FontId fid, double pointsize, double x, double y);
+    void render_raw_glyph(uint32_t glyph, CapyPdF_FontId fid, double pointsize, double x, double y);
     ErrorCode
-    render_glyphs(const std::vector<PdfGlyph> &glyphs, A4PDF_FontId fid, double pointsize);
+    render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPdF_FontId fid, double pointsize);
     ErrorCode render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                         A4PDF_Builtin_Fonts font_id,
+                                         CapyPdF_Builtin_Fonts font_id,
                                          double pointsize,
                                          double x,
                                          double y);
@@ -174,10 +174,10 @@ public:
 
     void clear();
 
-    ErrorCode add_form_widget(A4PDF_FormWidgetId widget);
-    ErrorCode annotate(A4PDF_AnnotationId annotation);
+    ErrorCode add_form_widget(CapyPdF_FormWidgetId widget);
+    ErrorCode annotate(CapyPdF_AnnotationId annotation);
 
-    A4PDF_Draw_Context_Type draw_context_type() const { return context_type; }
+    CAPYPDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
 
     std::string build_resource_dict();
@@ -189,11 +189,11 @@ public:
 
     int32_t marked_content_depth() const { return marked_depth; }
 
-    const std::unordered_set<A4PDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
-    const std::unordered_set<A4PDF_AnnotationId> &get_annotation_usage() const {
+    const std::unordered_set<CapyPdF_FormWidgetId> &get_form_usage() const { return used_widgets; }
+    const std::unordered_set<CapyPdF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
-    const std::unordered_set<A4PDF_StructureItemId> &get_structure_usage() const {
+    const std::unordered_set<CapyPdF_StructureItemId> &get_structure_usage() const {
         return used_structures;
     }
 
@@ -206,12 +206,12 @@ public:
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
                                                std::string &serialisation,
-                                               A4PDF_FontId &current_font,
+                                               CapyPdF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
     ErrorCode utf8_to_kerned_chars(std::string_view utf8_text,
                                    std::vector<CharItem> &charseq,
-                                   A4PDF_FontId fid);
+                                   CapyPdF_FontId fid);
 
     void indent(DrawStateType dtype) {
         dstates.push(dtype);
@@ -236,7 +236,7 @@ private:
 
     PdfDocument *doc;
     PdfColorConverter *cm;
-    A4PDF_Draw_Context_Type context_type;
+    CAPYPDF_Draw_Context_Type context_type;
     std::string commands;
     std::back_insert_iterator<std::string> cmd_appender;
     std::unordered_set<int32_t> used_images;
@@ -247,9 +247,9 @@ private:
     std::unordered_set<int32_t> used_shadings;
     std::unordered_set<int32_t> used_patterns;
     std::unordered_set<int32_t> used_form_xobjects;
-    std::unordered_set<A4PDF_FormWidgetId> used_widgets;
-    std::unordered_set<A4PDF_AnnotationId> used_annotations;
-    std::unordered_set<A4PDF_StructureItemId> used_structures;
+    std::unordered_set<CapyPdF_FormWidgetId> used_widgets;
+    std::unordered_set<CapyPdF_AnnotationId> used_annotations;
+    std::unordered_set<CapyPdF_StructureItemId> used_structures;
     std::stack<DrawStateType> dstates;
     std::optional<PageTransition> transition;
     // Reminder: If you add stuff  here, also add them to .clear().
@@ -266,4 +266,4 @@ struct ColorPatternBuilder {
     double w, h;
 };
 
-} // namespace A4PDF
+} // namespace capypdf

@@ -24,7 +24,7 @@
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
 
-namespace A4PDF {
+namespace capypdf {
 
 struct LcmsHolder {
     cmsHPROFILE h;
@@ -80,4 +80,4 @@ private:
     // FIXME, store transforms so that they don't get recreated all the time.
 };
 
-} // namespace A4PDF
+} // namespace capypdf

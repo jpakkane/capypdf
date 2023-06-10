@@ -26,7 +26,7 @@
 #include <optional>
 #include <filesystem>
 
-namespace A4PDF {
+namespace capypdf {
 
 class PdfGen;
 
@@ -37,7 +37,7 @@ struct DrawContextPopper {
     explicit DrawContextPopper(PdfGen *g,
                                PdfDocument *doc,
                                PdfColorConverter *cm,
-                               A4PDF_Draw_Context_Type dtype)
+                               CAPYPDF_Draw_Context_Type dtype)
         : g{g}, ctx{doc, cm, dtype} {}
 
     DrawContextPopper() = delete;
@@ -55,23 +55,23 @@ public:
     rvoe<NoReturnValue> write();
     void new_page();
 
-    rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname) {
+    rvoe<CapyPdF_ImageId> load_image(const std::filesystem::path &fname) {
         return pdoc.load_image(fname);
     }
-    rvoe<A4PDF_ImageId> load_mask_image(const std::filesystem::path &fname) {
+    rvoe<CapyPdF_ImageId> load_mask_image(const std::filesystem::path &fname) {
         return pdoc.load_mask_image(fname);
     }
-    rvoe<A4PDF_ImageId> embed_jpg(const std::filesystem::path &fname) {
+    rvoe<CapyPdF_ImageId> embed_jpg(const std::filesystem::path &fname) {
         return pdoc.embed_jpg(fname);
     }
-    rvoe<A4PDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
+    rvoe<CapyPdF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
         return pdoc.embed_file(fname);
     }
-    rvoe<A4PDF_FontId> load_font(const std::filesystem::path &fname) {
+    rvoe<CapyPdF_FontId> load_font(const std::filesystem::path &fname) {
         return pdoc.load_font(ft.get(), fname);
     };
 
-    ImageSize get_image_info(A4PDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
+    ImageSize get_image_info(CapyPdF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
     }
@@ -86,18 +86,18 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    rvoe<A4PDF_IccColorSpaceId> load_icc_file(const char *fname) {
+    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const char *fname) {
         return pdoc.load_icc_file(fname);
     }
 
-    rvoe<A4PDF_FormWidgetId> create_form_checkbox(PdfBox loc,
-                                                  A4PDF_FormXObjectId onstate,
-                                                  A4PDF_FormXObjectId offstate,
-                                                  std::string_view partial_name) {
+    rvoe<CapyPdF_FormWidgetId> create_form_checkbox(PdfBox loc,
+                                                    CapyPdF_FormXObjectId onstate,
+                                                    CapyPdF_FormXObjectId offstate,
+                                                    std::string_view partial_name) {
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
-    rvoe<A4PDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
+    rvoe<CapyPdF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
         return pdoc.create_annotation(rect, std::move(subtype));
     }
 
@@ -105,13 +105,13 @@ public:
     PdfDrawContext *new_page_draw_context();
 
     PdfDrawContext new_form_xobject(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, A4PDF_DC_FORM_XOBJECT, w, h);
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
     }
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
-    rvoe<A4PDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
+    rvoe<CapyPdF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
 
     OutlineId
@@ -119,19 +119,19 @@ public:
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 
-    rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,
-                                                   std::optional<A4PDF_StructureItemId> parent) {
+    rvoe<CapyPdF_StructureItemId>
+    add_structure_item(std::string_view stype, std::optional<CapyPdF_StructureItemId> parent) {
         return pdoc.add_structure_item(stype, parent);
     }
 
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
     std::optional<double>
-    glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const {
+    glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepoint) const {
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    rvoe<double> utf8_text_width(const char *utf8_text, A4PDF_FontId fid, double pointsize) const;
+    rvoe<double> utf8_text_width(const char *utf8_text, CapyPdF_FontId fid, double pointsize) const;
 
 private:
     PdfGen(std::filesystem::path ofilename,
@@ -163,4 +163,4 @@ struct GenPopper {
     }
 };
 
-} // namespace A4PDF
+} // namespace capypdf

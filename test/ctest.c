@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-#include <a4pdf.h>
+#include <capypdf.h>
 #include <stdio.h>
 
 int main() {
-    A4PDF_EC rc;
-    A4PDF_Generator *gen;
-    A4PDF_Options *opt;
+    CAPYPDF_EC rc;
+    CapyPdF_Generator *gen;
+    CapyPdF_Options *opt;
 
-    if((rc = a4pdf_options_new(&opt)) != 0) {
-        fprintf(stderr, "%s\n", a4pdf_error_message(rc));
+    if((rc = capy_options_new(&opt)) != 0) {
+        fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }
 
-    if((rc = a4pdf_generator_new("dummy.pdf", opt, &gen)) != 0) {
-        fprintf(stderr, "%s\n", a4pdf_error_message(rc));
+    if((rc = capy_generator_new("dummy.pdf", opt, &gen)) != 0) {
+        fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }
 
-    if((rc = a4pdf_options_destroy(opt)) != 0) {
-        fprintf(stderr, "%s\n", a4pdf_error_message(rc));
+    if((rc = capy_options_destroy(opt)) != 0) {
+        fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }
 
-    if((rc = a4pdf_generator_destroy(gen)) != 0) {
-        fprintf(stderr, "%s\n", a4pdf_error_message(rc));
+    if((rc = capy_generator_destroy(gen)) != 0) {
+        fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }
     return 0;

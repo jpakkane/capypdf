@@ -18,7 +18,7 @@
 #include <pdfgen.hpp>
 #include <cmath>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 namespace {
 
@@ -131,7 +131,7 @@ int main(int, char **) {
     opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = "Book cover generation experiment with utf-8 (ö).";
     opts.author = "G. R. Aphicdesigner";
-    opts.output_colorspace = A4PDF_CS_DEVICE_CMYK;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
@@ -166,18 +166,18 @@ int main(int, char **) {
             }
             ctx.set_separation_nonstroke_color(sep_id, 1.0);
             ctx.render_pdfdoc_text_builtin("Front Cover",
-                                           A4PDF_FONT_HELVETICA_BOLD,
+                                           CAPY_FONT_HELVETICA_BOLD,
                                            48,
                                            paper_width / 2 + page_w / 5,
                                            2 * paper_height / 3);
             ctx.set_nonstroke_color(DeviceRGBColor{1.0, 1.0, 1.0});
             ctx.render_pdfdoc_text_builtin("Lorem ipsum dolor sit amet,",
-                                           A4PDF_FONT_TIMES_ROMAN,
+                                           CAPY_FONT_TIMES_ROMAN,
                                            12,
                                            margin + page_w / 6,
                                            2 * paper_height / 3);
             ctx.render_pdfdoc_text_builtin("consectetur adipiscing elit",
-                                           A4PDF_FONT_TIMES_ROMAN,
+                                           CAPY_FONT_TIMES_ROMAN,
                                            12,
                                            margin + page_w / 6,
                                            2 * paper_height / 3 - 12);
@@ -186,13 +186,13 @@ int main(int, char **) {
                 ctx.set_nonstroke_color(DeviceRGBColor{0.0, 0.0, 0.0});
                 ctx.translate(paper_width / 2, 3 * paper_height / 4);
                 ctx.rotate(-M_PI / 2.0);
-                ctx.render_pdfdoc_text_builtin("Name of Book", A4PDF_FONT_HELVETICA_BOLD, 12, 0, 0);
+                ctx.render_pdfdoc_text_builtin("Name of Book", CAPY_FONT_HELVETICA_BOLD, 12, 0, 0);
                 // ctx.cmd_re(0, 0, 10, 10);
                 ctx.cmd_f();
             }
             ctx.set_nonstroke_color(DeviceGrayColor{0});
             ctx.render_pdfdoc_text_builtin("PDF created: YYYY-MM-DD HH:MM",
-                                           A4PDF_FONT_TIMES_ROMAN,
+                                           CAPY_FONT_TIMES_ROMAN,
                                            10,
                                            paper_width / 2 + page_w / 5,
                                            10);

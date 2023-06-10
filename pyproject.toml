@@ -3,7 +3,7 @@ build-backend = 'mesonpy'
 requires = ['meson-python']
 
 [project]
-name = 'a4pdf'
+name = 'capypdf'
 version = '0.3.0'
 description = 'A color managed PDF generation library tech preview'
 readme = 'README.md'

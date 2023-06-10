@@ -28,7 +28,7 @@
 #include <fmt/core.h>
 #include <memory>
 
-namespace A4PDF {
+namespace capypdf {
 
 namespace {
 
@@ -249,4 +249,4 @@ bool is_ascii(std::string_view text) {
     return true;
 }
 
-} // namespace A4PDF
+} // namespace capypdf

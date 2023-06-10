@@ -26,7 +26,7 @@
 #include <vector>
 #include <memory>
 
-namespace A4PDF {
+namespace capypdf {
 
 namespace {
 
@@ -377,4 +377,4 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     std::abort();
 }
 
-} // namespace A4PDF
+} // namespace capypdf

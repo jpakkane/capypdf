@@ -18,7 +18,7 @@
 #include <string_view>
 #include <stdexcept>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     if(!Data) {

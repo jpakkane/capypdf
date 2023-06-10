@@ -41,7 +41,7 @@ typedef int FT_Error;
 
 FT_Error guarded_face_close(FT_Face face);
 
-namespace A4PDF {
+namespace capypdf {
 
 struct TtfFont {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
@@ -88,23 +88,23 @@ struct DeflatePDFObject {
 };
 
 struct DelayedSubsetFontData {
-    A4PDF_FontId fid;
+    CapyPdF_FontId fid;
     int32_t subset_id;
 };
 
 struct DelayedSubsetCMap {
-    A4PDF_FontId fid;
+    CapyPdF_FontId fid;
     int32_t subset_id;
 };
 
 struct DelayedSubsetFontDescriptor {
-    A4PDF_FontId fid;
+    CapyPdF_FontId fid;
     int32_t subfont_data_obj;
     int32_t subset_num;
 };
 
 struct DelayedSubsetFont {
-    A4PDF_FontId fid;
+    CapyPdF_FontId fid;
     int32_t subfont_descriptor_obj;
     int32_t subfont_cmap_obj;
 };
@@ -113,8 +113,8 @@ struct DelayedPages {};
 
 struct DelayedPage {
     int32_t page_num;
-    std::vector<A4PDF_FormWidgetId> used_form_widgets;
-    std::vector<A4PDF_AnnotationId> used_annotations;
+    std::vector<CapyPdF_FormWidgetId> used_form_widgets;
+    std::vector<CapyPdF_AnnotationId> used_annotations;
     std::optional<PageTransition> transition;
 };
 
@@ -155,7 +155,7 @@ struct PdfGenerationData {
 
     std::string title;
     std::string author;
-    A4PDF_Colorspace output_colorspace = A4PDF_CS_DEVICE_RGB;
+    CapyPdF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     ColorProfiles prof;
     std::optional<IntentSubtype> subtype;
     std::string intent_condition_identifier;
@@ -177,12 +177,12 @@ class PdfDrawContext;
 struct ColorPatternBuilder;
 
 struct DelayedCheckboxWidgetAnnotation {
-    A4PDF_FormWidgetId widget;
+    CapyPdF_FormWidgetId widget;
 
     // Annotation dict values.
     PdfBox rect;
-    A4PDF_FormXObjectId on;
-    A4PDF_FormXObjectId off;
+    CapyPdF_FormXObjectId on;
+    CapyPdF_FormXObjectId off;
     // uint32_t F; // Annotation flags;
 
     // Field dict values.
@@ -203,7 +203,7 @@ struct EmbeddedFileObject {
 // Other types here.
 
 struct FileAttachmentAnnotation {
-    A4PDF_EmbeddedFileId fileid;
+    CapyPdF_EmbeddedFileId fileid;
 };
 
 struct TextAnnotation {
@@ -217,19 +217,19 @@ struct UriAnnotation {
 typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation> AnnotationSubType;
 
 struct DelayedAnnotation {
-    A4PDF_AnnotationId id;
+    CapyPdF_AnnotationId id;
     PdfRectangle rect;
     AnnotationSubType sub;
 };
 
 struct DelayedStructItem {
-    A4PDF_StructureItemId sid;
+    CapyPdF_StructureItemId sid;
 };
 
 struct StructItem {
     int32_t obj_id;
     std::string stype;
-    std::optional<A4PDF_StructureItemId> parent;
+    std::optional<CapyPdF_StructureItemId> parent;
 };
 
 typedef std::variant<DummyIndexZero,
@@ -246,7 +246,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedStructItem>
     ObjectType;
 
-typedef std::variant<A4PDF_Colorspace, int32_t> ColorspaceType;
+typedef std::variant<CapyPdF_Colorspace, int32_t> ColorspaceType;
 
 class PdfDocument {
 public:
@@ -262,9 +262,9 @@ public:
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_data,
                                  std::string page_data,
-                                 const std::unordered_set<A4PDF_FormWidgetId> &form_widgets,
-                                 const std::unordered_set<A4PDF_AnnotationId> &annots,
-                                 const std::unordered_set<A4PDF_StructureItemId> &structs,
+                                 const std::unordered_set<CapyPdF_FormWidgetId> &form_widgets,
+                                 const std::unordered_set<CapyPdF_AnnotationId> &annots,
+                                 const std::unordered_set<CapyPdF_StructureItemId> &structs,
                                  const std::optional<PageTransition> &transition);
 
     // Form XObjects
@@ -273,18 +273,18 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
-    rvoe<A4PDF_IccColorSpaceId> load_icc_file(const char *fname);
+    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const char *fname);
 
     // Fonts
-    rvoe<A4PDF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
-    rvoe<SubsetGlyph> get_subset_glyph(A4PDF_FontId fid, uint32_t glyph);
+    rvoe<CapyPdF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
+    rvoe<SubsetGlyph> get_subset_glyph(CapyPdF_FontId fid, uint32_t glyph);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
-    A4PDF_FontId get_builtin_font_id(A4PDF_Builtin_Fonts font);
+    CapyPdF_FontId get_builtin_font_id(CapyPdF_Builtin_Fonts font);
 
     // Images
-    rvoe<A4PDF_ImageId> load_image(const std::filesystem::path &fname);
-    rvoe<A4PDF_ImageId> load_mask_image(const std::filesystem::path &fname);
-    rvoe<A4PDF_ImageId> embed_jpg(const std::filesystem::path &fname);
+    rvoe<CapyPdF_ImageId> load_image(const std::filesystem::path &fname);
+    rvoe<CapyPdF_ImageId> load_mask_image(const std::filesystem::path &fname);
+    rvoe<CapyPdF_ImageId> embed_jpg(const std::filesystem::path &fname);
 
     // Graphics states
     GstateId add_graphics_state(const GraphicsState &state);
@@ -304,23 +304,23 @@ public:
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
 
     // Forms
-    rvoe<A4PDF_FormWidgetId> create_form_checkbox(PdfBox loc,
-                                                  A4PDF_FormXObjectId onstate,
-                                                  A4PDF_FormXObjectId offstate,
-                                                  std::string_view partial_name);
+    rvoe<CapyPdF_FormWidgetId> create_form_checkbox(PdfBox loc,
+                                                    CapyPdF_FormXObjectId onstate,
+                                                    CapyPdF_FormXObjectId offstate,
+                                                    std::string_view partial_name);
 
     // Raw files
-    rvoe<A4PDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
+    rvoe<CapyPdF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
 
     // Annotations.
-    rvoe<A4PDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype);
+    rvoe<CapyPdF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype);
 
     // Structure items
-    rvoe<A4PDF_StructureItemId> add_structure_item(std::string_view stype,
-                                                   std::optional<A4PDF_StructureItemId> parent);
+    rvoe<CapyPdF_StructureItemId> add_structure_item(std::string_view stype,
+                                                     std::optional<CapyPdF_StructureItemId> parent);
 
     std::optional<double>
-    glyph_advance(A4PDF_FontId fid, double pointsize, uint32_t codepoint) const;
+    glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepoint) const;
 
 private:
     PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
@@ -330,12 +330,12 @@ private:
 
     int32_t add_object(ObjectType object);
 
-    int32_t image_object_number(A4PDF_ImageId iid) { return image_info.at(iid.id).obj; }
-    int32_t font_object_number(A4PDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
+    int32_t image_object_number(CapyPdF_ImageId iid) { return image_info.at(iid.id).obj; }
+    int32_t font_object_number(CapyPdF_FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
 
-    std::optional<A4PDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
-    A4PDF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
+    std::optional<CapyPdF_IccColorSpaceId> find_icc_profile(std::string_view contents);
+    CapyPdF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
 
     rvoe<std::vector<uint64_t>> write_objects();
 
@@ -379,18 +379,18 @@ private:
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 
-    rvoe<A4PDF_ImageId> add_image_object(int32_t w,
-                                         int32_t h,
-                                         int32_t bits_per_component,
-                                         ColorspaceType colorspace,
-                                         std::optional<int32_t> smask_id,
-                                         bool is_mask,
-                                         std::string_view uncompressed_bytes);
+    rvoe<CapyPdF_ImageId> add_image_object(int32_t w,
+                                           int32_t h,
+                                           int32_t bits_per_component,
+                                           ColorspaceType colorspace,
+                                           std::optional<int32_t> smask_id,
+                                           bool is_mask,
+                                           std::string_view uncompressed_bytes);
 
-    rvoe<A4PDF_ImageId> process_rgb_image(const rgb_image &image);
-    rvoe<A4PDF_ImageId> process_gray_image(const gray_image &image);
-    rvoe<A4PDF_ImageId> process_mono_image(const mono_image &image);
-    rvoe<A4PDF_ImageId> process_cmyk_image(const cmyk_image &image);
+    rvoe<CapyPdF_ImageId> process_rgb_image(const rgb_image &image);
+    rvoe<CapyPdF_ImageId> process_gray_image(const gray_image &image);
+    rvoe<CapyPdF_ImageId> process_mono_image(const mono_image &image);
+    rvoe<CapyPdF_ImageId> process_cmyk_image(const cmyk_image &image);
 
     int32_t create_page_group();
     void pad_subset_fonts();
@@ -401,7 +401,7 @@ private:
     std::vector<ObjectType> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.
     std::vector<ImageInfo> image_info;
-    std::unordered_map<A4PDF_Builtin_Fonts, A4PDF_FontId> builtin_fonts;
+    std::unordered_map<CapyPdF_Builtin_Fonts, CapyPdF_FontId> builtin_fonts;
     std::vector<FontInfo> font_objects;
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
@@ -413,10 +413,10 @@ private:
     std::vector<int32_t> annotations;
     std::vector<StructItem> structure_items;
     // A form widget can be used on one and only one page.
-    std::unordered_map<A4PDF_FormWidgetId, int32_t> form_use;
-    std::unordered_map<A4PDF_AnnotationId, int32_t> annotation_use;
-    std::unordered_map<A4PDF_StructureItemId, int32_t> structure_use;
-    std::optional<A4PDF_IccColorSpaceId> output_profile;
+    std::unordered_map<CapyPdF_FormWidgetId, int32_t> form_use;
+    std::unordered_map<CapyPdF_AnnotationId, int32_t> annotation_use;
+    std::unordered_map<CapyPdF_StructureItemId, int32_t> structure_use;
+    std::optional<CapyPdF_IccColorSpaceId> output_profile;
     std::optional<int32_t> output_intent_object;
     std::optional<int32_t> structure_root_object;
     int32_t pages_object;
@@ -425,4 +425,4 @@ private:
     FILE *ofile = nullptr;
 };
 
-} // namespace A4PDF
+} // namespace capypdf

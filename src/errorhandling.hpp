@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <expected>
 
-namespace A4PDF {
+namespace capypdf {
 
 enum class ErrorCode : int32_t {
     NoError,
@@ -81,7 +81,7 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
 
 struct NoReturnValue {};
 
-} // namespace A4PDF
+} // namespace capypdf
 
 #define CHECK_COLORCOMPONENT(c)                                                                    \
     if(c < 0 || c > 1) {                                                                           \
@@ -105,7 +105,7 @@ struct NoReturnValue {};
 
 #define CHECK_NULL(x)                                                                              \
     if(x == nullptr) {                                                                             \
-        return (A4PDF_EC)ErrorCode::ArgIsNull;                                                     \
+        return (CAPYPDF_EC)ErrorCode::ArgIsNull;                                                   \
     }
 
 #define ERC(varname, func)                                                                         \

@@ -19,7 +19,7 @@
 #include <cmath>
 #include <span>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "Form XObject test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     opts.subtype = IntentSubtype::SUBTYPE_PDFA;
     opts.intent_condition_identifier = "sRGB IEC61966-2.1";
     opts.prof.rgb_profile_file = "/usr/share/color/icc/ghostscript/srgb.icc";

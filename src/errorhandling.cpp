@@ -19,7 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace A4PDF {
+namespace capypdf {
 
 // clang-format off
 
@@ -81,4 +81,4 @@ const char *error_text(ErrorCode ec) noexcept {
     std::abort();
 }
 
-} // namespace A4PDF
+} // namespace capypdf

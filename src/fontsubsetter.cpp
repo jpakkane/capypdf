@@ -24,7 +24,7 @@
 #include <unordered_set>
 #include <algorithm>
 
-namespace A4PDF {
+namespace capypdf {
 
 namespace {
 
@@ -153,4 +153,4 @@ rvoe<std::string> FontSubsetter::generate_subset(FT_Face face,
     return generate_font(face, source, glyphs.glyphs, glyphs.font_index_mapping);
 }
 
-} // namespace A4PDF
+} // namespace capypdf

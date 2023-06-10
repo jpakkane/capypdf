@@ -1,1 +1,1 @@
-import('python').find_installation().install_sources('a4pdf.py')
+import('python').find_installation().install_sources('capypdf.py')

@@ -28,14 +28,13 @@
 #include <variant>
 #include <expected>
 
-namespace A4PDF {
+namespace capypdf {
 
 namespace {
 
 const uint32_t SPACE = ' ';
 
-template<typename T>
-void byte_swap_inplace(T &val) { val = std::byteswap(val); }
+template<typename T> void byte_swap_inplace(T &val) { val = std::byteswap(val); }
 
 uint32_t ttf_checksum(std::string_view data) {
     uint32_t checksum = 0;
@@ -84,10 +83,10 @@ get_substring(std::string_view sv, const size_t offset, const int64_t substr_siz
 }
 
 template<typename T>
-rvoe<A4PDF::NoReturnValue> safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
+rvoe<capypdf::NoReturnValue> safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
     ERC(validated_area, get_substring(source, offset, sizeof(T)));
     memcpy(obj, validated_area.data(), sizeof(T));
-    return A4PDF::NoReturnValue{};
+    return capypdf::NoReturnValue{};
 }
 
 template<typename T> rvoe<T> extract(std::string_view bf, const size_t offset) {
@@ -965,7 +964,7 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
     return subglyphs;
 }
 
-rvoe<A4PDF::NoReturnValue>
+rvoe<capypdf::NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
@@ -1001,19 +1000,19 @@ reassign_composite_glyph_numbers(std::string &buf,
     return NoReturnValue{};
 }
 
-uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g) {
-    if(std::holds_alternative<A4PDF::RegularGlyph>(g)) {
-        auto &rg = std::get<A4PDF::RegularGlyph>(g);
+uint32_t font_id_for_glyph(FT_Face face, const capypdf::TTGlyphs &g) {
+    if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
+        auto &rg = std::get<capypdf::RegularGlyph>(g);
         if(rg.unicode_codepoint == 0) {
             return 0;
         } else {
             return FT_Get_Char_Index(face, rg.unicode_codepoint);
         }
-    } else if(std::holds_alternative<A4PDF::CompositeGlyph>(g)) {
-        return std::get<A4PDF::CompositeGlyph>(g).font_index;
+    } else if(std::holds_alternative<capypdf::CompositeGlyph>(g)) {
+        return std::get<capypdf::CompositeGlyph>(g).font_index;
     } else {
         std::abort();
     }
 }
 
-} // namespace A4PDF
+} // namespace capypdf

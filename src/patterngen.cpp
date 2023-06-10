@@ -16,14 +16,14 @@
 
 #include <pdfgen.hpp>
 
-using namespace A4PDF;
+using namespace capypdf;
 
 int main() {
     PdfGenerationData opts;
     opts.mediabox.w = opts.mediabox.h = 200;
     opts.title = "PDF pattern test";
     opts.author = "Test Person";
-    opts.output_colorspace = A4PDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("pattern_test.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -36,7 +36,7 @@ int main() {
             auto funcid = gen.add_function(rgbfunc);
 
             ShadingType2 shade;
-            shade.colorspace = A4PDF_CS_DEVICE_RGB;
+            shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
             shade.x0 = 10;
             shade.y0 = 50;
             shade.x1 = 90;
@@ -59,7 +59,7 @@ int main() {
             FunctionType2 rgbfunc{{0.0, 1.0}, {1.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 0.7};
             auto funcid = gen.add_function(rgbfunc);
             ShadingType3 shade;
-            shade.colorspace = A4PDF_CS_DEVICE_RGB;
+            shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
             shade.x0 = 50;
             shade.y0 = 50;
             shade.r0 = 40;
@@ -92,7 +92,7 @@ int main() {
             ctx.cmd_re(10, 10, 80, 80);
             ctx.set_nonstroke_color(patternid);
             ctx.set_stroke_color(DeviceRGBColor{0, 0, 0});
-            ctx.cmd_j(A4PDF_LJ_ROUND);
+            ctx.cmd_j(CAPY_LJ_ROUND);
             ctx.cmd_w(1.5);
             ctx.cmd_B();
         }
@@ -101,12 +101,12 @@ int main() {
             auto pattern = gen.new_color_pattern_builder(3, 3);
             auto &pctx = pattern.pctx;
 
-            pctx.render_pdfdoc_text_builtin("g", A4PDF_FONT_TIMES_ROMAN, 3, 0, 2);
+            pctx.render_pdfdoc_text_builtin("g", CAPY_FONT_TIMES_ROMAN, 3, 0, 2);
             auto patternid = gen.add_pattern(pattern).value();
 
             ctx.translate(100, 10);
             ctx.set_nonstroke_color(patternid);
-            ctx.render_pdfdoc_text_builtin("C", A4PDF_FONT_TIMES_ROMAN, 120, 0, 5);
+            ctx.render_pdfdoc_text_builtin("C", CAPY_FONT_TIMES_ROMAN, 120, 0, 5);
         }
     }
     return 0;

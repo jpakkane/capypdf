@@ -29,7 +29,7 @@
 
 typedef struct FT_FaceRec_ *FT_Face;
 
-namespace A4PDF {
+namespace capypdf {
 
 #pragma pack(push, r1, 1)
 
@@ -185,7 +185,7 @@ struct TrueTypeFontFile {
 
 rvoe<bool> is_composite_glyph(std::string_view buf);
 rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf);
-rvoe<A4PDF::NoReturnValue>
+rvoe<capypdf::NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping);
 
@@ -202,6 +202,6 @@ rvoe<std::string> generate_font(FT_Face face,
 rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf);
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname);
 
-uint32_t font_id_for_glyph(FT_Face face, const A4PDF::TTGlyphs &g);
+uint32_t font_id_for_glyph(FT_Face face, const capypdf::TTGlyphs &g);
 
-} // namespace A4PDF
+} // namespace capypdf
