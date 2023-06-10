@@ -44,8 +44,6 @@ extern "C" {
 #define A4PDF_NOEXCEPT
 #endif
 
-// FIXME: canonicalize the appearance of enums.
-
 enum A4PDF_Builtin_Fonts {
     A4PDF_FONT_TIMES_ROMAN,
     A4PDF_FONT_HELVETICA,
@@ -67,7 +65,7 @@ enum A4PDF_Rendering_Intent {
     A4PDF_RI_PERCEPTUAL
 };
 
-enum A4PDF_Text_Rendering_Mode {
+enum A4PDF_Text_Mode {
     A4PDF_TEXT_FILL,
     A4PDF_TEXT_STROKE,
     A4PDF_TEXT_FILL_STROKE,

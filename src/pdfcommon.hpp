@@ -219,7 +219,7 @@ struct TextStateParameters {
     std::optional<double> word_spacing;
     std::optional<double> horizontal_scaling;
     std::optional<double> leading;
-    std::optional<A4PDF_Text_Rendering_Mode> render_mode;
+    std::optional<A4PDF_Text_Mode> render_mode;
     std::optional<double> rise;
     // Knockout can only be set with gs.
 };

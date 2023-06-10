@@ -63,7 +63,7 @@ struct Tm_arg {
 };
 
 struct Tr_arg {
-    A4PDF_Text_Rendering_Mode rmode;
+    A4PDF_Text_Mode rmode;
 };
 
 struct Ts_arg {
@@ -158,7 +158,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tr(A4PDF_Text_Rendering_Mode rmode) {
+    ErrorCode cmd_Tr(A4PDF_Text_Mode rmode) {
         events.emplace_back(Tr_arg{rmode});
         return ErrorCode::NoError;
     }

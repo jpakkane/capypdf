@@ -133,7 +133,7 @@ public:
     ErrorCode cmd_SCN(double value);
     ErrorCode cmd_scn(double value);
     ErrorCode cmd_sh(ShadingId shid);
-    ErrorCode cmd_Tr(A4PDF_Text_Rendering_Mode mode);
+    ErrorCode cmd_Tr(A4PDF_Text_Mode mode);
     ErrorCode cmd_v(double x2, double y2, double x3, double y3);
     ErrorCode cmd_w(double w);
     ErrorCode cmd_W();
