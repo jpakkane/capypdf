@@ -238,7 +238,7 @@ struct FontSubset {
 extern const std::array<const char *, 4> rendering_intent_names;
 
 struct PageTransition {
-    std::optional<A4PDF_Page_Transition_Type> type;
+    std::optional<A4PDF_Transition_Type> type;
     std::optional<double> duration;
     std::optional<bool> Dm;    // true is horizontal
     std::optional<bool> M;     // true is inward

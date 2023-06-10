@@ -61,7 +61,7 @@ int main(int, char **) {
                 "Transition styles", A4PDF_FONT_HELVETICA_BOLD, 16, 10, 45);
             gen.add_page(ctx);
             for(size_t i = 0; i < trnames.size(); ++i) {
-                transition.type = A4PDF_Page_Transition_Type(i);
+                transition.type = A4PDF_Transition_Type(i);
                 if(i % 2) {
                     ctx.cmd_rg(0.9, 0, 0.0);
                 } else {

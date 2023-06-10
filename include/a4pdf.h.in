@@ -112,26 +112,26 @@ enum A4PDF_Draw_Context_Type {
     A4PDF_DC_FORM_XOBJECT,
 };
 
-enum A4PDF_Page_Transition_Type {
-    A4PDF_PT_SPLIT,
-    A4PDF_PT_BLINDS,
-    A4PDF_PT_BOX,
-    A4PDF_PT_WIPE,
-    A4PDF_PT_DISSOLVE,
-    A4PDF_PT_GLITTER,
-    A4PDF_PT_R,
-    A4PDF_PT_FLY,
-    A4PDF_PT_PUSH,
-    A4PDF_PT_COVER,
-    A4PDF_PT_UNCOVER,
-    A4PDF_PT_FADE,
+enum A4PDF_Transition_Type {
+    A4PDF_TR_SPLIT,
+    A4PDF_TR_BLINDS,
+    A4PDF_TR_BOX,
+    A4PDF_TR_WIPE,
+    A4PDF_TR_DISSOLVE,
+    A4PDF_TR_GLITTER,
+    A4PDF_TR_R,
+    A4PDF_TR_FLY,
+    A4PDF_TR_PUSH,
+    A4PDF_TR_COVER,
+    A4PDF_TR_UNCOVER,
+    A4PDF_TR_FADE,
 };
 
 typedef struct _A4PDF_Options A4PDF_Options;
 typedef struct _A4PDF_Generator A4PDF_Generator;
 typedef struct _A4PDF_DrawContext A4PDF_DrawContext;
 typedef struct _A4PDF_Text A4PDF_Text;
-typedef struct _A4PDF_Page_Transition A4PDF_Page_Transition;
+typedef struct _A4PDF_PageTransition A4PDF_PageTransition;
 
 typedef int32_t A4PDF_EC;
 
@@ -271,8 +271,8 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_utf8_text(A4PDF_DrawContext *ctx,
                                                 double y) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_render_text_obj(A4PDF_DrawContext *ctx,
                                                A4PDF_Text *text) A4PDF_NOEXCEPT;
-A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_page_transition(
-    A4PDF_DrawContext *dc, A4PDF_Page_Transition *transition) A4PDF_NOEXCEPT;
+A4PDF_PUBLIC A4PDF_EC a4pdf_dc_set_page_transition(A4PDF_DrawContext *dc,
+                                                   A4PDF_PageTransition *transition) A4PDF_NOEXCEPT;
 A4PDF_PUBLIC A4PDF_EC a4pdf_dc_destroy(A4PDF_DrawContext *) A4PDF_NOEXCEPT;
 
 // Text
@@ -289,10 +289,10 @@ A4PDF_PUBLIC A4PDF_EC a4pdf_text_cmd_Tf(A4PDF_Text *text,
                                         double pointsize) A4PDF_NOEXCEPT;
 
 // Transition
-A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_new(A4PDF_Page_Transition **out_ptr,
-                                                enum A4PDF_Page_Transition_Type type,
+A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_new(A4PDF_PageTransition **out_ptr,
+                                                enum A4PDF_Transition_Type type,
                                                 double duration) A4PDF_NOEXCEPT;
-A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_destroy(A4PDF_Page_Transition *transition)
+A4PDF_PUBLIC A4PDF_EC a4pdf_page_transition_destroy(A4PDF_PageTransition *transition)
     A4PDF_NOEXCEPT;
 
 // Error
