@@ -128,7 +128,7 @@ cfunc_types = (
 )
 
 if os.name == 'nt':
-    libfile_name = 'a4pdf.dll'
+    libfile_name = 'a4pdf-0.dll'
 else:
     libfile_name = 'liba4pdf.so'
 libfile = None
