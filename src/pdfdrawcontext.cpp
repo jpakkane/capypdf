@@ -349,13 +349,13 @@ ErrorCode PdfDrawContext::cmd_i(double flatness) {
 }
 
 ErrorCode PdfDrawContext::cmd_j(A4PDF_Line_Join join_style) {
-    CHECK_ENUM(join_style, A4PDF_Bevel_Join);
+    CHECK_ENUM(join_style, A4PDF_LJ_BEVEL);
     fmt::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_J(A4PDF_Line_Cap cap_style) {
-    CHECK_ENUM(cap_style, A4PDF_Projection_Square_Cap);
+    CHECK_ENUM(cap_style, A4PDF_LC_PROJECTION);
     fmt::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
     return ErrorCode::NoError;
 }

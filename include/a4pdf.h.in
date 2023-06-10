@@ -94,12 +94,12 @@ enum A4PDF_Blend_Mode {
     A4PDF_BM_LUMINOSITY,
 };
 
-enum A4PDF_Line_Cap { A4PDF_Butt_Cap, A4PDF_Round_Cap, A4PDF_Projection_Square_Cap };
+enum A4PDF_Line_Cap { A4PDF_LC_BUTT, A4PDF_LC_ROUND, A4PDF_LC_PROJECTION };
 
 enum A4PDF_Line_Join {
-    A4PDF_Miter_Join,
-    A4PDF_Round_Join,
-    A4PDF_Bevel_Join,
+    A4PDF_LJ_MITER,
+    A4PDF_LJ_ROUND,
+    A4PDF_LJ_BEVEL,
 };
 
 enum A4PDF_Draw_Context_Type {

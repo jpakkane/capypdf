@@ -92,7 +92,7 @@ int main() {
             ctx.cmd_re(10, 10, 80, 80);
             ctx.set_nonstroke_color(patternid);
             ctx.set_stroke_color(DeviceRGBColor{0, 0, 0});
-            ctx.cmd_j(A4PDF_Round_Join);
+            ctx.cmd_j(A4PDF_LJ_ROUND);
             ctx.cmd_w(1.5);
             ctx.cmd_B();
         }
