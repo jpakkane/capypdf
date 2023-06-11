@@ -21,6 +21,7 @@
 #include <cassert>
 #include <array>
 #include <map>
+#include <bit>
 #include <filesystem>
 #include <algorithm>
 #include <fmt/core.h>
@@ -198,18 +199,26 @@ std::string serialize_shade4(const ShadingType4 &shade) {
         uint32_t xval = std::numeric_limits<uint32_t>::max() * xratio;
         uint32_t yval = std::numeric_limits<uint32_t>::max() * yratio;
         char flag = (char)e.flag;
+        assert(flag >= 0 && flag < 3);
 
-        // FIXME: Assumes rgb is between 0 and 1;
-        const char *ptr = (const char *)(&xval);
-        s.append(ptr, ptr + sizeof(xval));
-        ptr = (const char *)(&yval);
-        s.append(ptr, ptr + sizeof(xval));
+        xval = std::byteswap(xval);
+        yval = std::byteswap(yval);
+        //  FIXME: Assumes rgb is between 0 and 1;
+        const char *ptr;
         ptr = (const char *)(&flag);
         s.append(ptr, ptr + sizeof(char));
+        ptr = (const char *)(&xval);
+        s.append(ptr, ptr + sizeof(xval));
+        ptr = (const char *)(&yval);
+        s.append(ptr, ptr + sizeof(yval));
 
         uint16_t rval = std::numeric_limits<uint16_t>::max() * e.p.r;
         uint16_t gval = std::numeric_limits<uint16_t>::max() * e.p.g;
         uint16_t bval = std::numeric_limits<uint16_t>::max() * e.p.b;
+        rval = std::byteswap(rval);
+        gval = std::byteswap(gval);
+        bval = std::byteswap(bval);
+
         ptr = (const char *)(&rval);
         s.append(ptr, ptr + sizeof(uint16_t));
         ptr = (const char *)(&gval);
