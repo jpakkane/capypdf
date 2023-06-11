@@ -1421,9 +1421,8 @@ FunctionId PdfDocument::add_function(const FunctionType2 &func) {
     }
     buf += "]\n";
     buf += ">>\n";
-    add_object(FullPDFObject{std::move(buf), {}});
 
-    return FunctionId{(int32_t)document_objects.size()};
+    return FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
 }
 
 ShadingId PdfDocument::add_shading(const ShadingType2 &shade) {
@@ -1446,9 +1445,8 @@ ShadingId PdfDocument::add_shading(const ShadingType2 &shade) {
         shade.function.id,
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
-    add_object(FullPDFObject{std::move(buf), {}});
 
-    return ShadingId{(int32_t)document_objects.size()};
+    return ShadingId{add_object(FullPDFObject{std::move(buf), {}})};
 }
 
 ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
@@ -1473,14 +1471,12 @@ ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
         shade.function.id,
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
-    add_object(FullPDFObject{std::move(buf), {}});
 
-    return ShadingId{(int32_t)document_objects.size()};
+    return ShadingId{add_object(FullPDFObject{std::move(buf), {}})};
 }
 
 PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_view commands) {
-    add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)});
-    return PatternId{(int32_t)document_objects.size()};
+    return PatternId{add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)})};
 }
 
 OutlineId PdfDocument::add_outline(std::string_view title_utf8,
