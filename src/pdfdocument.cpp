@@ -190,6 +190,36 @@ end
     return buf;
 }
 
+std::string serialize_shade4(const ShadingType4 &shade) {
+    std::string s;
+    for(const auto &e : shade.elements) {
+        double xratio = (e.p.x - shade.minx) / (shade.maxx - shade.minx);
+        double yratio = (e.p.y - shade.miny) / (shade.maxy - shade.miny);
+        uint32_t xval = std::numeric_limits<uint32_t>::max() * xratio;
+        uint32_t yval = std::numeric_limits<uint32_t>::max() * yratio;
+        char flag = (char)e.flag;
+
+        // FIXME: Assumes rgb is between 0 and 1;
+        const char *ptr = (const char *)(&xval);
+        s.append(ptr, ptr + sizeof(xval));
+        ptr = (const char *)(&yval);
+        s.append(ptr, ptr + sizeof(xval));
+        ptr = (const char *)(&flag);
+        s.append(ptr, ptr + sizeof(char));
+
+        uint16_t rval = std::numeric_limits<uint16_t>::max() * e.p.r;
+        uint16_t gval = std::numeric_limits<uint16_t>::max() * e.p.g;
+        uint16_t bval = std::numeric_limits<uint16_t>::max() * e.p.b;
+        ptr = (const char *)(&rval);
+        s.append(ptr, ptr + sizeof(uint16_t));
+        ptr = (const char *)(&gval);
+        s.append(ptr, ptr + sizeof(uint16_t));
+        ptr = (const char *)(&bval);
+        s.append(ptr, ptr + sizeof(uint16_t));
+    }
+    return s;
+}
+
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -1140,7 +1170,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
         obj_data.dictionary += authorstr;
         obj_data.dictionary += "\n";
     }
-    obj_data.dictionary += "  /Producer (A4PDF " CAPYPDF_VERSION_STR ")\n";
+    obj_data.dictionary += "  /Producer (CapyPDF " CAPYPDF_VERSION_STR ")\n";
     obj_data.dictionary += "  /CreationDate ";
     obj_data.dictionary += current_date_string();
     obj_data.dictionary += '\n';
@@ -1473,6 +1503,43 @@ ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
         shade.extend1 ? "true" : "false");
 
     return ShadingId{add_object(FullPDFObject{std::move(buf), {}})};
+}
+
+ShadingId PdfDocument::add_shading(const ShadingType4 &shade) {
+    const int shadingtype = 4;
+    std::string serialized = serialize_shade4(shade);
+    std::string buf = fmt::format(
+        R"(<<
+  /ShadingType {}
+  /ColorSpace {}
+  /BitsPerCoordinate 32
+  /BitsPerComponent 16
+  /BitsPerFlag 8
+  /Decode [
+    {} {}
+    {} {}
+    {} {}
+    {} {}
+    {} {}
+  ]
+  /Length {}
+>>
+)",
+        shadingtype,
+        colorspace_names.at((int)shade.colorspace),
+        shade.minx,
+        shade.maxx,
+        shade.miny,
+        shade.maxy,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        serialized.length());
+
+    return ShadingId{add_object(FullPDFObject{std::move(buf), std::move(serialized)})};
 }
 
 PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_view commands) {

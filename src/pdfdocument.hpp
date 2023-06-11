@@ -295,6 +295,7 @@ public:
     // Shading
     ShadingId add_shading(const ShadingType2 &shade);
     ShadingId add_shading(const ShadingType3 &shade);
+    ShadingId add_shading(const ShadingType4 &shade);
 
     // Patterns
     PatternId add_pattern(std::string_view pattern_dict, std::string_view commands);

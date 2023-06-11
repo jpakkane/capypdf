@@ -214,6 +214,38 @@ struct ShadingType3 {
     bool extend0, extend1;
 };
 
+// Gouraud
+
+struct ShadingPoint {
+    double x, y;
+    double r, g, b;
+};
+
+struct ShadingElement {
+    ShadingPoint p;
+    int32_t flag;
+};
+
+struct ShadingType4 {
+    std::vector<ShadingElement> elements;
+    double minx = 0;
+    double miny = 0;
+    double maxx = 200;
+    double maxy = 200;
+    CapyPdF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
+
+    void start_strip(const ShadingPoint &v0, const ShadingPoint &v1, const ShadingPoint &v2) {
+        elements.emplace_back(ShadingElement{v0, 0});
+        elements.emplace_back(ShadingElement{v1, 0});
+        elements.emplace_back(ShadingElement{v2, 0});
+    }
+
+    void extend_strip(const ShadingPoint &v, int flag) {
+        // assert(flag == 1 || flag == 2);
+        elements.emplace_back(ShadingElement{v, flag});
+    }
+};
+
 struct TextStateParameters {
     std::optional<double> char_spacing;
     std::optional<double> word_spacing;
