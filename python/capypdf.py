@@ -121,6 +121,10 @@ cfunc_types = (
 ('capy_dc_cmd_S', [ctypes.c_void_p]),
 ('capy_dc_cmd_v', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
+('capy_dc_cmd_W', [ctypes.c_void_p]),
+('capy_dc_cmd_Wstar', [ctypes.c_void_p]),
+('capy_dc_cmd_y', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+
 ('capy_dc_draw_image',
     [ctypes.c_void_p, ImageId]),
 ('capy_dc_render_utf8_text',
@@ -330,17 +334,26 @@ class DrawContext:
             raise CapyPDFException('Argument must be a RenderingIntent.')
         check_error(libfile.capy_dc_cmd_ri(self, ri.value))
 
+    def cmd_s(self):
+        check_error(libfile.capy_dc_cmd_s(self))
+
+    def cmd_S(self):
+        check_error(libfile.capy_dc_cmd_S(self))
+
     def cmd_v(self, x2, y2, x3, y3):
         check_error(libfile.capy_dc_cmd_v(self, x2, y2, x3, y3))
 
     def cmd_w(self, line_width):
         check_error(libfile.capy_dc_cmd_w(self, line_width))
 
-    def cmd_s(self):
-        check_error(libfile.capy_dc_cmd_s(self))
+    def cmd_W(self):
+        check_error(libfile.capy_dc_cmd_W(self))
 
-    def cmd_S(self):
-        check_error(libfile.capy_dc_cmd_S(self))
+    def cmd_Wstar(self):
+        check_error(libfile.capy_dc_cmd_Wstar(self))
+
+    def cmd_y(self, x1, y1, x3, y3):
+        check_error(libfile.capy_dc_cmd_y(self, x1, y1, x3, y3))
 
     def set_icc_stroke(self, iccid, values):
         if not isinstance(values, list):

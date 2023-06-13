@@ -354,6 +354,22 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPdF_DrawContext *ctx,
     return (CAPYPDF_EC)c->cmd_w(line_width);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_W(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_W();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Wstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_Wstar();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_y(
+    CapyPdF_DrawContext *ctx, double x1, double y1, double x3, double y3) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_y(x1, y1, x3, y3);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_stroke(CapyPdF_DrawContext *ctx,
                                                  CapyPdF_IccColorSpaceId icc_id,
                                                  double *values,
