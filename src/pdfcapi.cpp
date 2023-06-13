@@ -234,11 +234,6 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_g(CapyPdF_DrawContext *ctx, double gray) C
     return (CAPYPDF_EC)c->cmd_g(gray);
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (CAPYPDF_EC)c->cmd_S();
-}
-
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_h();
@@ -315,6 +310,44 @@ capy_dc_cmd_re(CapyPdF_DrawContext *ctx, double x, double y, double w, double h)
     return (CAPYPDF_EC)c->cmd_re(x, y, w, h);
 }
 
+CAPYPDF_EC
+capy_dc_cmd_RG(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    DeviceRGBColor rgb{r, g, b};
+    c->set_stroke_color(rgb);
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_EC
+capy_dc_cmd_rg(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    DeviceRGBColor rgb{r, g, b};
+    c->set_nonstroke_color(rgb);
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_ri(CapyPdF_DrawContext *ctx,
+                                         CapyPdF_Rendering_Intent ri) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_ri(ri);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_s(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_s();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_S();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_v(
+    CapyPdF_DrawContext *ctx, double x2, double y2, double x3, double y3) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_v(x2, y2, x3, y3);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPdF_DrawContext *ctx,
                                         double line_width) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
@@ -351,22 +384,6 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPdF_DrawContext *ctx,
                                                    double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     c->render_utf8_text(text, fid, point_size, x, y);
-    return (CAPYPDF_EC)ErrorCode::NoError;
-}
-
-CAPYPDF_EC
-capy_dc_cmd_RG(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    DeviceRGBColor rgb{r, g, b};
-    c->set_stroke_color(rgb);
-    return (CAPYPDF_EC)ErrorCode::NoError;
-}
-
-CAPYPDF_EC
-capy_dc_cmd_rg(CapyPdF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    DeviceRGBColor rgb{r, g, b};
-    c->set_nonstroke_color(rgb);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 

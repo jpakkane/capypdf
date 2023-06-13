@@ -254,13 +254,18 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_M(CapyPdF_DrawContext *ctx,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_n(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_cmd_re(CapyPdF_DrawContext *ctx, double x, double y, double w, double h) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_RG(CapyPdF_DrawContext *ctx, double r, double g, double b)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_rg(CapyPdF_DrawContext *ctx, double r, double g, double b)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC
-capy_dc_cmd_re(CapyPdF_DrawContext *ctx, double x, double y, double w, double h) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_ri(CapyPdF_DrawContext *ctx,
+                                         enum CapyPdF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_s(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_v(
+    CapyPdF_DrawContext *ctx, double x2, double y2, double x3, double y3) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPdF_DrawContext *ctx,
                                         double line_width) CAPYPDF_NOEXCEPT;
 

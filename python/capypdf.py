@@ -47,6 +47,12 @@ class PageTransitionType(Enum):
     Uncover = 10
     Fade = 11
 
+class RenderingIntent(Enum):
+    Relative_Colorimetric = 0
+    ABSOLUTE_Colorimetric = 1
+    Saturation = 2
+    Perceptual = 3
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -110,7 +116,10 @@ cfunc_types = (
 ('capy_dc_cmd_RG', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_rg', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_re', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_dc_cmd_ri', [ctypes.c_void_p, enum_type]),
+('capy_dc_cmd_s', [ctypes.c_void_p]),
 ('capy_dc_cmd_S', [ctypes.c_void_p]),
+('capy_dc_cmd_v', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_draw_image',
     [ctypes.c_void_p, ImageId]),
@@ -307,17 +316,28 @@ class DrawContext:
     def cmd_Q(self):
         check_error(libfile.capy_dc_cmd_Q(self))
 
+    def cmd_re(self, x, y, w, h):
+        check_error(libfile.capy_dc_cmd_re(self, x, y, w, h))
+
     def cmd_RG(self, r, g, b):
         check_error(libfile.capy_dc_cmd_RG(self, r, g, b))
 
     def cmd_rg(self, r, g, b):
         check_error(libfile.capy_dc_cmd_rg(self, r, g, b))
 
-    def cmd_re(self, x, y, w, h):
-        check_error(libfile.capy_dc_cmd_re(self, x, y, w, h))
+    def cmd_ri(self, ri):
+        if not isinstance(ri, RenderingIntent):
+            raise CapyPDFException('Argument must be a RenderingIntent.')
+        check_error(libfile.capy_dc_cmd_ri(self, ri.value))
+
+    def cmd_v(self, x2, y2, x3, y3):
+        check_error(libfile.capy_dc_cmd_v(self, x2, y2, x3, y3))
 
     def cmd_w(self, line_width):
         check_error(libfile.capy_dc_cmd_w(self, line_width))
+
+    def cmd_s(self):
+        check_error(libfile.capy_dc_cmd_s(self))
 
     def cmd_S(self):
         check_error(libfile.capy_dc_cmd_S(self))
