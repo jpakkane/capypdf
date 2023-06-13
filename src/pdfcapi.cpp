@@ -172,9 +172,19 @@ CAPYPDF_EC capy_page_draw_context_new(CapyPdF_Generator *g,
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_b(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_b();
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_B();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_bstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_bstar();
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Bstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
@@ -207,6 +217,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPdF_DrawContext *ctx,
 CAPYPDF_EC capy_dc_cmd_f(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_f();
+}
+
+CAPYPDF_EC capy_dc_cmd_fstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_fstar();
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {

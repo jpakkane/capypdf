@@ -83,13 +83,16 @@ cfunc_types = (
 ('capy_generator_utf8_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_dc_cmd_b', [ctypes.c_void_p]),
 ('capy_dc_cmd_B', [ctypes.c_void_p]),
+('capy_dc_cmd_bstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_Bstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_c', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
+('capy_dc_cmd_fstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_h', [ctypes.c_void_p]),
 ('capy_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('capy_dc_cmd_j', [ctypes.c_void_p, enum_type]),
@@ -233,8 +236,14 @@ class DrawContext:
     def push_gstate(self):
         return StateContextManager(self)
 
+    def cmd_b(self):
+        check_error(libfile.capy_dc_cmd_b(self))
+
     def cmd_B(self):
         check_error(libfile.capy_dc_cmd_B(self))
+
+    def cmd_bstar(self):
+        check_error(libfile.capy_dc_cmd_bstar(self))
 
     def cmd_Bstar(self):
         check_error(libfile.capy_dc_cmd_Bstar(self))
@@ -247,6 +256,9 @@ class DrawContext:
 
     def cmd_f(self):
         check_error(libfile.capy_dc_cmd_f(self))
+
+    def cmd_fstar(self):
+        check_error(libfile.capy_dc_cmd_fstar(self))
 
     def cmd_h(self):
         check_error(libfile.capy_dc_cmd_h(self))
