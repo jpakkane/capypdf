@@ -60,19 +60,21 @@ DEF_BASIC_OPERATORS(CapyPdF_StructureItemId);
 namespace capypdf {
 
 struct PdfBox {
-    double x;
-    double y;
-    double w;
-    double h;
+    double x{};
+    double y{};
+    double w{};
+    double h{};
 
     static PdfBox a4() { return PdfBox{0, 0, 595.28, 841.89}; }
 };
 
 struct PdfRectangle {
-    double x1;
-    double y1;
-    double x2;
-    double y2;
+    double x1{};
+    double y1{};
+    double x2{};
+    double y2{};
+
+    static PdfRectangle a4() { return PdfRectangle{0, 0, 595.28, 841.89}; }
 };
 
 class LimitDouble {

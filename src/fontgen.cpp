@@ -25,8 +25,8 @@ void center_test() {
     const double pt = 12;
     PdfGenerationData opts;
     opts.output_colorspace = CAPYPDF_CS_DEVICE_GRAY;
-    opts.mediabox.w = 200;
-    opts.mediabox.h = 200;
+    opts.mediabox.x2 = 200;
+    opts.mediabox.y2 = 200;
     GenPopper genpop("centering.pdf", opts);
     PdfGen &gen = *genpop.g;
     auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf").value();

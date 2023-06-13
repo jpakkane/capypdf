@@ -23,7 +23,7 @@ using namespace capypdf;
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "File embedding test";
     opts.author = "Test Person";
     {

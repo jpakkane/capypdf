@@ -132,7 +132,7 @@ void draw_page_2(PdfGen &gen) {
 
 int main() {
     PdfGenerationData opts;
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "PDF pattern test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

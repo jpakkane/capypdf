@@ -44,12 +44,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPdF_Options *opt,
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_mediabox(
-    CapyPdF_Options *opt, double x, double y, double w, double h) CAPYPDF_NOEXCEPT {
+    CapyPdF_Options *opt, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
-    opts->mediabox.x = x;
-    opts->mediabox.y = y;
-    opts->mediabox.w = w;
-    opts->mediabox.h = h;
+    opts->mediabox.x1 = x1;
+    opts->mediabox.y1 = y1;
+    opts->mediabox.x2 = x2;
+    opts->mediabox.y2 = y2;
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 

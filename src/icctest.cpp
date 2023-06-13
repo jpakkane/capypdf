@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     PdfGenerationData opts;
 
     const char *icc_file = argc == 1 ? "/usr/share/color/icc/colord/AdobeRGB1998.icc" : argv[2];
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "ICC test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

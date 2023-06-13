@@ -229,8 +229,8 @@ class Options:
         bytes = title.encode('UTF-8')
         check_error(libfile.capy_options_set_author(self, bytes))
 
-    def set_mediabox(self, x, y, w, h):
-        check_error(libfile.capy_options_set_mediabox(self, x, y, w, h))
+    def set_mediabox(self, x1, y1, x2, y2):
+        check_error(libfile.capy_options_set_mediabox(self, x1, y1, x2, y2))
 
 class DrawContext:
     def __init__(self, generator):

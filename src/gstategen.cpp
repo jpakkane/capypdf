@@ -44,9 +44,9 @@ int main(int argc, char **argv) {
     }
     PdfGenerationData opts;
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
-    opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = 300;
-    opts.mediabox.h = 300;
+    opts.mediabox.x1 = opts.mediabox.y1 = 0;
+    opts.mediabox.x2 = 300;
+    opts.mediabox.y2 = 300;
     GenPopper genpop("gstate.pdf", opts);
     PdfGen &gen = *genpop.g;
     auto ctxguard = gen.guarded_page_context();
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     auto bg_img = gen.load_image(argv[1]).value();
     auto fg_img = gen.load_image(argv[2]).value();
     ctx.cmd_q();
-    ctx.scale(opts.mediabox.w, opts.mediabox.h);
+    ctx.scale(opts.mediabox.x2, opts.mediabox.y2);
     ctx.draw_image(bg_img);
     ctx.cmd_Q();
     // There are 16 blend modes.

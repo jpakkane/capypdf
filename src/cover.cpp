@@ -124,11 +124,12 @@ void draw_trim_marks(PdfDrawContext &ctx) {
 int main(int, char **) {
     PdfGenerationData opts;
 
-    opts.mediabox.x = opts.mediabox.y = 0;
-    opts.mediabox.w = paper_width;
-    opts.mediabox.h = paper_height;
+    opts.mediabox.x1 = opts.mediabox.y1 = 0;
+    opts.mediabox.x2 = paper_width;
+    opts.mediabox.y2 = paper_height;
 
-    opts.trimbox = PdfBox{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
+    opts.trimbox =
+        PdfRectangle{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = "Book cover generation experiment with utf-8 (ö).";
     opts.author = "G. R. Aphicdesigner";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
@@ -147,12 +148,12 @@ int main(int, char **) {
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
             ctx.cmd_re(margin - bleed,
                        margin - bleed,
-                       opts.mediabox.w - 2 * (margin - bleed),
-                       opts.mediabox.h - 2 * (margin - bleed));
+                       opts.mediabox.x2 - 2 * (margin - bleed),
+                       opts.mediabox.y2 - 2 * (margin - bleed));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.2, 0.2});
             ctx.cmd_re(
-                margin, margin, opts.mediabox.w - 2 * (margin), opts.mediabox.h - 2 * (margin));
+                margin, margin, opts.mediabox.x2 - 2 * (margin), opts.mediabox.y2 - 2 * (margin));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.2, 0.9, 0.2});
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);

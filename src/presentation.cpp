@@ -40,8 +40,8 @@ int main(int, char **) {
 
     const int32_t w = 160;
     const int32_t h = 90;
-    opts.mediabox.w = w;
-    opts.mediabox.h = h;
+    opts.mediabox.x2 = w;
+    opts.mediabox.y2 = h;
     opts.title = "Presentation test";
     opts.author = "Joe Speaker";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

@@ -147,11 +147,11 @@ enum IntentSubtype {
 };
 
 struct PdfGenerationData {
-    PdfBox mediabox = PdfBox::a4();
-    std::optional<PdfBox> cropbox;
-    std::optional<PdfBox> bleedbox;
-    std::optional<PdfBox> trimbox;
-    std::optional<PdfBox> artbox;
+    PdfRectangle mediabox = PdfRectangle::a4();
+    std::optional<PdfRectangle> cropbox;
+    std::optional<PdfRectangle> bleedbox;
+    std::optional<PdfRectangle> trimbox;
+    std::optional<PdfRectangle> artbox;
 
     std::string title;
     std::string author;

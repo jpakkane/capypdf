@@ -22,7 +22,7 @@ using namespace capypdf;
 int main(int, char **) {
     PdfGenerationData opts;
 
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "Outline test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

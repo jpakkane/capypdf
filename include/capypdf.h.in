@@ -179,7 +179,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_title(CapyPdF_Options *opt,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPdF_Options *opt,
                                                   const char *utf8_author) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_mediabox(
-    CapyPdF_Options *opt, double x, double y, double w, double h) CAPYPDF_NOEXCEPT;
+    CapyPdF_Options *opt, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPdF_Options *opt,
                                                       enum CapyPdF_Colorspace cs) CAPYPDF_NOEXCEPT;
 

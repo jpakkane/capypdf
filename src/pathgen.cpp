@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     PdfGenerationData opts;
 
     const char *image = argc > 1 ? argv[1] : "../pdfgen/images/flame_gradient.png";
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "PDF path test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

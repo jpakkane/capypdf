@@ -103,8 +103,8 @@ const std::array<const char *, 3> colorspace_names{
     "/DeviceCMYK",
 };
 
-void write_box(auto &appender, const char *boxname, const capypdf::PdfBox &box) {
-    fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x, box.y, box.w, box.h);
+void write_rectangle(auto &appender, const char *boxname, const capypdf::PdfRectangle &box) {
+    fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
 }
 
 std::string fontname2pdfname(std::string_view original) {
@@ -496,19 +496,19 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
 )",
                    pages_object,
                    page_group_object);
-    write_box(buf_append, "MediaBox", opts.mediabox);
+    write_rectangle(buf_append, "MediaBox", opts.mediabox);
 
     if(opts.cropbox) {
-        write_box(buf_append, "CropBox", *opts.cropbox);
+        write_rectangle(buf_append, "CropBox", *opts.cropbox);
     }
     if(opts.bleedbox) {
-        write_box(buf_append, "BleedBox", *opts.bleedbox);
+        write_rectangle(buf_append, "BleedBox", *opts.bleedbox);
     }
     if(opts.trimbox) {
-        write_box(buf_append, "TrimBox", *opts.trimbox);
+        write_rectangle(buf_append, "TrimBox", *opts.trimbox);
     }
     if(opts.artbox) {
-        write_box(buf_append, "ArtBox", *opts.artbox);
+        write_rectangle(buf_append, "ArtBox", *opts.artbox);
     }
     fmt::format_to(buf_append,
                    R"(  /Contents {} 0 R

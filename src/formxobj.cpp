@@ -23,7 +23,7 @@ using namespace capypdf;
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
-    opts.mediabox.w = opts.mediabox.h = 200;
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "Acroform  test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

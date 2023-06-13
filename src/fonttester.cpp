@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     }
 
     PdfGenerationData opts;
-    opts.mediabox = PdfBox{0, 0, 200, 30};
+    opts.mediabox = PdfRectangle{0, 0, 200, 30};
     GenPopper genpop("fonttester.pdf", opts);
     PdfGen &gen = *genpop.g;
 
