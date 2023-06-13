@@ -61,16 +61,21 @@ FT_Error guarded_face_close(FT_Face face) {
 
 const char PDF_header[] = "%PDF-1.7\n\xe5\xf6\xc4\xd6\n";
 
-const std::array<const char *, 9> font_names{
+const std::array<const char *, 14> font_names{
     "Times-Roman",
     "Helvetica",
     "Courier",
+    "Symbol",
     "Times-Roman-Bold",
     "Helvetica-Bold",
     "Courier-Bold",
+    "ZapfDingbats",
     "Times-Italic",
     "Helvetica-Oblique",
     "Courier-Oblique",
+    "Times-BoldItalic",
+    "Helvetica-BoldOblique",
+    "Courier-BoldOblique",
 };
 
 const std::array<const char *, 16> blend_mode_names{
