@@ -93,13 +93,18 @@ cfunc_types = (
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
+('capy_dc_cmd_G', [ctypes.c_void_p, ctypes.c_double]),
+('capy_dc_cmd_g', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_cmd_h', [ctypes.c_void_p]),
+('capy_dc_cmd_i', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_cmd_J', [ctypes.c_void_p, enum_type]),
 ('capy_dc_cmd_j', [ctypes.c_void_p, enum_type]),
 ('capy_dc_cmd_k', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_K', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_l', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_m', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('capy_dc_cmd_M', [ctypes.c_void_p, ctypes.c_double]),
+('capy_dc_cmd_n', [ctypes.c_void_p]),
 ('capy_dc_cmd_q', [ctypes.c_void_p]),
 ('capy_dc_cmd_Q', [ctypes.c_void_p]),
 ('capy_dc_cmd_RG', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -260,8 +265,17 @@ class DrawContext:
     def cmd_fstar(self):
         check_error(libfile.capy_dc_cmd_fstar(self))
 
+    def cmd_G(self, gray):
+        check_error(libfile.capy_dc_cmd_G(self, gray))
+
+    def cmd_g(self):
+        check_error(libfile.capy_dc_cmd_g(self, gray))
+
     def cmd_h(self):
         check_error(libfile.capy_dc_cmd_h(self))
+
+    def cmd_i(self, flatness):
+        check_error(libfile.capy_dc_cmd_i(self, flatness))
 
     def cmd_J(self, cap_style):
         check_error(libfile.capy_dc_cmd_J(self, cap_style.value))
@@ -278,6 +292,15 @@ class DrawContext:
     def cmd_l(self, x, y):
         check_error(libfile.capy_dc_cmd_l(self, x, y))
 
+    def cmd_m(self, x, y):
+        check_error(libfile.capy_dc_cmd_m(self, x, y))
+
+    def cmd_M(self, miterlimit):
+        check_error(libfile.capy_dc_cmd_M(self, miterlimit))
+
+    def cmd_n(self):
+        check_error(libfile.capy_dc_cmd_n(self))
+
     def cmd_q(self):
         check_error(libfile.capy_dc_cmd_q(self))
 
@@ -289,9 +312,6 @@ class DrawContext:
 
     def cmd_rg(self, r, g, b):
         check_error(libfile.capy_dc_cmd_rg(self, r, g, b))
-
-    def cmd_m(self, x, y):
-        check_error(libfile.capy_dc_cmd_m(self, x, y))
 
     def cmd_re(self, x, y, w, h):
         check_error(libfile.capy_dc_cmd_re(self, x, y, w, h))

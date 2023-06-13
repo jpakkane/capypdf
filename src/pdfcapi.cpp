@@ -224,6 +224,16 @@ CAPYPDF_EC capy_dc_cmd_fstar(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     return (CAPYPDF_EC)c->cmd_fstar();
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_G(CapyPdF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_G(gray);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_g(CapyPdF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_g(gray);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_S();
@@ -232,6 +242,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCE
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_h();
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_i(CapyPdF_DrawContext *ctx,
+                                        double flatness) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_i(flatness);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_j(CapyPdF_DrawContext *ctx,
@@ -270,6 +286,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_m(CapyPdF_DrawContext *ctx,
                                         double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_m(x, y);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_M(CapyPdF_DrawContext *ctx,
+                                        double miterlimit) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_M(miterlimit);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_n(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_n();
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_q(CapyPdF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
