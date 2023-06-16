@@ -42,10 +42,11 @@ int main(int, char **) {
             auto pop = ctx.push_gstate();
             LabColor lc;
             const double angle = 2 * M_PI * i / num_balls;
+            lc.id = labid;
             lc.l = 50;
             lc.a = max_ab * cos(angle);
             lc.b = max_ab * sin(angle);
-            ctx.set_nonstroke_color(labid, lc);
+            ctx.set_nonstroke_color(lc);
             ctx.translate(cos(angle) * radius, sin(angle) * radius);
             ctx.translate(50, 50);
             ctx.scale(ball_size, ball_size);

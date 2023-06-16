@@ -142,10 +142,10 @@ public:
 
     ErrorCode set_stroke_color(const DeviceRGBColor &c);
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
-    ErrorCode set_stroke_color(LabId lid, const LabColor &c);
+    ErrorCode set_stroke_color(const LabColor &c);
     ErrorCode
     set_stroke_color(CapyPdF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
-    ErrorCode set_nonstroke_color(LabId lid, const LabColor &c);
+    ErrorCode set_nonstroke_color(const LabColor &c);
     ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
     ErrorCode set_nonstroke_color(PatternId id);
     ErrorCode

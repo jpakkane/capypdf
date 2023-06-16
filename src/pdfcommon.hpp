@@ -175,10 +175,25 @@ struct DeviceCMYKColor {
 };
 
 struct LabColor {
+    LabId id;
     double l;
     double a;
     double b;
 };
+
+struct ICCColor {
+    CapyPdF_IccColorSpaceId id;
+    std::vector<double> values;
+};
+
+struct SeparationColor {
+    SeparationId id;
+    LimitDouble v;
+};
+
+typedef std::
+    variant<DeviceRGBColor, DeviceGrayColor, DeviceCMYKColor, ICCColor, LabColor, SeparationColor>
+        Color;
 
 struct LabColorSpace {
     double xw, yw, zw;

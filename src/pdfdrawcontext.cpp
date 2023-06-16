@@ -626,19 +626,19 @@ ErrorCode PdfDrawContext::set_separation_nonstroke_color(SeparationId id, LimitD
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(LabId lid, const LabColor &c) {
-    CHECK_INDEXNESS(lid.id, doc->document_objects);
-    used_colorspaces.insert(lid.id);
-    std::string csname = fmt::format("/CSpace{}", lid.id);
+ErrorCode PdfDrawContext::set_stroke_color(const LabColor &c) {
+    CHECK_INDEXNESS(c.id.id, doc->document_objects);
+    used_colorspaces.insert(c.id.id);
+    std::string csname = fmt::format("/CSpace{}", c.id.id);
     cmd_CS(csname);
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} SCN\n", ind, c.l, c.a, c.b);
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(LabId lid, const LabColor &c) {
-    CHECK_INDEXNESS(lid.id, doc->document_objects);
-    used_colorspaces.insert(lid.id);
-    std::string csname = fmt::format("/CSpace{}", lid.id);
+ErrorCode PdfDrawContext::set_nonstroke_color(const LabColor &c) {
+    CHECK_INDEXNESS(c.id.id, doc->document_objects);
+    used_colorspaces.insert(c.id.id);
+    std::string csname = fmt::format("/CSpace{}", c.id.id);
     cmd_cs(csname);
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} scn\n", ind, c.l, c.a, c.b);
     return ErrorCode::NoError;
