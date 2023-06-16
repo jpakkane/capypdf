@@ -199,8 +199,8 @@ end
 std::string serialize_shade4(const ShadingType4 &shade) {
     std::string s;
     for(const auto &e : shade.elements) {
-        double xratio = (e.p.x - shade.minx) / (shade.maxx - shade.minx);
-        double yratio = (e.p.y - shade.miny) / (shade.maxy - shade.miny);
+        double xratio = (e.sp.p.x - shade.minx) / (shade.maxx - shade.minx);
+        double yratio = (e.sp.p.y - shade.miny) / (shade.maxy - shade.miny);
         uint32_t xval = std::numeric_limits<uint32_t>::max() * xratio;
         uint32_t yval = std::numeric_limits<uint32_t>::max() * yratio;
         char flag = (char)e.flag;
@@ -217,9 +217,9 @@ std::string serialize_shade4(const ShadingType4 &shade) {
         ptr = (const char *)(&yval);
         s.append(ptr, ptr + sizeof(yval));
 
-        uint16_t rval = std::numeric_limits<uint16_t>::max() * e.p.r;
-        uint16_t gval = std::numeric_limits<uint16_t>::max() * e.p.g;
-        uint16_t bval = std::numeric_limits<uint16_t>::max() * e.p.b;
+        uint16_t rval = std::numeric_limits<uint16_t>::max() * e.sp.c.r.v();
+        uint16_t gval = std::numeric_limits<uint16_t>::max() * e.sp.c.g.v();
+        uint16_t bval = std::numeric_limits<uint16_t>::max() * e.sp.c.b.v();
         rval = std::byteswap(rval);
         gval = std::byteswap(gval);
         bval = std::byteswap(bval);

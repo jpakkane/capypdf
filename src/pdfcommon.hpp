@@ -224,12 +224,12 @@ struct ShadingType3 {
 // Gouraud
 
 struct ShadingPoint {
-    double x, y;
-    double r, g, b;
+    Point p;
+    DeviceRGBColor c;
 };
 
 struct ShadingElement {
-    ShadingPoint p;
+    ShadingPoint sp;
     int32_t flag;
 };
 
