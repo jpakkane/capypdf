@@ -462,7 +462,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-rvoe<CapyPdF_IccColorSpaceId> PdfDocument::load_icc_file(const char *fname) {
+rvoe<CapyPdF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::__cxx11::path &fname) {
     ERC(contents, load_file(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {

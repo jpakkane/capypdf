@@ -48,7 +48,8 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    static rvoe<std::unique_ptr<PdfGen>> construct(const char *ofname, const PdfGenerationData &d);
+    static rvoe<std::unique_ptr<PdfGen>> construct(const std::filesystem::path &ofname,
+                                                   const PdfGenerationData &d);
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
@@ -88,7 +89,7 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const char *fname) {
+    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
         return pdoc.load_icc_file(fname);
     }
 
@@ -148,7 +149,7 @@ private:
 
 struct GenPopper {
     std::unique_ptr<PdfGen> g;
-    GenPopper(const char *ofname, const PdfGenerationData &d) : g() {
+    GenPopper(const std::filesystem::path &ofname, const PdfGenerationData &d) : g() {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));

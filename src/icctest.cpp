@@ -22,7 +22,8 @@ using namespace capypdf;
 int main(int argc, char **argv) {
     PdfGenerationData opts;
 
-    const char *icc_file = argc == 1 ? "/usr/share/color/icc/colord/AdobeRGB1998.icc" : argv[2];
+    std::filesystem::path icc_file{argc == 1 ? "/usr/share/color/icc/colord/AdobeRGB1998.icc"
+                                             : argv[2]};
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
     opts.title = "ICC test";
     opts.author = "Test Person";

@@ -273,7 +273,7 @@ public:
     // Colors
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
-    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const char *fname);
+    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
 
     // Fonts
     rvoe<CapyPdF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
