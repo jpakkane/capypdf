@@ -54,7 +54,6 @@ public:
     ~PdfGen();
 
     rvoe<NoReturnValue> write();
-    void new_page();
 
     rvoe<CapyPdF_ImageId> load_image(const std::filesystem::path &fname) {
         return pdoc.load_image(fname);
