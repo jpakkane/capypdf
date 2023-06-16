@@ -130,6 +130,38 @@ void draw_page_2(PdfGen &gen) {
     ctx.cmd_sh(gouraudid);
 }
 
+void draw_page_3(PdfGen &gen) {
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
+    ShadingType6 coons;
+    FullCoonsPatch fp;
+    fp.p[0] = Point{50, 50};
+    fp.p[1] = Point{50 - 30, 50 + 30};
+
+    fp.p[2] = Point{50 + 20, 150 - 10};
+    fp.p[3] = Point{50, 150};
+    fp.p[4] = Point{50 + 20, 150 + 20};
+
+    fp.p[5] = Point{150 - 10, 150 - 5};
+    fp.p[6] = Point{150, 150};
+    fp.p[7] = Point{150 - 40, 150 - 20};
+
+    fp.p[8] = Point{150 + 20, 50 + 20};
+    fp.p[9] = Point{150, 50};
+    fp.p[10] = Point{150 - 15, 50 - 15};
+
+    fp.p[11] = Point{50 + 20, 50 + 20};
+
+    fp.c[0] = DeviceRGBColor{1.0, 0.0, 0.0};
+    fp.c[1] = DeviceRGBColor{0.0, 1.0, 0.0};
+    fp.c[2] = DeviceRGBColor{0.0, 0.0, 1.0};
+    fp.c[3] = DeviceRGBColor{1.0, 0.0, 1.0};
+
+    coons.elements.emplace_back(std::move(fp));
+    auto coonsid = gen.add_shading(coons);
+    ctx.cmd_sh(coonsid);
+}
+
 int main() {
     PdfGenerationData opts;
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
@@ -141,6 +173,7 @@ int main() {
         PdfGen &gen = *genpop.g;
         draw_page_1(gen);
         draw_page_2(gen);
+        draw_page_3(gen);
     }
     return 0;
 }

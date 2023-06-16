@@ -23,6 +23,7 @@
 #include <vector>
 #include <array>
 #include <functional>
+#include <variant>
 
 #include <cstdint>
 
@@ -75,6 +76,10 @@ struct PdfRectangle {
     double y2{};
 
     static PdfRectangle a4() { return PdfRectangle{0, 0, 595.28, 841.89}; }
+};
+
+struct Point {
+    double x, y;
 };
 
 class LimitDouble {
@@ -246,6 +251,28 @@ struct ShadingType4 {
         // assert(flag == 1 || flag == 2);
         elements.emplace_back(ShadingElement{v, flag});
     }
+};
+
+struct FullCoonsPatch {
+    std::array<Point, 12> p;
+    std::array<DeviceRGBColor, 4> c;
+};
+
+struct ContinuationCoonsPatch {
+    int flag;
+    std::array<Point, 8> p;
+    std::array<DeviceRGBColor, 2> c;
+};
+
+typedef std::variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;
+
+struct ShadingType6 {
+    std::vector<CoonsPatches> elements;
+    double minx = 0;
+    double miny = 0;
+    double maxx = 200;
+    double maxy = 200;
+    CapyPdF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
 };
 
 struct TextStateParameters {
