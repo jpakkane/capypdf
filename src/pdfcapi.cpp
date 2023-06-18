@@ -43,13 +43,36 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPdF_Options *opt,
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_mediabox(
-    CapyPdF_Options *opt, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPdF_Options *opt,
+                                                   CAPYPDF_Page_Box boxtype,
+                                                   double x1,
+                                                   double y1,
+                                                   double x2,
+                                                   double y2) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
-    opts->mediabox.x1 = x1;
-    opts->mediabox.y1 = y1;
-    opts->mediabox.x2 = x2;
-    opts->mediabox.y2 = y2;
+    switch(boxtype) {
+    case CAPY_BOX_MEDIA:
+        opts->mediabox.x1 = x1;
+        opts->mediabox.y1 = y1;
+        opts->mediabox.x2 = x2;
+        opts->mediabox.y2 = y2;
+        break;
+    case CAPY_BOX_CROP:
+        opts->cropbox = PdfRectangle{x1, y1, x2, y2};
+        break;
+    case CAPY_BOX_BLEED:
+        opts->bleedbox = PdfRectangle{x1, y1, x2, y2};
+        break;
+    case CAPY_BOX_TRIM:
+        opts->trimbox = PdfRectangle{x1, y1, x2, y2};
+        break;
+    case CAPY_BOX_ART:
+        opts->artbox = PdfRectangle{x1, y1, x2, y2};
+        break;
+    default:
+        return (CAPYPDF_EC)ErrorCode::BadEnum;
+    }
+
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 

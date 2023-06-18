@@ -47,6 +47,13 @@ class PageTransitionType(Enum):
     Uncover = 10
     Fade = 11
 
+class PageBox(Enum):
+    Media = 0
+    Crop = 1
+    Bleed = 2
+    Trim = 3
+    Art = 4
+
 class RenderingIntent(Enum):
     Relative_Colorimetric = 0
     ABSOLUTE_Colorimetric = 1
@@ -76,8 +83,8 @@ cfunc_types = (
 ('capy_options_set_colorspace', [ctypes.c_void_p, enum_type]),
 ('capy_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_mediabox',
-    [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_options_set_pagebox',
+    [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -229,8 +236,8 @@ class Options:
         bytes = title.encode('UTF-8')
         check_error(libfile.capy_options_set_author(self, bytes))
 
-    def set_mediabox(self, x1, y1, x2, y2):
-        check_error(libfile.capy_options_set_mediabox(self, x1, y1, x2, y2))
+    def set_pagebox(self, boxtype, x1, y1, x2, y2):
+        check_error(libfile.capy_options_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
 
 class DrawContext:
     def __init__(self, generator):
