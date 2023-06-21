@@ -352,7 +352,8 @@ PdfDocument::add_page(std::string resource_data,
                       const std::unordered_set<CapyPdF_FormWidgetId> &fws,
                       const std::unordered_set<CapyPdF_AnnotationId> &annots,
                       const std::unordered_set<CapyPdF_StructureItemId> &structs,
-                      const std::optional<PageTransition> &transition) {
+                      const std::optional<PageTransition> &transition,
+                      const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
             RETERR(AnnotationReuse);
@@ -379,6 +380,9 @@ PdfDocument::add_page(std::string resource_data,
         p.used_annotations.push_back(CapyPdF_AnnotationId{a});
     }
     p.transition = transition;
+    if(!subnav.empty()) {
+        p.subnav_root = create_subnavigation(subnav);
+    }
     const auto page_num = add_object(std::move(p));
     for(const auto &fw : fws) {
         form_use[fw] = page_num;
@@ -397,6 +401,52 @@ void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_strea
     const auto xobj_num = add_object(FullPDFObject{std::move(xobj_dict), std::move(xobj_stream)});
 
     form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
+}
+
+int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &subnav) {
+    assert(!subnav.empty());
+    int32_t root_obj = document_objects.size();
+
+    for(size_t i = 0; i < subnav.size(); ++i) {
+        const auto &sn = subnav[i];
+        std::string buf = R"(<<
+  /Type /NavNode
+)";
+        auto app = std::back_inserter(buf);
+        fmt::format_to(app,
+                       R"(  /NA <<
+    /S /SetOCGState
+    /State [ /ON {} 0 R ]
+  >>
+)",
+                       ocg_object_number(sn.id));
+        fmt::format_to(app, "  /Next {} 0 R\n", root_obj + i + 1);
+        if(i > 0) {
+            fmt::format_to(app,
+                           R"(  /PA <<
+    /S /SetOCGState
+    /State [ /OFF {} 0 R ]
+  >>
+)",
+                           ocg_object_number(subnav[i - 1].id));
+            fmt::format_to(app, "  /Prev {} 0 R\n", root_obj + i - 1);
+        }
+        buf += ">>\n";
+        add_object(FullPDFObject{std::move(buf), ""});
+    }
+    add_object(FullPDFObject{fmt::format(R"(<<
+  /Type /NavNode
+  /PA <<
+    /S /SetOCGState
+    /State [ /OFF {} 0 R ]
+  >>
+  /Prev {} 0 R
+>>
+)",
+                                         ocg_object_number(subnav.back().id),
+                                         root_obj + subnav.size() - 1),
+                             ""});
+    return root_obj;
 }
 
 int32_t PdfDocument::add_object(ObjectType object) {
@@ -596,6 +646,10 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
         }
         buf += "  >>\n";
     }
+
+    if(dp.subnav_root) {
+        fmt::format_to(buf_append, "  /PresSteps {} 0 R\n", dp.subnav_root.value());
+    }
     buf += ">>\n";
 
     return write_finished_object(p.page_obj_num, buf, "");
@@ -607,7 +661,7 @@ rvoe<NoReturnValue> PdfDocument::write_pages_root() {
     buf = fmt::format(R"(<<
   /Type /Pages
   /Kids [
-  )");
+)");
     for(const auto &i : pages) {
         fmt::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
     }

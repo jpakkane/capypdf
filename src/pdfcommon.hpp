@@ -332,4 +332,10 @@ struct OptionalContentGroup {
     //  Usage usage;
 };
 
+struct SubPageNavigation {
+    CapyPDF_OptionalContentGroupId id;
+    // transition
+    // backwards transition
+};
+
 } // namespace capypdf

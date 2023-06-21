@@ -93,6 +93,11 @@ void create_subpage() {
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
+            ctx.render_pdfdoc_text_builtin("This is page 1", CAPY_FONT_HELVETICA, 14, 20, 40);
+        }
+        {
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
             OptionalContentGroup group;
             group.name = "bullet1";
             auto g1 = gen.add_optional_content_group(group).value();
@@ -105,11 +110,16 @@ void create_subpage() {
             ctx.cmd_BDC(g2);
             ctx.render_pdfdoc_text_builtin("Bullet 2", CAPY_FONT_HELVETICA, 12, 20, 30);
             ctx.cmd_EMC();
+            SubPageNavigation sn;
+            sn.id = g1;
+            ctx.add_subpage_navigation(sn);
+            sn.id = g2;
+            ctx.add_subpage_navigation(sn);
         }
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
-            ctx.render_pdfdoc_text_builtin("This is page 2", CAPY_FONT_HELVETICA, 14, 20, 40);
+            ctx.render_pdfdoc_text_builtin("This is page 3", CAPY_FONT_HELVETICA, 14, 20, 40);
         }
     }
 }

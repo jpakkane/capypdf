@@ -93,6 +93,7 @@ void PdfDrawContext::clear() {
     used_annotations.clear();
     used_ocgs.clear();
     ind.clear();
+    sub_navigations.clear();
     transition.reset();
     is_finalized = false;
     uses_all_colorspace = false;
@@ -977,6 +978,14 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const PageTransition &tr) {
     }
     transition = tr;
     return NoReturnValue{};
+}
+
+rvoe<NoReturnValue> PdfDrawContext::add_subpage_navigation(const SubPageNavigation &sn) {
+    if(used_ocgs.find(sn.id) == used_ocgs.end()) {
+        RETERR(UnusedOcg);
+    }
+    sub_navigations.emplace_back(sn);
+    return NoReturnValue();
 }
 
 } // namespace capypdf

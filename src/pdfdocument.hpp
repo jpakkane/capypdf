@@ -116,6 +116,7 @@ struct DelayedPage {
     std::vector<CapyPdF_FormWidgetId> used_form_widgets;
     std::vector<CapyPdF_AnnotationId> used_annotations;
     std::optional<PageTransition> transition;
+    std::optional<int32_t> subnav_root;
 };
 
 struct SubsetGlyph {
@@ -265,7 +266,8 @@ public:
                                  const std::unordered_set<CapyPdF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPdF_AnnotationId> &annots,
                                  const std::unordered_set<CapyPdF_StructureItemId> &structs,
-                                 const std::optional<PageTransition> &transition);
+                                 const std::optional<PageTransition> &transition,
+                                 const std::vector<SubPageNavigation> &subnav);
 
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
@@ -334,6 +336,8 @@ private:
     rvoe<NoReturnValue> write_to_file_impl();
 
     int32_t add_object(ObjectType object);
+
+    int32_t create_subnavigation(const std::vector<SubPageNavigation> &subnav);
 
     int32_t image_object_number(CapyPdF_ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(CapyPdF_FontId fid) { return font_objects.at(fid.id).font_obj; }

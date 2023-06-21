@@ -200,9 +200,13 @@ public:
 
     const std::optional<PageTransition> &get_transition() const { return transition; }
 
+    const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
+
     bool has_unclosed_state() const { return !dstates.empty(); }
 
     rvoe<NoReturnValue> set_transition(const PageTransition &tr);
+
+    rvoe<NoReturnValue> add_subpage_navigation(const SubPageNavigation &sn);
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
@@ -252,6 +256,7 @@ private:
     std::unordered_set<CapyPdF_AnnotationId> used_annotations;
     std::unordered_set<CapyPdF_StructureItemId> used_structures;
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
+    std::vector<SubPageNavigation> sub_navigations;
 
     std::stack<DrawStateType> dstates;
     std::optional<PageTransition> transition;

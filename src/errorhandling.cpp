@@ -64,6 +64,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Output intent identifier missing.",
 "Draw state end mismatch.",
 "URI must be ASCII.",
+"OCG not used on this page.",
 };
 
 // clang-format on

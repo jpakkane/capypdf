@@ -62,6 +62,7 @@ enum class ErrorCode : int32_t {
     MissingIntentIdentifier,
     DrawStateEndMismatch,
     UriNotAscii,
+    UnusedOcg,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
