@@ -22,6 +22,7 @@
 #include <optional>
 #include <vector>
 #include <array>
+#include <string>
 #include <functional>
 #include <variant>
 
@@ -57,6 +58,8 @@ DEF_BASIC_OPERATORS(CapyPdF_FormWidgetId);
 DEF_BASIC_OPERATORS(CapyPdF_AnnotationId);
 
 DEF_BASIC_OPERATORS(CapyPdF_StructureItemId);
+
+DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
 namespace capypdf {
 
@@ -321,6 +324,12 @@ struct PageTransition {
     std::optional<int32_t> Di; // FIXME, turn into an enum and add none
     std::optional<double> SS;
     std::optional<bool> B;
+};
+
+struct OptionalContentGroup {
+    std::string name;
+    // std::string intent;
+    //  Usage usage;
 };
 
 } // namespace capypdf

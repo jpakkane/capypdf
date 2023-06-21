@@ -126,6 +126,10 @@ public:
         return pdoc.add_structure_item(stype, parent);
     }
 
+    rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g) {
+        return pdoc.add_optional_content_group(g);
+    }
+
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
     std::optional<double>

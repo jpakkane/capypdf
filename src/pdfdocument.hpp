@@ -321,6 +321,9 @@ public:
     rvoe<CapyPdF_StructureItemId> add_structure_item(std::string_view stype,
                                                      std::optional<CapyPdF_StructureItemId> parent);
 
+    // Optional content groups
+    rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);
+
     std::optional<double>
     glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepoint) const;
 
@@ -335,6 +338,9 @@ private:
     int32_t image_object_number(CapyPdF_ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(CapyPdF_FontId fid) { return font_objects.at(fid.id).font_obj; }
     int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
+    int32_t ocg_object_number(CapyPDF_OptionalContentGroupId ocgid) {
+        return ocg_items.at(ocgid.id);
+    }
 
     std::optional<CapyPdF_IccColorSpaceId> find_icc_profile(std::string_view contents);
     CapyPdF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
@@ -414,6 +420,7 @@ private:
     std::vector<EmbeddedFileObject> embedded_files;
     std::vector<int32_t> annotations;
     std::vector<StructItem> structure_items;
+    std::vector<int32_t> ocg_items;
     // A form widget can be used on one and only one page.
     std::unordered_map<CapyPdF_FormWidgetId, int32_t> form_use;
     std::unordered_map<CapyPdF_AnnotationId, int32_t> annotation_use;

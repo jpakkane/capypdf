@@ -98,6 +98,7 @@ public:
     ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
     ErrorCode cmd_BDC(CapyPdF_StructureItemId sid);
+    ErrorCode cmd_BDC(CapyPDF_OptionalContentGroupId id);
     ErrorCode cmd_BMC(std::string_view tag);
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
@@ -250,6 +251,8 @@ private:
     std::unordered_set<CapyPdF_FormWidgetId> used_widgets;
     std::unordered_set<CapyPdF_AnnotationId> used_annotations;
     std::unordered_set<CapyPdF_StructureItemId> used_structures;
+    std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
+
     std::stack<DrawStateType> dstates;
     std::optional<PageTransition> transition;
     // Reminder: If you add stuff  here, also add them to .clear().

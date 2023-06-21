@@ -178,6 +178,10 @@ typedef struct {
     int32_t id;
 } CapyPdF_StructureItemId;
 
+typedef struct {
+    int32_t id;
+} CapyPDF_OptionalContentGroupId;
+
 // Options
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_new(CapyPdF_Options **out_ptr) CAPYPDF_NOEXCEPT;

@@ -462,7 +462,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-rvoe<CapyPdF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::__cxx11::path &fname) {
+rvoe<CapyPdF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
@@ -678,6 +678,17 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         }
         buf += "      ]\n  >>\n";
         buf += "  /NeedAppearances true\n";
+    }
+    if(!ocg_items.empty()) {
+        buf += R"(  /OCProperties <<
+    /OCGs [
+)";
+        for(const auto &o : ocg_items) {
+            fmt::format_to(app, "      {} 0 R\n", o);
+        }
+        buf += "    ]\n";
+        buf += "    /D << /BaseState /OFF >>\n";
+        buf += "  >>\n";
     }
     buf += ">>\n";
     add_object(FullPDFObject{buf, ""});
@@ -1709,6 +1720,19 @@ PdfDocument::add_structure_item(std::string_view stype,
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(StructItem{obj_id, std::string(stype), parent});
     return CapyPdF_StructureItemId{(int32_t)structure_items.size() - 1};
+}
+
+rvoe<CapyPDF_OptionalContentGroupId>
+PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
+    auto id = add_object(FullPDFObject{fmt::format(R"(<<
+  /Type /OCG
+  /Name {}
+>>
+)",
+                                                   pdfstring_quote(g.name)),
+                                       ""});
+    ocg_items.push_back(id);
+    return CapyPDF_OptionalContentGroupId{(int32_t)ocg_items.size() - 1};
 }
 
 std::optional<double>

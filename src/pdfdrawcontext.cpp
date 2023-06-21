@@ -17,6 +17,7 @@
 #include <pdfdrawcontext.hpp>
 #include <pdfgen.hpp>
 #include <ft2build.h>
+#include <string_view>
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
@@ -90,6 +91,7 @@ void PdfDrawContext::clear() {
     used_patterns.clear();
     used_widgets.clear();
     used_annotations.clear();
+    used_ocgs.clear();
     ind.clear();
     transition.reset();
     is_finalized = false;
@@ -160,6 +162,14 @@ std::string PdfDrawContext::build_resource_dict() {
         }
         resources += "  >>\n";
     }
+    if(!used_ocgs.empty()) {
+        resources += "  /Properties <<\n";
+        for(const auto &ocg : used_ocgs) {
+            auto objnum = doc->ocg_object_number(ocg);
+            fmt::format_to(resource_appender, "    /oc{} {} 0 R\n", objnum, objnum);
+        }
+        resources += "  >>\n";
+    }
     resources += ">>\n";
     return resources;
 }
@@ -219,6 +229,14 @@ ErrorCode PdfDrawContext::cmd_BDC(CapyPdF_StructureItemId sid) {
                    ind,
                    sid.id,
                    ind);
+    indent(DrawStateType::MarkedContent);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
+    ++marked_depth;
+    used_ocgs.insert(ocgid);
+    fmt::format_to(cmd_appender, "{}/OC /oc{} BDC\n", ind, doc->ocg_object_number(ocgid));
     indent(DrawStateType::MarkedContent);
     return ErrorCode::NoError;
 }

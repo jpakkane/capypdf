@@ -35,7 +35,7 @@ const std::array<const char *, 12> trnames{
     "Fade",
 };
 
-int main(int, char **) {
+void create_presentation() {
     PdfGenerationData opts;
 
     const int32_t w = 160;
@@ -76,5 +76,46 @@ int main(int, char **) {
             }
         }
     }
+}
+
+void create_subpage() {
+    PdfGenerationData opts;
+    const int32_t w = 160;
+    const int32_t h = 90;
+    opts.mediabox.x2 = w;
+    opts.mediabox.y2 = h;
+    opts.title = "Subpage navigation";
+    opts.author = "Joe Speaker";
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    {
+        GenPopper genpop("subpage.pdf", opts);
+        PdfGen &gen = *genpop.g;
+        {
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
+            OptionalContentGroup group;
+            group.name = "bullet1";
+            auto g1 = gen.add_optional_content_group(group).value();
+            group.name = "bullet2";
+            auto g2 = gen.add_optional_content_group(group).value();
+            ctx.render_pdfdoc_text_builtin("Heading", CAPY_FONT_HELVETICA, 14, 50, 70);
+            ctx.cmd_BDC(g1);
+            ctx.render_pdfdoc_text_builtin("Bullet 1", CAPY_FONT_HELVETICA, 12, 20, 50);
+            ctx.cmd_EMC();
+            ctx.cmd_BDC(g2);
+            ctx.render_pdfdoc_text_builtin("Bullet 2", CAPY_FONT_HELVETICA, 12, 20, 30);
+            ctx.cmd_EMC();
+        }
+        {
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
+            ctx.render_pdfdoc_text_builtin("This is page 2", CAPY_FONT_HELVETICA, 14, 20, 40);
+        }
+    }
+}
+
+int main(int, char **) {
+    create_presentation();
+    create_subpage();
     return 0;
 }
