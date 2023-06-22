@@ -59,7 +59,7 @@ FT_Error guarded_face_close(FT_Face face) {
     return 0;
 }
 
-const char PDF_header[] = "%PDF-1.7\n\xe5\xf6\xc4\xd6\n";
+const char PDF_header[] = "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n";
 
 const std::array<const char *, 14> font_names{
     "Times-Roman",
