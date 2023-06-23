@@ -405,7 +405,34 @@ void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_strea
 
 int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &subnav) {
     assert(!subnav.empty());
-    int32_t root_obj = document_objects.size();
+    const int32_t root_obj = document_objects.size();
+    {
+        std::string rootbuf{
+            R"(<<
+  /Type /NavNode
+  /NA <<
+    /S /SetOCGState
+    /State [ /OFF
+)"};
+        auto rootapp = std::back_inserter(rootbuf);
+        for(const auto &i : subnav) {
+            fmt::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+        }
+        rootbuf += "    ]\n  >>\n";
+        fmt::format_to(rootapp, "  /Next {} 0 R\n", root_obj + 1);
+        rootbuf += R"(  /PA <<
+    /S /SetOCGState
+    /State [ /ON
+)";
+        for(const auto &i : subnav) {
+            fmt::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+        }
+        rootbuf += "    ]\n  >>\n";
+        fmt::format_to(rootapp, "  /Prev {} 0 R\n>>\n", root_obj + 1 + subnav.size());
+
+        add_object(FullPDFObject{std::move(rootbuf), ""});
+    }
+    int32_t first_obj = document_objects.size();
 
     for(size_t i = 0; i < subnav.size(); ++i) {
         const auto &sn = subnav[i];
@@ -420,7 +447,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
   >>
 )",
                        ocg_object_number(sn.id));
-        fmt::format_to(app, "  /Next {} 0 R\n", root_obj + i + 1);
+        fmt::format_to(app, "  /Next {} 0 R\n", first_obj + i + 1);
         if(i > 0) {
             fmt::format_to(app,
                            R"(  /PA <<
@@ -429,7 +456,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
   >>
 )",
                            ocg_object_number(subnav[i - 1].id));
-            fmt::format_to(app, "  /Prev {} 0 R\n", root_obj + i - 1);
+            fmt::format_to(app, "  /Prev {} 0 R\n", first_obj + i - 1);
         }
         buf += ">>\n";
         add_object(FullPDFObject{std::move(buf), ""});
@@ -444,7 +471,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
 >>
 )",
                                          ocg_object_number(subnav.back().id),
-                                         root_obj + subnav.size() - 1),
+                                         first_obj + subnav.size() - 1),
                              ""});
     return root_obj;
 }
@@ -741,7 +768,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
             fmt::format_to(app, "      {} 0 R\n", o);
         }
         buf += "    ]\n";
-        buf += "    /D << /BaseState /OFF >>\n";
+        buf += "    /D << /BaseState /ON >>\n";
         buf += "  >>\n";
     }
     buf += ">>\n";
