@@ -1188,6 +1188,31 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 )",
                        uri_as_str,
                        uri_as_str);
+    } else if(std::holds_alternative<ScreenAnnotation>(annotation.sub)) {
+        auto &sa = std::get<ScreenAnnotation>(annotation.sub);
+        int32_t media_filespec = embedded_files.at(sa.mediafile.id).filespec_obj;
+        fmt::format_to(app,
+                       R"(  /Subtype /Screen
+  /A <<
+    /Type /Action
+    /S /Rendition
+    /OP 0
+    /AN {} 0 R
+    /R <<
+      /Type /Rendition
+      /S /MR
+      /C <<
+        /Type /MediaClip
+        /CT ({})
+        /S /MCD
+        /D {} 0 R
+      >>
+    >>
+  >>
+)",
+                       obj_num,
+                       sa.mimetype,
+                       media_filespec);
     } else {
         std::abort();
     }

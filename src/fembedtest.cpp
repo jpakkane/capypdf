@@ -20,7 +20,7 @@
 
 using namespace capypdf;
 
-int main(int argc, char **argv) {
+void file_embed() {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
@@ -53,6 +53,39 @@ int main(int argc, char **argv) {
             ctx.annotate(linkannoid);
         }
     }
+}
 
+void video_player() {
+    PdfGenerationData opts;
+
+    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.title = "Video player test";
+    opts.author = "Test Person";
+#if 0
+    const char *mediafile = "samplemedia.jpg";
+    const char *mimetype = "image/jpeg";
+#else
+    const char *mediafile = "samplemedia.mp4";
+    const char *mimetype = "video/mp4";
+#endif
+    {
+        GenPopper genpop("mediaplayer_test.pdf", opts);
+        PdfGen &gen = *genpop.g;
+        auto efid = gen.embed_file(mediafile).value();
+        {
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
+            ctx.render_pdfdoc_text_builtin("Video below", CAPY_FONT_HELVETICA, 12, 70, 170);
+            auto media_anno_id = gen.create_annotation(PdfRectangle{20, 20, 180, 160},
+                                                       ScreenAnnotation{efid, mimetype})
+                                     .value();
+            ctx.annotate(media_anno_id);
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+    file_embed();
+    video_player();
     return 0;
 }

@@ -215,7 +215,13 @@ struct UriAnnotation {
     std::string uri;
 };
 
-typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation> AnnotationSubType;
+struct ScreenAnnotation {
+    CapyPdF_EmbeddedFileId mediafile;
+    std::string mimetype;
+};
+
+typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation, ScreenAnnotation>
+    AnnotationSubType;
 
 struct DelayedAnnotation {
     CapyPdF_AnnotationId id;
