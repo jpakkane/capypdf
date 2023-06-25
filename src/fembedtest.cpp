@@ -64,9 +64,11 @@ void video_player() {
 #if 0
     const char *mediafile = "samplemedia.jpg";
     const char *mimetype = "image/jpeg";
+    std::optional<ClipTimes> subplay;
 #else
-    const char *mediafile = "cellphone.mp4";
+    const char *mediafile = "samplevideo.mp4";
     const char *mimetype = "video/mp4";
+    std::optional<ClipTimes> subplay = ClipTimes{14 * 60 + 26, 14 * 60 + 32};
 #endif
     {
         GenPopper genpop("mediaplayer_test.pdf", opts);
@@ -77,7 +79,7 @@ void video_player() {
             auto &ctx = ctxguard.ctx;
             ctx.render_pdfdoc_text_builtin("Video below", CAPY_FONT_HELVETICA, 12, 70, 170);
             auto media_anno_id = gen.create_annotation(PdfRectangle{20, 20, 180, 160},
-                                                       ScreenAnnotation{efid, mimetype})
+                                                       ScreenAnnotation{efid, mimetype, subplay})
                                      .value();
             ctx.annotate(media_anno_id);
         }

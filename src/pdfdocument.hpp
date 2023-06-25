@@ -215,9 +215,15 @@ struct UriAnnotation {
     std::string uri;
 };
 
+struct ClipTimes {
+    double starttime;
+    double endtime;
+};
+
 struct ScreenAnnotation {
     CapyPdF_EmbeddedFileId mediafile;
     std::string mimetype;
+    std::optional<ClipTimes> times;
 };
 
 typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation, ScreenAnnotation>

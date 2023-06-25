@@ -1191,8 +1191,9 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     } else if(std::holds_alternative<ScreenAnnotation>(annotation.sub)) {
         auto &sa = std::get<ScreenAnnotation>(annotation.sub);
         int32_t media_filespec = embedded_files.at(sa.mediafile.id).filespec_obj;
-        fmt::format_to(app,
-                       R"(  /Subtype /Screen
+        if(!sa.times) {
+            fmt::format_to(app,
+                           R"(  /Subtype /Screen
   /A <<
     /Type /Action
     /S /Rendition
@@ -1211,9 +1212,47 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     >>
   >>
 )",
-                       obj_num,
-                       sa.mimetype,
-                       media_filespec);
+                           obj_num,
+                           sa.mimetype,
+                           media_filespec);
+        } else {
+            // NOTE! This should work but does not. Acrobat reader will error
+            // out if there are any entries in the MH dictionary, regardless whether they
+            // are time or frame dictionaries.
+            fmt::format_to(app,
+                           R"(  /Subtype /Screen
+  /A <<
+    /Type /Action
+    /S /Rendition
+    /OP 0
+    /AN {} 0 R
+    /R <<
+      /Type /Rendition
+      /S /MR
+      /C <<
+        /Type /MediaClip
+        /S /MCS
+        /D <<
+          /Type /MediaClip
+          /CT ({})
+          /S /MCD
+          /D {} 0 R
+          /P << /TF (TEMPALWAYS) >>
+        >>
+        /MH <<
+          /B << /S /T /T << /S /S /V {} >> >>
+          /E << /S /T /T << /S /S /V {} >> >>
+        >>
+      >>
+    >>
+  >>
+)",
+                           obj_num,
+                           sa.mimetype,
+                           media_filespec,
+                           sa.times->starttime,
+                           sa.times->endtime);
+        }
     } else {
         std::abort();
     }
