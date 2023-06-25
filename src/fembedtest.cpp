@@ -65,7 +65,7 @@ void video_player() {
     const char *mediafile = "samplemedia.jpg";
     const char *mimetype = "image/jpeg";
 #else
-    const char *mediafile = "samplemedia.mp4";
+    const char *mediafile = "cellphone.mp4";
     const char *mimetype = "video/mp4";
 #endif
     {

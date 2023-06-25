@@ -1206,6 +1206,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
         /CT ({})
         /S /MCD
         /D {} 0 R
+        /P << /TF (TEMPALWAYS) >>
       >>
     >>
   >>
