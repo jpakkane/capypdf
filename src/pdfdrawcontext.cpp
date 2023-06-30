@@ -526,6 +526,29 @@ ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::set_stroke_color(const Color &c) {
+    if(std::holds_alternative<DeviceRGBColor>(c)) {
+        return set_stroke_color(std::get<DeviceRGBColor>(c));
+    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
+        return set_stroke_color(std::get<DeviceGrayColor>(c));
+    } else {
+        // Implement the rest later.
+        std::abort();
+    }
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::set_nonstroke_color(const Color &c) {
+    if(std::holds_alternative<DeviceRGBColor>(c)) {
+        return set_nonstroke_color(std::get<DeviceRGBColor>(c));
+    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
+        return set_nonstroke_color(std::get<DeviceGrayColor>(c));
+    } else {
+        std::abort();
+    }
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     switch(doc->opts.output_colorspace) {
     case CAPYPDF_CS_DEVICE_RGB: {
@@ -850,8 +873,18 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
                 return rc.error();
             }
             fmt::format_to(app, "{}EMC\n", ind);
+        } else if(std::holds_alternative<Stroke_arg>(e)) {
+            // const auto &sarg = std::get<Stroke_arg>(e);
+            std::abort();
+        } else if(std::holds_alternative<Nonstroke_arg>(e)) {
+            // FIXME: make a function to create color commands
+            // as text and use that here and in the actual set_X_color methods.
+            const auto &nsarg = std::get<Nonstroke_arg>(e);
+            assert(std::holds_alternative<DeviceRGBColor>(nsarg.c));
+            auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
+            fmt::format_to(app, "{}{} {} {} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
         } else {
-            fprintf(stderr, "Not implemented yet.\n");
+            fprintf(stderr, "Text feature implemented yet.\n");
             std::abort();
         }
     }

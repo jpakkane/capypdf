@@ -52,7 +52,7 @@ void center_test() {
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_GRAY;
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     const char *regularfont;
     const char *italicfont;
     if(argc > 1) {
@@ -80,11 +80,31 @@ int main(int argc, char **argv) {
     auto italic_fid = gen.load_font(italicfont).value();
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
+    ctx.set_nonstroke_color(DeviceGrayColor{0.0});
     ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);
     ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyzåäö", regular_fid, 12, 20, 780);
     ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", regular_fid, 12, 20, 760);
     ctx.render_utf8_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
     ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
+    {
+        auto statepop = ctx.push_gstate();
+        PdfText text;
+        text.cmd_Tf(regular_fid, 24);
+        text.cmd_Td(20, 650);
+        text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
+        text.render_text("C");
+        text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
+        text.render_text("o");
+        text.nonstroke_color(DeviceRGBColor{0.0, 0.0, 1.0});
+        text.render_text("l");
+        text.nonstroke_color(DeviceRGBColor{1.0, 1.0, 0.0});
+        text.render_text("o");
+        text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 1.0});
+        text.render_text("r");
+        text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
+        text.render_text("!");
+        ctx.render_text(text);
+    }
     {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);

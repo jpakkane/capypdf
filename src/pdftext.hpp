@@ -80,6 +80,14 @@ struct Tz_arg {
 
 struct Emc_arg {};
 
+struct Stroke_arg {
+    Color c;
+};
+
+struct Nonstroke_arg {
+    Color c;
+};
+
 typedef std::variant<TStar_arg,
                      Tc_arg,
                      Td_arg,
@@ -94,7 +102,9 @@ typedef std::variant<TStar_arg,
                      Tw_arg,
                      Tz_arg,
                      CapyPdF_StructureItemId,
-                     Emc_arg>
+                     Emc_arg,
+                     Stroke_arg,
+                     Nonstroke_arg>
     TextEvent;
 
 class PdfText {
@@ -175,6 +185,16 @@ public:
 
     ErrorCode cmd_Tz(double scaling) {
         events.emplace_back(Tz_arg{scaling});
+        return ErrorCode::NoError;
+    }
+
+    ErrorCode stroke_color(const Color &c) {
+        events.emplace_back(Stroke_arg{c});
+        return ErrorCode::NoError;
+    }
+
+    ErrorCode nonstroke_color(const Color &c) {
+        events.emplace_back(Nonstroke_arg{c});
         return ErrorCode::NoError;
     }
 

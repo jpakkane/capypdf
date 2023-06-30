@@ -141,6 +141,9 @@ public:
     ErrorCode cmd_Wstar();
     ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
+    ErrorCode set_stroke_color(const Color &c);
+    ErrorCode set_nonstroke_color(const Color &c);
+
     ErrorCode set_stroke_color(const DeviceRGBColor &c);
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(const LabColor &c);
