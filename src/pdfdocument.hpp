@@ -115,7 +115,7 @@ struct DelayedPage {
     int32_t page_num;
     std::vector<CapyPdF_FormWidgetId> used_form_widgets;
     std::vector<CapyPdF_AnnotationId> used_annotations;
-    std::optional<PageTransition> transition;
+    std::optional<Transition> transition;
     std::optional<int32_t> subnav_root;
 };
 
@@ -278,7 +278,7 @@ public:
                                  const std::unordered_set<CapyPdF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPdF_AnnotationId> &annots,
                                  const std::unordered_set<CapyPdF_StructureItemId> &structs,
-                                 const std::optional<PageTransition> &transition,
+                                 const std::optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);
 
     // Form XObjects

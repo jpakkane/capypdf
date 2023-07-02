@@ -143,7 +143,7 @@ typedef struct _CapyPdF_Generator CapyPdF_Generator;
 typedef struct _CapyPdF_DrawContext CapyPdF_DrawContext;
 typedef struct _CapyPdF_Text CapyPdF_Text;
 typedef struct _CapyPdF_Color CapyPdF_Color;
-typedef struct _CAPYPDF_PageTransition CAPYPDF_PageTransition;
+typedef struct _CAPYPDF_Transition CAPYPDF_Transition;
 
 typedef int32_t CAPYPDF_EC;
 
@@ -315,7 +315,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPdF_DrawContext *ctx,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPdF_DrawContext *ctx,
                                                   CapyPdF_Text *text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
-    CapyPdF_DrawContext *dc, CAPYPDF_PageTransition *transition) CAPYPDF_NOEXCEPT;
+    CapyPdF_DrawContext *dc, CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPdF_DrawContext *) CAPYPDF_NOEXCEPT;
 
 // Text
@@ -340,11 +340,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_rgb(CapyPdF_Color *c, double r, double 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPdF_Color *c, double v) CAPYPDF_NOEXCEPT;
 
 // Transition
-CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,
-                                                   enum CAPYPDF_Transition_Type type,
-                                                   double duration) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_destroy(CAPYPDF_PageTransition *transition)
-    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
+                                              enum CAPYPDF_Transition_Type type,
+                                              double duration) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
 
 // Error
 

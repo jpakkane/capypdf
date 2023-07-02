@@ -352,7 +352,7 @@ PdfDocument::add_page(std::string resource_data,
                       const std::unordered_set<CapyPdF_FormWidgetId> &fws,
                       const std::unordered_set<CapyPdF_AnnotationId> &annots,
                       const std::unordered_set<CapyPdF_StructureItemId> &structs,
-                      const std::optional<PageTransition> &transition,
+                      const std::optional<Transition> &transition,
                       const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {

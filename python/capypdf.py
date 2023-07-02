@@ -33,7 +33,7 @@ class Colorspace(Enum):
     DeviceGray = 1
     DeviceCMYK = 2
 
-class PageTransitionType(Enum):
+class TransitionType(Enum):
     Split = 0
     Blinds = 1
     Box = 2
@@ -155,8 +155,8 @@ cfunc_types = (
 ('capy_color_set_rgb', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_color_set_gray', [ctypes.c_void_p, ctypes.c_double]),
 
-('capy_page_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
-('capy_page_transition_destroy', [ctypes.c_void_p]),
+('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
+('capy_transition_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -400,7 +400,7 @@ class DrawContext:
         check_error(libfile.capy_dc_draw_image(self, iid))
 
     def set_page_transition(self, tr):
-        if not isinstance(tr, PageTransition):
+        if not isinstance(tr, Transition):
             raise CapyPDFException('Argument is not a transition object.')
         check_error(libfile.capy_dc_set_page_transition(self, tr))
 
@@ -532,14 +532,14 @@ class Color:
         check_error(libfile.capy_color_set_gray(self, r, g, b))
 
 
-class PageTransition:
+class Transition:
     def __init__(self, ttype, duration):
         self._as_parameter_ = None
         opt = ctypes.c_void_p()
-        if not isinstance(ttype, PageTransitionType):
+        if not isinstance(ttype, TransitionType):
             raise CapyPDFException('Argument is not a transition type.')
-        check_error(libfile.capy_page_transition_new(ctypes.pointer(opt), ttype.value, duration))
+        check_error(libfile.capy_transition_new(ctypes.pointer(opt), ttype.value, duration))
         self._as_parameter_ = opt
 
     def __del__(self):
-        check_error(libfile.capy_page_transition_destroy(self))
+        check_error(libfile.capy_transition_destroy(self))

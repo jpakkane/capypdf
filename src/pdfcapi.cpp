@@ -434,9 +434,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPdF_DrawContext *ctx,
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
-    CapyPdF_DrawContext *dc, CAPYPDF_PageTransition *transition) CAPYPDF_NOEXCEPT {
+    CapyPdF_DrawContext *dc, CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
-    auto t = reinterpret_cast<PageTransition *>(transition);
+    auto t = reinterpret_cast<Transition *>(transition);
     auto rc = ctx->set_transition(*t);
     return (CAPYPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
@@ -502,19 +502,18 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPdF_Color *c, double v) CAPYPD
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,
-                                                   CAPYPDF_Transition_Type type,
-                                                   double duration) CAPYPDF_NOEXCEPT {
-    auto pt = new PageTransition{};
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
+                                              CAPYPDF_Transition_Type type,
+                                              double duration) CAPYPDF_NOEXCEPT {
+    auto pt = new Transition{};
     pt->type = type;
     pt->duration = duration;
-    *out_ptr = reinterpret_cast<CAPYPDF_PageTransition *>(pt);
+    *out_ptr = reinterpret_cast<CAPYPDF_Transition *>(pt);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_destroy(CAPYPDF_PageTransition *transition)
-    CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<PageTransition *>(transition);
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<Transition *>(transition);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 

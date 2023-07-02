@@ -316,7 +316,7 @@ struct FontSubset {
 
 extern const std::array<const char *, 4> rendering_intent_names;
 
-struct PageTransition {
+struct Transition {
     std::optional<CAPYPDF_Transition_Type> type;
     std::optional<double> duration;
     std::optional<bool> Dm;    // true is horizontal

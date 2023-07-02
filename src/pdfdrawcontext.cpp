@@ -1005,7 +1005,7 @@ void PdfDrawContext::draw_unit_circle() {
 
 void PdfDrawContext::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
 
-rvoe<NoReturnValue> PdfDrawContext::set_transition(const PageTransition &tr) {
+rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
     if(context_type != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }

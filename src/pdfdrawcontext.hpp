@@ -201,13 +201,13 @@ public:
         return used_structures;
     }
 
-    const std::optional<PageTransition> &get_transition() const { return transition; }
+    const std::optional<Transition> &get_transition() const { return transition; }
 
     const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
 
     bool has_unclosed_state() const { return !dstates.empty(); }
 
-    rvoe<NoReturnValue> set_transition(const PageTransition &tr);
+    rvoe<NoReturnValue> set_transition(const Transition &tr);
 
     rvoe<NoReturnValue> add_subpage_navigation(const SubPageNavigation &sn);
 
@@ -262,7 +262,7 @@ private:
     std::vector<SubPageNavigation> sub_navigations;
 
     std::stack<DrawStateType> dstates;
-    std::optional<PageTransition> transition;
+    std::optional<Transition> transition;
     // Reminder: If you add stuff  here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;

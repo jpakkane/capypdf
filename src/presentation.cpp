@@ -48,7 +48,7 @@ void create_presentation() {
     {
         GenPopper genpop("presentation.pdf", opts);
         PdfGen &gen = *genpop.g;
-        PageTransition transition;
+        Transition transition;
         transition.duration = 1.0;
         transition.Dm = true;
         transition.M = false;
