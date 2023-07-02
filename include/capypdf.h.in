@@ -142,6 +142,7 @@ typedef struct _CapyPdF_Options CapyPdF_Options;
 typedef struct _CapyPdF_Generator CapyPdF_Generator;
 typedef struct _CapyPdF_DrawContext CapyPdF_DrawContext;
 typedef struct _CapyPdF_Text CapyPdF_Text;
+typedef struct _CapyPdF_Color CapyPdF_Color;
 typedef struct _CAPYPDF_PageTransition CAPYPDF_PageTransition;
 
 typedef int32_t CAPYPDF_EC;
@@ -329,6 +330,14 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Td(CapyPdF_Text *text, double x, double 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPdF_Text *text,
                                            CapyPdF_FontId font,
                                            double pointsize) CAPYPDF_NOEXCEPT;
+
+// Color
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_new(CapyPdF_Color **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_destroy(CapyPdF_Color *color) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_rgb(CapyPdF_Color *c, double r, double g, double b)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPdF_Color *c, double v) CAPYPDF_NOEXCEPT;
 
 // Transition
 CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,

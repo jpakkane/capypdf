@@ -150,6 +150,11 @@ cfunc_types = (
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 
+('capy_color_new', [ctypes.c_void_p]),
+('capy_color_destroy', [ctypes.c_void_p]),
+('capy_color_set_rgb', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_color_set_gray', [ctypes.c_void_p, ctypes.c_double]),
+
 ('capy_page_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_page_transition_destroy', [ctypes.c_void_p]),
 
@@ -508,6 +513,24 @@ class Text:
         if not isinstance(fontid, FontId):
             raise CapyPDFException('Font id is not a font object.')
         check_error(libfile.capy_text_cmd_Tf(self, fontid, ptsize))
+
+class Color:
+    def __init__(self):
+        self._as_parameter_ = None
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_color_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        if self._as_parameter_ is not None:
+            check_error(libfile.capy_color_destroy(self))
+
+    def set_rgb(self, r, g, b):
+        check_error(libfile.capy_color_set_rgb(self, r, g, b))
+
+    def set_gray(self, r, g, b):
+        check_error(libfile.capy_color_set_gray(self, r, g, b))
+
 
 class PageTransition:
     def __init__(self, ttype, duration):

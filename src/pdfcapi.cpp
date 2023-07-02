@@ -481,6 +481,27 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPdF_Text *text) CAPYPDF_NOEXCEPT
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_new(CapyPdF_Color **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPdF_Color *>(new capypdf::Color(DeviceRGBColor{0, 0, 0}));
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_destroy(CapyPdF_Color *color) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<capypdf::Color *>(color);
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_rgb(CapyPdF_Color *c, double r, double g, double b)
+    CAPYPDF_NOEXCEPT {
+    *reinterpret_cast<capypdf::Color *>(c) = DeviceRGBColor{r, g, b};
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPdF_Color *c, double v) CAPYPDF_NOEXCEPT {
+    *reinterpret_cast<capypdf::Color *>(c) = DeviceGrayColor{v};
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_page_transition_new(CAPYPDF_PageTransition **out_ptr,
                                                    CAPYPDF_Transition_Type type,
                                                    double duration) CAPYPDF_NOEXCEPT {
