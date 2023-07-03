@@ -209,7 +209,8 @@ public:
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
-    rvoe<NoReturnValue> add_subpage_navigation(const SubPageNavigation &sn);
+    rvoe<NoReturnValue> add_simple_navigation(std::span<CapyPDF_OptionalContentGroupId> navs,
+                                              const std::optional<Transition> &tr);
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,

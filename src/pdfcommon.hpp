@@ -334,7 +334,7 @@ struct OptionalContentGroup {
 
 struct SubPageNavigation {
     CapyPDF_OptionalContentGroupId id;
-    // transition
+    std::optional<Transition> tr;
     // backwards transition
 };
 

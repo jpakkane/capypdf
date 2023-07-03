@@ -98,10 +98,14 @@ void create_subpage() {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
             OptionalContentGroup group;
+            std::optional<Transition> tr;
             group.name = "bullet1";
+            std::vector<CapyPDF_OptionalContentGroupId> ocgs;
             auto g1 = gen.add_optional_content_group(group).value();
+            ocgs.emplace_back(g1);
             group.name = "bullet2";
             auto g2 = gen.add_optional_content_group(group).value();
+            ocgs.emplace_back(g2);
             ctx.render_pdfdoc_text_builtin("Heading", CAPY_FONT_HELVETICA, 14, 50, 70);
             ctx.cmd_BDC(g1);
             ctx.render_pdfdoc_text_builtin("Bullet 1", CAPY_FONT_HELVETICA, 12, 20, 50);
@@ -109,11 +113,7 @@ void create_subpage() {
             ctx.cmd_BDC(g2);
             ctx.render_pdfdoc_text_builtin("Bullet 2", CAPY_FONT_HELVETICA, 12, 20, 30);
             ctx.cmd_EMC();
-            SubPageNavigation sn;
-            sn.id = g1;
-            ctx.add_subpage_navigation(sn);
-            sn.id = g2;
-            ctx.add_subpage_navigation(sn);
+            ctx.add_simple_navigation(ocgs, tr);
         }
         {
             auto ctxguard = gen.guarded_page_context();

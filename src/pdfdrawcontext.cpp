@@ -1013,11 +1013,20 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
     return NoReturnValue{};
 }
 
-rvoe<NoReturnValue> PdfDrawContext::add_subpage_navigation(const SubPageNavigation &sn) {
-    if(used_ocgs.find(sn.id) == used_ocgs.end()) {
-        RETERR(UnusedOcg);
+rvoe<NoReturnValue>
+PdfDrawContext::add_simple_navigation(std::span<CapyPDF_OptionalContentGroupId> navs,
+                                      const std::optional<Transition> &tr) {
+    if(!sub_navigations.empty()) {
+        std::abort();
     }
-    sub_navigations.emplace_back(sn);
+    for(const auto &sn : navs) {
+        if(used_ocgs.find(sn) == used_ocgs.end()) {
+            RETERR(UnusedOcg);
+        }
+    }
+    for(const auto &sn : navs) {
+        sub_navigations.emplace_back(SubPageNavigation{sn, tr});
+    }
     return NoReturnValue();
 }
 
