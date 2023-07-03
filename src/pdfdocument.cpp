@@ -468,13 +468,21 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
   /Type /NavNode
 )";
         auto app = std::back_inserter(buf);
+        buf += "  /NA  <<\n";
         fmt::format_to(app,
-                       R"(  /NA <<
-    /S /SetOCGState
+                       R"(    /S /SetOCGState
     /State [ /ON {} 0 R ]
-  >>
 )",
                        ocg_object_number(sn.id));
+        if(sn.tr) {
+            buf += R"(    /Next <<
+      /S /Trans
+)";
+            serialize_trans(app, *sn.tr, "      ");
+            buf += "    >>\n";
+        }
+
+        buf += "  >>\n";
         fmt::format_to(app, "  /Next {} 0 R\n", first_obj + i + 1);
         if(i > 0) {
             fmt::format_to(app,

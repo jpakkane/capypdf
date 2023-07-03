@@ -98,7 +98,7 @@ void create_subpage() {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
             OptionalContentGroup group;
-            std::optional<Transition> tr;
+            Transition tr{CAPY_TR_DISSOLVE, 1.0, {}, {}, {}, {}, {}};
             group.name = "bullet1";
             std::vector<CapyPDF_OptionalContentGroupId> ocgs;
             auto g1 = gen.add_optional_content_group(group).value();
