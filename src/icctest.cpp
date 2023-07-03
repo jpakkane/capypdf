@@ -16,7 +16,7 @@
 
 #include <pdfgen.hpp>
 #include <cmath>
-#include <span>
+
 using namespace capypdf;
 
 int main(int argc, char **argv) {
