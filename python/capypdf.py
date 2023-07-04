@@ -76,6 +76,10 @@ class ImageId(ctypes.Structure):
 class IccColorSpaceId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class OptionalContentGroupId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
+
 cfunc_types = (
 
 ('capy_options_new', [ctypes.c_void_p]),
@@ -92,6 +96,7 @@ cfunc_types = (
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
+('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 ('capy_generator_utf8_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
@@ -100,10 +105,12 @@ cfunc_types = (
 ('capy_dc_cmd_B', [ctypes.c_void_p]),
 ('capy_dc_cmd_bstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_Bstar', [ctypes.c_void_p]),
+('capy_dc_cmd_BDC_ocg', [ctypes.c_void_p, OptionalContentGroupId]),
 ('capy_dc_cmd_c', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_dc_cmd_EMC', [ctypes.c_void_p]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_G', [ctypes.c_void_p, ctypes.c_double]),
@@ -161,6 +168,9 @@ cfunc_types = (
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
+
+('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_optional_content_group_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -282,11 +292,19 @@ class DrawContext:
     def cmd_Bstar(self):
         check_error(libfile.capy_dc_cmd_Bstar(self))
 
+    def cmd_BDC(self, ocg):
+        if not isinstance(ocg, OptionalContentGroupId):
+            raise CapyPDFException('Argument must be an optional content group ID.')
+        check_error(libfile.capy_dc_cmd_BDC_ocg(self, ocg))
+
     def cmd_c(self, x1, y1, x2, y2, x3, y3):
         check_error(libfile.capy_dc_cmd_c(self, x1, y1, x2, y2, x3, y3))
 
     def cmd_cm(self, m1, m2, m3, m4, m5, m6):
         check_error(libfile.capy_dc_cmd_cm(self, m1, m2, m3, m4, m5, m6))
+
+    def cmd_EMC(self):
+        check_error(libfile.capy_dc_cmd_EMC(self))
 
     def cmd_f(self):
         check_error(libfile.capy_dc_cmd_f(self))
@@ -417,6 +435,11 @@ class DrawContext:
     def rotate(self, angle):
         self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
 
+    def add_simple_navigation(self, ocgs):
+        arraytype = len(ocgs)*OptionalContentGroupId
+        arr = arraytype(*tuple(ocgs))
+        check_error(libfile.capy_dc_add_simple_navigation(self, ctypes.pointer(arr), len(ocgs)))
+
 class StateContextManager:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -490,6 +513,11 @@ class Generator:
         check_error(libfile.capy_generator_utf8_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
         return w.value
 
+    def add_optional_content_group(self, ocg):
+        ocgid = OptionalContentGroupId()
+        check_error(libfile.capy_generator_add_optional_content_group(self, ocg, ctypes.pointer(ocgid)))
+        return ocgid
+
 class Text:
     def __init__(self):
         self._as_parameter_ = None
@@ -556,3 +584,15 @@ class Transition:
 
     def __del__(self):
         check_error(libfile.capy_transition_destroy(self))
+
+
+class OptionalContentGroup:
+    def __init__(self, name):
+        self._as_parameter_ = None
+        in_bytes = name.encode('ASCII')
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_optional_content_group_new(ctypes.pointer(opt), in_bytes))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.capy_optional_content_group_destroy(self))

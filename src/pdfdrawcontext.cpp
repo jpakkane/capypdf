@@ -1014,8 +1014,11 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
 }
 
 rvoe<NoReturnValue>
-PdfDrawContext::add_simple_navigation(std::span<CapyPDF_OptionalContentGroupId> navs,
+PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
                                       const std::optional<Transition> &tr) {
+    if(context_type != CAPY_DC_PAGE) {
+        RETERR(InvalidDrawContextType);
+    }
     if(!sub_navigations.empty()) {
         std::abort();
     }

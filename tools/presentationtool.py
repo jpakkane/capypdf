@@ -38,9 +38,9 @@ def create_pages():
                                                    'Only Acrobat Reader in presenter mode works correctly',
                                                    'Others show all bullets immediately']),
              CodePage('Sample code', '''def advance_highlighting():
-    code_color += increment
+    code_color += compute_increment()
     # The highlighting used here is arbitrary.
-    # Its only pupose is to demonstrate text coloring.
+    # Its only purpose is to demonstrate text coloring.
     return true
 '''),
             ]
@@ -134,12 +134,20 @@ class Demopresentation:
         box_indent = 90
         bullet_separation = 1.5
         bullet_linesep = 1.2
+        bullet_id = 1
+        ocgs = []
         for entry in p.entries:
+            ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
+            ocgs.append(ocg)
+            ctx.cmd_BDC(ocg)
             ctx.render_text('🞂', self.symbolfont, self.symbolsize, box_indent - 40, current_y+1)
             for line in self.split_to_lines(entry, self.basefont, self.textsize, self.w - 2*box_indent):
                 ctx.render_text(line, self.basefont, self.textsize, box_indent, current_y)
                 current_y -= bullet_linesep*self.textsize
+            ctx.cmd_EMC()
             current_y += (bullet_linesep - bullet_separation)*self.textsize
+            bullet_id += 1
+        ctx.add_simple_navigation(ocgs)
 
     def render_code_page(self, ctx, p):
         tr = capypdf.Transition(capypdf.TransitionType.Uncover, 1.0)
@@ -165,7 +173,10 @@ class Demopresentation:
                 else:
                     cur += word + ' '
                     text.render_text(cur)
-                    color.set_rgb(1.0*i/num_words, 0, 0)
+                    r = 1.0*i/num_words
+                    if i%2 == 0:
+                        r = 1.0-r
+                    color.set_rgb(r, 0, 0)
                     text.nonstroke_color(color)
                     cur = ''
                 i += 1

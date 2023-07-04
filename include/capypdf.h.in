@@ -143,6 +143,7 @@ typedef struct _CapyPDF_Generator CapyPDF_Generator;
 typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
 typedef struct _CapyPDF_Text CapyPDF_Text;
 typedef struct _CapyPDF_Color CapyPDF_Color;
+typedef struct _CapyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
 typedef struct _CAPYPDF_Transition CAPYPDF_Transition;
 
 typedef int32_t CAPYPDF_EC;
@@ -219,6 +220,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_write(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_generator_add_optional_content_group(CapyPDF_Generator *g,
+                                          const CapyPDF_OptionalContentGroup *ocg,
+                                          CapyPDF_OptionalContentGroupId *ocgid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_destroy(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
@@ -237,6 +242,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_b(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCE
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_BDC_ocg(
+    CapyPDF_DrawContext *ctx, CapyPDF_OptionalContentGroupId ocgid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_c(CapyPDF_DrawContext *ctx,
                                         double x1,
                                         double y1,
@@ -251,6 +258,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
                                          double m4,
                                          double m5,
                                          double m6) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_f(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_fstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_G(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT;
@@ -316,6 +324,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
                                                   CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
     CapyPDF_DrawContext *dc, CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
+                              const CapyPDF_OptionalContentGroupId *ocgarray,
+                              int32_t array_size) CAPYPDF_NOEXCEPT;
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
 // Text
@@ -348,6 +361,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
                                               enum CAPYPDF_Transition_Type type,
                                               double duration) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
+
+// Optional Content groups
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalContentGroup **out_ptr,
+                                                          const char *name) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CAPYPDF_Transition *transition)
+    CAPYPDF_NOEXCEPT;
 
 // Error
 

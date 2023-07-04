@@ -210,7 +210,7 @@ public:
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
-    rvoe<NoReturnValue> add_simple_navigation(std::span<CapyPDF_OptionalContentGroupId> navs,
+    rvoe<NoReturnValue> add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
                                               const std::optional<Transition> &tr);
 
 private:

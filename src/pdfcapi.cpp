@@ -166,6 +166,20 @@ CAPYPDF_EC capy_generator_write(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT {
     return (CAPYPDF_EC)rc.error();
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_generator_add_optional_content_group(CapyPDF_Generator *generator,
+                                          const CapyPDF_OptionalContentGroup *ocg,
+                                          CapyPDF_OptionalContentGroupId *ocgid) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    const auto *group = reinterpret_cast<const OptionalContentGroup *>(ocg);
+    auto rc = g->add_optional_content_group(*group);
+    if(rc) {
+        *ocgid = rc.value();
+        return (CAPYPDF_EC)ErrorCode::NoError;
+    }
+    return (CAPYPDF_EC)rc.error();
+}
+
 CAPYPDF_EC capy_generator_destroy(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     delete g;
@@ -215,6 +229,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NO
     return (CAPYPDF_EC)c->cmd_Bstar();
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_BDC_ocg(
+    CapyPDF_DrawContext *ctx, CapyPDF_OptionalContentGroupId ocgid) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_BDC(ocgid);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_c(CapyPDF_DrawContext *ctx,
                                         double x1,
                                         double y1,
@@ -235,6 +255,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
                                          double m6) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)c->cmd_cm(m1, m2, m3, m4, m5, m6);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return (CAPYPDF_EC)c->cmd_EMC();
 }
 
 CAPYPDF_EC capy_dc_cmd_f(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
@@ -441,6 +466,20 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
     return (CAPYPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
+                              const CapyPDF_OptionalContentGroupId *ocgarray,
+                              int32_t array_size) CAPYPDF_NOEXCEPT {
+    auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    std::optional<Transition> blub;
+    std::span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, ocgarray + array_size);
+    auto rc = ctx->add_simple_navigation(ocgspan, blub);
+    if(rc) {
+        return (CAPYPDF_EC)ErrorCode::NoError;
+    }
+    return (CAPYPDF_EC)rc.error();
+}
+
 CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfDrawContext *>(ctx);
     return (CAPYPDF_EC)ErrorCode::NoError;
@@ -531,6 +570,21 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Transition *>(transition);
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalContentGroup **out_ptr,
+                                                          const char *name) CAPYPDF_NOEXCEPT {
+    // FIXME check for ASCIIness (or even more strict?)
+    auto *ocg = new OptionalContentGroup();
+    ocg->name = name;
+    *out_ptr = reinterpret_cast<CapyPDF_OptionalContentGroup *>(ocg);
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CAPYPDF_Transition *transition)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<OptionalContentGroup *>(transition);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
