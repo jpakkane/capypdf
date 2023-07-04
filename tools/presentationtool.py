@@ -33,10 +33,11 @@ class CodePage:
 
 def create_pages():
     pages = [TitlePage("CapyPDF output demonstration", "Sample Presenter", "none@example.com"),
-             BulletPage('This is a heading', ['Bullet point 1',
-                                              'Bullet point 2',
-                                              'The third entry is so long that it overflows and takes two lines.']),
-             CodePage('Sample code', '''def advance_highlighting_highlighting():
+             BulletPage('Animated bullet points', ['These appear one by one',
+                                                   'Navigate with left and right arrow',
+                                                   'Only Acrobat Reader in presenter mode works correctly',
+                                                   'Others show all bullets immediately']),
+             CodePage('Sample code', '''def advance_highlighting():
     code_color += increment
     # The highlighting used here is arbitrary.
     # Its only pupose is to demonstrate text coloring.
@@ -124,6 +125,8 @@ class Demopresentation:
 
 
     def render_bullet_page(self, ctx, p):
+        tr = capypdf.Transition(capypdf.TransitionType.Push, 1.0)
+        ctx.set_page_transition(tr)
         text_w = self.pdfgen.text_width(p.heading, self.boldbasefont, self.headingsize)
         head_y = self.h - 1.5*self.headingsize
         ctx.render_text(p.heading, self.boldbasefont, self.headingsize, (self.w-text_w)/2, head_y)
@@ -139,6 +142,8 @@ class Demopresentation:
             current_y += (bullet_linesep - bullet_separation)*self.textsize
 
     def render_code_page(self, ctx, p):
+        tr = capypdf.Transition(capypdf.TransitionType.Uncover, 1.0)
+        ctx.set_page_transition(tr)
         self.render_centered(ctx,
                              p.heading,
                              self.boldbasefont,
