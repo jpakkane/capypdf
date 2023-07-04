@@ -6,20 +6,32 @@ os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
 source_root = pathlib.Path(__file__).parent / '..'
 sys.path.append(str(source_root / 'python'))
 
-import capypdf
+try:
+    import capypdf
+except Exception:
+    print('You might need to edit the search paths at the top of this file to get it to find the dependencies.')
+    raise
 
 def cm2pt(pts):
     return pts*28.346;
 
-class BulletPage:
-    def __init__(self, title, entries):
+class TitlePage:
+    def __init__(self, title, author, email):
         self.title = title
+        self.author = author
+        self.email = email
+
+class BulletPage:
+    def __init__(self, heading, entries):
+        self.heading = heading
         self.entries = entries
 
 def create_pages():
-    pages = [BulletPage('This is a heading', ['Bullet point 1',
+    pages = [TitlePage("CapyPDF output demonstration", "Sample Presenter", "none@example.com"),
+             BulletPage('This is a heading', ['Bullet point 1',
                                               'Bullet point 2',
-                                              'The third entry is so long that it overflows and takes two lines.'])]
+                                              'The third entry is so long that it overflows and takes two lines.'])
+            ]
     return pages
 
 class Demopresentation:
@@ -30,6 +42,8 @@ class Demopresentation:
         self.fontfile = '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf'
         self.boldfontfile = '/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf'
         self.symbolfontfile = '/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf'
+        self.codefontfile = '/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf'
+        self.titlesize = 44
         self.headingsize = 44
         self.textsize = 32
         self.symbolsize = 28
@@ -40,6 +54,7 @@ class Demopresentation:
         self.basefont = self.pdfgen.load_font(self.fontfile)
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)
         self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
+        self.codefont = self.pdfgen.load_font(self.codefontfile)
 
     def split_to_lines(self, text, fid, ptsize, width):
         if self.pdfgen.text_width(text, fid, ptsize) <= width:
@@ -62,10 +77,44 @@ class Demopresentation:
             lines.append(' '.join(current_line))
         return lines
 
+    def render_centered(self, ctx, text, font, pointsize, x, y):
+        text_w = self.pdfgen.text_width(text, font, pointsize)
+        ctx.render_text(text, font, pointsize, x -text_w/2, y)
+
+    def render_title_page(self, ctx, p):
+        self.render_centered(ctx,
+                             p.title,
+                             self.boldbasefont,
+                             self.titlesize,
+                             self.w/2,
+                             self.h - 2*self.headingsize)
+
+        self.render_centered(ctx,
+                             p.author,
+                             self.basefont,
+                             self.titlesize,
+                             self.w/2,
+                             0.5*self.h)
+
+        self.render_centered(ctx,
+                             p.author,
+                             self.basefont,
+                             self.titlesize,
+                             self.w/2,
+                             0.5*self.h)
+
+        self.render_centered(ctx,
+                             p.email,
+                             self.codefont,
+                             self.titlesize-4,
+                             self.w/2,
+                             0.35*self.h)
+
+
     def render_bullet_page(self, ctx, p):
-        text_w = self.pdfgen.text_width(p.title, self.boldbasefont, self.headingsize)
+        text_w = self.pdfgen.text_width(p.heading, self.boldbasefont, self.headingsize)
         head_y = self.h - 1.5*self.headingsize
-        ctx.render_text(p.title, self.boldbasefont, self.headingsize, (self.w-text_w)/2, head_y)
+        ctx.render_text(p.heading, self.boldbasefont, self.headingsize, (self.w-text_w)/2, head_y)
         current_y = head_y - 1.5*self.headingsize
         box_indent = 90
         bullet_separation = 1.5
@@ -80,7 +129,9 @@ class Demopresentation:
     def add_pages(self, pages):
         for page in pages:
             with self.pdfgen.page_draw_context() as ctx:
-                if isinstance(page, BulletPage):
+                if isinstance(page, TitlePage):
+                    self.render_title_page(ctx, page)
+                elif isinstance(page, BulletPage):
                     self.render_bullet_page(ctx, page)
                 else:
                     raise RuntimeError('Unknown page type.')
