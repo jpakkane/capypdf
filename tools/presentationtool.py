@@ -90,6 +90,14 @@ class Demopresentation:
             lines.append(' '.join(current_line))
         return lines
 
+    def draw_master(self, ctx):
+        with ctx.push_gstate():
+            ctx.cmd_rg(0.1, 0.3, 0.5)
+            ctx.cmd_re(0, 0, self.w, 30)
+            ctx.cmd_f()
+            ctx.cmd_rg(1, 1, 1)
+            ctx.render_text('https://github.com/jpakkane/capypdf', self.codefont, 12, self.w-280, 10)
+
     def render_centered(self, ctx, text, font, pointsize, x, y):
         text_w = self.pdfgen.text_width(text, font, pointsize)
         ctx.render_text(text, font, pointsize, x -text_w/2, y)
@@ -187,6 +195,7 @@ class Demopresentation:
     def add_pages(self, pages):
         for page in pages:
             with self.pdfgen.page_draw_context() as ctx:
+                self.draw_master(ctx)
                 if isinstance(page, TitlePage):
                     self.render_title_page(ctx, page)
                 elif isinstance(page, BulletPage):
