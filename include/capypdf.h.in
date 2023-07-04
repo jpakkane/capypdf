@@ -144,7 +144,7 @@ typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
 typedef struct _CapyPDF_Text CapyPDF_Text;
 typedef struct _CapyPDF_Color CapyPDF_Color;
 typedef struct _CapyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
-typedef struct _CAPYPDF_Transition CAPYPDF_Transition;
+typedef struct _CapyPDF_Transition CapyPDF_Transition;
 
 typedef int32_t CAPYPDF_EC;
 
@@ -323,11 +323,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPDF_DrawContext *ctx,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
                                                   CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
-    CapyPDF_DrawContext *dc, CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
+    CapyPDF_DrawContext *dc, CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC
 capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
-                              int32_t array_size) CAPYPDF_NOEXCEPT;
+                              int32_t array_size,
+                              const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
@@ -357,15 +358,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_rgb(CapyPDF_Color *c, double r, double 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPDF_NOEXCEPT;
 
 // Transition
-CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,
                                               enum CAPYPDF_Transition_Type type,
                                               double duration) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT;
 
 // Optional Content groups
 CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalContentGroup **out_ptr,
                                                           const char *name) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CAPYPDF_Transition *transition)
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalContentGroup *group)
     CAPYPDF_NOEXCEPT;
 
 // Error

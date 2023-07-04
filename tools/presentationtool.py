@@ -41,7 +41,7 @@ def create_pages():
     code_color += compute_increment()
     # The highlighting used here is arbitrary.
     # Its only purpose is to demonstrate text coloring.
-    return true
+    return True
 '''),
             ]
     return pages
@@ -125,8 +125,9 @@ class Demopresentation:
 
 
     def render_bullet_page(self, ctx, p):
-        tr = capypdf.Transition(capypdf.TransitionType.Push, 1.0)
-        ctx.set_page_transition(tr)
+        pagetr = capypdf.Transition(capypdf.TransitionType.Push, 1.0)
+        ctx.set_page_transition(pagetr)
+        bullettr = capypdf.Transition(capypdf.TransitionType.Dissolve, 1.0)
         text_w = self.pdfgen.text_width(p.heading, self.boldbasefont, self.headingsize)
         head_y = self.h - 1.5*self.headingsize
         ctx.render_text(p.heading, self.boldbasefont, self.headingsize, (self.w-text_w)/2, head_y)
@@ -147,7 +148,7 @@ class Demopresentation:
             ctx.cmd_EMC()
             current_y += (bullet_linesep - bullet_separation)*self.textsize
             bullet_id += 1
-        ctx.add_simple_navigation(ocgs)
+        ctx.add_simple_navigation(ocgs, bullettr)
 
     def render_code_page(self, ctx, p):
         tr = capypdf.Transition(capypdf.TransitionType.Uncover, 1.0)

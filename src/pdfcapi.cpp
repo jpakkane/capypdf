@@ -459,7 +459,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
-    CapyPDF_DrawContext *dc, CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT {
+    CapyPDF_DrawContext *dc, CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
     auto t = reinterpret_cast<Transition *>(transition);
     auto rc = ctx->set_transition(*t);
@@ -469,11 +469,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
 CAPYPDF_PUBLIC CAPYPDF_EC
 capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
-                              int32_t array_size) CAPYPDF_NOEXCEPT {
+                              int32_t array_size,
+                              const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT {
     auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
-    std::optional<Transition> blub;
+    std::optional<Transition> transition;
+    if(tr) {
+        transition = *reinterpret_cast<const Transition *>(tr);
+    }
     std::span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, ocgarray + array_size);
-    auto rc = ctx->add_simple_navigation(ocgspan, blub);
+    auto rc = ctx->add_simple_navigation(ocgspan, transition);
     if(rc) {
         return (CAPYPDF_EC)ErrorCode::NoError;
     }
@@ -558,17 +562,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPD
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CAPYPDF_Transition **out_ptr,
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,
                                               CAPYPDF_Transition_Type type,
                                               double duration) CAPYPDF_NOEXCEPT {
     auto pt = new Transition{};
     pt->type = type;
     pt->duration = duration;
-    *out_ptr = reinterpret_cast<CAPYPDF_Transition *>(pt);
+    *out_ptr = reinterpret_cast<CapyPDF_Transition *>(pt);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CAPYPDF_Transition *transition) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Transition *>(transition);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
@@ -582,9 +586,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalConten
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CAPYPDF_Transition *transition)
+CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalContentGroup *ocg)
     CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<OptionalContentGroup *>(transition);
+    delete reinterpret_cast<OptionalContentGroup *>(ocg);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 

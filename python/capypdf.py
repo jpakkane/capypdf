@@ -101,6 +101,7 @@ cfunc_types = (
 ('capy_generator_utf8_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_dc_add_simple_navigation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p]),
 ('capy_dc_cmd_b', [ctypes.c_void_p]),
 ('capy_dc_cmd_B', [ctypes.c_void_p]),
 ('capy_dc_cmd_bstar', [ctypes.c_void_p]),
@@ -435,10 +436,15 @@ class DrawContext:
     def rotate(self, angle):
         self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
 
-    def add_simple_navigation(self, ocgs):
+    def add_simple_navigation(self, ocgs, transition=None):
         arraytype = len(ocgs)*OptionalContentGroupId
         arr = arraytype(*tuple(ocgs))
-        check_error(libfile.capy_dc_add_simple_navigation(self, ctypes.pointer(arr), len(ocgs)))
+        if transition is not None and not isinstance(transition, Transition):
+            raise CapyPDFException('Transition argument must be a transition object.')
+        check_error(libfile.capy_dc_add_simple_navigation(self,
+                                                          ctypes.pointer(arr),
+                                                          len(ocgs),
+                                                          transition))
 
 class StateContextManager:
     def __init__(self, ctx):
