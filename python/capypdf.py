@@ -151,6 +151,8 @@ cfunc_types = (
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 ('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
+('capy_text_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_nonstroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
 
 ('capy_color_new', [ctypes.c_void_p]),
 ('capy_color_destroy', [ctypes.c_void_p]),
@@ -504,6 +506,9 @@ class Text:
             raise CapyPDFException('Text must be a Unicode string.')
         bytes = text.encode('UTF-8')
         check_error(libfile.capy_text_render_utf8_text(self, bytes))
+
+    def nonstroke_color(self, color):
+        check_error(libfile.capy_text_nonstroke_color(self, color))
 
     def cmd_Tc(self, spacing):
         check_error(libfile.capy_text_cmd_Tc(self, spacing))

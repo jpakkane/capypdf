@@ -36,10 +36,10 @@ def create_pages():
              BulletPage('This is a heading', ['Bullet point 1',
                                               'Bullet point 2',
                                               'The third entry is so long that it overflows and takes two lines.']),
-             CodePage('Sample code', '''def set_highlighting():
+             CodePage('Sample code', '''def advance_highlighting():
     code_color += increment
     # The highlighting used here is arbitrary.
-    # It only exists to demonstrate text coloring.
+    # Its only pupose is to demonstrate text coloring.
     return true
 '''),
             ]
@@ -150,8 +150,20 @@ class Demopresentation:
         text.cmd_Tf(self.codefont, self.codesize)
         text.cmd_Td(60, self.h - 3.5*self.headingsize)
         text.cmd_TL(1.5 * self.codesize)
+        i = 0
+        color = capypdf.Color()
         for line in p.code.split('\n'):
-            text.render_text(line)
+            cur = ''
+            for word in line.split(' '):
+                if not word:
+                    cur += ' '
+                else:
+                    cur += word + ' '
+                    text.render_text(cur)
+                    color.set_rgb(1.0*i/num_words, 0, 0)
+                    text.nonstroke_color(color)
+                    cur = ''
+                i += 1
             text.cmd_Tstar()
         ctx.render_text_obj(text)
 

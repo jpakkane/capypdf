@@ -457,6 +457,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPdF_Text *text,
     return (CAPYPDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_nonstroke_color(CapyPdF_Text *text,
+                                                    const CapyPdF_Color *color) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    const auto *c = reinterpret_cast<const Color *>(color);
+    return (CAPYPDF_EC)t->nonstroke_color(*c);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tc(CapyPdF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->cmd_Tc(spacing);
