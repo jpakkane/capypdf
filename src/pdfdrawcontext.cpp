@@ -175,7 +175,7 @@ std::string PdfDrawContext::build_resource_dict() {
     return resources;
 }
 
-ErrorCode PdfDrawContext::add_form_widget(CapyPdF_FormWidgetId widget) {
+ErrorCode PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
     if(used_widgets.find(widget) != used_widgets.end()) {
         return ErrorCode::AnnotationReuse;
     }
@@ -183,7 +183,7 @@ ErrorCode PdfDrawContext::add_form_widget(CapyPdF_FormWidgetId widget) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::annotate(CapyPdF_AnnotationId annotation) {
+ErrorCode PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {
     if(used_annotations.find(annotation) != used_annotations.end()) {
         return ErrorCode::AnnotationReuse;
     }
@@ -220,7 +220,7 @@ ErrorCode PdfDrawContext::cmd_Bstar() {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_BDC(CapyPdF_StructureItemId sid) {
+ErrorCode PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
     ++marked_depth;
     used_structures.insert(sid);
     fmt::format_to(cmd_appender,
@@ -298,7 +298,7 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_Do(CapyPdF_FormXObjectId fxoid) {
+ErrorCode PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     if(context_type != CAPY_DC_PAGE) {
         return ErrorCode::InvalidDrawContextType;
     }
@@ -455,7 +455,7 @@ ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_ri(CapyPdF_Rendering_Intent ri) {
+ErrorCode PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
     CHECK_ENUM(ri, CAPY_RI_PERCEPTUAL);
     fmt::format_to(cmd_appender, "{}/{} ri\n", ind, rendering_intent_names.at((int)ri));
     return ErrorCode::NoError;
@@ -490,7 +490,7 @@ ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_Tr(CapyPdF_Text_Mode mode) {
+ErrorCode PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
     CHECK_ENUM(mode, CAPY_TEXT_CLIP);
     fmt::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
     return ErrorCode::NoError;
@@ -573,7 +573,7 @@ ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(CapyPdF_IccColorSpaceId icc_id,
+ErrorCode PdfDrawContext::set_nonstroke_color(CapyPDF_IccColorSpaceId icc_id,
                                               const double *values,
                                               int32_t num_values) {
     CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
@@ -590,7 +590,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(CapyPdF_IccColorSpaceId icc_id,
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(CapyPdF_IccColorSpaceId icc_id,
+ErrorCode PdfDrawContext::set_stroke_color(CapyPDF_IccColorSpaceId icc_id,
                                            const double *values,
                                            int32_t num_values) {
     CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
@@ -692,7 +692,7 @@ void PdfDrawContext::set_all_stroke_color() {
     cmd_SCN(1.0);
 }
 
-ErrorCode PdfDrawContext::draw_image(CapyPdF_ImageId im_id) {
+ErrorCode PdfDrawContext::draw_image(CapyPDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
@@ -709,7 +709,7 @@ void PdfDrawContext::rotate(double angle) {
 }
 
 ErrorCode PdfDrawContext::render_utf8_text(
-    std::string_view text, CapyPdF_FontId fid, double pointsize, double x, double y) {
+    std::string_view text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t;
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
@@ -719,7 +719,7 @@ ErrorCode PdfDrawContext::render_utf8_text(
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
                                                            std::string &serialisation,
-                                                           CapyPdF_FontId &current_font,
+                                                           CapyPDF_FontId &current_font,
                                                            int32_t &current_subset,
                                                            double &current_pointsize) {
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
@@ -765,7 +765,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
 
 ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
                                                std::vector<CharItem> &charseq,
-                                               CapyPdF_FontId fid) {
+                                               CapyPDF_FontId fid) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     if(utf8_text.empty()) {
         return ErrorCode::NoError;
@@ -808,7 +808,7 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     indent(DrawStateType::Text);
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     int32_t current_subset{-1};
-    CapyPdF_FontId current_font{-1};
+    CapyPDF_FontId current_font{-1};
     double current_pointsize{-1};
     for(const auto &e : textobj.get_events()) {
         if(std::holds_alternative<TStar_arg>(e)) {
@@ -862,8 +862,8 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(std::holds_alternative<Tz_arg>(e)) {
             const auto &tz = std::get<Tz_arg>(e);
             fmt::format_to(app, "{}{} Tz\n", ind, tz.scaling);
-        } else if(std::holds_alternative<CapyPdF_StructureItemId>(e)) {
-            const auto &sid = std::get<CapyPdF_StructureItemId>(e);
+        } else if(std::holds_alternative<CapyPDF_StructureItemId>(e)) {
+            const auto &sid = std::get<CapyPDF_StructureItemId>(e);
             used_structures.insert(sid);
             fmt::format_to(app, "{}/P << /MCID {} >>\n{}BDC\n", ind, sid.id, ind);
             indent(DrawStateType::MarkedContent);
@@ -899,7 +899,7 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
 }
 
 void PdfDrawContext::render_raw_glyph(
-    uint32_t glyph, CapyPdF_FontId fid, double pointsize, double x, double y) {
+    uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y) {
     auto &font_data = doc->font_objects.at(fid.id);
     // used_fonts.insert(font_data.font_obj);
 
@@ -925,7 +925,7 @@ void PdfDrawContext::render_raw_glyph(
 }
 
 ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
-                                        CapyPdF_FontId fid,
+                                        CapyPDF_FontId fid,
                                         double pointsize) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     double prev_x = 0;
@@ -965,7 +965,7 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
 }
 
 ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                                     CapyPdF_Builtin_Fonts font_id,
+                                                     CapyPDF_Builtin_Fonts font_id,
                                                      double pointsize,
                                                      double x,
                                                      double y) {

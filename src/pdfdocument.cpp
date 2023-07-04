@@ -377,9 +377,9 @@ int32_t PdfDocument::create_page_group() {
 rvoe<NoReturnValue>
 PdfDocument::add_page(std::string resource_data,
                       std::string page_data,
-                      const std::unordered_set<CapyPdF_FormWidgetId> &fws,
-                      const std::unordered_set<CapyPdF_AnnotationId> &annots,
-                      const std::unordered_set<CapyPdF_StructureItemId> &structs,
+                      const std::unordered_set<CapyPDF_FormWidgetId> &fws,
+                      const std::unordered_set<CapyPDF_AnnotationId> &annots,
+                      const std::unordered_set<CapyPDF_StructureItemId> &structs,
                       const std::optional<Transition> &transition,
                       const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
@@ -405,7 +405,7 @@ PdfDocument::add_page(std::string resource_data,
         p.used_form_widgets.push_back(a);
     }
     for(const auto &a : annots) {
-        p.used_annotations.push_back(CapyPdF_AnnotationId{a});
+        p.used_annotations.push_back(CapyPDF_AnnotationId{a});
     }
     p.transition = transition;
     if(!subnav.empty()) {
@@ -575,7 +575,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     return LabId{(int32_t)document_objects.size() - 1};
 }
 
-rvoe<CapyPdF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
+rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
@@ -871,11 +871,11 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 
 void PdfDocument::create_structure_root_dict() {
     std::string buf;
-    std::optional<CapyPdF_StructureItemId> rootobj;
+    std::optional<CapyPDF_StructureItemId> rootobj;
 
     for(int32_t i = 0; i < (int32_t)structure_items.size(); ++i) {
         if(!structure_items[i].parent) {
-            rootobj = CapyPdF_StructureItemId{i};
+            rootobj = CapyPDF_StructureItemId{i};
             break;
         }
         // FIXME, check that there is only one.
@@ -1277,7 +1277,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 
 rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
                                                               const DelayedStructItem &dsi) {
-    std::vector<CapyPdF_StructureItemId> children;
+    std::vector<CapyPDF_StructureItemId> children;
     const auto &si = structure_items.at(dsi.sid.id);
     assert(structure_root_object);
     int32_t parent_object = *structure_root_object;
@@ -1290,7 +1290,7 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
         if(structure_items[i].parent) {
             auto current_parent = structure_items.at(structure_items[i].parent->id).obj_id;
             if(current_parent == si.obj_id) {
-                children.emplace_back(CapyPdF_StructureItemId{i});
+                children.emplace_back(CapyPDF_StructureItemId{i});
             }
         }
     }
@@ -1339,24 +1339,24 @@ rvoe<NoReturnValue> PdfDocument::write_finished_object(int32_t object_number,
     return write_bytes(buf);
 }
 
-std::optional<CapyPdF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
+std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &obj = document_objects.at(icc_profiles.at(i).object_num);
         assert(std::holds_alternative<DeflatePDFObject>(obj));
         const auto &iccobj = std::get<DeflatePDFObject>(obj);
         if(iccobj.stream == contents) {
-            return CapyPdF_IccColorSpaceId{(int32_t)i};
+            return CapyPDF_IccColorSpaceId{(int32_t)i};
         }
     }
     return {};
 }
 
-CapyPdF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
+CapyPDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
                                                        int32_t num_channels) {
     auto existing = find_icc_profile(contents);
     assert(!existing);
     if(contents.empty()) {
-        return CapyPdF_IccColorSpaceId{-1};
+        return CapyPDF_IccColorSpaceId{-1};
     }
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -1368,7 +1368,7 @@ CapyPdF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents
     auto obj_id =
         add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), ""});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
-    return CapyPdF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
+    return CapyPDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
 
 rvoe<NoReturnValue> PdfDocument::write_bytes(const char *buf, size_t buf_size) {
@@ -1407,7 +1407,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     return NoReturnValue{};
 }
 
-CapyPdF_FontId PdfDocument::get_builtin_font_id(CapyPdF_Builtin_Fonts font) {
+CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
     auto it = builtin_fonts.find(font);
     if(it != builtin_fonts.end()) {
         return it->second;
@@ -1422,7 +1422,7 @@ CapyPdF_FontId PdfDocument::get_builtin_font_id(CapyPdF_Builtin_Fonts font) {
 )",
                    font_names[font]);
     font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), size_t(-1)});
-    auto fontid = CapyPdF_FontId{(int32_t)font_objects.size() - 1};
+    auto fontid = CapyPDF_FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
 }
@@ -1432,7 +1432,7 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
-rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPdF_FontId fid, uint32_t glyph) {
+rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(glyph));
     fss.ss.fid = fid;
@@ -1450,7 +1450,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPdF_FontId fid, uint32_t gly
     return fss;
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname) {
+rvoe<CapyPDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname) {
     ERC(image, load_image_file(fname));
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image));
@@ -1465,7 +1465,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname
     }
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &fname) {
+rvoe<CapyPDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &fname) {
     ERC(image, load_image_file(fname));
     if(!std::holds_alternative<mono_image>(image)) {
         RETERR(UnsupportedFormat);
@@ -1475,7 +1475,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &
         im.w, im.h, 1, CAPYPDF_CS_DEVICE_GRAY, std::optional<int32_t>{}, true, im.pixels);
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::add_image_object(int32_t w,
+rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t h,
                                                     int32_t bits_per_component,
                                                     ColorspaceType colorspace,
@@ -1503,8 +1503,8 @@ rvoe<CapyPdF_ImageId> PdfDocument::add_image_object(int32_t w,
     if(is_mask) {
         buf += "  /ImageMask true\n";
     } else {
-        if(std::holds_alternative<CapyPdF_Colorspace>(colorspace)) {
-            const auto &cs = std::get<CapyPdF_Colorspace>(colorspace);
+        if(std::holds_alternative<CapyPDF_Colorspace>(colorspace)) {
+            const auto &cs = std::get<CapyPDF_Colorspace>(colorspace);
             fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
         } else if(std::holds_alternative<int32_t>(colorspace)) {
             const auto icc_obj = std::get<int32_t>(colorspace);
@@ -1520,10 +1520,10 @@ rvoe<CapyPdF_ImageId> PdfDocument::add_image_object(int32_t w,
     buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
     image_info.emplace_back(ImageInfo{{w, h}, im_id});
-    return CapyPdF_ImageId{(int32_t)image_info.size() - 1};
+    return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
+rvoe<CapyPDF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
@@ -1534,7 +1534,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::process_mono_image(const mono_image &image) {
         image.w, image.h, 1, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
+rvoe<CapyPDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
@@ -1564,7 +1564,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image) {
     }
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
+rvoe<CapyPDF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
     std::optional<int32_t> smask_id;
 
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
@@ -1578,7 +1578,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::process_gray_image(const gray_image &image) {
         image.w, image.h, 8, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
+rvoe<CapyPDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
     std::optional<int32_t> smask_id;
     ColorspaceType cs;
     if(image.icc) {
@@ -1600,7 +1600,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image) {
     return add_image_object(image.w, image.h, 8, cs, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPdF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname) {
+rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname) {
     ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
@@ -1620,7 +1620,7 @@ rvoe<CapyPdF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname)
                    jpg.file_contents.length());
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
-    return CapyPdF_ImageId{(int32_t)image_info.size() - 1};
+    return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
 GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
@@ -1822,9 +1822,9 @@ OutlineId PdfDocument::add_outline(std::string_view title_utf8,
     return OutlineId{cur_id};
 }
 
-rvoe<CapyPdF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
-                                                             CapyPdF_FormXObjectId onstate,
-                                                             CapyPdF_FormXObjectId offstate,
+rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
+                                                             CapyPDF_FormXObjectId onstate,
+                                                             CapyPDF_FormXObjectId offstate,
                                                              std::string_view partial_name) {
     CHECK_INDEXNESS_V(onstate.id, form_xobjects);
     CHECK_INDEXNESS_V(offstate.id, form_xobjects);
@@ -1832,10 +1832,10 @@ rvoe<CapyPdF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
         (int32_t)form_widgets.size(), loc, onstate, offstate, std::string{partial_name}};
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
-    return CapyPdF_FormWidgetId{(int32_t)form_widgets.size() - 1};
+    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
-rvoe<CapyPdF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
+rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
     std::string dict = fmt::format(R"(<<
   /Type /EmbeddedFile
@@ -1853,10 +1853,10 @@ rvoe<CapyPdF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
                        fileobj_id);
     auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
-    return CapyPdF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
+    return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
-rvoe<CapyPdF_AnnotationId> PdfDocument::create_annotation(PdfRectangle rect,
+rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(PdfRectangle rect,
                                                           AnnotationSubType sub) {
     if(std::holds_alternative<UriAnnotation>(sub)) {
         auto &u = std::get<UriAnnotation>(sub);
@@ -1867,19 +1867,19 @@ rvoe<CapyPdF_AnnotationId> PdfDocument::create_annotation(PdfRectangle rect,
     auto annot_id = (int32_t)annotations.size();
     auto obj_id = add_object(DelayedAnnotation{annot_id, rect, std::move(sub)});
     annotations.push_back((int32_t)obj_id);
-    return CapyPdF_AnnotationId{annot_id};
+    return CapyPDF_AnnotationId{annot_id};
 }
 
-rvoe<CapyPdF_StructureItemId>
+rvoe<CapyPDF_StructureItemId>
 PdfDocument::add_structure_item(std::string_view stype,
-                                std::optional<CapyPdF_StructureItemId> parent) {
+                                std::optional<CapyPDF_StructureItemId> parent) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(StructItem{obj_id, std::string(stype), parent});
-    return CapyPdF_StructureItemId{(int32_t)structure_items.size() - 1};
+    return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
 rvoe<CapyPDF_OptionalContentGroupId>
@@ -1896,7 +1896,7 @@ PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
 }
 
 std::optional<double>
-PdfDocument::glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepoint) const {
+PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
     FT_Face face = fonts.at(fid.id).fontdata.face.get();
     FT_Set_Char_Size(face, 0, pointsize * 64, 300, 300);
     if(FT_Load_Char(face, codepoint, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP) != 0) {
@@ -1906,7 +1906,7 @@ PdfDocument::glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepo
     return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
-rvoe<CapyPdF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
+rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
     ERC(fontdata, load_and_parse_truetype_font(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 std::move(fontdata)};
@@ -1952,15 +1952,15 @@ rvoe<CapyPdF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
 
     const int32_t subset_num = 0;
     auto subfont_data_obj =
-        add_object(DelayedSubsetFontData{CapyPdF_FontId{(int32_t)font_source_id}, subset_num});
+        add_object(DelayedSubsetFontData{CapyPDF_FontId{(int32_t)font_source_id}, subset_num});
     auto subfont_descriptor_obj = add_object(DelayedSubsetFontDescriptor{
-        CapyPdF_FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
+        CapyPDF_FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
     auto subfont_cmap_obj =
-        add_object(DelayedSubsetCMap{CapyPdF_FontId{(int32_t)font_source_id}, subset_num});
+        add_object(DelayedSubsetCMap{CapyPDF_FontId{(int32_t)font_source_id}, subset_num});
     auto subfont_obj = add_object(DelayedSubsetFont{
-        CapyPdF_FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
+        CapyPDF_FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
     (void)subfont_obj;
-    CapyPdF_FontId fid{(int32_t)fonts.size() - 1};
+    CapyPDF_FontId fid{(int32_t)fonts.size() - 1};
     font_objects.push_back(
         FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
     return fid;

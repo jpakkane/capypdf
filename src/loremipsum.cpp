@@ -30,7 +30,7 @@
 
 namespace {
 
-CapyPdF_StructureItemId document_root;
+CapyPDF_StructureItemId document_root;
 
 // #define YOLO
 
@@ -131,7 +131,7 @@ double cm2pt(double cm) { return cm * 28.346; }
 int num_spaces(const std::string_view s) { return std::count(s.begin(), s.end(), ' '); }
 
 double
-text_width(const std::string_view s, capypdf::PdfGen &gen, CapyPdF_FontId fid, double pointsize) {
+text_width(const std::string_view s, capypdf::PdfGen &gen, CapyPDF_FontId fid, double pointsize) {
     double total_w = 0;
     for(const char c : s) {
         // ASCII FTW!
@@ -150,7 +150,7 @@ using namespace capypdf;
 void render_column(const std::vector<std::string> &text_lines,
                    PdfGen &gen,
                    PdfDrawContext &ctx,
-                   CapyPdF_FontId textfont,
+                   CapyPDF_FontId textfont,
                    double textsize,
                    double leading,
                    double column_left,

@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     {
         GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        CapyPdF_FormXObjectId offstate, onstate;
+        CapyPDF_FormXObjectId offstate, onstate;
         {
             PdfDrawContext xobj = gen.new_form_xobject(10, 10);
             xobj.cmd_BMC("/Tx");

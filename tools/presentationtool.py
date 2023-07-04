@@ -36,7 +36,7 @@ def create_pages():
              BulletPage('This is a heading', ['Bullet point 1',
                                               'Bullet point 2',
                                               'The third entry is so long that it overflows and takes two lines.']),
-             CodePage('Sample code', '''def advance_highlighting():
+             CodePage('Sample code', '''def advance_highlighting_highlighting():
     code_color += increment
     # The highlighting used here is arbitrary.
     # Its only pupose is to demonstrate text coloring.

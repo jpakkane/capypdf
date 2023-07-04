@@ -55,23 +55,23 @@ public:
 
     rvoe<NoReturnValue> write();
 
-    rvoe<CapyPdF_ImageId> load_image(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname) {
         return pdoc.load_image(fname);
     }
-    rvoe<CapyPdF_ImageId> load_mask_image(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname) {
         return pdoc.load_mask_image(fname);
     }
-    rvoe<CapyPdF_ImageId> embed_jpg(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname) {
         return pdoc.embed_jpg(fname);
     }
-    rvoe<CapyPdF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
         return pdoc.embed_file(fname);
     }
-    rvoe<CapyPdF_FontId> load_font(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname) {
         return pdoc.load_font(ft.get(), fname);
     };
 
-    ImageSize get_image_info(CapyPdF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
+    ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
     }
@@ -88,18 +88,18 @@ public:
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 
-    rvoe<CapyPdF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
         return pdoc.load_icc_file(fname);
     }
 
-    rvoe<CapyPdF_FormWidgetId> create_form_checkbox(PdfBox loc,
-                                                    CapyPdF_FormXObjectId onstate,
-                                                    CapyPdF_FormXObjectId offstate,
+    rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,
+                                                    CapyPDF_FormXObjectId onstate,
+                                                    CapyPDF_FormXObjectId offstate,
                                                     std::string_view partial_name) {
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
-    rvoe<CapyPdF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
+    rvoe<CapyPDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
         return pdoc.create_annotation(rect, std::move(subtype));
     }
 
@@ -113,7 +113,7 @@ public:
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
-    rvoe<CapyPdF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
+    rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
 
     OutlineId
@@ -121,8 +121,8 @@ public:
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 
-    rvoe<CapyPdF_StructureItemId>
-    add_structure_item(std::string_view stype, std::optional<CapyPdF_StructureItemId> parent) {
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(std::string_view stype, std::optional<CapyPDF_StructureItemId> parent) {
         return pdoc.add_structure_item(stype, parent);
     }
 
@@ -133,11 +133,11 @@ public:
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
     std::optional<double>
-    glyph_advance(CapyPdF_FontId fid, double pointsize, uint32_t codepoint) const {
+    glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    rvoe<double> utf8_text_width(const char *utf8_text, CapyPdF_FontId fid, double pointsize) const;
+    rvoe<double> utf8_text_width(const char *utf8_text, CapyPDF_FontId fid, double pointsize) const;
 
 private:
     PdfGen(std::filesystem::path ofilename,

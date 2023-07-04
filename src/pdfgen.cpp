@@ -158,7 +158,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }
 
-rvoe<CapyPdF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
+rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != CAPY_DC_FORM_XOBJECT) {
         RETERR(InvalidDrawContextType);
     }
@@ -170,9 +170,9 @@ rvoe<CapyPdF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     auto &sc = std::get<SerializedXObject>(sc_var);
     pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.stream));
     ctx.clear();
-    CapyPdF_FormXObjectId fxoid;
+    CapyPDF_FormXObjectId fxoid;
     fxoid.id = (int32_t)pdoc.form_xobjects.size() - 1;
-    return rvoe<CapyPdF_FormXObjectId>{fxoid};
+    return rvoe<CapyPDF_FormXObjectId>{fxoid};
 }
 
 rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
@@ -221,7 +221,7 @@ ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
 }
 
 rvoe<double>
-PdfGen::utf8_text_width(const char *utf8_text, CapyPdF_FontId fid, double pointsize) const {
+PdfGen::utf8_text_width(const char *utf8_text, CapyPDF_FontId fid, double pointsize) const {
     if(utf8_text[0] == '\0') {
         return 0;
     }

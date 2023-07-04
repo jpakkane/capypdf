@@ -70,7 +70,7 @@ void basic_painting(PdfDrawContext &ctx) {
     }
 }
 
-void clipping(PdfDrawContext &ctx, CapyPdF_ImageId image) {
+void clipping(PdfDrawContext &ctx, CapyPDF_ImageId image) {
     ctx.cmd_w(0.1);
     {
         auto pop = ctx.push_gstate();

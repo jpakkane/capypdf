@@ -42,7 +42,7 @@ struct TD_arg {
 };
 
 struct Tf_arg {
-    CapyPdF_FontId font;
+    CapyPDF_FontId font;
     double pointsize;
 };
 
@@ -63,7 +63,7 @@ struct Tm_arg {
 };
 
 struct Tr_arg {
-    CapyPdF_Text_Mode rmode;
+    CapyPDF_Text_Mode rmode;
 };
 
 struct Ts_arg {
@@ -101,7 +101,7 @@ typedef std::variant<TStar_arg,
                      Ts_arg,
                      Tw_arg,
                      Tz_arg,
-                     CapyPdF_StructureItemId,
+                     CapyPDF_StructureItemId,
                      Emc_arg,
                      Stroke_arg,
                      Nonstroke_arg>
@@ -111,7 +111,7 @@ class PdfText {
 public:
     PdfText(){};
 
-    ErrorCode cmd_BDC(CapyPdF_StructureItemId sid) {
+    ErrorCode cmd_BDC(CapyPDF_StructureItemId sid) {
         events.emplace_back(sid);
         return ErrorCode::NoError;
     }
@@ -141,7 +141,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tf(CapyPdF_FontId font, double pointsize) {
+    ErrorCode cmd_Tf(CapyPDF_FontId font, double pointsize) {
         events.emplace_back(Tf_arg{font, pointsize});
         return ErrorCode::NoError;
     }
@@ -168,7 +168,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_Tr(CapyPdF_Text_Mode rmode) {
+    ErrorCode cmd_Tr(CapyPDF_Text_Mode rmode) {
         events.emplace_back(Tr_arg{rmode});
         return ErrorCode::NoError;
     }

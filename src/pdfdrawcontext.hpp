@@ -22,6 +22,7 @@
 #include <pdfcolorconverter.hpp>
 #include <pdfdocument.hpp>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 #include <optional>
@@ -97,7 +98,7 @@ public:
     ErrorCode cmd_B();
     ErrorCode cmd_bstar();
     ErrorCode cmd_Bstar();
-    ErrorCode cmd_BDC(CapyPdF_StructureItemId sid);
+    ErrorCode cmd_BDC(CapyPDF_StructureItemId sid);
     ErrorCode cmd_BDC(CapyPDF_OptionalContentGroupId id);
     ErrorCode cmd_BMC(std::string_view tag);
     ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
@@ -105,7 +106,7 @@ public:
     ErrorCode cmd_CS(std::string_view cspace_name);
     ErrorCode cmd_cs(std::string_view cspace_name);
     ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
-    ErrorCode cmd_Do(CapyPdF_FormXObjectId fxoid);
+    ErrorCode cmd_Do(CapyPDF_FormXObjectId fxoid);
     ErrorCode cmd_EMC();
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
@@ -128,13 +129,13 @@ public:
     ErrorCode cmd_re(double x, double y, double w, double h);
     ErrorCode cmd_RG(double r, double g, double b);
     ErrorCode cmd_rg(double r, double g, double b);
-    ErrorCode cmd_ri(CapyPdF_Rendering_Intent ri);
+    ErrorCode cmd_ri(CapyPDF_Rendering_Intent ri);
     ErrorCode cmd_s();
     ErrorCode cmd_S();
     ErrorCode cmd_SCN(double value);
     ErrorCode cmd_scn(double value);
     ErrorCode cmd_sh(ShadingId shid);
-    ErrorCode cmd_Tr(CapyPdF_Text_Mode mode);
+    ErrorCode cmd_Tr(CapyPDF_Text_Mode mode);
     ErrorCode cmd_v(double x2, double y2, double x3, double y3);
     ErrorCode cmd_w(double w);
     ErrorCode cmd_W();
@@ -148,27 +149,27 @@ public:
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(const LabColor &c);
     ErrorCode
-    set_stroke_color(CapyPdF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    set_stroke_color(CapyPDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_nonstroke_color(const LabColor &c);
     ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
     ErrorCode set_nonstroke_color(PatternId id);
     ErrorCode
-    set_nonstroke_color(CapyPdF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    set_nonstroke_color(CapyPDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
     ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
-    ErrorCode draw_image(CapyPdF_ImageId obj_num);
+    ErrorCode draw_image(CapyPDF_ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
     ErrorCode render_utf8_text(
-        std::string_view text, CapyPdF_FontId fid, double pointsize, double x, double y);
+        std::string_view text, CapyPDF_FontId fid, double pointsize, double x, double y);
     ErrorCode render_text(const PdfText &textobj);
-    void render_raw_glyph(uint32_t glyph, CapyPdF_FontId fid, double pointsize, double x, double y);
+    void render_raw_glyph(uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y);
     ErrorCode
-    render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPdF_FontId fid, double pointsize);
+    render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);
     ErrorCode render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                         CapyPdF_Builtin_Fonts font_id,
+                                         CapyPDF_Builtin_Fonts font_id,
                                          double pointsize,
                                          double x,
                                          double y);
@@ -178,8 +179,8 @@ public:
 
     void clear();
 
-    ErrorCode add_form_widget(CapyPdF_FormWidgetId widget);
-    ErrorCode annotate(CapyPdF_AnnotationId annotation);
+    ErrorCode add_form_widget(CapyPDF_FormWidgetId widget);
+    ErrorCode annotate(CapyPDF_AnnotationId annotation);
 
     CAPYPDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
@@ -193,11 +194,11 @@ public:
 
     int32_t marked_content_depth() const { return marked_depth; }
 
-    const std::unordered_set<CapyPdF_FormWidgetId> &get_form_usage() const { return used_widgets; }
-    const std::unordered_set<CapyPdF_AnnotationId> &get_annotation_usage() const {
+    const std::unordered_set<CapyPDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
+    const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
-    const std::unordered_set<CapyPdF_StructureItemId> &get_structure_usage() const {
+    const std::unordered_set<CapyPDF_StructureItemId> &get_structure_usage() const {
         return used_structures;
     }
 
@@ -215,12 +216,12 @@ public:
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
                                                std::string &serialisation,
-                                               CapyPdF_FontId &current_font,
+                                               CapyPDF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
     ErrorCode utf8_to_kerned_chars(std::string_view utf8_text,
                                    std::vector<CharItem> &charseq,
-                                   CapyPdF_FontId fid);
+                                   CapyPDF_FontId fid);
 
     void indent(DrawStateType dtype) {
         dstates.push(dtype);
@@ -256,9 +257,9 @@ private:
     std::unordered_set<int32_t> used_shadings;
     std::unordered_set<int32_t> used_patterns;
     std::unordered_set<int32_t> used_form_xobjects;
-    std::unordered_set<CapyPdF_FormWidgetId> used_widgets;
-    std::unordered_set<CapyPdF_AnnotationId> used_annotations;
-    std::unordered_set<CapyPdF_StructureItemId> used_structures;
+    std::unordered_set<CapyPDF_FormWidgetId> used_widgets;
+    std::unordered_set<CapyPDF_AnnotationId> used_annotations;
+    std::unordered_set<CapyPDF_StructureItemId> used_structures;
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
     std::vector<SubPageNavigation> sub_navigations;
 

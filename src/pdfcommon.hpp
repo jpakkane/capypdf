@@ -45,19 +45,19 @@
         }                                                                                          \
     }
 
-DEF_BASIC_OPERATORS(CapyPdF_ImageId);
+DEF_BASIC_OPERATORS(CapyPDF_ImageId);
 
-DEF_BASIC_OPERATORS(CapyPdF_FontId);
+DEF_BASIC_OPERATORS(CapyPDF_FontId);
 
-DEF_BASIC_OPERATORS(CapyPdF_IccColorSpaceId);
+DEF_BASIC_OPERATORS(CapyPDF_IccColorSpaceId);
 
-DEF_BASIC_OPERATORS(CapyPdF_FormXObjectId);
+DEF_BASIC_OPERATORS(CapyPDF_FormXObjectId);
 
-DEF_BASIC_OPERATORS(CapyPdF_FormWidgetId);
+DEF_BASIC_OPERATORS(CapyPDF_FormWidgetId);
 
-DEF_BASIC_OPERATORS(CapyPdF_AnnotationId);
+DEF_BASIC_OPERATORS(CapyPDF_AnnotationId);
 
-DEF_BASIC_OPERATORS(CapyPdF_StructureItemId);
+DEF_BASIC_OPERATORS(CapyPDF_StructureItemId);
 
 DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
@@ -153,7 +153,7 @@ struct OutlineId {
 };
 
 struct GraphicsState {
-    std::optional<CapyPdF_Rendering_Intent> intent;
+    std::optional<CapyPDF_Rendering_Intent> intent;
     std::optional<CAPYPDF_Blend_Mode> blend_mode;
     std::optional<bool> OP;
     std::optional<bool> op;
@@ -185,7 +185,7 @@ struct LabColor {
 };
 
 struct ICCColor {
-    CapyPdF_IccColorSpaceId id;
+    CapyPDF_IccColorSpaceId id;
     std::vector<double> values;
 };
 
@@ -225,7 +225,7 @@ struct FunctionType2 {
 
 // Linear
 struct ShadingType2 {
-    CapyPdF_Colorspace colorspace;
+    CapyPDF_Colorspace colorspace;
     double x0, y0, x1, y1;
     FunctionId function;
     bool extend0, extend1;
@@ -233,7 +233,7 @@ struct ShadingType2 {
 
 // Radial
 struct ShadingType3 {
-    CapyPdF_Colorspace colorspace;
+    CapyPDF_Colorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     FunctionId function;
     bool extend0, extend1;
@@ -257,7 +257,7 @@ struct ShadingType4 {
     double miny = 0;
     double maxx = 200;
     double maxy = 200;
-    CapyPdF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
+    CapyPDF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
 
     void start_strip(const ShadingPoint &v0, const ShadingPoint &v1, const ShadingPoint &v2) {
         elements.emplace_back(ShadingElement{v0, 0});
@@ -290,7 +290,7 @@ struct ShadingType6 {
     double miny = 0;
     double maxx = 200;
     double maxy = 200;
-    CapyPdF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
+    CapyPDF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
 };
 
 struct TextStateParameters {
@@ -298,13 +298,13 @@ struct TextStateParameters {
     std::optional<double> word_spacing;
     std::optional<double> horizontal_scaling;
     std::optional<double> leading;
-    std::optional<CapyPdF_Text_Mode> render_mode;
+    std::optional<CapyPDF_Text_Mode> render_mode;
     std::optional<double> rise;
     // Knockout can only be set with gs.
 };
 
 struct FontSubset {
-    CapyPdF_FontId fid;
+    CapyPDF_FontId fid;
     int32_t subset_id;
 
     bool operator==(const FontSubset &other) const {

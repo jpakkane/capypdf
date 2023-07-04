@@ -19,8 +19,8 @@
 
 int main() {
     CAPYPDF_EC rc;
-    CapyPdF_Generator *gen;
-    CapyPdF_Options *opt;
+    CapyPDF_Generator *gen;
+    CapyPDF_Options *opt;
 
     if((rc = capy_options_new(&opt)) != 0) {
         fprintf(stderr, "%s\n", capy_error_message(rc));
