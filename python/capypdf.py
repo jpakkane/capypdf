@@ -149,6 +149,8 @@ cfunc_types = (
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
+('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
+('capy_text_cmd_Tstar', [ctypes.c_void_p]),
 
 ('capy_color_new', [ctypes.c_void_p]),
 ('capy_color_destroy', [ctypes.c_void_p]),
@@ -513,6 +515,12 @@ class Text:
         if not isinstance(fontid, FontId):
             raise CapyPDFException('Font id is not a font object.')
         check_error(libfile.capy_text_cmd_Tf(self, fontid, ptsize))
+
+    def cmd_TL(self, leading):
+        check_error(libfile.capy_text_cmd_TL(self, leading))
+
+    def cmd_Tstar(self):
+        check_error(libfile.capy_text_cmd_Tstar(self))
 
 class Color:
     def __init__(self):

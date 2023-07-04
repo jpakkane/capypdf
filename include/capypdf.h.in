@@ -322,6 +322,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPdF_DrawContext *) CAPYPDF_NOEXCEP
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPdF_Text **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPdF_Text *text) CAPYPDF_NOEXCEPT;
+// This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPdF_Text *text,
                                                      const char *utf8_text) CAPYPDF_NOEXCEPT;
 
@@ -330,6 +331,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Td(CapyPdF_Text *text, double x, double 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPdF_Text *text,
                                            CapyPdF_FontId font,
                                            double pointsize) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_TL(CapyPdF_Text *text, double leading) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPdF_Text *text) CAPYPDF_NOEXCEPT;
 
 // Color
 

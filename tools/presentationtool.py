@@ -26,11 +26,22 @@ class BulletPage:
         self.heading = heading
         self.entries = entries
 
+class CodePage:
+    def __init__(self, heading, code):
+        self.heading = heading
+        self.code = code
+
 def create_pages():
     pages = [TitlePage("CapyPDF output demonstration", "Sample Presenter", "none@example.com"),
              BulletPage('This is a heading', ['Bullet point 1',
                                               'Bullet point 2',
-                                              'The third entry is so long that it overflows and takes two lines.'])
+                                              'The third entry is so long that it overflows and takes two lines.']),
+             CodePage('Sample code', '''def set_highlighting():
+    code_color += increment
+    # The highlighting used here is arbitrary.
+    # It only exists to demonstrate text coloring.
+    return true
+'''),
             ]
     return pages
 
@@ -46,6 +57,7 @@ class Demopresentation:
         self.titlesize = 44
         self.headingsize = 44
         self.textsize = 32
+        self.codesize = 20
         self.symbolsize = 28
         opts = capypdf.Options()
         opts.set_author('CapyPDF tester')
@@ -126,6 +138,23 @@ class Demopresentation:
                 current_y -= bullet_linesep*self.textsize
             current_y += (bullet_linesep - bullet_separation)*self.textsize
 
+    def render_code_page(self, ctx, p):
+        self.render_centered(ctx,
+                             p.heading,
+                             self.boldbasefont,
+                             self.titlesize,
+                             self.w/2,
+                             self.h - 1.5*self.headingsize)
+        num_words = len(p.code.split())
+        text = capypdf.Text()
+        text.cmd_Tf(self.codefont, self.codesize)
+        text.cmd_Td(60, self.h - 3.5*self.headingsize)
+        text.cmd_TL(1.5 * self.codesize)
+        for line in p.code.split('\n'):
+            text.render_text(line)
+            text.cmd_Tstar()
+        ctx.render_text_obj(text)
+
     def add_pages(self, pages):
         for page in pages:
             with self.pdfgen.page_draw_context() as ctx:
@@ -133,6 +162,8 @@ class Demopresentation:
                     self.render_title_page(ctx, page)
                 elif isinstance(page, BulletPage):
                     self.render_bullet_page(ctx, page)
+                elif isinstance(page, CodePage):
+                    self.render_code_page(ctx, page)
                 else:
                     raise RuntimeError('Unknown page type.')
 

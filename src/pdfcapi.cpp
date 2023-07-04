@@ -476,6 +476,16 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPdF_Text *text,
     return (CAPYPDF_EC)t->cmd_Tf(font, pointsize);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_TL(CapyPdF_Text *text, double leading) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (CAPYPDF_EC)t->cmd_TL(leading);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPdF_Text *text) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (CAPYPDF_EC)t->cmd_Tstar();
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPdF_Text *text) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)ErrorCode::NoError;
