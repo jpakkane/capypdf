@@ -196,6 +196,10 @@ typedef struct {
     int32_t id;
 } CapyPDF_OptionalContentGroupId;
 
+typedef struct {
+    int32_t id;
+} CapyPDF_TransparencyGroupId;
+
 // Options
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_new(CapyPDF_Options **out_ptr) CAPYPDF_NOEXCEPT;

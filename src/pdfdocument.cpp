@@ -1895,6 +1895,21 @@ PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
     return CapyPDF_OptionalContentGroupId{(int32_t)ocg_items.size() - 1};
 }
 
+rvoe<CapyPDF_TransparencyGroupId>
+PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroupExtra *ex) {
+    if(ctx.draw_context_type() != CAPY_DC_TRANSPARENCY_GROUP) {
+        RETERR(InvalidDrawContextType);
+    }
+    if(ctx.marked_content_depth() != 0) {
+        RETERR(UnclosedMarkedContent);
+    }
+    auto sc_var = ctx.serialize(ex);
+    auto &d = std::get<SerializedXObject>(sc_var);
+    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.stream)});
+    transparency_groups.push_back(objid);
+    return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
+}
+
 std::optional<double>
 PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
     FT_Face face = fonts.at(fid.id).fontdata.face.get();

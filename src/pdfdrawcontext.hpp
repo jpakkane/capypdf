@@ -84,7 +84,7 @@ public:
                    double w = -1,
                    double h = -1);
     ~PdfDrawContext();
-    DCSerialization serialize();
+    DCSerialization serialize(const TransparencyGroupExtra *trinfo = nullptr);
 
     PdfDrawContext() = delete;
     PdfDrawContext(const PdfDrawContext &) = delete;
@@ -107,6 +107,7 @@ public:
     ErrorCode cmd_cs(std::string_view cspace_name);
     ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
     ErrorCode cmd_Do(CapyPDF_FormXObjectId fxoid);
+    ErrorCode cmd_Do(CapyPDF_TransparencyGroupId trid);
     ErrorCode cmd_EMC();
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
@@ -259,6 +260,7 @@ private:
     std::unordered_set<CapyPDF_AnnotationId> used_annotations;
     std::unordered_set<CapyPDF_StructureItemId> used_structures;
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
+    std::unordered_set<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;
 
     std::stack<DrawStateType> dstates;

@@ -61,6 +61,8 @@ DEF_BASIC_OPERATORS(CapyPDF_StructureItemId);
 
 DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
+DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
+
 namespace capypdf {
 
 struct PdfBox {
@@ -330,6 +332,13 @@ struct OptionalContentGroup {
     std::string name;
     // std::string intent;
     //  Usage usage;
+};
+
+struct TransparencyGroupExtra {
+    // Additional values in transparency group dictionary.
+    // std::string cs?
+    std::optional<bool> I;
+    std::optional<bool> K;
 };
 
 struct SubPageNavigation {

@@ -67,7 +67,6 @@ int main(int argc, char **argv) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
             gs.blend_mode = bm;
-            auto gs_name = fmt::format("bm{}", (int)bm);
             auto sid = gen.add_graphics_state(gs);
             ctx.cmd_q();
             ctx.cmd_gs(sid);

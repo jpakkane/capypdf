@@ -45,7 +45,7 @@ void PdfDrawContext::set_form_xobject_size(double w, double h) {
     form_xobj_h = h;
 }
 
-DCSerialization PdfDrawContext::serialize() {
+DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) {
     SerializedBasicContext sc;
     sc.dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
@@ -64,6 +64,33 @@ DCSerialization PdfDrawContext::serialize() {
             form_xobj_h,
             sc.dict,
             commands.size());
+        return SerializedXObject{std::move(dict), commands};
+    } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
+        std::string dict = R"(<<
+  /Type /XObject
+  /Subtype /Form
+)";
+        auto app = std::back_inserter(dict);
+        fmt::format_to(app, "  /BBox [ {} {} {} {} ]\n", 0, 0, form_xobj_w, form_xobj_h);
+        dict += R"(  /Group <<
+    /S /Transparency
+)";
+        if(trinfo) {
+            if(trinfo->I) {
+                fmt::format_to(app, "    /I {}\n", *trinfo->I ? "true" : "false");
+            }
+            if(trinfo->K) {
+                fmt::format_to(app, "    /K {}\n", *trinfo->K ? "true" : "false");
+            }
+        }
+        fmt::format_to(app,
+                       R"(  >>
+  /Resources {}
+  /Length {}
+>>
+)",
+                       sc.dict,
+                       commands.size());
         return SerializedXObject{std::move(dict), commands};
     } else {
         sc.commands = fmt::format(
@@ -92,6 +119,7 @@ void PdfDrawContext::clear() {
     used_widgets.clear();
     used_annotations.clear();
     used_ocgs.clear();
+    used_trgroups.clear();
     ind.clear();
     sub_navigations.clear();
     transition.reset();
@@ -103,7 +131,7 @@ std::string PdfDrawContext::build_resource_dict() {
     std::string resources;
     auto resource_appender = std::back_inserter(resources);
     resources = "<<\n";
-    if(!used_images.empty() || !used_form_xobjects.empty()) {
+    if(!used_images.empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
         resources += "  /XObject <<\n";
         if(!used_images.empty()) {
             for(const auto &i : used_images) {
@@ -113,6 +141,12 @@ std::string PdfDrawContext::build_resource_dict() {
         if(!used_form_xobjects.empty()) {
             for(const auto &fx : used_form_xobjects) {
                 fmt::format_to(resource_appender, "    /FXO{} {} 0 R\n", fx, fx);
+            }
+        }
+        if(!used_trgroups.empty()) {
+            for(const auto &tg : used_trgroups) {
+                auto objnum = doc->transparency_groups.at(tg.id);
+                fmt::format_to(resource_appender, "    /TG{} {} 0 R\n", objnum, objnum);
             }
         }
         resources += "  >>\n";
@@ -308,6 +342,16 @@ ErrorCode PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
+    if(context_type != CAPY_DC_PAGE) {
+        return ErrorCode::InvalidDrawContextType;
+    }
+    CHECK_INDEXNESS(trid.id, doc->transparency_groups);
+    fmt::format_to(cmd_appender, "{}/TG{} Do\n", ind, doc->transparency_groups[trid.id]);
+    used_trgroups.insert(trid);
+    return ErrorCode::NoError;
+}
+
 ErrorCode PdfDrawContext::cmd_EMC() {
     if(marked_depth == 0) {
         return ErrorCode::EmcOnEmpty;
@@ -336,20 +380,20 @@ ErrorCode PdfDrawContext::cmd_fstar() {
 
 ErrorCode PdfDrawContext::cmd_G(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{} G\n", gray, ind);
+    fmt::format_to(cmd_appender, "{}{} G\n", ind, gray);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_g(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{} g\n", gray, ind);
+    fmt::format_to(cmd_appender, "{}{} g\n", ind, gray);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
-    fmt::format_to(cmd_appender, "{}/GS{} gs\n", gid.id, ind);
+    fmt::format_to(cmd_appender, "{}/GS{} gs\n", ind, gid.id);
     return ErrorCode::NoError;
 }
 

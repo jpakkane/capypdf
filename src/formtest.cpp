@@ -85,6 +85,39 @@ void draw_gradient(PdfDrawContext &ctx, ShadingId shadeid, double x, double y) {
     ctx.cmd_sh(shadeid);
 }
 
+void draw_circles(PdfDrawContext &ctx, GstateId gsid) {
+    ctx.cmd_gs(gsid);
+    ctx.cmd_k(0, 0, 0, 0.15);
+    {
+        auto g = ctx.push_gstate();
+        ctx.translate(30, 30);
+        ctx.scale(40, 40);
+        ctx.draw_unit_circle();
+        ctx.cmd_f();
+    }
+    {
+        auto g = ctx.push_gstate();
+        ctx.translate(50, 30);
+        ctx.scale(40, 40);
+        ctx.draw_unit_circle();
+        ctx.cmd_f();
+    }
+    {
+        auto g = ctx.push_gstate();
+        ctx.translate(30, 50);
+        ctx.scale(40, 40);
+        ctx.draw_unit_circle();
+        ctx.cmd_f();
+    }
+    {
+        auto g = ctx.push_gstate();
+        ctx.translate(50, 50);
+        ctx.scale(40, 40);
+        ctx.draw_unit_circle();
+        ctx.cmd_f();
+    }
+}
+
 int draw_group_doc() {
     // PDF 2.0 spec page 409.
     PdfGenerationData opts;
@@ -113,6 +146,10 @@ int draw_group_doc() {
         shade.extend0 = false;
         shade.extend1 = false;
 
+        GraphicsState gs;
+        gs.blend_mode = CAPY_BM_MULTIPLY;
+        auto gsid = gen.add_graphics_state(gs);
+
         auto shadeid = gen.add_shading(shade);
         {
             auto ctxguard = gen.guarded_page_context();
@@ -122,20 +159,48 @@ int draw_group_doc() {
             ctx.render_pdfdoc_text_builtin("Knockout", CAPY_FONT_HELVETICA, 8, 100, 5);
             ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
             {
+                auto groupctx = gen.new_transparency_group(80, 80);
+                draw_circles(groupctx, gsid);
+                TransparencyGroupExtra ex;
+                ex.I = false;
+                ex.K = true;
+                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 20);
+                ctx.cmd_Do(tgid);
             }
             {
+                auto groupctx = gen.new_transparency_group(80, 80);
+                draw_circles(groupctx, gsid);
+                TransparencyGroupExtra ex;
+                ex.I = true;
+                ex.K = true;
+                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 110);
+                ctx.cmd_Do(tgid);
             }
             {
+                auto groupctx = gen.new_transparency_group(80, 80);
+                draw_circles(groupctx, gsid);
+                TransparencyGroupExtra ex;
+                ex.I = false;
+                ex.K = false;
+                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 20);
+                ctx.cmd_Do(tgid);
             }
             {
+                auto groupctx = gen.new_transparency_group(80, 80);
+                draw_circles(groupctx, gsid);
+                TransparencyGroupExtra ex;
+                ex.I = true;
+                ex.K = false;
+                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 110);
+                ctx.cmd_Do(tgid);
             }
         }
     }

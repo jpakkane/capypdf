@@ -110,11 +110,19 @@ public:
         return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
     }
 
+    PdfDrawContext new_transparency_group(double w, double h) {
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, w, h);
+    }
+
     ColorPatternBuilder new_color_pattern_builder(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
+    rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
+                                                             const TransparencyGroupExtra *ex) {
+        return pdoc.add_transparency_group(ctx, ex);
+    }
 
     OutlineId
     add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent) {

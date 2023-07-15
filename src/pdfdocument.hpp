@@ -338,6 +338,10 @@ public:
     // Optional content groups
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);
 
+    // Transparency groups
+    rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
+                                                             const TransparencyGroupExtra *ex);
+
     std::optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
@@ -437,6 +441,7 @@ private:
     std::vector<int32_t> annotations;
     std::vector<StructItem> structure_items;
     std::vector<int32_t> ocg_items;
+    std::vector<int32_t> transparency_groups;
     // A form widget can be used on one and only one page.
     std::unordered_map<CapyPDF_FormWidgetId, int32_t> form_use;
     std::unordered_map<CapyPDF_AnnotationId, int32_t> annotation_use;
