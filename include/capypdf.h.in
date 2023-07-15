@@ -113,6 +113,7 @@ enum CAPYPDF_Draw_Context_Type {
     CAPY_DC_COLOR_TILING,
     CAPY_DC_UCOLORED_TILING,
     CAPY_DC_FORM_XOBJECT,
+    CAPY_DC_TRANSPARENCY_GROUP,
 };
 
 enum CAPYPDF_Transition_Type {

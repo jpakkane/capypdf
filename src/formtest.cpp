@@ -19,7 +19,7 @@
 
 using namespace capypdf;
 
-int main(int argc, char **argv) {
+int draw_simple_form() {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
@@ -75,4 +75,76 @@ int main(int argc, char **argv) {
         }
     }
     return 0;
+}
+
+void draw_gradient(PdfDrawContext &ctx, ShadingId shadeid, double x, double y) {
+    ctx.translate(x, y);
+    ctx.cmd_re(0, 0, 80, 80);
+    ctx.cmd_Wstar();
+    ctx.cmd_n();
+    ctx.cmd_sh(shadeid);
+}
+
+int draw_group_doc() {
+    // PDF 2.0 spec page 409.
+    PdfGenerationData opts;
+    const char *icc_out =
+        "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
+
+    opts.mediabox.x2 = 300;
+    opts.mediabox.y2 = 200;
+    opts.title = "Transparency group test";
+    opts.author = "Test Person";
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
+    opts.prof.cmyk_profile_file = icc_out;
+    {
+        GenPopper genpop("group_test.pdf", opts);
+        PdfGen &gen = *genpop.g;
+        FunctionType2 cmykfunc{{0.0, 1.0}, {0.0, 1.0, 0.0, 0.0}, {1.0, 0.0, 1.0, 0.0}, 1.0};
+        auto funcid = gen.add_function(cmykfunc);
+
+        ShadingType2 shade;
+        shade.colorspace = CAPYPDF_CS_DEVICE_CMYK;
+        shade.x0 = 0;
+        shade.y0 = 40;
+        shade.x1 = 80;
+        shade.y1 = 40;
+        shade.function = funcid;
+        shade.extend0 = false;
+        shade.extend1 = false;
+
+        auto shadeid = gen.add_shading(shade);
+        {
+            auto ctxguard = gen.guarded_page_context();
+            auto &ctx = ctxguard.ctx;
+            ctx.render_pdfdoc_text_builtin("Isolated", CAPY_FONT_HELVETICA, 8, 5, 150);
+            ctx.render_pdfdoc_text_builtin("Non-isolated", CAPY_FONT_HELVETICA, 8, 5, 50);
+            ctx.render_pdfdoc_text_builtin("Knockout", CAPY_FONT_HELVETICA, 8, 100, 5);
+            ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
+            {
+                auto rc = ctx.push_gstate();
+                draw_gradient(ctx, shadeid, 80, 20);
+            }
+            {
+                auto rc = ctx.push_gstate();
+                draw_gradient(ctx, shadeid, 80, 110);
+            }
+            {
+                auto rc = ctx.push_gstate();
+                draw_gradient(ctx, shadeid, 180, 20);
+            }
+            {
+                auto rc = ctx.push_gstate();
+                draw_gradient(ctx, shadeid, 180, 110);
+            }
+        }
+    }
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    if(draw_simple_form() != 0) {
+        return 1;
+    }
+    return draw_group_doc();
 }
