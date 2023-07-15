@@ -531,6 +531,10 @@ ErrorCode PdfDrawContext::set_stroke_color(const Color &c) {
         return set_stroke_color(std::get<DeviceRGBColor>(c));
     } else if(std::holds_alternative<DeviceGrayColor>(c)) {
         return set_stroke_color(std::get<DeviceGrayColor>(c));
+    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
+        return set_stroke_color(std::get<DeviceCMYKColor>(c));
+    } else if(std::holds_alternative<ICCColor>(c)) {
+        return set_stroke_color(std::get<ICCColor>(c));
     } else {
         // Implement the rest later.
         std::abort();

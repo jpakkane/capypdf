@@ -146,9 +146,7 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_render_text_obj',
     [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_dc_set_icc_stroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
-('capy_dc_set_icc_nonstroke', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
-('capy_dc_set_page_transition', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
 ('capy_text_new', [ctypes.c_void_p]),
@@ -167,6 +165,7 @@ cfunc_types = (
 ('capy_color_set_rgb', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_color_set_gray', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_color_set_cmyk', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_color_set_icc', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
@@ -391,21 +390,15 @@ class DrawContext:
     def cmd_y(self, x1, y1, x3, y3):
         check_error(libfile.capy_dc_cmd_y(self, x1, y1, x3, y3))
 
-    def set_icc_stroke(self, iccid, values):
-        if not isinstance(values, list):
-            raise CapyPDFException('Icc color value argument must be an array.')
-        num_entries = len(values)
-        doublearray = ctypes.c_double * num_entries
-        doublevalues = doublearray(*tuple(values))
-        check_error(libfile.capy_dc_set_icc_stroke(self, iccid, doublevalues, num_entries))
+    def set_stroke(self, color):
+        if not isinstance(color, Color):
+            raise CapyPDFException('Argument must be a Color object.')
+        check_error(libfile.capy_dc_set_stroke(self, color))
 
-    def set_icc_nonstroke(self, iccid, values):
-        if not isinstance(values, list):
-            raise CapyPDFException('Icc color value argument must be an array.')
-        num_entries = len(values)
-        doublearray = ctypes.c_double * num_entries
-        doublevalues = doublearray(*tuple(values))
-        check_error(libfile.capy_dc_set_icc_nonstroke(self, iccid, doublevalues, num_entries))
+    def set_nonstroke(self, color):
+        if not isinstance(color, Color):
+            raise CapyPDFException('Argument must be a Color object.')
+        check_error(libfile.capy_dc_set_nonstroke(self, color))
 
     def render_text(self, text, fid, point_size, x, y):
         if not isinstance(text, str):
@@ -582,6 +575,13 @@ class Color:
     def set_cmyk(self, c, m, y, k):
         check_error(libfile.capy_color_set_cmyk(self, c, m, y, k))
 
+    def set_icc(self, icc_id, values):
+        if not isinstance(values, list):
+            raise CapyPDFException('Icc color value argument must be an array.')
+        num_entries = len(values)
+        doublearray = ctypes.c_double * num_entries
+        doublevalues = doublearray(*tuple(values))
+        check_error(libfile.capy_color_set_icc(self, icc_id, doublevalues, num_entries))
 
 class Transition:
     def __init__(self, ttype, duration):

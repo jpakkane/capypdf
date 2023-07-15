@@ -215,9 +215,13 @@ class TestPDFCreation(unittest.TestCase):
         opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         with capypdf.Generator(ofilename, opts) as g:
             cs = g.load_icc_profile('/usr/share/color/icc/colord/AdobeRGB1998.icc')
+            sc = capypdf.Color()
+            sc.set_icc(cs, [0.1, 0.2, 0.8])
+            nsc = capypdf.Color()
+            nsc.set_icc(cs, [0.7, 0.2, 0.6])
             with g.page_draw_context() as ctx:
-                ctx.set_icc_stroke(cs, [0.1, 0.2, 0.8])
-                ctx.set_icc_nonstroke(cs, [0.7, 0.2, 0.6])
+                ctx.set_stroke(sc)
+                ctx.set_nonstroke(nsc)
                 ctx.cmd_w(2)
                 ctx.cmd_re(10, 10, 80, 80)
                 ctx.cmd_B()

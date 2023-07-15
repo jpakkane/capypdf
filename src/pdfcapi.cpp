@@ -418,26 +418,18 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_y(
     return (CAPYPDF_EC)c->cmd_y(x1, y1, x3, y3);
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_stroke(CapyPDF_DrawContext *ctx,
-                                                 CapyPDF_IccColorSpaceId icc_id,
-                                                 double *values,
-                                                 int32_t num_values) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    ICCColor icc;
-    icc.id = icc_id;
-    icc.values.insert(icc.values.begin(), values, values + num_values);
-    return (CAPYPDF_EC)c->set_stroke_color(icc);
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_stroke(CapyPDF_DrawContext *ctx,
+                                             CapyPDF_Color *c) CAPYPDF_NOEXCEPT {
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto *color = reinterpret_cast<Color *>(c);
+    return (CAPYPDF_EC)dc->set_stroke_color(*color);
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_nonstroke(CapyPDF_DrawContext *ctx,
-                                                    CapyPDF_IccColorSpaceId icc_id,
-                                                    double *values,
-                                                    int32_t num_values) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    ICCColor icc;
-    icc.id = icc_id;
-    icc.values.insert(icc.values.begin(), values, values + num_values);
-    return (CAPYPDF_EC)c->set_nonstroke_color(icc);
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
+                                                CapyPDF_Color *c) CAPYPDF_NOEXCEPT {
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto *color = reinterpret_cast<Color *>(c);
+    return (CAPYPDF_EC)dc->set_nonstroke_color(*color);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPDF_DrawContext *ctx,
@@ -571,6 +563,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPD
 CAPYPDF_PUBLIC CAPYPDF_EC
 capy_color_set_cmyk(CapyPDF_Color *color, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
     *reinterpret_cast<capypdf::Color *>(color) = DeviceCMYKColor{c, m, y, k};
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_icc(CapyPDF_Color *color,
+                                             CapyPDF_IccColorSpaceId icc_id,
+                                             double *values,
+                                             int32_t num_values) CAPYPDF_NOEXCEPT {
+    ICCColor icc;
+    icc.id = icc_id;
+    icc.values.assign(values, values + num_values);
+    *reinterpret_cast<capypdf::Color *>(color) = std::move(icc);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
