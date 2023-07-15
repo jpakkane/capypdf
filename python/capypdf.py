@@ -166,6 +166,7 @@ cfunc_types = (
 ('capy_color_destroy', [ctypes.c_void_p]),
 ('capy_color_set_rgb', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_color_set_gray', [ctypes.c_void_p, ctypes.c_double]),
+('capy_color_set_cmyk', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
@@ -577,6 +578,9 @@ class Color:
 
     def set_gray(self, r, g, b):
         check_error(libfile.capy_color_set_gray(self, r, g, b))
+
+    def set_cmyk(self, c, m, y, k):
+        check_error(libfile.capy_color_set_cmyk(self, c, m, y, k))
 
 
 class Transition:

@@ -356,6 +356,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_destroy(CapyPDF_Color *color) CAPYPDF_NOEXC
 CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_rgb(CapyPDF_Color *c, double r, double g, double b)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_color_set_cmyk(CapyPDF_Color *color, double c, double m, double y, double k) CAPYPDF_NOEXCEPT;
 
 // Transition
 CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,

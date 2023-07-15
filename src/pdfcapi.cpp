@@ -562,6 +562,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPD
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC
+capy_color_set_cmyk(CapyPDF_Color *color, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
+    *reinterpret_cast<capypdf::Color *>(color) = DeviceCMYKColor{c, m, y, k};
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,
                                               CAPYPDF_Transition_Type type,
                                               double duration) CAPYPDF_NOEXCEPT {
