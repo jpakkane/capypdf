@@ -543,6 +543,10 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const Color &c) {
         return set_nonstroke_color(std::get<DeviceRGBColor>(c));
     } else if(std::holds_alternative<DeviceGrayColor>(c)) {
         return set_nonstroke_color(std::get<DeviceGrayColor>(c));
+    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
+        return set_nonstroke_color(std::get<DeviceCMYKColor>(c));
+    } else if(std::holds_alternative<ICCColor>(c)) {
+        return set_nonstroke_color(std::get<ICCColor>(c));
     } else {
         std::abort();
     }
@@ -573,35 +577,31 @@ ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(CapyPDF_IccColorSpaceId icc_id,
-                                              const double *values,
-                                              int32_t num_values) {
-    CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
-    const auto &icc_info = doc->icc_profiles.at(icc_id.id);
-    if(icc_info.num_channels != num_values) {
+ErrorCode PdfDrawContext::set_nonstroke_color(const ICCColor &icc) {
+    CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
+    const auto &icc_info = doc->icc_profiles.at(icc.id.id);
+    if(icc_info.num_channels != (int32_t)icc.values.size()) {
         return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
     fmt::format_to(cmd_appender, "{}/CSpace{} cs\n", ind, icc_info.object_num);
-    for(int32_t i = 0; i < num_values; ++i) {
-        fmt::format_to(cmd_appender, "{:} ", values[i]);
+    for(const auto &i : icc.values) {
+        fmt::format_to(cmd_appender, "{:} ", i);
     }
     fmt::format_to(cmd_appender, "scn\n", icc_info.object_num);
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(CapyPDF_IccColorSpaceId icc_id,
-                                           const double *values,
-                                           int32_t num_values) {
-    CHECK_INDEXNESS(icc_id.id, doc->icc_profiles);
-    const auto &icc_info = doc->icc_profiles.at(icc_id.id);
-    if(icc_info.num_channels != num_values) {
+ErrorCode PdfDrawContext::set_stroke_color(const ICCColor &icc) {
+    CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
+    const auto &icc_info = doc->icc_profiles.at(icc.id.id);
+    if(icc_info.num_channels != (int32_t)icc.values.size()) {
         return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
     fmt::format_to(cmd_appender, "{}/CSpace{} CS\n", ind, icc_info.object_num);
-    for(int32_t i = 0; i < num_values; ++i) {
-        fmt::format_to(cmd_appender, "{:} ", values[i]);
+    for(const auto i : icc.values) {
+        fmt::format_to(cmd_appender, "{:} ", i);
     }
     fmt::format_to(cmd_appender, "SCN\n", icc_info.object_num);
     return ErrorCode::NoError;

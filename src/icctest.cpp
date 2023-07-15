@@ -35,10 +35,10 @@ int main(int argc, char **argv) {
         auto &ctx = ctxguard.ctx;
         auto icc_id = gen.load_icc_file(icc_file).value();
 
-        const std::array<double, 3> blueish{0.1, 0.2, 0.9};
-        const std::vector<double> reddish{0.8, 0.3, 0.1};
-        ctx.set_stroke_color(icc_id, blueish.data(), (int32_t)blueish.size());
-        ctx.set_nonstroke_color(icc_id, reddish.data(), (int32_t)reddish.size());
+        ICCColor blueish{icc_id, {0.1, 0.2, 0.9}};
+        ICCColor reddish{icc_id, {0.8, 0.3, 0.1}};
+        ctx.set_stroke_color(blueish);
+        ctx.set_nonstroke_color(reddish);
 
         ctx.cmd_w(5);
         ctx.cmd_re(40, 40, 120, 120);

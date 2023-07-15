@@ -423,7 +423,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_stroke(CapyPDF_DrawContext *ctx,
                                                  double *values,
                                                  int32_t num_values) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (CAPYPDF_EC)c->set_stroke_color(icc_id, values, num_values);
+    ICCColor icc;
+    icc.id = icc_id;
+    icc.values.insert(icc.values.begin(), values, values + num_values);
+    return (CAPYPDF_EC)c->set_stroke_color(icc);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_nonstroke(CapyPDF_DrawContext *ctx,
@@ -431,7 +434,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_icc_nonstroke(CapyPDF_DrawContext *ctx,
                                                     double *values,
                                                     int32_t num_values) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return (CAPYPDF_EC)c->set_nonstroke_color(icc_id, values, num_values);
+    ICCColor icc;
+    icc.id = icc_id;
+    icc.values.insert(icc.values.begin(), values, values + num_values);
+    return (CAPYPDF_EC)c->set_nonstroke_color(icc);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPDF_DrawContext *ctx,

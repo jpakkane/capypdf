@@ -138,6 +138,17 @@ enum CAPYPDF_Page_Box {
     CAPY_BOX_ART,
 };
 
+// clang-format off
+/* Not used yet.
+enum CAPYPDF_Color_Management_Policy {
+    CAPY_CCP_Preserve,                  // Pass all colors directly through without conversion or checking.
+    CAPY_CCP_ToOutput,                  // Convert everything to output colorspace
+    CAPY_CCP_ToOutputExceptManaged,     // Convert everything to output cs except color managed content (ICC, L*a*b* etc)
+    CAPY_CCP_OnlyOutputAllowed,         // Use of any colorspace except output is an error except using Gray in RGB and CMYK.
+};
+*/
+// clang-format on
+
 typedef struct _CapyPDF_Options CapyPDF_Options;
 typedef struct _CapyPDF_Generator CapyPDF_Generator;
 typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;

@@ -146,15 +146,13 @@ public:
     ErrorCode set_nonstroke_color(const Color &c);
 
     ErrorCode set_stroke_color(const DeviceRGBColor &c);
-    ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_stroke_color(const LabColor &c);
-    ErrorCode
-    set_stroke_color(CapyPDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    ErrorCode set_stroke_color(const ICCColor &icc);
+    ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
     ErrorCode set_nonstroke_color(const LabColor &c);
     ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
     ErrorCode set_nonstroke_color(PatternId id);
-    ErrorCode
-    set_nonstroke_color(CapyPDF_IccColorSpaceId icc_id, const double *values, int32_t num_values);
+    ErrorCode set_nonstroke_color(const ICCColor &icc);
     ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
     ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
     void set_all_stroke_color();
