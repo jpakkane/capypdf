@@ -627,6 +627,24 @@ ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
     return ErrorCode::NoError;
 }
 
+ErrorCode PdfDrawContext::set_stroke_color(const DeviceCMYKColor &c) {
+    switch(doc->opts.output_colorspace) {
+    case CAPYPDF_CS_DEVICE_RGB: {
+        auto rgb_var = cm->to_rgb(c);
+        return cmd_RG(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
+    }
+    case CAPYPDF_CS_DEVICE_GRAY: {
+        DeviceGrayColor gray = cm->to_gray(c);
+        return cmd_G(gray.v.v());
+    }
+    case CAPYPDF_CS_DEVICE_CMYK: {
+        return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+    }
+    default:
+        return ErrorCode::Unreachable;
+    }
+}
+
 ErrorCode PdfDrawContext::set_nonstroke_color(const ICCColor &icc) {
     CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc.id.id);

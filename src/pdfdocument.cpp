@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <fmt/core.h>
 #include <ft2build.h>
+#include <variant>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
@@ -1341,10 +1342,10 @@ rvoe<NoReturnValue> PdfDocument::write_finished_object(int32_t object_number,
 
 std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
-        const auto &obj = document_objects.at(icc_profiles.at(i).object_num);
-        assert(std::holds_alternative<DeflatePDFObject>(obj));
-        const auto &iccobj = std::get<DeflatePDFObject>(obj);
-        if(iccobj.stream == contents) {
+        const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
+        assert(std::holds_alternative<DeflatePDFObject>(stream_obj));
+        const auto &stream_data = std::get<DeflatePDFObject>(stream_obj);
+        if(stream_data.stream == contents) {
             return CapyPDF_IccColorSpaceId{(int32_t)i};
         }
     }

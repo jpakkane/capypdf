@@ -147,6 +147,7 @@ public:
     ErrorCode set_nonstroke_color(const Color &c);
 
     ErrorCode set_stroke_color(const DeviceRGBColor &c);
+    ErrorCode set_stroke_color(const DeviceCMYKColor &c);
     ErrorCode set_stroke_color(const LabColor &c);
     ErrorCode set_stroke_color(const ICCColor &icc);
     ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
