@@ -1409,6 +1409,9 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += current_date_string();
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
+    if(opts.subtype.value_or(CAPY_INTENT_SUBTYPE_PDFA) == CAPY_INTENT_SUBTYPE_PDFX) {
+        obj_data.dictionary += "  /GTS_PDFXVersion (PDF/X-3:2003)\n";
+    }
     obj_data.dictionary += ">>\n";
     add_object(std::move(obj_data));
     return NoReturnValue{};
