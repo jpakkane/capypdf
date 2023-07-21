@@ -141,12 +141,6 @@ struct IccInfo {
     int32_t num_channels;
 };
 
-enum IntentSubtype {
-    SUBTYPE_PDFX,
-    SUBTYPE_PDFA,
-    // SUBTYPE_PDFE,
-};
-
 struct PdfGenerationData {
     PdfRectangle mediabox = PdfRectangle::a4();
     std::optional<PdfRectangle> cropbox;
@@ -158,7 +152,7 @@ struct PdfGenerationData {
     std::string author;
     CapyPDF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     ColorProfiles prof;
-    std::optional<IntentSubtype> subtype;
+    std::optional<CAPYPDF_Intent_Subtype> subtype;
     std::string intent_condition_identifier;
 };
 

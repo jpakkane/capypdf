@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     opts.title = "Form XObject test";
     opts.author = "Test Person";
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
-    opts.subtype = IntentSubtype::SUBTYPE_PDFA;
+    opts.subtype = CAPY_INTENT_SUBTYPE_PDFA;
     opts.intent_condition_identifier = "sRGB IEC61966-2.1";
     opts.prof.rgb_profile_file = "/usr/share/color/icc/ghostscript/srgb.icc";
     {

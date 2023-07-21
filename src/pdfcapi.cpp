@@ -100,6 +100,16 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
+                                                         enum CAPYPDF_Intent_Subtype stype,
+                                                         const char *identifier) CAPYPDF_NOEXCEPT {
+    CHECK_NULL(identifier);
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    opts->subtype = stype;
+    opts->intent_condition_identifier = identifier;
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
 CAPYPDF_EC capy_generator_new(const char *filename,
                               const CapyPDF_Options *options,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {

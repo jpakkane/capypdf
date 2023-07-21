@@ -139,6 +139,12 @@ enum CAPYPDF_Page_Box {
     CAPY_BOX_ART,
 };
 
+enum CAPYPDF_Intent_Subtype {
+    CAPY_INTENT_SUBTYPE_PDFX,
+    CAPY_INTENT_SUBTYPE_PDFA,
+    // CAPY_INTENT_SUBTYPE_PDFE,
+};
+
 // clang-format off
 /* Not used yet.
 enum CAPYPDF_Color_Management_Policy {
@@ -218,6 +224,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
     CapyPDF_Options *opt, enum CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
                                                       enum CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
+                                                         enum CAPYPDF_Intent_Subtype stype,
+                                                         const char *identifier) CAPYPDF_NOEXCEPT;
 
 // Generator
 
@@ -364,7 +373,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
                                            double pointsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
-                                           CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT;
+                                           enum CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 
 // Color

@@ -70,6 +70,11 @@ class TextMode(Enum):
     FillStrokeClip = 6
     Clip = 7
 
+class IntentSubtype(Enum):
+    PDFX = 0
+    PDFA = 1
+    # PDFE = 2
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -100,6 +105,7 @@ cfunc_types = (
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_pagebox',
     [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_options_set_output_intent', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -274,6 +280,12 @@ class Options:
 
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
+
+    def set_output_intent(self, stype, identifier):
+        if not isinstance(stype, IntentSubtype):
+            raise CapyPDFException('Argument must be an intent subtype.')
+        check_error(libfile.capy_options_set_output_intent(self, stype.value, identifier.encode('utf-8')))
+
 
 class DrawContext:
     def __init__(self, generator):
