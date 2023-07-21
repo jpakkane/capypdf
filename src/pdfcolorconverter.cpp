@@ -97,6 +97,19 @@ PdfColorConverter::PdfColorConverter() {}
 
 PdfColorConverter::~PdfColorConverter() {}
 
+DeviceRGBColor PdfColorConverter::to_rgb(const DeviceCMYKColor &cmyk) {
+    DeviceRGBColor rgb;
+    auto transform = cmsCreateTransform(cmyk_profile.h,
+                                        TYPE_CMYK_DBL,
+                                        gray_profile.h,
+                                        TYPE_RGB_DBL,
+                                        ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
+                                        0);
+    cmsDoTransform(transform, &cmyk, &rgb, 1);
+    cmsDeleteTransform(transform);
+    return rgb;
+}
+
 DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
     DeviceGrayColor gray;
     auto transform = cmsCreateTransform(rgb_profile.h,
@@ -106,6 +119,19 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
     cmsDoTransform(transform, &rgb, &gray, 1);
+    cmsDeleteTransform(transform);
+    return gray;
+}
+
+DeviceGrayColor PdfColorConverter::to_gray(const DeviceCMYKColor &cmyk) {
+    DeviceGrayColor gray;
+    auto transform = cmsCreateTransform(cmyk_profile.h,
+                                        TYPE_CMYK_DBL,
+                                        gray_profile.h,
+                                        TYPE_GRAY_DBL,
+                                        ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
+                                        0);
+    cmsDoTransform(transform, &cmyk, &gray, 1);
     cmsDeleteTransform(transform);
     return gray;
 }

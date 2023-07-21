@@ -580,6 +580,7 @@ ErrorCode PdfDrawContext::set_stroke_color(const Color &c) {
     } else if(std::holds_alternative<ICCColor>(c)) {
         return set_stroke_color(std::get<ICCColor>(c));
     } else {
+        printf("Stroke colorspace not supported yet.");
         // Implement the rest later.
         std::abort();
     }
@@ -596,6 +597,7 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const Color &c) {
     } else if(std::holds_alternative<ICCColor>(c)) {
         return set_nonstroke_color(std::get<ICCColor>(c));
     } else {
+        printf("Nonstroke colorspace not supported yet.");
         std::abort();
     }
     return ErrorCode::NoError;
@@ -681,6 +683,24 @@ ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
     // Assumes that switching to the gray colorspace is always ok.
     // If it is not, fix to do the same switch() as above.
     return cmd_g(c.v.v());
+}
+
+ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceCMYKColor &c) {
+    switch(doc->opts.output_colorspace) {
+    case CAPYPDF_CS_DEVICE_RGB: {
+        auto rgb_var = cm->to_rgb(c);
+        return cmd_rg(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
+    }
+    case CAPYPDF_CS_DEVICE_GRAY: {
+        DeviceGrayColor gray = cm->to_gray(c);
+        return cmd_g(gray.v.v());
+    }
+    case CAPYPDF_CS_DEVICE_CMYK: {
+        return cmd_k(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+    }
+    default:
+        return ErrorCode::Unreachable;
+    }
 }
 
 ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
