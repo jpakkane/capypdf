@@ -650,9 +650,11 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
   /Type /Page
   /Parent {} 0 R
   /Group {} 0 R
+  /LastModified {}
 )",
                    pages_object,
-                   page_group_object);
+                   page_group_object,
+                   current_date_string());
     write_rectangle(buf_append, "MediaBox", opts.mediabox);
 
     if(opts.cropbox) {
@@ -1403,6 +1405,10 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += "  /CreationDate ";
     obj_data.dictionary += current_date_string();
     obj_data.dictionary += '\n';
+    obj_data.dictionary += "  /ModDate ";
+    obj_data.dictionary += current_date_string();
+    obj_data.dictionary += '\n';
+    obj_data.dictionary += "  /Trapped /False\n";
     obj_data.dictionary += ">>\n";
     add_object(std::move(obj_data));
     return NoReturnValue{};
