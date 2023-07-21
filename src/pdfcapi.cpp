@@ -522,6 +522,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_nonstroke_color(CapyPDF_Text *text,
     return (CAPYPDF_EC)t->nonstroke_color(*c);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_stroke_color(CapyPDF_Text *text,
+                                                 const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    const auto *c = reinterpret_cast<const Color *>(color);
+    return (CAPYPDF_EC)t->stroke_color(*c);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tc(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->cmd_Tc(spacing);
@@ -544,6 +551,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->cmd_TL(leading);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
+                                           CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (CAPYPDF_EC)t->cmd_Tr(tmode);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {

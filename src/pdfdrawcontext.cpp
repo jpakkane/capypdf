@@ -935,6 +935,9 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(std::holds_alternative<TL_arg>(e)) {
             const auto &tL = std::get<TL_arg>(e);
             fmt::format_to(app, "{}{} TL\n", ind, tL.leading);
+        } else if(std::holds_alternative<Tr_arg>(e)) {
+            const auto &tr = std::get<Tr_arg>(e);
+            fmt::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
         } else if(std::holds_alternative<Tm_arg>(e)) {
             const auto &tm = std::get<Tm_arg>(e);
             fmt::format_to(
@@ -961,16 +964,25 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             fmt::format_to(app, "{}EMC\n", ind);
         } else if(std::holds_alternative<Stroke_arg>(e)) {
             // const auto &sarg = std::get<Stroke_arg>(e);
+            printf("Not supported yet.\n");
             std::abort();
         } else if(std::holds_alternative<Nonstroke_arg>(e)) {
             // FIXME: make a function to create color commands
             // as text and use that here and in the actual set_X_color methods.
             const auto &nsarg = std::get<Nonstroke_arg>(e);
-            assert(std::holds_alternative<DeviceRGBColor>(nsarg.c));
-            auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-            fmt::format_to(app, "{}{} {} {} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
+            if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
+                auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
+                fmt::format_to(app, "{}{} {} {} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
+            } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
+                auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
+                fmt::format_to(
+                    app, "{}{} {} {} {}k\n", ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+            } else {
+                printf("Text nonstroke colorspace not supported yet.\n");
+                std::abort();
+            }
         } else {
-            fprintf(stderr, "Text feature implemented yet.\n");
+            fprintf(stderr, "Text feature not implemented yet.\n");
             std::abort();
         }
     }

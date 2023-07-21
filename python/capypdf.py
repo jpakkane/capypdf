@@ -60,6 +60,16 @@ class RenderingIntent(Enum):
     Saturation = 2
     Perceptual = 3
 
+class TextMode(Enum):
+    Fill = 0,
+    Stroke = 1
+    FillStroke = 2
+    Invisible = 3
+    FillClip = 4
+    StrokeClip = 5
+    FillStrokeClip = 6
+    Clip = 7
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -157,8 +167,10 @@ cfunc_types = (
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 ('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
+('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
 ('capy_text_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_stroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_nonstroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
 
 ('capy_color_new', [ctypes.c_void_p]),
@@ -542,6 +554,9 @@ class Text:
     def nonstroke_color(self, color):
         check_error(libfile.capy_text_nonstroke_color(self, color))
 
+    def stroke_color(self, color):
+        check_error(libfile.capy_text_stroke_color(self, color))
+
     def cmd_Tc(self, spacing):
         check_error(libfile.capy_text_cmd_Tc(self, spacing))
 
@@ -555,6 +570,11 @@ class Text:
 
     def cmd_TL(self, leading):
         check_error(libfile.capy_text_cmd_TL(self, leading))
+
+    def cmd_Tr(self, rendtype):
+        if not isinstance(rendtype, TextMode):
+            raise CapyPDFException('Argument must be a text mode.')
+        check_error(libfile.capy_text_cmd_Tr(self, rendtype.value))
 
     def cmd_Tstar(self):
         check_error(libfile.capy_text_cmd_Tstar(self))
