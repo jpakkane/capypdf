@@ -976,7 +976,7 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
                 fmt::format_to(
-                    app, "{}{} {} {} {}k\n", ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+                    app, "{}{} {} {} {} k\n", ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
             } else {
                 printf("Text nonstroke colorspace not supported yet.\n");
                 std::abort();
