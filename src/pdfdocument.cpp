@@ -919,12 +919,14 @@ rvoe<NoReturnValue> PdfDocument::write_trailer(int64_t xref_offset) {
     const int32_t info = 1;                           // Info object is the first printed.
     const int32_t root = document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
+    auto documentid = create_trailer_id();
     fmt::format_to(std::back_inserter(buf),
                    R"(trailer
 <<
   /Size {}
   /Root {} 0 R
   /Info {} 0 R
+  /ID [{}{}]
 >>
 startxref
 {}
@@ -933,6 +935,8 @@ startxref
                    document_objects.size(),
                    root,
                    info,
+                   documentid,
+                   documentid,
                    xref_offset);
     return write_bytes(buf);
 }

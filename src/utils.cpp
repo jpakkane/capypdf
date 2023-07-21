@@ -27,6 +27,7 @@
 
 #include <fmt/core.h>
 #include <memory>
+#include <random>
 
 namespace capypdf {
 
@@ -247,6 +248,22 @@ bool is_ascii(std::string_view text) {
         }
     }
     return true;
+}
+
+std::string create_trailer_id() {
+    int num_bytes = 16;
+    std::string msg;
+    msg.reserve(num_bytes * 2 + 2);
+    auto app = std::back_inserter(msg);
+    msg.push_back('<');
+    std::random_device r;
+    std::default_random_engine gen(r());
+    std::uniform_int_distribution<int> dist(0, 255);
+    for(int i = 0; i < num_bytes; ++i) {
+        fmt::format_to(app, "{:02X}", (unsigned char)dist(gen));
+    }
+    msg.push_back('>');
+    return msg;
 }
 
 } // namespace capypdf
