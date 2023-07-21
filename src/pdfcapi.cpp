@@ -76,6 +76,23 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPDF_Options *opt,
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
+    CapyPDF_Options *opt, enum CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    switch(cs) {
+    case CAPYPDF_CS_DEVICE_RGB:
+        opts->prof.rgb_profile_file = profile_path;
+        break;
+    case CAPYPDF_CS_DEVICE_GRAY:
+        opts->prof.gray_profile_file = profile_path;
+        break;
+    case CAPYPDF_CS_DEVICE_CMYK:
+        opts->prof.cmyk_profile_file = profile_path;
+        break;
+    }
+    return (CAPYPDF_EC)ErrorCode::NoError;
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
                                                       enum CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);

@@ -20,6 +20,7 @@
 #include <string_view>
 #include <string>
 #include <expected>
+#include <filesystem>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -49,9 +50,9 @@ struct LcmsHolder {
 
 class PdfColorConverter {
 public:
-    static rvoe<PdfColorConverter> construct(const char *rgb_profile_fname,
-                                             const char *gray_profile_fname,
-                                             const char *cmyk_profile_fname);
+    static rvoe<PdfColorConverter> construct(const std::filesystem::path &rgb_profile_fname,
+                                             const std::filesystem::path &gray_profile_fname,
+                                             const std::filesystem::path &cmyk_profile_fname);
 
     PdfColorConverter(PdfColorConverter &&o) = default;
     ~PdfColorConverter();

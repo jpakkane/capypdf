@@ -85,6 +85,7 @@ cfunc_types = (
 ('capy_options_new', [ctypes.c_void_p]),
 ('capy_options_destroy', [ctypes.c_void_p]),
 ('capy_options_set_colorspace', [ctypes.c_void_p, enum_type]),
+('capy_options_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 ('capy_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_pagebox',
@@ -258,6 +259,9 @@ class Options:
 
     def set_pagebox(self, boxtype, x1, y1, x2, y2):
         check_error(libfile.capy_options_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
+
+    def set_device_profile(self, colorspace, path):
+        check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
 
 class DrawContext:
     def __init__(self, generator):

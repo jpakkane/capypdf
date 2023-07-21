@@ -130,9 +130,9 @@ struct FontThingy {
 };
 
 struct ColorProfiles {
-    const char *rgb_profile_file = nullptr;
-    const char *gray_profile_file = nullptr;
-    const char *cmyk_profile_file = nullptr;
+    std::filesystem::path rgb_profile_file;
+    std::filesystem::path gray_profile_file;
+    std::filesystem::path cmyk_profile_file;
 };
 
 struct IccInfo {

@@ -34,11 +34,12 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 
 namespace capypdf {
 
-rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fname,
-                                                     const char *gray_profile_fname,
-                                                     const char *cmyk_profile_fname) {
+rvoe<PdfColorConverter>
+PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
+                             const std::filesystem::path &gray_profile_fname,
+                             const std::filesystem::path &cmyk_profile_fname) {
     PdfColorConverter conv;
-    if(rgb_profile_fname) {
+    if(!rgb_profile_fname.empty()) {
         ERC(rgb, load_file(rgb_profile_fname));
         conv.rgb_profile_data = std::move(rgb);
         cmsHPROFILE h =
@@ -54,7 +55,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fna
     } else {
         conv.rgb_profile.h = cmsCreate_sRGBProfile();
     }
-    if(gray_profile_fname) {
+    if(!gray_profile_fname.empty()) {
         ERC(gray, load_file(gray_profile_fname));
         conv.gray_profile_data = std::move(gray);
         auto h =
@@ -72,7 +73,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const char *rgb_profile_fna
         conv.gray_profile.h = cmsCreateGrayProfile(cmsD50_xyY(), curve);
         cmsFreeToneCurve(curve);
     }
-    if(cmyk_profile_fname) {
+    if(!cmyk_profile_fname.empty()) {
         ERC(cmyk, load_file(cmyk_profile_fname));
         conv.cmyk_profile_data = std::move(cmyk);
         auto h =

@@ -214,6 +214,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPDF_Options *opt,
                                                    double y1,
                                                    double x2,
                                                    double y2) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
+    CapyPDF_Options *opt, enum CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
                                                       enum CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT;
 
