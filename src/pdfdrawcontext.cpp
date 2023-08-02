@@ -39,10 +39,13 @@ PdfDrawContext::PdfDrawContext(
 
 PdfDrawContext::~PdfDrawContext() {}
 
-void PdfDrawContext::set_form_xobject_size(double w, double h) {
-    assert(context_type == CAPY_DC_FORM_XOBJECT);
+rvoe<NoReturnValue> PdfDrawContext::set_form_xobject_size(double w, double h) {
+    if(context_type != CAPY_DC_FORM_XOBJECT) {
+        RETERR(InvalidDrawContextType);
+    }
     form_xobj_w = w;
     form_xobj_h = h;
+    return NoReturnValue{};
 }
 
 DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) {

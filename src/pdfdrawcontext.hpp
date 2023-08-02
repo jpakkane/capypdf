@@ -186,7 +186,7 @@ public:
     std::string build_resource_dict();
     std::string_view get_command_stream() { return commands; }
 
-    void set_form_xobject_size(double w, double h);
+    rvoe<NoReturnValue> set_form_xobject_size(double w, double h);
     double get_form_xobj_w() const { return form_xobj_w; }
     double get_form_xobj_h() const { return form_xobj_h; }
 
@@ -264,7 +264,7 @@ private:
 
     std::stack<DrawStateType> dstates;
     std::optional<Transition> transition;
-    // Reminder: If you add stuff  here, also add them to .clear().
+    // Reminder: If you add stuff here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;
     double form_xobj_w = -1;
