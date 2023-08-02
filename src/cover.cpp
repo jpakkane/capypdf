@@ -165,7 +165,7 @@ int main(int, char **) {
                 ctx.scale(100, 100);
                 ctx.draw_image(image_id);
             }
-            ctx.set_separation_nonstroke_color(sep_id, 1.0);
+            ctx.set_color(SeparationColor{sep_id, 1.0}, false);
             ctx.render_pdfdoc_text_builtin("Front Cover",
                                            CAPY_FONT_HELVETICA_BOLD,
                                            48,

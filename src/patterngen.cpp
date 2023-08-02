@@ -82,8 +82,8 @@ void draw_page_1(PdfGen &gen) {
         auto patternid = gen.add_pattern(pattern).value();
 
         ctx.cmd_re(10, 10, 80, 80);
-        ctx.set_nonstroke_color(patternid);
-        ctx.set_stroke_color(DeviceRGBColor{0, 0, 0});
+        ctx.set_color(patternid, false);
+        ctx.set_color(DeviceRGBColor{0, 0, 0}, true);
         ctx.cmd_j(CAPY_LJ_ROUND);
         ctx.cmd_w(1.5);
         ctx.cmd_B();
@@ -97,7 +97,7 @@ void draw_page_1(PdfGen &gen) {
         auto patternid = gen.add_pattern(pattern).value();
 
         ctx.translate(100, 10);
-        ctx.set_nonstroke_color(patternid);
+        ctx.set_color(patternid, false);
         ctx.render_pdfdoc_text_builtin("C", CAPY_FONT_TIMES_ROMAN, 120, 0, 5);
     }
 }

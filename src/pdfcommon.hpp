@@ -196,9 +196,14 @@ struct SeparationColor {
     LimitDouble v;
 };
 
-typedef std::
-    variant<DeviceRGBColor, DeviceGrayColor, DeviceCMYKColor, ICCColor, LabColor, SeparationColor>
-        Color;
+typedef std::variant<DeviceRGBColor,
+                     DeviceGrayColor,
+                     DeviceCMYKColor,
+                     ICCColor,
+                     LabColor,
+                     SeparationColor,
+                     PatternId>
+    Color;
 
 struct LabColorSpace {
     double xw, yw, zw;

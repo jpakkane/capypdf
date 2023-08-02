@@ -570,158 +570,116 @@ ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(const Color &c) {
+ErrorCode PdfDrawContext::set_color(const Color &c, bool stroke) {
     if(std::holds_alternative<DeviceRGBColor>(c)) {
-        return set_stroke_color(std::get<DeviceRGBColor>(c));
+        return set_color(std::get<DeviceRGBColor>(c), stroke);
     } else if(std::holds_alternative<DeviceGrayColor>(c)) {
-        return set_stroke_color(std::get<DeviceGrayColor>(c));
+        return set_color(std::get<DeviceGrayColor>(c), stroke);
     } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
-        return set_stroke_color(std::get<DeviceCMYKColor>(c));
+        return set_color(std::get<DeviceCMYKColor>(c), stroke);
     } else if(std::holds_alternative<ICCColor>(c)) {
-        return set_stroke_color(std::get<ICCColor>(c));
+        return set_color(std::get<ICCColor>(c), stroke);
+    } else if(std::holds_alternative<LabColor>(c)) {
+        return set_color(std::get<LabColor>(c), stroke);
+    } else if(std::holds_alternative<PatternId>(c)) {
+        return set_color(std::get<PatternId>(c), stroke);
     } else {
-        printf("Stroke colorspace not supported yet.");
-        // Implement the rest later.
+        printf("Given colorspace not supported yet.");
         std::abort();
     }
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(const Color &c) {
-    if(std::holds_alternative<DeviceRGBColor>(c)) {
-        return set_nonstroke_color(std::get<DeviceRGBColor>(c));
-    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
-        return set_nonstroke_color(std::get<DeviceGrayColor>(c));
-    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
-        return set_nonstroke_color(std::get<DeviceCMYKColor>(c));
-    } else if(std::holds_alternative<ICCColor>(c)) {
-        return set_nonstroke_color(std::get<ICCColor>(c));
-    } else {
-        printf("Nonstroke colorspace not supported yet.");
-        std::abort();
-    }
-    return ErrorCode::NoError;
-}
-
-ErrorCode PdfDrawContext::set_stroke_color(const DeviceRGBColor &c) {
+ErrorCode PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPYPDF_CS_DEVICE_RGB: {
-        cmd_RG(c.r.v(), c.g.v(), c.b.v());
-        break;
+        if(stroke) {
+            return cmd_RG(c.r.v(), c.g.v(), c.b.v());
+        } else {
+            return cmd_rg(c.r.v(), c.g.v(), c.b.v());
+        }
     }
     case CAPYPDF_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        cmd_G(gray.v.v());
-        break;
+        if(stroke) {
+            return cmd_G(gray.v.v());
+        } else {
+            return cmd_g(gray.v.v());
+        }
     }
     case CAPYPDF_CS_DEVICE_CMYK: {
         auto cmyk_var = cm->to_cmyk(c);
         if(cmyk_var) {
             auto &cmyk = cmyk_var.value();
-            return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+            if(stroke) {
+                return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+            } else {
+                return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+            }
         }
         return cmyk_var.error();
-        break;
     }
     }
-    return ErrorCode::NoError;
+    std::abort();
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(const DeviceCMYKColor &c) {
+ErrorCode PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPYPDF_CS_DEVICE_RGB: {
         auto rgb_var = cm->to_rgb(c);
-        return cmd_RG(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
+        if(stroke) {
+            return cmd_RG(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
+        } else {
+            return cmd_rg(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
+        }
     }
     case CAPYPDF_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        return cmd_G(gray.v.v());
+        if(stroke) {
+            return cmd_G(gray.v.v());
+        } else {
+            return cmd_g(gray.v.v());
+        }
     }
     case CAPYPDF_CS_DEVICE_CMYK: {
-        return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+        if(stroke) {
+            return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+        } else {
+            return cmd_k(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+        }
     }
     default:
         return ErrorCode::Unreachable;
     }
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(const ICCColor &icc) {
+ErrorCode PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
     CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc.id.id);
     if(icc_info.num_channels != (int32_t)icc.values.size()) {
         return ErrorCode::IncorrectColorChannelCount;
     }
     used_colorspaces.insert(icc_info.object_num);
-    fmt::format_to(cmd_appender, "{}/CSpace{} cs\n", ind, icc_info.object_num);
+    fmt::format_to(
+        cmd_appender, "{}/CSpace{} {}\n", ind, icc_info.object_num, stroke ? "CS" : "cs");
     for(const auto &i : icc.values) {
         fmt::format_to(cmd_appender, "{:} ", i);
     }
-    fmt::format_to(cmd_appender, "scn\n", icc_info.object_num);
+    fmt::format_to(cmd_appender, "{}\n", stroke ? "SCN" : "scn");
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_stroke_color(const ICCColor &icc) {
-    CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
-    const auto &icc_info = doc->icc_profiles.at(icc.id.id);
-    if(icc_info.num_channels != (int32_t)icc.values.size()) {
-        return ErrorCode::IncorrectColorChannelCount;
-    }
-    used_colorspaces.insert(icc_info.object_num);
-    fmt::format_to(cmd_appender, "{}/CSpace{} CS\n", ind, icc_info.object_num);
-    for(const auto i : icc.values) {
-        fmt::format_to(cmd_appender, "{:} ", i);
-    }
-    fmt::format_to(cmd_appender, "SCN\n", icc_info.object_num);
-    return ErrorCode::NoError;
-}
-
-ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceRGBColor &c) {
-    switch(doc->opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB: {
-        return cmd_rg(c.r.v(), c.g.v(), c.b.v());
-    }
-    case CAPYPDF_CS_DEVICE_GRAY: {
-        DeviceGrayColor gray = cm->to_gray(c);
-        return cmd_g(gray.v.v());
-    }
-    case CAPYPDF_CS_DEVICE_CMYK: {
-        auto cmyk_var = cm->to_cmyk(c);
-        if(cmyk_var) {
-            auto &cmyk = cmyk_var.value();
-            return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-        }
-        return cmyk_var.error();
-    }
-    default:
-        return ErrorCode::Unreachable;
-    }
-}
-
-ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceGrayColor &c) {
+ErrorCode PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
     // Assumes that switching to the gray colorspace is always ok.
     // If it is not, fix to do the same switch() as above.
-    return cmd_g(c.v.v());
-}
-
-ErrorCode PdfDrawContext::set_nonstroke_color(const DeviceCMYKColor &c) {
-    switch(doc->opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB: {
-        auto rgb_var = cm->to_rgb(c);
-        return cmd_rg(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
-    }
-    case CAPYPDF_CS_DEVICE_GRAY: {
-        DeviceGrayColor gray = cm->to_gray(c);
-        return cmd_g(gray.v.v());
-    }
-    case CAPYPDF_CS_DEVICE_CMYK: {
-        return cmd_k(c.c.v(), c.m.v(), c.y.v(), c.k.v());
-    }
-    default:
-        return ErrorCode::Unreachable;
+    if(stroke) {
+        return cmd_G(c.v.v());
+    } else {
+        return cmd_g(c.v.v());
     }
 }
 
-ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
+ErrorCode PdfDrawContext::set_color(PatternId id, bool stroke) {
     if(context_type != CAPY_DC_PAGE) {
         return ErrorCode::PatternNotAccepted;
     }
@@ -730,45 +688,32 @@ ErrorCode PdfDrawContext::set_nonstroke_color(PatternId id) {
     if(rc != ErrorCode::NoError) {
         return rc;
     }
-    fmt::format_to(cmd_appender, "{}/Pattern-{} scn\n", ind, id.id);
+    fmt::format_to(cmd_appender, "{}/Pattern-{} {}\n", ind, id.id, stroke ? "SCN" : "scn");
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_separation_stroke_color(SeparationId id, LimitDouble value) {
-    CHECK_INDEXNESS(id.id, doc->separation_objects);
-    const auto idnum = doc->separation_object_number(id);
+ErrorCode PdfDrawContext::set_color(const SeparationColor &color, bool stroke) {
+    CHECK_INDEXNESS(color.id.id, doc->separation_objects);
+    const auto idnum = doc->separation_object_number(color.id);
     used_colorspaces.insert(idnum);
     std::string csname = fmt::format("/CSpace{}", idnum);
-    cmd_CS(csname);
-    cmd_SCN(value.v());
+    if(stroke) {
+        cmd_CS(csname);
+        cmd_SCN(color.v.v());
+    } else {
+        cmd_cs(csname);
+        cmd_scn(color.v.v());
+    }
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::set_separation_nonstroke_color(SeparationId id, LimitDouble value) {
-    CHECK_INDEXNESS(id.id, doc->separation_objects);
-    const auto idnum = doc->separation_object_number(id);
-    used_colorspaces.insert(idnum);
-    std::string csname = fmt::format("/CSpace{}", idnum);
-    cmd_cs(csname);
-    cmd_scn(value.v());
-    return ErrorCode::NoError;
-}
-
-ErrorCode PdfDrawContext::set_stroke_color(const LabColor &c) {
+ErrorCode PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     CHECK_INDEXNESS(c.id.id, doc->document_objects);
     used_colorspaces.insert(c.id.id);
     std::string csname = fmt::format("/CSpace{}", c.id.id);
     cmd_CS(csname);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} SCN\n", ind, c.l, c.a, c.b);
-    return ErrorCode::NoError;
-}
-
-ErrorCode PdfDrawContext::set_nonstroke_color(const LabColor &c) {
-    CHECK_INDEXNESS(c.id.id, doc->document_objects);
-    used_colorspaces.insert(c.id.id);
-    std::string csname = fmt::format("/CSpace{}", c.id.id);
-    cmd_cs(csname);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} scn\n", ind, c.l, c.a, c.b);
+    fmt::format_to(
+        cmd_appender, "{}{:f} {:f} {:f} {}\n", ind, c.l, c.a, c.b, stroke ? "SCN" : "scn");
     return ErrorCode::NoError;
 }
 

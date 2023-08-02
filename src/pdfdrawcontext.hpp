@@ -143,21 +143,18 @@ public:
     ErrorCode cmd_Wstar();
     ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
-    ErrorCode set_stroke_color(const Color &c);
-    ErrorCode set_nonstroke_color(const Color &c);
+    ErrorCode set_stroke_color(const Color &c) { return set_color(c, true); }
+    ErrorCode set_nonstroke_color(const Color &c) { return set_color(c, false); }
 
-    ErrorCode set_stroke_color(const DeviceRGBColor &c);
-    ErrorCode set_stroke_color(const DeviceCMYKColor &c);
-    ErrorCode set_stroke_color(const LabColor &c);
-    ErrorCode set_stroke_color(const ICCColor &icc);
-    ErrorCode set_nonstroke_color(const DeviceRGBColor &c);
-    ErrorCode set_nonstroke_color(const DeviceCMYKColor &c);
-    ErrorCode set_nonstroke_color(const LabColor &c);
-    ErrorCode set_nonstroke_color(const DeviceGrayColor &c);
-    ErrorCode set_nonstroke_color(PatternId id);
-    ErrorCode set_nonstroke_color(const ICCColor &icc);
-    ErrorCode set_separation_stroke_color(SeparationId id, LimitDouble value);
-    ErrorCode set_separation_nonstroke_color(SeparationId id, LimitDouble value);
+    ErrorCode set_color(const Color &c, bool stroke);
+    ErrorCode set_color(const DeviceRGBColor &c, bool stroke);
+    ErrorCode set_color(const DeviceGrayColor &c, bool stroke);
+    ErrorCode set_color(const DeviceCMYKColor &c, bool stroke);
+    ErrorCode set_color(const LabColor &c, bool stroke);
+    ErrorCode set_color(const ICCColor &icc, bool stroke);
+    ErrorCode set_color(PatternId id, bool stroke);
+    ErrorCode set_color(const SeparationColor &color, bool stroke);
+
     void set_all_stroke_color();
     ErrorCode draw_image(CapyPDF_ImageId obj_num);
     void scale(double xscale, double yscale);

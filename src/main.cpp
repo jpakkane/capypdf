@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
             ctx.cmd_re(200, 300, 200, 100);
             ctx.cmd_f();
             const auto sep = gen.create_separation("Gold", DeviceCMYKColor{0, 0.03, 0.55, 0.08});
-            ctx.set_separation_nonstroke_color(sep, 1.0);
+            ctx.set_color(SeparationColor{sep, 1.0}, false);
             ctx.render_pdfdoc_text_builtin("GOLD!", CAPY_FONT_HELVETICA_BOLD, 32, 250, 340);
         }
         gen.add_page(ctx);
