@@ -65,6 +65,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Draw state end mismatch.",
 "URI must be ASCII.",
 "OCG not used on this page.",
+"Unsupported TIFF image.",
 };
 
 // clang-format on

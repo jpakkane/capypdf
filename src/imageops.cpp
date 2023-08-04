@@ -268,76 +268,86 @@ std::expected<RasterImage, ErrorCode> load_png_file(const std::filesystem::path 
     RETERR(Unreachable);
 }
 
-RasterImage load_tif_file(const std::filesystem::path &fname) {
-    cmyk_image image;
+rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
     if(!tif) {
-        std::abort();
+        RETERR(FileReadError);
     }
+    std::optional<std::string> icc;
     std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
 
     uint32_t w{}, h{};
-    uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{}, extrasamples{};
+    uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{};
     uint32_t icc_count{};
     void *icc_data{};
 
     if(TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w) != 1) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
     if(TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h) != 1) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
 
     if(TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample) != 1) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
     if(bitspersample != 8) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
 
     if(TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel) != 1) {
-        std::abort();
-    }
-    if(samplesperpixel != 4) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
 
     if(TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometric) != 1) {
-        std::abort();
-    }
-    if(photometric != PHOTOMETRIC_SEPARATED) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
 
+    /*
+     * Note that the output variable is an array, because there can
+     * be more than 1 extra channel.
     if(TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &extrasamples) == 1) {
         if(extrasamples != 0) {
-            // Has alpha channel.
-            std::abort();
+            fprintf(stderr, "TIFFs with an alpha channel not supported yet.");
+            RETERR(UnsupportedTIFF);
         }
     }
+    */
 
     if(TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &planarconf) != 1) {
-        std::abort();
+        RETERR(UnsupportedTIFF);
     }
     // Maybe fail for this?
 
     if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
-        image.icc = std::string{(const char *)icc_data, icc_count};
+        icc = std::string{(const char *)icc_data, icc_count};
     }
 
-    image.w = w;
-    image.h = h;
     const auto scanlinesize = TIFFScanlineSize64(tif);
     std::string line(scanlinesize, 0);
-    image.pixels.reserve(scanlinesize * h);
+    std::string pixels;
+    pixels.reserve(scanlinesize * h);
     for(uint32_t row = 0; row < h; ++row) {
         if(TIFFReadScanline(tif, line.data(), row) != 1) {
-            fprintf(stderr, "Fail in decoding.\n");
-            std::abort();
+            fprintf(stderr, "TIFF decoding failed.\n");
+            RETERR(FileReadError);
         }
-        image.pixels += line;
+        pixels += line;
     }
-    return image;
+    switch(photometric) {
+    case PHOTOMETRIC_SEPARATED:
+        if(samplesperpixel != 4) {
+            RETERR(UnsupportedTIFF);
+        }
+        return cmyk_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+    case PHOTOMETRIC_RGB:
+        if(samplesperpixel != 3) {
+            RETERR(UnsupportedTIFF);
+        }
+        return rgb_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+    default:
+        RETERR(UnsupportedTIFF);
+    }
 }
 
 } // namespace
@@ -374,7 +384,7 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
         return load_tif_file(fname);
     }
     fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
-    std::abort();
+    RETERR(UnsupportedFormat);
 }
 
 } // namespace capypdf

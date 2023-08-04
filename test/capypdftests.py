@@ -142,6 +142,7 @@ class TestPDFCreation(unittest.TestCase):
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
             mono_img = g.load_image(image_dir / '1bit_noalpha.png')
             gray_img = g.load_image(image_dir / 'gray_alpha.png')
+            rgb_tif_img = g.load_image(image_dir / 'rgb_tiff.tif')
             with g.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
@@ -156,6 +157,10 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.translate(110, 110)
                     ctx.scale(80, 80)
                     ctx.draw_image(gray_img)
+                with ctx.push_gstate():
+                    ctx.translate(110, 10)
+                    ctx.scale(80, 80)
+                    ctx.draw_image(rgb_tif_img)
 
     @validate_image('python_path', 200, 200)
     def test_path(self, ofilename, w, h):
