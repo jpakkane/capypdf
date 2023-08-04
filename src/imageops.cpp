@@ -345,6 +345,12 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
             RETERR(UnsupportedTIFF);
         }
         return rgb_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+    case PHOTOMETRIC_MINISBLACK:
+        if(samplesperpixel != 1) {
+            RETERR(UnsupportedTIFF);
+        }
+        return gray_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+
     default:
         RETERR(UnsupportedTIFF);
     }
