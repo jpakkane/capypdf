@@ -174,6 +174,7 @@ cfunc_types = (
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 ('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
+('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
 ('capy_text_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_text_stroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -587,6 +588,9 @@ class Text:
         if not isinstance(rendtype, TextMode):
             raise CapyPDFException('Argument must be a text mode.')
         check_error(libfile.capy_text_cmd_Tr(self, rendtype.value))
+
+    def cmd_Tw(self, spacing):
+        check_error(libfile.capy_text_cmd_Tw(self, spacing))
 
     def cmd_Tstar(self):
         check_error(libfile.capy_text_cmd_Tstar(self))

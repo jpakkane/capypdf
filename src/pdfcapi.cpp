@@ -569,6 +569,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
     return (CAPYPDF_EC)t->cmd_Tr(tmode);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tw(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return (CAPYPDF_EC)t->cmd_Tw(spacing);
+}
+
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->cmd_Tstar();
