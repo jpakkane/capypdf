@@ -21,7 +21,7 @@
 using namespace capypdf;
 
 void center_test() {
-    const char *text = "Centered text!";
+    u8string text = u8string::from_cstr("Centered text!").value();
     const double pt = 12;
     PdfGenerationData opts;
     opts.output_colorspace = CAPYPDF_CS_DEVICE_GRAY;
@@ -81,28 +81,31 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.set_nonstroke_color(DeviceGrayColor{0.0});
-    ctx.render_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);
-    ctx.render_text("abcdefghijklmnopqrstuvwxyzåäö", regular_fid, 12, 20, 780);
-    ctx.render_text("0123456789!\"#¤%&/()=+?-.,;:'*~", regular_fid, 12, 20, 760);
-    ctx.render_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
-    ctx.render_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
+    ctx.render_text(
+        u8string::from_cstr("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ").value(), regular_fid, 12, 20, 800);
+    ctx.render_text(
+        u8string::from_cstr("abcdefghijklmnopqrstuvwxyzåäö").value(), regular_fid, 12, 20, 780);
+    ctx.render_text(
+        u8string::from_cstr("0123456789!\"#¤%&/()=+?-.,;:'*~").value(), regular_fid, 12, 20, 760);
+    ctx.render_text(u8string::from_cstr("бгджзиклмнптфцч").value(), regular_fid, 12, 20, 740);
+    ctx.render_text(u8string::from_cstr("ΓΔΖΗΛΞΠΣΥΦΧΨΩ").value(), regular_fid, 12, 20, 720);
     {
         auto statepop = ctx.push_gstate();
         PdfText text;
         text.cmd_Tf(regular_fid, 24);
         text.cmd_Td(20, 650);
         text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
-        text.render_text("C");
+        text.render_text(u8string::from_cstr("C").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
-        text.render_text("o");
+        text.render_text(u8string::from_cstr("o").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 0.0, 1.0});
-        text.render_text("l");
+        text.render_text(u8string::from_cstr("l").value());
         text.nonstroke_color(DeviceRGBColor{1.0, 1.0, 0.0});
-        text.render_text("o");
+        text.render_text(u8string::from_cstr("o").value());
         text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 1.0});
-        text.render_text("r");
+        text.render_text(u8string::from_cstr("r").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
-        text.render_text("!");
+        text.render_text(u8string::from_cstr("!").value());
         ctx.render_text(text);
     }
     {
@@ -130,18 +133,20 @@ int main(int argc, char **argv) {
         text.cmd_TJ(std::move(kerned_text));
         text.cmd_Tstar();
         text.render_text(
-            "This is some text using a text object. It uses Freetype kerning (i.e. not GPOS).");
+            u8string::from_cstr(
+                "This is some text using a text object. It uses Freetype kerning (i.e. not GPOS).")
+                .value());
         ctx.render_text(text);
     }
     {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 600);
-        text.render_text("How about some ");
+        text.render_text(u8string::from_cstr("How about some ").value());
         text.cmd_Tf(italic_fid, 12);
-        text.render_text("italic");
+        text.render_text(u8string::from_cstr("italic").value());
         text.cmd_Tf(regular_fid, 12);
-        text.render_text(" text?");
+        text.render_text(u8string::from_cstr(" text?").value());
         ctx.render_text(text);
     }
 
@@ -149,11 +154,11 @@ int main(int argc, char **argv) {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 550);
-        text.render_text("How about some ");
+        text.render_text(u8string::from_cstr("How about some ").value());
         text.cmd_Ts(4);
-        text.render_text("raised");
+        text.render_text(u8string::from_cstr("raised").value());
         text.cmd_Ts(0);
-        text.render_text(" text?");
+        text.render_text(u8string::from_cstr(" text?").value());
         ctx.render_text(text);
     }
 
@@ -161,10 +166,10 @@ int main(int argc, char **argv) {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 500);
-        text.render_text("Character spacing");
+        text.render_text(u8string::from_cstr("Character spacing").value());
         text.cmd_Tstar();
         text.cmd_Tc(1);
-        text.render_text("Character spacing");
+        text.render_text(u8string::from_cstr("Character spacing").value());
         ctx.render_text(text);
     }
 
@@ -172,10 +177,10 @@ int main(int argc, char **argv) {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 450);
-        text.render_text("Word spacing word spacing word spacing.");
+        text.render_text(u8string::from_cstr("Word spacing word spacing word spacing.").value());
         text.cmd_Tstar();
         text.cmd_Tw(4);
-        text.render_text("Word spacing word spacing word spacing.");
+        text.render_text(u8string::from_cstr("Word spacing word spacing word spacing.").value());
         ctx.render_text(text);
     }
 
@@ -183,10 +188,10 @@ int main(int argc, char **argv) {
         PdfText text;
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 400);
-        text.render_text("Character scaling.");
+        text.render_text(u8string::from_cstr("Character scaling.").value());
         text.cmd_Tstar();
         text.cmd_Tz(150);
-        text.render_text("Character scaling.");
+        text.render_text(u8string::from_cstr("Character scaling.").value());
         text.cmd_Tz(100);
         ctx.render_text(text);
     }
@@ -197,7 +202,7 @@ int main(int argc, char **argv) {
         text.cmd_Td(20, 300);
         for(int i = 1; i < 20; ++i) {
             text.cmd_Tf(regular_fid, 2 * i);
-            text.render_text("X");
+            text.render_text(u8string::from_cstr("X").value());
         }
         ctx.render_text(text);
     }

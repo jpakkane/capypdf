@@ -75,6 +75,9 @@ public:
     std::string_view sv() const { return buf; }
 
     static rvoe<u8string> from_cstr(const char *cstr);
+    static rvoe<u8string> from_cstr(const std::string &str) {
+        return u8string::from_cstr(str.c_str());
+    }
 
     bool empty() const { return buf.empty(); }
 

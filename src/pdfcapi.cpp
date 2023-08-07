@@ -210,7 +210,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
                                                     double pointsize,
                                                     double *width) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
-    auto rc = g->utf8_text_width(utf8_text, font, pointsize);
+    auto u8t = u8string::from_cstr(utf8_text);
+    if(!u8t) {
+        CONVERR(u8t);
+    }
+    auto rc = g->utf8_text_width(u8t.value(), font, pointsize);
     if(rc) {
         *width = rc.value();
     }
@@ -462,8 +466,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,
                                               double x,
                                               double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    c->render_text(text, fid, point_size, x, y);
-    RETNOERR;
+    auto utxt = u8string::from_cstr(text);
+    if(!utxt) {
+        CONVERR(utxt);
+    }
+    return (CAPYPDF_EC)c->render_text(utxt.value(), fid, point_size, x, y);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
@@ -512,8 +519,11 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_text(CapyPDF_Text *text,
                                                 const char *utf8_text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-
-    return (CAPYPDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
+    auto txt = u8string::from_cstr(utf8_text);
+    if(!txt) {
+        CONVERR(txt);
+    }
+    return (CAPYPDF_EC)t->render_text(txt.value());
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_nonstroke_color(CapyPDF_Text *text,

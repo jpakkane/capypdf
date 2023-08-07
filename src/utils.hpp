@@ -40,6 +40,7 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
 rvoe<std::string> utf8_to_pdfmetastr(const u8string &input);
 
 rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input);
+rvoe<std::vector<uint32_t>> utf8_to_glyphs(const u8string &input);
 
 std::string current_date_string();
 

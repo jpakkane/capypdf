@@ -145,7 +145,7 @@ public:
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    rvoe<double> utf8_text_width(const char *utf8_text, CapyPDF_FontId fid, double pointsize) const;
+    rvoe<double> utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const;
 
 private:
     PdfGen(std::filesystem::path ofilename,

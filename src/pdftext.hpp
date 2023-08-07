@@ -17,6 +17,7 @@
 #pragma once
 
 #include <capypdf.h>
+#include <pdfcommon.hpp>
 #include <variant>
 #include <cstdint>
 #include <errorhandling.hpp>
@@ -47,7 +48,7 @@ struct Tf_arg {
 };
 
 struct Text_arg {
-    std::string utf8_text;
+    u8string text;
 };
 
 struct TJ_arg {
@@ -146,8 +147,8 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode render_text(std::string_view utf8_text) {
-        events.emplace_back(Text_arg{std::string{utf8_text}});
+    ErrorCode render_text(const u8string &text) {
+        events.emplace_back(Text_arg{text});
         return ErrorCode::NoError;
     }
 

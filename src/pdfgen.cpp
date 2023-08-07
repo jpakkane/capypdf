@@ -221,8 +221,8 @@ ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
 }
 
 rvoe<double>
-PdfGen::utf8_text_width(const char *utf8_text, CapyPDF_FontId fid, double pointsize) const {
-    if(utf8_text[0] == '\0') {
+PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const {
+    if(txt.empty()) {
         return 0;
     }
     double w = 0;
@@ -230,7 +230,7 @@ PdfGen::utf8_text_width(const char *utf8_text, CapyPDF_FontId fid, double points
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }
-    ERC(glyphs, utf8_to_glyphs(utf8_text));
+    ERC(glyphs, utf8_to_glyphs(txt));
 
     uint32_t previous_codepoint = -1;
     const bool has_kerning = FT_HAS_KERNING(face);

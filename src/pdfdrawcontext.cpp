@@ -743,11 +743,11 @@ void PdfDrawContext::rotate(double angle) {
 }
 
 ErrorCode PdfDrawContext::render_text(
-    std::string_view utf8_text, CapyPDF_FontId fid, double pointsize, double x, double y) {
+    const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t;
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
-    t.render_text(utf8_text);
+    t.render_text(text);
     return render_text(t);
 }
 
@@ -797,18 +797,18 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
     return NoReturnValue{};
 }
 
-ErrorCode PdfDrawContext::utf8_to_kerned_chars(std::string_view utf8_text,
+ErrorCode PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
                                                std::vector<CharItem> &charseq,
                                                CapyPDF_FontId fid) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
-    if(utf8_text.empty()) {
+    if(text.empty()) {
         return ErrorCode::NoError;
     }
     FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
         return ErrorCode::BuiltinFontNotSupported;
     }
-    ERC_CONV(glyphs, utf8_to_glyphs(utf8_text));
+    ERC_CONV(glyphs, utf8_to_glyphs(text));
 
     uint32_t previous_codepoint = -1;
     // Freetype does not support GPOS kerning because it is context-sensitive.
@@ -864,7 +864,7 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(std::holds_alternative<Text_arg>(e)) {
             const auto &tj = std::get<Text_arg>(e);
             std::vector<CharItem> charseq;
-            auto ec = utf8_to_kerned_chars(tj.utf8_text, charseq, current_font);
+            auto ec = utf8_to_kerned_chars(tj.text, charseq, current_font);
             if(ec != ErrorCode::NoError) {
                 return ec;
             }

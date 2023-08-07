@@ -16,6 +16,7 @@
 
 #include <pdfgen.hpp>
 #include <pdftext.hpp>
+#include <pdfcommon.hpp>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -121,9 +122,10 @@ const std::vector<std::string> column2{
     "Purus in massa tempor nec feugiat nisl pretium",
 };
 
-const std::string title{"Title McTitleface"};
-const std::string author{"Author McAuthorface"};
-const std::string email{"author@servermcserverface.com"};
+const capypdf::u8string title = capypdf::u8string::from_cstr("Title McTitleface").value();
+const capypdf::u8string author = capypdf::u8string::from_cstr("Author McAuthorface").value();
+const capypdf::u8string email =
+    capypdf::u8string::from_cstr("author@servermcserverface.com").value();
 
 double cm2pt(double cm) { return cm * 28.346; }
 // double pt2cm(double pt) { return pt / 28.346; }
@@ -162,16 +164,16 @@ void render_column(const std::vector<std::string> &text_lines,
     CHCK(textobj.cmd_TL(leading));
     CHCK(textobj.cmd_BDC(gen.add_structure_item("p", document_root).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
-        const auto &l = text_lines[i];
+        const auto l = u8string::from_cstr(text_lines[i]).value();
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
             CHCK(textobj.cmd_Tw(0));
             CHCK(textobj.render_text(l));
             CHCK(textobj.cmd_Tstar());
         } else {
             if(!l.empty()) {
-                double total_w = text_width(l, gen, textfont, textsize);
+                double total_w = text_width(l.sv(), gen, textfont, textsize);
                 const double extra_w = target_width - total_w;
-                const int ns = num_spaces(l);
+                const int ns = num_spaces(l.sv());
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
                 CHCK(textobj.cmd_Tw(word_spacing));
                 CHCK(textobj.render_text(l));
@@ -198,14 +200,14 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     CHCK(ctx.render_text(title,
                          titlefont,
                          titlesize,
-                         midx - text_width(title, gen, titlefont, titlesize) / 2,
+                         midx - text_width(title.sv(), gen, titlefont, titlesize) / 2,
                          titley));
     CHCK(ctx.cmd_EMC());
     CHCK(ctx.cmd_BDC(gen.add_structure_item("Author", document_root).value()));
     CHCK(ctx.render_text(author,
                          authorfont,
                          authorsize,
-                         midx - text_width(author, gen, authorfont, authorsize) / 2,
+                         midx - text_width(author.sv(), gen, authorfont, authorsize) / 2,
                          authory));
     CHCK(ctx.cmd_EMC());
 }
@@ -221,8 +223,11 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    CHCK(ctx.render_text(
-        "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy));
+    CHCK(ctx.render_text(capypdf::u8string::from_cstr("1").value(),
+                         textfont,
+                         textsize,
+                         midx - text_width("1", gen, textfont, textsize) / 2,
+                         pagenumy));
 }
 
 void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
@@ -233,7 +238,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     CHCK(ctx.render_text(email,
                          emailfont,
                          emailsize,
-                         midx - text_width(email, gen, emailfont, emailsize) / 2,
+                         midx - text_width(email.sv(), gen, emailfont, emailsize) / 2,
                          emaily));
     CHCK(ctx.cmd_EMC());
 }

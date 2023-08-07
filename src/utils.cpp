@@ -201,6 +201,10 @@ rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input) {
     return glyphs;
 }
 
+rvoe<std::vector<uint32_t>> utf8_to_glyphs(const u8string &input) {
+    return utf8_to_glyphs(input.sv());
+}
+
 std::string current_date_string() {
     const int bufsize = 128;
     char buf[bufsize];
