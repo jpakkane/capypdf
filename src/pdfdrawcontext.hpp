@@ -160,8 +160,8 @@ public:
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    ErrorCode render_utf8_text(
-        std::string_view text, CapyPDF_FontId fid, double pointsize, double x, double y);
+    ErrorCode render_text(
+        std::string_view utf8_text, CapyPDF_FontId fid, double pointsize, double x, double y);
     ErrorCode render_text(const PdfText &textobj);
     void render_raw_glyph(uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y);
     ErrorCode

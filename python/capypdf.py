@@ -115,7 +115,7 @@ cfunc_types = (
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
-('capy_generator_utf8_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
+('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_add_simple_navigation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p]),
@@ -159,7 +159,7 @@ cfunc_types = (
 
 ('capy_dc_draw_image',
     [ctypes.c_void_p, ImageId]),
-('capy_dc_render_utf8_text',
+('capy_dc_render_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_render_text_obj',
     [ctypes.c_void_p, ctypes.c_void_p]),
@@ -176,7 +176,7 @@ cfunc_types = (
 ('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
 ('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
-('capy_text_render_utf8_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_text_stroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_nonstroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
 
@@ -435,7 +435,7 @@ class DrawContext:
         if not isinstance(fid, FontId):
             raise CapyPDFException('Font id argument is not a font id object.')
         text_bytes = text.encode('UTF-8')
-        check_error(libfile.capy_dc_render_utf8_text(self, text_bytes, fid, point_size, x, y))
+        check_error(libfile.capy_dc_render_text(self, text_bytes, fid, point_size, x, y))
 
     def render_text_obj(self, tobj):
         check_error(libfile.capy_dc_render_text_obj(self, tobj))
@@ -539,7 +539,7 @@ class Generator:
             raise CapyPDFException('Argument not a colorspace object.')
         w = ctypes.c_double()
         bytes = text.encode('UTF-8')
-        check_error(libfile.capy_generator_utf8_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
+        check_error(libfile.capy_generator_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
         return w.value
 
     def add_optional_content_group(self, ocg):
@@ -562,7 +562,7 @@ class Text:
         if not isinstance(text, str):
             raise CapyPDFException('Text must be a Unicode string.')
         bytes = text.encode('UTF-8')
-        check_error(libfile.capy_text_render_utf8_text(self, bytes))
+        check_error(libfile.capy_text_render_text(self, bytes))
 
     def nonstroke_color(self, color):
         check_error(libfile.capy_text_nonstroke_color(self, color))

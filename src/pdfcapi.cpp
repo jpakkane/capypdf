@@ -213,11 +213,11 @@ CAPYPDF_EC capy_generator_destroy(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_utf8_text_width(CapyPDF_Generator *generator,
-                                                         const char *utf8_text,
-                                                         CapyPDF_FontId font,
-                                                         double pointsize,
-                                                         double *width) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *generator,
+                                                    const char *utf8_text,
+                                                    CapyPDF_FontId font,
+                                                    double pointsize,
+                                                    double *width) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = g->utf8_text_width(utf8_text, font, pointsize);
     if(rc) {
@@ -465,14 +465,14 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPDF_DrawContext *ctx,
     return (CAPYPDF_EC)c->draw_image(iid);
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPDF_DrawContext *ctx,
-                                                   const char *text,
-                                                   CapyPDF_FontId fid,
-                                                   double point_size,
-                                                   double x,
-                                                   double y) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,
+                                              const char *text,
+                                              CapyPDF_FontId fid,
+                                              double point_size,
+                                              double x,
+                                              double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    c->render_utf8_text(text, fid, point_size, x, y);
+    c->render_text(text, fid, point_size, x, y);
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
@@ -519,8 +519,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT
     return (CAPYPDF_EC)ErrorCode::NoError;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPDF_Text *text,
-                                                     const char *utf8_text) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_text(CapyPDF_Text *text,
+                                                const char *utf8_text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->render_text(std::string_view(utf8_text, strlen(utf8_text)));
 }
@@ -573,7 +573,6 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tw(CapyPDF_Text *text, double spacing) C
     auto *t = reinterpret_cast<PdfText *>(text);
     return (CAPYPDF_EC)t->cmd_Tw(spacing);
 }
-
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);

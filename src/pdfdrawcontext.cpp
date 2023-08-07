@@ -742,12 +742,12 @@ void PdfDrawContext::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
-ErrorCode PdfDrawContext::render_utf8_text(
-    std::string_view text, CapyPDF_FontId fid, double pointsize, double x, double y) {
+ErrorCode PdfDrawContext::render_text(
+    std::string_view utf8_text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t;
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
-    t.render_text(text);
+    t.render_text(utf8_text);
     return render_text(t);
 }
 

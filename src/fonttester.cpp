@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     auto &ctx = ctxguard.ctx;
 
     auto textfont = gen.load_font(fontfile).value();
-    if(ctx.render_utf8_text(text, textfont, 12, 10, 10) != ErrorCode::NoError) {
+    if(ctx.render_text(text, textfont, 12, 10, 10) != ErrorCode::NoError) {
         printf("FAIL.\n");
     }
     return 0;

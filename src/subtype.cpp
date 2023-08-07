@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
             auto font =
                 gen.load_font("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf")
                     .value();
-            ctx.render_utf8_text("This is a PDF/A-3 document.", font, 12, 20, 94);
+            ctx.render_text("This is a PDF/A-3 document.", font, 12, 20, 94);
         }
     }
     return 0;

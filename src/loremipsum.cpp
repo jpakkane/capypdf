@@ -195,18 +195,18 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double authorsize = 18;
 
     CHCK(ctx.cmd_BDC(gen.add_structure_item("Title", document_root).value()));
-    CHCK(ctx.render_utf8_text(title,
-                              titlefont,
-                              titlesize,
-                              midx - text_width(title, gen, titlefont, titlesize) / 2,
-                              titley));
+    CHCK(ctx.render_text(title,
+                         titlefont,
+                         titlesize,
+                         midx - text_width(title, gen, titlefont, titlesize) / 2,
+                         titley));
     CHCK(ctx.cmd_EMC());
     CHCK(ctx.cmd_BDC(gen.add_structure_item("Author", document_root).value()));
-    CHCK(ctx.render_utf8_text(author,
-                              authorfont,
-                              authorsize,
-                              midx - text_width(author, gen, authorfont, authorsize) / 2,
-                              authory));
+    CHCK(ctx.render_text(author,
+                         authorfont,
+                         authorsize,
+                         midx - text_width(author, gen, authorfont, authorsize) / 2,
+                         authory));
     CHCK(ctx.cmd_EMC());
 }
 
@@ -221,7 +221,7 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    CHCK(ctx.render_utf8_text(
+    CHCK(ctx.render_text(
         "1", textfont, textsize, midx - text_width("1", gen, textfont, textsize) / 2, pagenumy));
 }
 
@@ -230,11 +230,11 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
     CHCK(ctx.cmd_BDC(gen.add_structure_item("Email", document_root).value()));
-    CHCK(ctx.render_utf8_text(email,
-                              emailfont,
-                              emailsize,
-                              midx - text_width(email, gen, emailfont, emailsize) / 2,
-                              emaily));
+    CHCK(ctx.render_text(email,
+                         emailfont,
+                         emailsize,
+                         midx - text_width(email, gen, emailfont, emailsize) / 2,
+                         emaily));
     CHCK(ctx.cmd_EMC());
 }
 

@@ -1,6 +1,7 @@
 a4deps = [fmt_dep, png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
 
 capypdf_lib = shared_library('capypdf',
+  'pdfcommon.cpp',
   'pdfgen.cpp',
   'pdfdrawcontext.cpp',
   'pdfdocument.cpp',

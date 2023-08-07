@@ -140,7 +140,6 @@ rvoe<std::string> load_file(FILE *f) {
     std::string contents(fsize, '\0');
     fseek(f, 0, SEEK_SET);
     if(fread(contents.data(), 1, fsize, f) != fsize) {
-        fclose(f);
         perror(nullptr);
         RETERR(FileReadError);
     }

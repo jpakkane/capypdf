@@ -65,6 +65,17 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf {
 
+class u8string {
+public:
+    std::string_view sv() const { return buf; }
+
+    static rvoe<u8string> from_cstr(const char *cstr);
+
+private:
+    explicit u8string(const char *prevalidated_utf8) : buf(prevalidated_utf8) {}
+    std::string buf;
+};
+
 struct PdfBox {
     double x{};
     double y{};

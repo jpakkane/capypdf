@@ -41,13 +41,13 @@ void center_test() {
     ctx.cmd_S();
 
     auto w = gen.utf8_text_width(text, f1, pt).value();
-    ctx.render_utf8_text(text, f1, pt, 100 - w / 2, 120);
+    ctx.render_text(text, f1, pt, 100 - w / 2, 120);
 
     w = gen.utf8_text_width(text, f2, pt).value();
-    ctx.render_utf8_text(text, f2, pt, 100 - w / 2, 100);
+    ctx.render_text(text, f2, pt, 100 - w / 2, 100);
 
     w = gen.utf8_text_width(text, f3, pt).value();
-    ctx.render_utf8_text(text, f3, pt, 100 - w / 2, 80);
+    ctx.render_text(text, f3, pt, 100 - w / 2, 80);
 }
 
 int main(int argc, char **argv) {
@@ -81,11 +81,11 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.set_nonstroke_color(DeviceGrayColor{0.0});
-    ctx.render_utf8_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);
-    ctx.render_utf8_text("abcdefghijklmnopqrstuvwxyzåäö", regular_fid, 12, 20, 780);
-    ctx.render_utf8_text("0123456789!\"#¤%&/()=+?-.,;:'*~", regular_fid, 12, 20, 760);
-    ctx.render_utf8_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
-    ctx.render_utf8_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
+    ctx.render_text("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ", regular_fid, 12, 20, 800);
+    ctx.render_text("abcdefghijklmnopqrstuvwxyzåäö", regular_fid, 12, 20, 780);
+    ctx.render_text("0123456789!\"#¤%&/()=+?-.,;:'*~", regular_fid, 12, 20, 760);
+    ctx.render_text("бгджзиклмнптфцч", regular_fid, 12, 20, 740);
+    ctx.render_text("ΓΔΖΗΛΞΠΣΥΦΧΨΩ", regular_fid, 12, 20, 720);
     {
         auto statepop = ctx.push_gstate();
         PdfText text;

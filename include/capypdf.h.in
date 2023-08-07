@@ -254,11 +254,11 @@ capy_generator_add_optional_content_group(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_destroy(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
-CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_utf8_text_width(CapyPDF_Generator *g,
-                                                         const char *utf8_text,
-                                                         CapyPDF_FontId font,
-                                                         double pointsize,
-                                                         double *width) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *g,
+                                                    const char *utf8_text,
+                                                    CapyPDF_FontId font,
+                                                    double pointsize,
+                                                    double *width) CAPYPDF_NOEXCEPT;
 
 // Draw context
 
@@ -337,12 +337,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_draw_image(CapyPDF_DrawContext *ctx,
                                              CapyPDF_ImageId iid) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_utf8_text(CapyPDF_DrawContext *ctx,
-                                                   const char *text,
-                                                   CapyPDF_FontId fid,
-                                                   double point_size,
-                                                   double x,
-                                                   double y) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,
+                                              const char *text,
+                                              CapyPDF_FontId fid,
+                                              double point_size,
+                                              double x,
+                                              double y) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
                                                   CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
@@ -360,8 +360,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEP
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_utf8_text(CapyPDF_Text *text,
-                                                     const char *utf8_text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_text(CapyPDF_Text *text,
+                                                const char *utf8_text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_nonstroke_color(CapyPDF_Text *text,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_stroke_color(CapyPDF_Text *text,
