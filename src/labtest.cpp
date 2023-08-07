@@ -24,8 +24,8 @@ int main(int, char **) {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "L*a*b* test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("L*a*b* test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("lab_test.pdf", opts);

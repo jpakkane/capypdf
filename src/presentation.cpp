@@ -41,8 +41,8 @@ void create_presentation() {
     const int32_t h = 90;
     opts.mediabox.x2 = w;
     opts.mediabox.y2 = h;
-    opts.title = "Presentation test";
-    opts.author = "Joe Speaker";
+    opts.title = u8string::from_cstr("Presentation test").value();
+    opts.author = u8string::from_cstr("Joe Speaker").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("presentation.pdf", opts);
@@ -83,8 +83,8 @@ void create_subpage() {
     const int32_t h = 90;
     opts.mediabox.x2 = w;
     opts.mediabox.y2 = h;
-    opts.title = "Subpage navigation";
-    opts.author = "Joe Speaker";
+    opts.title = u8string::from_cstr("Subpage navigation").value();
+    opts.author = u8string::from_cstr("Joe Speaker").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("subpage.pdf", opts);

@@ -23,8 +23,8 @@ void file_embed() {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "File embedding test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("File embedding test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -58,8 +58,8 @@ void video_player() {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "Video player test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("Video player test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
 #if 0
     const char *mediafile = "samplemedia.jpg";
     const char *mimetype = "image/jpeg";

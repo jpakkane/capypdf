@@ -148,8 +148,8 @@ struct PdfGenerationData {
     std::optional<PdfRectangle> trimbox;
     std::optional<PdfRectangle> artbox;
 
-    std::string title;
-    std::string author;
+    u8string title;
+    u8string author;
     CapyPDF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     ColorProfiles prof;
     std::optional<CAPYPDF_Intent_Subtype> subtype;

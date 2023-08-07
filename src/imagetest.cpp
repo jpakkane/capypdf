@@ -28,8 +28,8 @@ int basictest(int argc, char **argv) {
     std::filesystem::path png_gray{datadir / "gray_alpha.png"};
     std::filesystem::path cmyk_tif{datadir / "cmyk_tiff.tif"};
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "PDF image test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("PDF image test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("image_test.pdf", opts);
@@ -83,8 +83,8 @@ void masktest(int argc, char **argv) {
     std::filesystem::path richblack = datadir / "comic-richblack.png";
     std::filesystem::path colors = datadir / "comic-colors.png";
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "PDF image masking test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("PDF image masking test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file = icc_out;
     {

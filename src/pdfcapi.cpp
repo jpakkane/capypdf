@@ -36,14 +36,20 @@ CAPYPDF_EC capy_options_destroy(CapyPDF_Options *opt) CAPYPDF_NOEXCEPT {
 }
 
 CAPYPDF_EC capy_options_set_title(CapyPDF_Options *opt, const char *utf8_title) CAPYPDF_NOEXCEPT {
-    reinterpret_cast<PdfGenerationData *>(opt)->title = utf8_title;
-    RETNOERR;
+    auto rc = u8string::from_cstr(utf8_title);
+    if(rc) {
+        reinterpret_cast<PdfGenerationData *>(opt)->title = std::move(rc.value());
+    }
+    CONVERR(rc);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPDF_Options *opt,
                                                   const char *utf8_author) CAPYPDF_NOEXCEPT {
-    reinterpret_cast<PdfGenerationData *>(opt)->author = utf8_author;
-    RETNOERR;
+    auto rc = u8string::from_cstr(utf8_author);
+    if(rc) {
+        reinterpret_cast<PdfGenerationData *>(opt)->author = std::move(rc.value());
+    }
+    CONVERR(rc);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPDF_Options *opt,

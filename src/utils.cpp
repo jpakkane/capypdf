@@ -162,6 +162,10 @@ rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     return std::move(encoded);
 }
 
+rvoe<std::string> utf8_to_pdfmetastr(const u8string &input) {
+    return utf8_to_pdfmetastr(input.sv());
+}
+
 rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input) {
     std::vector<uint32_t> glyphs;
     UtfDecodeStep par;

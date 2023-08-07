@@ -23,6 +23,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <string_view>
 #include <functional>
 #include <variant>
 
@@ -67,9 +68,18 @@ namespace capypdf {
 
 class u8string {
 public:
+    u8string() = default;
+    u8string(u8string &&o) = default;
+    u8string(const u8string &o) = default;
+
     std::string_view sv() const { return buf; }
 
     static rvoe<u8string> from_cstr(const char *cstr);
+
+    bool empty() const { return buf.empty(); }
+
+    u8string &operator=(u8string &&o) = default;
+    u8string &operator=(const u8string &o) = default;
 
 private:
     explicit u8string(const char *prevalidated_utf8) : buf(prevalidated_utf8) {}

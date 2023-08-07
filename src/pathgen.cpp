@@ -96,8 +96,8 @@ int main(int argc, char **argv) {
 
     const char *image = argc > 1 ? argv[1] : "../pdfgen/images/flame_gradient.png";
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "PDF path test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("PDF path test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("path_test.pdf", opts);

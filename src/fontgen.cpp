@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
     */
-    opts.title = "Over 255 letters";
+    opts.title = u8string::from_cstr("Over 255 letters").value();
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = *genpop.g;
     auto regular_fid = gen.load_font(regularfont).value();

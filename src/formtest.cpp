@@ -23,8 +23,8 @@ int draw_simple_form() {
     PdfGenerationData opts;
 
     opts.mediabox.x2 = opts.mediabox.y2 = 200;
-    opts.title = "Form XObject test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("Form XObject test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     {
         GenPopper genpop("form_test.pdf", opts);
@@ -126,8 +126,8 @@ int draw_group_doc() {
 
     opts.mediabox.x2 = 300;
     opts.mediabox.y2 = 200;
-    opts.title = "Transparency group test";
-    opts.author = "Test Person";
+    opts.title = u8string::from_cstr("Transparency group test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file = icc_out;
     {

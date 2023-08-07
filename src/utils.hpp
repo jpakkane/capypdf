@@ -17,6 +17,7 @@
 #pragma once
 
 #include <errorhandling.hpp>
+#include <pdfcommon.hpp>
 #include <string>
 #include <expected>
 #include <cstdio>
@@ -35,6 +36,8 @@ rvoe<std::string> load_file(const std::filesystem::path &fname);
 rvoe<std::string> load_file(FILE *f);
 
 rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
+
+rvoe<std::string> utf8_to_pdfmetastr(const u8string &input);
 
 rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input);
 
