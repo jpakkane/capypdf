@@ -164,11 +164,10 @@ cfunc_types = (
 ('capy_dc_render_text_obj',
     [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_dc_text_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
-('capy_text_new', [ctypes.c_void_p]),
 ('capy_text_destroy', [ctypes.c_void_p]),
-('capy_text_new', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
@@ -450,6 +449,9 @@ class DrawContext:
             raise CapyPDFException('Argument is not a transition object.')
         check_error(libfile.capy_dc_set_page_transition(self, tr))
 
+    def text_new(self):
+        return Text(self)
+
     def translate(self, xtran, ytran):
         self.cmd_cm(1.0, 0, 0, 1.0, xtran, ytran)
 
@@ -548,10 +550,12 @@ class Generator:
         return ocgid
 
 class Text:
-    def __init__(self):
+    def __init__(self, dc):
+        if not isinstance(dc, DrawContext):
+            raise CapyPDFException('Argument must be a DrawingContext (preferably use its .text_new() method instead).')
         self._as_parameter_ = None
         opt = ctypes.c_void_p()
-        check_error(libfile.capy_text_new(ctypes.pointer(opt)))
+        check_error(libfile.capy_dc_text_new(dc, ctypes.pointer(opt)))
         self._as_parameter_ = opt
 
     def __del__(self):

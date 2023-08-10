@@ -26,6 +26,8 @@
 
 namespace capypdf {
 
+class PdfDrawContext;
+
 typedef std::variant<uint32_t, double> CharItem;
 
 struct TStar_arg {};
@@ -110,7 +112,7 @@ typedef std::variant<TStar_arg,
 
 class PdfText {
 public:
-    PdfText(){};
+    explicit PdfText(PdfDrawContext *dc) : dc{dc} {};
 
     ErrorCode cmd_BDC(CapyPDF_StructureItemId sid) {
         events.emplace_back(sid);
@@ -199,9 +201,11 @@ public:
         return ErrorCode::NoError;
     }
 
+    PdfDrawContext *creator() const { return dc; }
     const std::vector<TextEvent> &get_events() const { return events; }
 
 private:
+    PdfDrawContext *dc;
     std::vector<TextEvent> events;
 };
 

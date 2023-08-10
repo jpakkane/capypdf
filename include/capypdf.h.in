@@ -352,12 +352,13 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
                               int32_t array_size,
                               const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
+                                           CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
 // Text
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_destroy(CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_text(CapyPDF_Text *text,

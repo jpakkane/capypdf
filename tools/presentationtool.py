@@ -182,7 +182,7 @@ class Demopresentation:
                              self.w/2,
                              self.h - 1.5*self.headingsize)
         num_words = len(p.code.split())
-        text = capypdf.Text()
+        text = ctx.text_new()
         text.cmd_Tf(self.codefont, self.codesize)
         text.cmd_Td(60, self.h - 3.5*self.headingsize)
         text.cmd_TL(1.5 * self.codesize)

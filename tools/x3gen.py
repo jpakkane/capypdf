@@ -201,7 +201,7 @@ class X3Creator:
             ctx.set_nonstroke(c)
             ctx.cmd_w(1.5)
             ptsize = 48
-            title = capypdf.Text()
+            title = ctx.text_new()
             c.set_cmyk(0.1, 0, 1, 0)
             title.nonstroke_color(c)
             title.cmd_Tf(self.font, ptsize)

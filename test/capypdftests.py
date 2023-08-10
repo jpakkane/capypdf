@@ -208,7 +208,7 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opts) as g:
             font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
-                t = capypdf.Text()
+                t = ctx.text_new()
                 t.cmd_Tf(font, 12.0)
                 t.cmd_Td(10.0, 100.0)
                 t.render_text('Using text object!')

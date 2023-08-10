@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     ctx.render_text(u8string::from_cstr("ΓΔΖΗΛΞΠΣΥΦΧΨΩ").value(), regular_fid, 12, 20, 720);
     {
         auto statepop = ctx.push_gstate();
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 24);
         text.cmd_Td(20, 650);
         text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
         ctx.render_text(text);
     }
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 700);
         std::vector<CharItem> kerned_text;
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
         ctx.render_text(text);
     }
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 600);
         text.render_text(u8string::from_cstr("How about some ").value());
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 550);
         text.render_text(u8string::from_cstr("How about some ").value());
@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 500);
         text.render_text(u8string::from_cstr("Character spacing").value());
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 450);
         text.render_text(u8string::from_cstr("Word spacing word spacing word spacing.").value());
@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 400);
         text.render_text(u8string::from_cstr("Character scaling.").value());
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        PdfText text;
+        PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 300);
         for(int i = 1; i < 20; ++i) {

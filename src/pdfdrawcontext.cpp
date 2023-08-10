@@ -744,7 +744,7 @@ void PdfDrawContext::rotate(double angle) {
 
 ErrorCode PdfDrawContext::render_text(
     const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
-    PdfText t;
+    PdfText t(this);
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
     t.render_text(text);
@@ -838,6 +838,9 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
 }
 
 ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
+    if(textobj.creator() != this) {
+        return ErrorCode::WrongDrawContext;
+    }
     std::string serialisation{ind + "BT\n"};
     indent(DrawStateType::Text);
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);

@@ -508,13 +508,16 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
     return conv_err(rc);
 }
 
-CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<PdfDrawContext *>(ctx);
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
+                                           CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT {
+    CHECK_NULL(dc);
+    *out_ptr = reinterpret_cast<CapyPDF_Text *>(
+        new capypdf::PdfText(reinterpret_cast<PdfDrawContext *>(dc)));
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_new(CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Text *>(new capypdf::PdfText());
+CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<PdfDrawContext *>(ctx);
     RETNOERR;
 }
 
