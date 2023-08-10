@@ -189,15 +189,15 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
   /PatternType 1
   /PaintType 1
   /TilingType 1
-  /BBox [ {} {} {} {}]
-  /XStep {}
-  /YStep {}
+  /BBox [ {:f} {:f} {:f} {:f} ]
+  /XStep {:f}
+  /YStep {:f}
   /Resources {}
   /Length {}
 >>
 )",
-                           0,
-                           0,
+                           0.0,
+                           0.0,
                            cp.w,
                            cp.h,
                            cp.w,

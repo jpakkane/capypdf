@@ -56,13 +56,13 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
             R"(<<
   /Type /XObject
   /Subtype /Form
-  /BBox [ {} {} {} {} ]
+  /BBox [ {:f} {:f} {:f} {:f} ]
   /Resources {}
   /Length {}
 >>
 )",
-            0,
-            0,
+            0.0,
+            0.0,
             form_xobj_w,
             form_xobj_h,
             sc.dict,
@@ -74,7 +74,8 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
   /Subtype /Form
 )";
         auto app = std::back_inserter(dict);
-        fmt::format_to(app, "  /BBox [ {} {} {} {} ]\n", 0, 0, form_xobj_w, form_xobj_h);
+        fmt::format_to(
+            app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", 0.0, 0.0, form_xobj_w, form_xobj_h);
         dict += R"(  /Group <<
     /S /Transparency
 )";
@@ -290,20 +291,14 @@ ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
 }
 
 ErrorCode PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{}{} {} {} {} {} {} c\n", ind, x1, y1, x2, y2, x3, y3);
+    fmt::format_to(
+        cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} c\n", ind, x1, y1, x2, y2, x3, y3);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    fmt::format_to(cmd_appender,
-                   "{}{:.4f} {:.4f} {:.4f} {:.4f} {:.4f} {:.4f} cm\n",
-                   ind,
-                   m1,
-                   m2,
-                   m3,
-                   m4,
-                   m5,
-                   m6);
+    fmt::format_to(
+        cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} cm\n", ind, m1, m2, m3, m4, m5, m6);
     return ErrorCode::NoError;
 }
 
@@ -329,7 +324,7 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
     commands += ind;
     commands += "[ ";
     for(size_t i = 0; i < dash_array_length; ++i) {
-        fmt::format_to(cmd_appender, "{} ", dash_array[i]);
+        fmt::format_to(cmd_appender, "{:f} ", dash_array[i]);
     }
     fmt::format_to(cmd_appender, " ] {} d\n", phase);
     return ErrorCode::NoError;
@@ -383,13 +378,13 @@ ErrorCode PdfDrawContext::cmd_fstar() {
 
 ErrorCode PdfDrawContext::cmd_G(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{} G\n", ind, gray);
+    fmt::format_to(cmd_appender, "{}{:f} G\n", ind, gray);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_g(double gray) {
     CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{} g\n", ind, gray);
+    fmt::format_to(cmd_appender, "{}{:f} g\n", ind, gray);
     return ErrorCode::NoError;
 }
 
@@ -410,7 +405,7 @@ ErrorCode PdfDrawContext::cmd_i(double flatness) {
     if(flatness < 0 || flatness > 100) {
         return ErrorCode::InvalidFlatness;
     }
-    fmt::format_to(cmd_appender, "{}{} i\n", ind, flatness);
+    fmt::format_to(cmd_appender, "{}{:f} i\n", ind, flatness);
     return ErrorCode::NoError;
 }
 
@@ -431,7 +426,7 @@ ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
     CHECK_COLORCOMPONENT(m);
     CHECK_COLORCOMPONENT(y);
     CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{}{} {} {} {} K\n", ind, c, m, y, k);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} K\n", ind, c, m, y, k);
     return ErrorCode::NoError;
 }
 ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
@@ -439,22 +434,22 @@ ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
     CHECK_COLORCOMPONENT(m);
     CHECK_COLORCOMPONENT(y);
     CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{}{} {} {} {} k\n", ind, c, m, y, k);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} k\n", ind, c, m, y, k);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_l(double x, double y) {
-    fmt::format_to(cmd_appender, "{}{} {} l\n", ind, x, y);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} l\n", ind, x, y);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_m(double x, double y) {
-    fmt::format_to(cmd_appender, "{}{} {} m\n", ind, x, y);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} m\n", ind, x, y);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_M(double miterlimit) {
-    fmt::format_to(cmd_appender, "{}{} M\n", ind, miterlimit);
+    fmt::format_to(cmd_appender, "{}{:f} M\n", ind, miterlimit);
     return ErrorCode::NoError;
 }
 
@@ -482,7 +477,7 @@ ErrorCode PdfDrawContext::cmd_Q() {
 }
 
 ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
-    fmt::format_to(cmd_appender, "{}{} {} {} {} re\n", ind, x, y, w, h);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} re\n", ind, x, y, w, h);
     return ErrorCode::NoError;
 }
 
@@ -490,7 +485,7 @@ ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
     CHECK_COLORCOMPONENT(r);
     CHECK_COLORCOMPONENT(g);
     CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{}{} {} {} RG\n", ind, r, g, b);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} RG\n", ind, r, g, b);
     return ErrorCode::NoError;
 }
 
@@ -498,7 +493,7 @@ ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
     CHECK_COLORCOMPONENT(r);
     CHECK_COLORCOMPONENT(g);
     CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{}{} {} {} rg\n", ind, r, g, b);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} rg\n", ind, r, g, b);
     return ErrorCode::NoError;
 }
 
@@ -521,12 +516,12 @@ ErrorCode PdfDrawContext::cmd_S() {
 }
 
 ErrorCode PdfDrawContext::cmd_SCN(double value) {
-    fmt::format_to(cmd_appender, "{}{} SCN\n", ind, value);
+    fmt::format_to(cmd_appender, "{}{:f} SCN\n", ind, value);
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::cmd_scn(double value) {
-    fmt::format_to(cmd_appender, "{}{} scn\n", ind, value);
+    fmt::format_to(cmd_appender, "{}{:f} scn\n", ind, value);
     return ErrorCode::NoError;
 }
 
@@ -544,7 +539,7 @@ ErrorCode PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
 }
 
 ErrorCode PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{}{} {} {} {} v\n", ind, x2, y2, x3, y3);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} v\n", ind, x2, y2, x3, y3);
     return ErrorCode::NoError;
 }
 
@@ -552,7 +547,7 @@ ErrorCode PdfDrawContext::cmd_w(double w) {
     if(w < 0) {
         return ErrorCode::NegativeLineWidth;
     }
-    fmt::format_to(cmd_appender, "{}{} w\n", ind, w);
+    fmt::format_to(cmd_appender, "{}{:f} w\n", ind, w);
     return ErrorCode::NoError;
 }
 
@@ -569,7 +564,7 @@ ErrorCode PdfDrawContext::cmd_Wstar() {
 }
 
 ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{}{} {} {} {} y\n", ind, x1, y1, x3, y3);
+    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} y\n", ind, x1, y1, x3, y3);
     return ErrorCode::NoError;
 }
 
@@ -666,7 +661,7 @@ ErrorCode PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
     fmt::format_to(
         cmd_appender, "{}/CSpace{} {}\n", ind, icc_info.object_num, stroke ? "CS" : "cs");
     for(const auto &i : icc.values) {
-        fmt::format_to(cmd_appender, "{:} ", i);
+        fmt::format_to(cmd_appender, "{:f} ", i);
     }
     fmt::format_to(cmd_appender, "{}\n", stroke ? "SCN" : "scn");
     return ErrorCode::NoError;
@@ -764,7 +759,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
                 serialisation += ind;
                 serialisation += "[ ";
             }
-            fmt::format_to(app, "{} ", std::get<double>(e));
+            fmt::format_to(app, "{:f} ", std::get<double>(e));
         } else {
             assert(std::holds_alternative<uint32_t>(e));
             const auto codepoint = std::get<uint32_t>(e);
@@ -856,10 +851,10 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             fmt::format_to(app, "{}{} Tc\n", ind, tc.val);
         } else if(std::holds_alternative<Td_arg>(e)) {
             const auto &td = std::get<Td_arg>(e);
-            fmt::format_to(app, "{}{} {} Td\n", ind, td.tx, td.ty);
+            fmt::format_to(app, "{}{:f} {:f} Td\n", ind, td.tx, td.ty);
         } else if(std::holds_alternative<TD_arg>(e)) {
             const auto &tD = std::get<TD_arg>(e);
-            fmt::format_to(app, "{}{} {} TD\n", ind, tD.tx, tD.ty);
+            fmt::format_to(app, "{}{:f} {:f} TD\n", ind, tD.tx, tD.ty);
         } else if(std::holds_alternative<Tf_arg>(e)) {
             current_font = std::get<Tf_arg>(e).font;
             current_subset = -1;
@@ -885,23 +880,30 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             }
         } else if(std::holds_alternative<TL_arg>(e)) {
             const auto &tL = std::get<TL_arg>(e);
-            fmt::format_to(app, "{}{} TL\n", ind, tL.leading);
+            fmt::format_to(app, "{}{:f} TL\n", ind, tL.leading);
         } else if(std::holds_alternative<Tr_arg>(e)) {
             const auto &tr = std::get<Tr_arg>(e);
             fmt::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
         } else if(std::holds_alternative<Tm_arg>(e)) {
             const auto &tm = std::get<Tm_arg>(e);
-            fmt::format_to(
-                app, "{}{} {} {} {} {} {} Tm\n", ind, tm.a, tm.b, tm.c, tm.d, tm.e, tm.f);
+            fmt::format_to(app,
+                           "{}{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
+                           ind,
+                           tm.a,
+                           tm.b,
+                           tm.c,
+                           tm.d,
+                           tm.e,
+                           tm.f);
         } else if(std::holds_alternative<Ts_arg>(e)) {
             const auto &ts = std::get<Ts_arg>(e);
-            fmt::format_to(app, "{}{} Ts\n", ind, ts.rise);
+            fmt::format_to(app, "{}{:f} Ts\n", ind, ts.rise);
         } else if(std::holds_alternative<Tw_arg>(e)) {
             const auto &tw = std::get<Tw_arg>(e);
-            fmt::format_to(app, "{}{} Tw\n", ind, tw.width);
+            fmt::format_to(app, "{}{:f} Tw\n", ind, tw.width);
         } else if(std::holds_alternative<Tz_arg>(e)) {
             const auto &tz = std::get<Tz_arg>(e);
-            fmt::format_to(app, "{}{} Tz\n", ind, tz.scaling);
+            fmt::format_to(app, "{}{:f} Tz\n", ind, tz.scaling);
         } else if(std::holds_alternative<CapyPDF_StructureItemId>(e)) {
             const auto &sid = std::get<CapyPDF_StructureItemId>(e);
             used_structures.insert(sid);
@@ -923,11 +925,16 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             const auto &nsarg = std::get<Nonstroke_arg>(e);
             if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-                fmt::format_to(app, "{}{} {} {} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
+                fmt::format_to(app, "{}{:f} {:f} {:f} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
             } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
-                fmt::format_to(
-                    app, "{}{} {} {} {} k\n", ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+                fmt::format_to(app,
+                               "{}{:f} {:f} {:f} {:f} k\n",
+                               ind,
+                               cmyk.c.v(),
+                               cmyk.m.v(),
+                               cmyk.y.v(),
+                               cmyk.k.v());
             } else {
                 printf("Text nonstroke colorspace not supported yet.\n");
                 std::abort();
@@ -957,7 +964,7 @@ void PdfDrawContext::render_raw_glyph(
     fmt::format_to(cmd_appender,
                    R"({}BT
 {}  /Font{} {} Tf
-{}  {} {} Td
+{}  {:f} {:f} Td
 {}  (\{:o}) Tj
 {}ET
 )",
@@ -988,7 +995,7 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
     //    doc->font_objects.at(doc->get_subset_glyph(fid, glyphs.front().codepoint).ss.fid.id);
     fmt::format_to(cmd_appender,
                    R"({}BT
-{}  /SFont{}-{} {} Tf
+{}  /SFont{}-{} {:f} Tf
 )",
                    ind,
                    ind,
@@ -1003,7 +1010,7 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
         auto &current_subset_glyph = rv.value();
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
-        fmt::format_to(cmd_appender, "  {} {} Td\n", g.x - prev_x, g.y - prev_y);
+        fmt::format_to(cmd_appender, "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
         prev_x = g.x;
         prev_y = g.y;
         fmt::format_to(
@@ -1026,7 +1033,7 @@ ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_
     fmt::format_to(cmd_appender,
                    R"({}BT
 {}  /Font{} {} Tf
-{}  {} {} Td
+{}  {:f} {:f} Td
 {}  {} Tj
 {}ET
 )",
