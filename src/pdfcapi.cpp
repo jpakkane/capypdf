@@ -382,17 +382,13 @@ capy_dc_cmd_re(CapyPDF_DrawContext *ctx, double x, double y, double w, double h)
 CAPYPDF_EC
 capy_dc_cmd_RG(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    DeviceRGBColor rgb{r, g, b};
-    c->set_stroke_color(rgb);
-    RETNOERR;
+    return (CAPYPDF_EC)c->cmd_RG(r, g, b);
 }
 
 CAPYPDF_EC
 capy_dc_cmd_rg(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    DeviceRGBColor rgb{r, g, b};
-    c->set_nonstroke_color(rgb);
-    RETNOERR;
+    return (CAPYPDF_EC)c->cmd_rg(r, g, b);
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_ri(CapyPDF_DrawContext *ctx,
