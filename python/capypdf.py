@@ -209,8 +209,8 @@ if 'CAPYPDF_SO_OVERRIDE' in os.environ:
 
 if libfile is None:
     try:
-        ctypes.cdll.LoadLibrary(libfile_name)
-    except FileNotFoundError:
+        libfile = ctypes.cdll.LoadLibrary(libfile_name)
+    except (FileNotFoundError, OSError):
         pass
 
 if libfile is None:
@@ -218,7 +218,8 @@ if libfile is None:
     from glob import glob
     if 'site-packages' in __file__:
         sdir = os.path.split(__file__)[0]
-        matches = glob(os.path.join(sdir, '.*capypdf*', libfile_name))
+        # Match libcapypdf.so.0.5.0 and similar names too
+        matches = glob(os.path.join(sdir, '.*capypdf*', libfile_name + "*"))
         if len(matches) == 1:
             libfile = ctypes.cdll.LoadLibrary(matches[0])
 

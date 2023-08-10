@@ -549,7 +549,7 @@ void activate(GtkApplication *, gpointer user_data) {
 int main(int argc, char **argv) {
     App app;
     app.ifile = "title.pdf";
-    app.app = gtk_application_new("io.github.jpakkane.pdfviewer", G_APPLICATION_DEFAULT_FLAGS);
+    app.app = gtk_application_new("io.github.jpakkane.pdfviewer", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app.app, "activate", G_CALLBACK(activate), static_cast<gpointer>(&app));
     int status = g_application_run(G_APPLICATION(app.app), argc, argv);
     g_object_unref(app.app);
