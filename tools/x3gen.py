@@ -15,11 +15,6 @@
 # limitations under the License.
 
 import os, sys, pathlib
-
-os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
-source_root = pathlib.Path('/home/jpakkane/projects/pdfgen')
-sys.path.append(str(source_root / 'python'))
-
 import capypdf
 
 def cm2pt(pts):
@@ -45,8 +40,8 @@ class X3Creator:
         self.options = capypdf.Options()
         props = capypdf.PageProperties()
         self.fontfile = '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf'
-        self.imagefile = 'sampleimage.tif'
-        self.profile = 'UncoatedFOGRA29.icc'
+        self.imagefile = os.path.abspath('images/fogra_cmyk.tif')
+        self.profile = os.path.abspath('icc/FOGRA29L.icc')
         self.options.set_colorspace(capypdf.Colorspace.DeviceCMYK)
         props.set_pagebox(capypdf.PageBox.Media,
                           0,
@@ -236,8 +231,6 @@ class X3Creator:
 
 if __name__ == '__main__':
     print('Creating a sample PDF/X3 document.')
-    print('Due to license restrictions we can not commit the ICC profiles or images embedding them in the Git repo.')
-    print('Thus you need to provide them yourself.')
     x3 = X3Creator('x3sample.pdf')
     x3.create()
 
