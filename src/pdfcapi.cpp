@@ -253,12 +253,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
 // Draw Context
 
 CAPYPDF_EC
-capy_page_draw_context_new(CapyPDF_Generator *g,
-                           CapyPDF_DrawContext **out_ptr,
-                           const CapyPDF_PageProperties *custom_properties) CAPYPDF_NOEXCEPT {
+capy_page_draw_context_new(CapyPDF_Generator *g, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
-    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_page_draw_context(cprop));
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_page_draw_context());
     RETNOERR;
 }
 
@@ -514,6 +511,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_page_transition(
     auto t = reinterpret_cast<Transition *>(transition);
     auto rc = ctx->set_transition(*t);
     return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_custom_page_properties(
+    CapyPDF_DrawContext *dc, const CapyPDF_PageProperties *custom_properties) {
+    CHECK_NULL(custom_properties);
+    auto *ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
+    return conv_err(ctx->set_custom_page_properties(*cprop));
+    RETNOERR;
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC

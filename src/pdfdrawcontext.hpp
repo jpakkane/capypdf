@@ -81,7 +81,6 @@ public:
     PdfDrawContext(PdfDocument *g,
                    PdfColorConverter *cm,
                    CAPYPDF_Draw_Context_Type dtype,
-                   const PageProperties *prop_overrides = nullptr,
                    double w = -1,
                    double h = -1);
     ~PdfDrawContext();
@@ -213,6 +212,8 @@ public:
                                               const std::optional<Transition> &tr);
 
     const PageProperties &get_custom_props() const { return custom_props; }
+
+    rvoe<NoReturnValue> set_custom_page_properties(const PageProperties &new_props);
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,

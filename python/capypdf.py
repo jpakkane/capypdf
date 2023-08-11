@@ -121,7 +121,7 @@ cfunc_types = (
 ('capy_generator_destroy', [ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
-('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_add_simple_navigation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p]),
 ('capy_dc_cmd_b', [ctypes.c_void_p]),
 ('capy_dc_cmd_B', [ctypes.c_void_p]),
@@ -160,7 +160,7 @@ cfunc_types = (
 ('capy_dc_cmd_W', [ctypes.c_void_p]),
 ('capy_dc_cmd_Wstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_y', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
-
+('capy_dc_set_custom_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_draw_image',
     [ctypes.c_void_p, ImageId]),
 ('capy_dc_render_text',
@@ -306,12 +306,9 @@ class PageProperties:
 
 
 class DrawContext:
-    def __init__(self, generator, custom_props=None):
-        if custom_props is not None:
-            if not isinstance(custom_props, PageProperties):
-                raise CapyPDFException('Custom property argument must be a PageProperty.')
+    def __init__(self, generator):
         dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_page_draw_context_new(generator, ctypes.pointer(dcptr), custom_props))
+        check_error(libfile.capy_page_draw_context_new(generator, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
         self.generator = generator
 
@@ -492,6 +489,12 @@ class DrawContext:
                                                           len(ocgs),
                                                           transition))
 
+    def set_custom_page_properties(self, props):
+        if not isinstance(props, PageProperties):
+            raise CapyPDFException('Argument is not a PageProperties object.')
+        check_error(libfile.capy_dc_set_custom_page_properties(self, props))
+
+
 class StateContextManager:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -526,8 +529,8 @@ class Generator:
         else:
             return False
 
-    def page_draw_context(self, custom_props=None):
-        return DrawContext(self, custom_props)
+    def page_draw_context(self):
+        return DrawContext(self)
 
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))

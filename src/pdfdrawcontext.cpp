@@ -32,21 +32,10 @@ namespace capypdf {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfDrawContext::PdfDrawContext(PdfDocument *doc,
-                               PdfColorConverter *cm,
-                               CAPYPDF_Draw_Context_Type dtype,
-                               const PageProperties *prop_overrides,
-                               double w,
-                               double h)
+PdfDrawContext::PdfDrawContext(
+    PdfDocument *doc, PdfColorConverter *cm, CAPYPDF_Draw_Context_Type dtype, double w, double h)
     : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), form_xobj_w{w},
-      form_xobj_h{h} {
-    if(prop_overrides) {
-        if(context_type != CAPY_DC_PAGE) {
-            std::abort();
-        }
-        custom_props = *prop_overrides;
-    }
-}
+      form_xobj_h{h} {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
@@ -140,6 +129,7 @@ void PdfDrawContext::clear() {
     transition.reset();
     is_finalized = false;
     uses_all_colorspace = false;
+    custom_props = PageProperties{};
 }
 
 std::string PdfDrawContext::build_resource_dict() {
@@ -1098,6 +1088,14 @@ PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGro
         sub_navigations.emplace_back(SubPageNavigation{sn, tr});
     }
     return NoReturnValue();
+}
+
+rvoe<NoReturnValue> PdfDrawContext::set_custom_page_properties(const PageProperties &new_props) {
+    if(context_type != CAPY_DC_PAGE) {
+        RETERR(InvalidDrawContextType);
+    }
+    custom_props = new_props;
+    return NoReturnValue{};
 }
 
 } // namespace capypdf

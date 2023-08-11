@@ -271,10 +271,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *g,
 // Draw context
 
 CAPYPDF_PUBLIC CAPYPDF_EC
-capy_page_draw_context_new(CapyPDF_Generator *g,
-                           CapyPDF_DrawContext **out_ptr,
-                           const CapyPDF_PageProperties *custom_properties) CAPYPDF_NOEXCEPT;
-
+capy_page_draw_context_new(CapyPDF_Generator *g, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_b(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
@@ -364,6 +361,8 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
                               const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
                                            CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_set_custom_page_properties(
+    CapyPDF_DrawContext *dc, const CapyPDF_PageProperties *custom_properties);
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 

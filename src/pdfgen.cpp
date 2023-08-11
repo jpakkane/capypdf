@@ -209,17 +209,16 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
     return pdoc.add_pattern(buf, commands);
 }
 
-DrawContextPopper PdfGen::guarded_page_context(const PageProperties *prop_overrides) {
-    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE, prop_overrides};
+DrawContextPopper PdfGen::guarded_page_context() {
+    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE};
 }
 
-PdfDrawContext *PdfGen::new_page_draw_context(const PageProperties *prop_overrides) {
-    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE, prop_overrides};
+PdfDrawContext *PdfGen::new_page_draw_context() {
+    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE};
 }
 
 ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
-    return ColorPatternBuilder{
-        PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, nullptr}, w, h};
+    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING}, w, h};
 }
 
 rvoe<double>
