@@ -146,6 +146,17 @@ rvoe<std::string> load_file(FILE *f) {
     return contents;
 }
 
+void write_file(const char *ofname, const char *buf, size_t bufsize) {
+    FILE *f = fopen(ofname, "w");
+    if(!f) {
+        std::abort();
+    }
+    if(fwrite(buf, 1, bufsize, f) != bufsize) {
+        std::abort();
+    }
+    fclose(f);
+}
+
 rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
     ERC(glyphs, utf8_to_glyphs(input));
     // For now put everything into UTF-16 bracketstrings.

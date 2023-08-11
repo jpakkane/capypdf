@@ -35,6 +35,8 @@ rvoe<std::string> load_file(const std::filesystem::path &fname);
 
 rvoe<std::string> load_file(FILE *f);
 
+void write_file(const char *ofname, const char *buf, size_t bufsize);
+
 rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
 
 rvoe<std::string> utf8_to_pdfmetastr(const u8string &input);
