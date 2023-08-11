@@ -271,7 +271,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *g,
 // Draw context
 
 CAPYPDF_PUBLIC CAPYPDF_EC
-capy_page_draw_context_new(CapyPDF_Generator *g, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
+capy_page_draw_context_new(CapyPDF_Generator *g,
+                           CapyPDF_DrawContext **out_ptr,
+                           const CapyPDF_PageProperties *custom_properties) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_b(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_B(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;

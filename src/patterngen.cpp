@@ -103,7 +103,9 @@ void draw_page_1(PdfGen &gen) {
 }
 
 void draw_page_2(PdfGen &gen) {
-    auto ctxguard = gen.guarded_page_context();
+    PageProperties p2prop;
+    p2prop.mediabox = PdfRectangle(0, 0, 200, 300);
+    auto ctxguard = gen.guarded_page_context(&p2prop);
     auto &ctx = ctxguard.ctx;
     ShadingPoint v1, v2, v3;
     v1.p.x = 100;

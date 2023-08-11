@@ -32,10 +32,21 @@ namespace capypdf {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfDrawContext::PdfDrawContext(
-    PdfDocument *doc, PdfColorConverter *cm, CAPYPDF_Draw_Context_Type dtype, double w, double h)
+PdfDrawContext::PdfDrawContext(PdfDocument *doc,
+                               PdfColorConverter *cm,
+                               CAPYPDF_Draw_Context_Type dtype,
+                               const PageProperties *prop_overrides,
+                               double w,
+                               double h)
     : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), form_xobj_w{w},
-      form_xobj_h{h} {}
+      form_xobj_h{h} {
+    if(prop_overrides) {
+        if(context_type != CAPY_DC_PAGE) {
+            std::abort();
+        }
+        custom_props = *prop_overrides;
+    }
+}
 
 PdfDrawContext::~PdfDrawContext() {}
 

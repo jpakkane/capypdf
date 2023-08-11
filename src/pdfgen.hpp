@@ -37,8 +37,9 @@ struct DrawContextPopper {
     explicit DrawContextPopper(PdfGen *g,
                                PdfDocument *doc,
                                PdfColorConverter *cm,
-                               CAPYPDF_Draw_Context_Type dtype)
-        : g{g}, ctx{doc, cm, dtype} {}
+                               CAPYPDF_Draw_Context_Type dtype,
+                               const PageProperties *prop_overrides = nullptr)
+        : g{g}, ctx{doc, cm, dtype, prop_overrides} {}
 
     DrawContextPopper() = delete;
     DrawContextPopper(const DrawContextPopper &) = delete;
@@ -103,15 +104,15 @@ public:
         return pdoc.create_annotation(rect, std::move(subtype));
     }
 
-    DrawContextPopper guarded_page_context();
-    PdfDrawContext *new_page_draw_context();
+    DrawContextPopper guarded_page_context(const PageProperties *prop_overrides = nullptr);
+    PdfDrawContext *new_page_draw_context(const PageProperties *prop_overrides = nullptr);
 
     PdfDrawContext new_form_xobject(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, nullptr, w, h);
     }
 
     PdfDrawContext new_transparency_group(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, w, h);
+        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, nullptr, w, h);
     }
 
     ColorPatternBuilder new_color_pattern_builder(double w, double h);

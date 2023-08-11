@@ -75,6 +75,41 @@ struct FontInfo {
     size_t font_index_tmp;
 };
 
+struct PageProperties {
+    std::optional<PdfRectangle> mediabox;
+    std::optional<PdfRectangle> cropbox;
+    std::optional<PdfRectangle> bleedbox;
+    std::optional<PdfRectangle> trimbox;
+    std::optional<PdfRectangle> artbox;
+
+    std::optional<double> user_unit;
+
+    PageProperties merge_with(const PageProperties &o) const {
+        PageProperties result = *this;
+        if(o.mediabox) {
+            result.mediabox = o.mediabox;
+        }
+        if(o.cropbox) {
+            result.cropbox = o.cropbox;
+        }
+        if(o.bleedbox) {
+            result.bleedbox = o.bleedbox;
+        }
+        if(o.trimbox) {
+            result.trimbox = o.trimbox;
+        }
+        if(o.artbox) {
+            result.artbox = o.artbox;
+        }
+
+        if(o.user_unit) {
+            result.user_unit = o.user_unit;
+        }
+
+        return result;
+    }
+};
+
 struct DummyIndexZero {};
 
 struct FullPDFObject {
@@ -117,6 +152,7 @@ struct DelayedPage {
     std::vector<CapyPDF_AnnotationId> used_annotations;
     std::optional<Transition> transition;
     std::optional<int32_t> subnav_root;
+    PageProperties custom_props;
 };
 
 struct SubsetGlyph {
@@ -139,41 +175,6 @@ struct IccInfo {
     int32_t stream_num;
     int32_t object_num;
     int32_t num_channels;
-};
-
-struct PageProperties {
-    std::optional<PdfRectangle> mediabox;
-    std::optional<PdfRectangle> cropbox;
-    std::optional<PdfRectangle> bleedbox;
-    std::optional<PdfRectangle> trimbox;
-    std::optional<PdfRectangle> artbox;
-
-    std::optional<double> user_unit;
-
-    PageProperties merge(const PageProperties &o) const {
-        PageProperties result = *this;
-        if(o.mediabox) {
-            result.mediabox = o.mediabox;
-        }
-        if(o.cropbox) {
-            result.cropbox = o.cropbox;
-        }
-        if(o.bleedbox) {
-            result.bleedbox = o.bleedbox;
-        }
-        if(o.trimbox) {
-            result.trimbox = o.trimbox;
-        }
-        if(o.artbox) {
-            result.artbox = o.artbox;
-        }
-
-        if(o.user_unit) {
-            result.user_unit = o.user_unit;
-        }
-
-        return result;
-    }
 };
 
 struct PdfGenerationData {
@@ -301,6 +302,7 @@ public:
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_data,
                                  std::string page_data,
+                                 const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                  const std::unordered_set<CapyPDF_StructureItemId> &structs,

@@ -379,6 +379,7 @@ int32_t PdfDocument::create_page_group() {
 rvoe<NoReturnValue>
 PdfDocument::add_page(std::string resource_data,
                       std::string page_data,
+                      const PageProperties &custom_props,
                       const std::unordered_set<CapyPDF_FormWidgetId> &fws,
                       const std::unordered_set<CapyPDF_AnnotationId> &annots,
                       const std::unordered_set<CapyPDF_StructureItemId> &structs,
@@ -403,6 +404,7 @@ PdfDocument::add_page(std::string resource_data,
     const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
+    p.custom_props = custom_props;
     for(const auto &a : fws) {
         p.used_form_widgets.push_back(a);
     }
@@ -656,7 +658,7 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
                    pages_object,
                    page_group_object,
                    current_date_string());
-    PageProperties current_props = opts.default_page_properties; // FIXME, use merge.
+    PageProperties current_props = opts.default_page_properties.merge_with(dp.custom_props);
     write_rectangle(buf_append, "MediaBox", *current_props.mediabox);
 
     if(current_props.cropbox) {

@@ -149,6 +149,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     auto &sc = std::get<SerializedBasicContext>(sc_var);
     ERCV(pdoc.add_page(std::move(sc.dict),
                        std::move(sc.commands),
+                       ctx.get_custom_props(),
                        ctx.get_form_usage(),
                        ctx.get_annotation_usage(),
                        ctx.get_structure_usage(),
@@ -208,16 +209,17 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
     return pdoc.add_pattern(buf, commands);
 }
 
-DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE};
+DrawContextPopper PdfGen::guarded_page_context(const PageProperties *prop_overrides) {
+    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE, prop_overrides};
 }
 
-PdfDrawContext *PdfGen::new_page_draw_context() {
-    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE};
+PdfDrawContext *PdfGen::new_page_draw_context(const PageProperties *prop_overrides) {
+    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE, prop_overrides};
 }
 
 ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
-    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING}, w, h};
+    return ColorPatternBuilder{
+        PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, nullptr}, w, h};
 }
 
 rvoe<double>

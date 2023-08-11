@@ -81,6 +81,7 @@ public:
     PdfDrawContext(PdfDocument *g,
                    PdfColorConverter *cm,
                    CAPYPDF_Draw_Context_Type dtype,
+                   const PageProperties *prop_overrides = nullptr,
                    double w = -1,
                    double h = -1);
     ~PdfDrawContext();
@@ -211,15 +212,16 @@ public:
     rvoe<NoReturnValue> add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
                                               const std::optional<Transition> &tr);
 
+    const PageProperties &get_custom_props() const { return custom_props; }
+
 private:
     rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
                                                std::string &serialisation,
                                                CapyPDF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
-    ErrorCode utf8_to_kerned_chars(const u8string &text,
-                                   std::vector<CharItem> &charseq,
-                                   CapyPDF_FontId fid);
+    ErrorCode
+    utf8_to_kerned_chars(const u8string &text, std::vector<CharItem> &charseq, CapyPDF_FontId fid);
 
     void indent(DrawStateType dtype) {
         dstates.push(dtype);
@@ -264,6 +266,8 @@ private:
 
     std::stack<DrawStateType> dstates;
     std::optional<Transition> transition;
+
+    PageProperties custom_props;
     // Reminder: If you add stuff here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;

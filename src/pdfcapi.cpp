@@ -252,10 +252,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
 
 // Draw Context
 
-CAPYPDF_EC capy_page_draw_context_new(CapyPDF_Generator *g,
-                                      CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
+CAPYPDF_EC
+capy_page_draw_context_new(CapyPDF_Generator *g,
+                           CapyPDF_DrawContext **out_ptr,
+                           const CapyPDF_PageProperties *custom_properties) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_page_draw_context());
+    auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_page_draw_context(cprop));
     RETNOERR;
 }
 
