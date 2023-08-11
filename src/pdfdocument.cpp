@@ -656,20 +656,26 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
                    pages_object,
                    page_group_object,
                    current_date_string());
-    write_rectangle(buf_append, "MediaBox", opts.mediabox);
+    PageProperties current_props = opts.default_page_properties; // FIXME, use merge.
+    write_rectangle(buf_append, "MediaBox", *current_props.mediabox);
 
-    if(opts.cropbox) {
-        write_rectangle(buf_append, "CropBox", *opts.cropbox);
+    if(current_props.cropbox) {
+        write_rectangle(buf_append, "CropBox", *current_props.cropbox);
     }
-    if(opts.bleedbox) {
-        write_rectangle(buf_append, "BleedBox", *opts.bleedbox);
+    if(current_props.bleedbox) {
+        write_rectangle(buf_append, "BleedBox", *current_props.bleedbox);
     }
-    if(opts.trimbox) {
-        write_rectangle(buf_append, "TrimBox", *opts.trimbox);
+    if(current_props.trimbox) {
+        write_rectangle(buf_append, "TrimBox", *current_props.trimbox);
     }
-    if(opts.artbox) {
-        write_rectangle(buf_append, "ArtBox", *opts.artbox);
+    if(current_props.artbox) {
+        write_rectangle(buf_append, "ArtBox", *current_props.artbox);
     }
+
+    if(current_props.user_unit) {
+        fmt::format_to(buf_append, "  /UserUnit {:f}\n", *current_props.user_unit);
+    }
+
     fmt::format_to(buf_append,
                    R"(  /Contents {} 0 R
   /Resources {} 0 R

@@ -43,25 +43,27 @@ class X3Creator:
         self.trim_corner = self.border + self.bleed
 
         self.options = capypdf.Options()
+        props = capypdf.PageProperties()
         self.fontfile = '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf'
         self.imagefile = 'sampleimage.tif'
         self.profile = 'UncoatedFOGRA29.icc'
         self.options.set_colorspace(capypdf.Colorspace.DeviceCMYK)
-        self.options.set_pagebox(capypdf.PageBox.Media,
-                                 0,
-                                 0,
-                                 self.mediaw,
-                                 self.mediah)
-        self.options.set_pagebox(capypdf.PageBox.Trim,
-                                 self.border + self.bleed,
-                                 self.border + self.bleed,
-                                 self.border + self.bleed + self.artw,
-                                 self.border + self.bleed + self.arth)
-        self.options.set_pagebox(capypdf.PageBox.Bleed,
-                                 self.border,
-                                 self.border,
-                                 self.border + 2 * self.bleed + self.artw,
-                                 self.border + 2 * self.bleed + self.arth)
+        props.set_pagebox(capypdf.PageBox.Media,
+                          0,
+                          0,
+                          self.mediaw,
+                          self.mediah)
+        props.set_pagebox(capypdf.PageBox.Trim,
+                          self.border + self.bleed,
+                          self.border + self.bleed,
+                          self.border + self.bleed + self.artw,
+                          self.border + self.bleed + self.arth)
+        props.set_pagebox(capypdf.PageBox.Bleed,
+                          self.border,
+                          self.border,
+                          self.border + 2 * self.bleed + self.artw,
+                          self.border + 2 * self.bleed + self.arth)
+        self.options.set_default_page_properties(props)
         self.options.set_author('Experimental Man')
         self.options.set_title('PDF/X3 sample document')
         self.options.set_device_profile(capypdf.Colorspace.DeviceCMYK,

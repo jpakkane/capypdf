@@ -67,6 +67,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "OCG not used on this page.",
 "Unsupported TIFF image.",
 "Used object with a drawing context that was not used to create it.",
+"MediaBox is missing.",
 };
 
 // clang-format on

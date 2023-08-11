@@ -103,9 +103,13 @@ cfunc_types = (
 ('capy_options_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 ('capy_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_pagebox',
-    [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_options_set_output_intent', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
+('capy_options_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
+
+('capy_page_properties_new', [ctypes.c_void_p]),
+('capy_page_properties_destroy', [ctypes.c_void_p]),
+('capy_page_properties_set_pagebox',
+    [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -275,9 +279,6 @@ class Options:
         bytes = title.encode('UTF-8')
         check_error(libfile.capy_options_set_author(self, bytes))
 
-    def set_pagebox(self, boxtype, x1, y1, x2, y2):
-        check_error(libfile.capy_options_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
-
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
 
@@ -285,6 +286,23 @@ class Options:
         if not isinstance(stype, IntentSubtype):
             raise CapyPDFException('Argument must be an intent subtype.')
         check_error(libfile.capy_options_set_output_intent(self, stype.value, identifier.encode('utf-8')))
+
+    def set_default_page_properties(self, props):
+        if not isinstance(props, PageProperties):
+            raise CapyPDFException('Argument is not a PageProperties object.')
+        check_error(libfile.capy_options_set_default_page_properties(self, props))
+
+class PageProperties:
+    def __init__(self):
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_page_properties_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.capy_page_properties_destroy(self))
+
+    def set_pagebox(self, boxtype, x1, y1, x2, y2):
+        check_error(libfile.capy_page_properties_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
 
 
 class DrawContext:

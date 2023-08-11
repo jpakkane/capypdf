@@ -124,11 +124,11 @@ void draw_trim_marks(PdfDrawContext &ctx) {
 int main(int, char **) {
     PdfGenerationData opts;
 
-    opts.mediabox.x1 = opts.mediabox.y1 = 0;
-    opts.mediabox.x2 = paper_width;
-    opts.mediabox.y2 = paper_height;
+    opts.default_page_properties.mediabox->x1 = opts.default_page_properties.mediabox->y1 = 0;
+    opts.default_page_properties.mediabox->x2 = paper_width;
+    opts.default_page_properties.mediabox->y2 = paper_height;
 
-    opts.trimbox =
+    opts.default_page_properties.trimbox =
         PdfRectangle{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = u8string::from_cstr("Book cover generation experiment with utf-8 (ö).").value();
     opts.author = u8string::from_cstr("G. R. Aphicdesigner").value();
@@ -148,12 +148,14 @@ int main(int, char **) {
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.9, 0.9});
             ctx.cmd_re(margin - bleed,
                        margin - bleed,
-                       opts.mediabox.x2 - 2 * (margin - bleed),
-                       opts.mediabox.y2 - 2 * (margin - bleed));
+                       opts.default_page_properties.mediabox->x2 - 2 * (margin - bleed),
+                       opts.default_page_properties.mediabox->y2 - 2 * (margin - bleed));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.2, 0.2});
-            ctx.cmd_re(
-                margin, margin, opts.mediabox.x2 - 2 * (margin), opts.mediabox.y2 - 2 * (margin));
+            ctx.cmd_re(margin,
+                       margin,
+                       opts.default_page_properties.mediabox->x2 - 2 * (margin),
+                       opts.default_page_properties.mediabox->y2 - 2 * (margin));
             ctx.cmd_f();
             ctx.set_nonstroke_color(DeviceRGBColor{0.2, 0.9, 0.2});
             ctx.cmd_re(paper_width / 2 - spine_w / 2, margin, spine_w, page_h);

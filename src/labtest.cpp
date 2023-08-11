@@ -23,7 +23,7 @@ using namespace capypdf;
 int main(int, char **) {
     PdfGenerationData opts;
 
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("L*a*b* test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

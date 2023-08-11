@@ -22,7 +22,7 @@ using namespace capypdf;
 void file_embed() {
     PdfGenerationData opts;
 
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("File embedding test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     {
@@ -57,7 +57,7 @@ void file_embed() {
 void video_player() {
     PdfGenerationData opts;
 
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Video player test").value();
     opts.author = u8string::from_cstr("Test Person").value();
 #if 0

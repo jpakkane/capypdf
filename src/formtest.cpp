@@ -22,7 +22,7 @@ using namespace capypdf;
 int draw_simple_form() {
     PdfGenerationData opts;
 
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Form XObject test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
@@ -124,8 +124,8 @@ int draw_group_doc() {
     const char *icc_out =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
-    opts.mediabox.x2 = 300;
-    opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = 300;
+    opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Transparency group test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;

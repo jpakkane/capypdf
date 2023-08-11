@@ -61,31 +61,40 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPDF_Options *opt,
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPDF_Options *opt,
-                                                   CAPYPDF_Page_Box boxtype,
-                                                   double x1,
-                                                   double y1,
-                                                   double x2,
-                                                   double y2) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_PageProperties *>(new PageProperties);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *prop)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<PageProperties *>(prop);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_set_pagebox(CapyPDF_PageProperties *prop,
+                                                           CAPYPDF_Page_Box boxtype,
+                                                           double x1,
+                                                           double y1,
+                                                           double x2,
+                                                           double y2) CAPYPDF_NOEXCEPT {
+    auto props = reinterpret_cast<PageProperties *>(prop);
     switch(boxtype) {
     case CAPY_BOX_MEDIA:
-        opts->mediabox.x1 = x1;
-        opts->mediabox.y1 = y1;
-        opts->mediabox.x2 = x2;
-        opts->mediabox.y2 = y2;
+        props->mediabox = PdfRectangle{x1, y1, x2, y2};
         break;
     case CAPY_BOX_CROP:
-        opts->cropbox = PdfRectangle{x1, y1, x2, y2};
+        props->cropbox = PdfRectangle{x1, y1, x2, y2};
         break;
     case CAPY_BOX_BLEED:
-        opts->bleedbox = PdfRectangle{x1, y1, x2, y2};
+        props->bleedbox = PdfRectangle{x1, y1, x2, y2};
         break;
     case CAPY_BOX_TRIM:
-        opts->trimbox = PdfRectangle{x1, y1, x2, y2};
+        props->trimbox = PdfRectangle{x1, y1, x2, y2};
         break;
     case CAPY_BOX_ART:
-        opts->artbox = PdfRectangle{x1, y1, x2, y2};
+        props->artbox = PdfRectangle{x1, y1, x2, y2};
         break;
     default:
         return (CAPYPDF_EC)ErrorCode::BadEnum;
@@ -125,6 +134,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     opts->subtype = stype;
     opts->intent_condition_identifier = identifier;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_default_page_properties(
+    CapyPDF_Options *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    auto props = reinterpret_cast<const PageProperties *>(prop);
+    if(!props->mediabox) {
+        return conv_err(ErrorCode::MissingMediabox);
+    }
+    opts->default_page_properties = *props;
     RETNOERR;
 }
 

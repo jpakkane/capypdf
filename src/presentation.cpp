@@ -39,8 +39,8 @@ void create_presentation() {
 
     const int32_t w = 160;
     const int32_t h = 90;
-    opts.mediabox.x2 = w;
-    opts.mediabox.y2 = h;
+    opts.default_page_properties.mediabox->x2 = w;
+    opts.default_page_properties.mediabox->y2 = h;
     opts.title = u8string::from_cstr("Presentation test").value();
     opts.author = u8string::from_cstr("Joe Speaker").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
@@ -81,8 +81,8 @@ void create_subpage() {
     PdfGenerationData opts;
     const int32_t w = 160;
     const int32_t h = 90;
-    opts.mediabox.x2 = w;
-    opts.mediabox.y2 = h;
+    opts.default_page_properties.mediabox->x2 = w;
+    opts.default_page_properties.mediabox->y2 = h;
     opts.title = u8string::from_cstr("Subpage navigation").value();
     opts.author = u8string::from_cstr("Joe Speaker").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;

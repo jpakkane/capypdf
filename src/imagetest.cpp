@@ -27,7 +27,7 @@ int basictest(int argc, char **argv) {
     std::filesystem::path png_1bit_alpha = datadir / "1bit_alpha.png";
     std::filesystem::path png_gray{datadir / "gray_alpha.png"};
     std::filesystem::path cmyk_tif{datadir / "cmyk_tiff.tif"};
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("PDF image test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
@@ -82,7 +82,7 @@ void masktest(int argc, char **argv) {
     std::filesystem::path lines = datadir / "comic-lines.png";
     std::filesystem::path richblack = datadir / "comic-richblack.png";
     std::filesystem::path colors = datadir / "comic-colors.png";
-    opts.mediabox.x2 = opts.mediabox.y2 = 200;
+    opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("PDF image masking test").value();
     opts.author = u8string::from_cstr("Test Person").value();
     opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;

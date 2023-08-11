@@ -141,13 +141,45 @@ struct IccInfo {
     int32_t num_channels;
 };
 
-struct PdfGenerationData {
-    PdfRectangle mediabox = PdfRectangle::a4();
+struct PageProperties {
+    std::optional<PdfRectangle> mediabox;
     std::optional<PdfRectangle> cropbox;
     std::optional<PdfRectangle> bleedbox;
     std::optional<PdfRectangle> trimbox;
     std::optional<PdfRectangle> artbox;
 
+    std::optional<double> user_unit;
+
+    PageProperties merge(const PageProperties &o) const {
+        PageProperties result = *this;
+        if(o.mediabox) {
+            result.mediabox = o.mediabox;
+        }
+        if(o.cropbox) {
+            result.cropbox = o.cropbox;
+        }
+        if(o.bleedbox) {
+            result.bleedbox = o.bleedbox;
+        }
+        if(o.trimbox) {
+            result.trimbox = o.trimbox;
+        }
+        if(o.artbox) {
+            result.artbox = o.artbox;
+        }
+
+        if(o.user_unit) {
+            result.user_unit = o.user_unit;
+        }
+
+        return result;
+    }
+};
+
+struct PdfGenerationData {
+    PdfGenerationData() { default_page_properties.mediabox = PdfRectangle::a4(); }
+
+    PageProperties default_page_properties;
     u8string title;
     u8string author;
     CapyPDF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;

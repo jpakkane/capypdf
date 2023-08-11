@@ -75,8 +75,10 @@ class Demopresentation:
         self.codesize = 20
         self.symbolsize = 28
         opts = capypdf.Options()
+        props = capypdf.PageProperties()
         opts.set_author('CapyPDF tester')
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         self.pdfgen = capypdf.Generator(self.ofilename, opts)
         self.basefont = self.pdfgen.load_font(self.fontfile)
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)

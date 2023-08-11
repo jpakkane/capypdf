@@ -157,6 +157,7 @@ enum CAPYPDF_Color_Management_Policy {
 // clang-format on
 
 typedef struct _CapyPDF_Options CapyPDF_Options;
+typedef struct _CapyPDF_PageProperties CapyPDF_PageProperties;
 typedef struct _CapyPDF_Generator CapyPDF_Generator;
 typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
 typedef struct _CapyPDF_Text CapyPDF_Text;
@@ -214,12 +215,6 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_title(CapyPDF_Options *opt,
                                                  const char *utf8_title) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPDF_Options *opt,
                                                   const char *utf8_author) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_pagebox(CapyPDF_Options *opt,
-                                                   enum CAPYPDF_Page_Box boxtype,
-                                                   double x1,
-                                                   double y1,
-                                                   double x2,
-                                                   double y2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
     CapyPDF_Options *opt, enum CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
@@ -227,6 +222,19 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
                                                          enum CAPYPDF_Intent_Subtype stype,
                                                          const char *identifier) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_default_page_properties(
+    CapyPDF_Options *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
+
+// Page properties.
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_set_pagebox(CapyPDF_PageProperties *prop,
+                                                           enum CAPYPDF_Page_Box boxtype,
+                                                           double x1,
+                                                           double y1,
+                                                           double x2,
+                                                           double y2) CAPYPDF_NOEXCEPT;
 
 // Generator
 

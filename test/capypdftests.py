@@ -106,7 +106,9 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_text', 400, 400)
     def test_text(self, ofilename, w, h):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             fid = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:
@@ -137,7 +139,9 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_image', 200, 200)
     def test_images(self, ofilename, w, h):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
             mono_img = g.load_image(image_dir / '1bit_noalpha.png')
@@ -165,7 +169,9 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_path', 200, 200)
     def test_path(self, ofilename, w, h):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             with g.page_draw_context() as ctx:
                 with ctx.push_gstate():
@@ -204,7 +210,9 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_textobj', 200, 200)
     def test_text(self, ofilename, w, h):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
@@ -217,7 +225,9 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_icccolor', 200, 200)
     def test_icc(self, ofilename, w, h):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             cs = g.load_icc_profile('/usr/share/color/icc/colord/AdobeRGB1998.icc')
             sc = capypdf.Color()
@@ -234,7 +244,9 @@ class TestPDFCreation(unittest.TestCase):
     @cleanup('transitions.pdf')
     def test_transitions(self, ofilename):
         opts = capypdf.Options()
-        opts.set_pagebox(capypdf.PageBox.Media, 0, 0, 160, 90)
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, 160, 90)
+        opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             with g.page_draw_context() as ctx:
                 pass

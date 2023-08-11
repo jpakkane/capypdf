@@ -65,6 +65,7 @@ enum class ErrorCode : int32_t {
     UnusedOcg,
     UnsupportedTIFF,
     WrongDrawContext,
+    MissingMediabox,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
