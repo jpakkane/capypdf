@@ -105,7 +105,8 @@ const std::array<const char *, 3> colorspace_names{
 };
 
 void write_rectangle(auto &appender, const char *boxname, const capypdf::PdfRectangle &box) {
-    fmt::format_to(appender, "  /{} [ {} {} {} {} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
+    fmt::format_to(
+        appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
 }
 
 std::string fontname2pdfname(std::string_view original) {
@@ -286,7 +287,7 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
         fmt::format_to(buf_append, "{}  /S {}\n", indent, transition_names.at((int32_t)*t.type));
     }
     if(t.duration) {
-        fmt::format_to(buf_append, "{}  /D {}\n", indent, *t.duration);
+        fmt::format_to(buf_append, "{}  /D {:f}\n", indent, *t.duration);
     }
     if(t.Dm) {
         fmt::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm ? "/H" : "/V");
@@ -298,7 +299,7 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
         fmt::format_to(buf_append, "{}  /M {}\n", indent, *t.M ? "/I" : "/O");
     }
     if(t.SS) {
-        fmt::format_to(buf_append, "{}  /SS {}\n", indent, *t.SS);
+        fmt::format_to(buf_append, "{}  /SS {:f}\n", indent, *t.SS);
     }
     if(t.B) {
         fmt::format_to(buf_append, "{}  /B {}\n", indent, *t.B ? "true" : "false");
@@ -559,8 +560,8 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     std::string buf = fmt::format(
         R"([ /Lab
   <<
-    /WhitePoint [ {} {} {} ]
-    /Range [ {} {} {} {} ]
+    /WhitePoint [ {:f} {:f} {:f} ]
+    /Range [ {:f} {:f} {:f} {:f} ]
   >>
 ]
 )",
@@ -1137,7 +1138,7 @@ PdfDocument::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnot
     std::string dict = fmt::format(R"(<<
   /Type /Annot
   /Subtype /Widget
-  /Rect [ {} {} {} {} ]
+  /Rect [ {:f} {:f} {:f} {:f} ]
   /FT /Btn
   /P {} 0 R
   /T {}
@@ -1171,7 +1172,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 
     std::string dict = fmt::format(R"(<<
   /Type /Annot
-  /Rect [ {} {} {} {} ]
+  /Rect [ {:f} {:f} {:f} {:f} ]
 )",
                                    annotation.rect.x1,
                                    annotation.rect.y1,
@@ -1261,8 +1262,8 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
           /P << /TF (TEMPALWAYS) >>
         >>
         /MH <<
-          /B << /S /T /T << /S /S /V {} >> >>
-          /E << /S /T /T << /S /S /V {} >> >>
+          /B << /S /T /T << /S /S /V {:f} >> >>
+          /E << /S /T /T << /S /S /V {:f} >> >>
         >>
       >>
     >>
@@ -1703,7 +1704,7 @@ ShadingId PdfDocument::add_shading(const ShadingType2 &shade) {
         R"(<<
   /ShadingType {}
   /ColorSpace {}
-  /Coords [ {} {} {} {} ]
+  /Coords [ {:f} {:f} {:f} {:f} ]
   /Function {} 0 R
   /Extend [ {} {} ]
 >>
@@ -1727,7 +1728,7 @@ ShadingId PdfDocument::add_shading(const ShadingType3 &shade) {
         R"(<<
   /ShadingType {}
   /ColorSpace {}
-  /Coords [ {} {} {} {} {} {}]
+  /Coords [ {:f} {:f} {:f} {:f} {:f} {:f}]
   /Function {} 0 R
   /Extend [ {} {} ]
 >>
@@ -1758,8 +1759,8 @@ ShadingId PdfDocument::add_shading(const ShadingType4 &shade) {
   /BitsPerComponent 16
   /BitsPerFlag 8
   /Decode [
-    {} {}
-    {} {}
+    {:f} {:f}
+    {:f} {:f}
     {} {}
     {} {}
     {} {}
@@ -1795,8 +1796,8 @@ ShadingId PdfDocument::add_shading(const ShadingType6 &shade) {
   /BitsPerComponent 16
   /BitsPerFlag 8
   /Decode [
-    {} {}
-    {} {}
+    {:f} {:f}
+    {:f} {:f}
     {} {}
     {} {}
     {} {}
