@@ -1414,6 +1414,12 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
         obj_data.dictionary += authorstr;
         obj_data.dictionary += "\n";
     }
+    if(!opts.creator.empty()) {
+        obj_data.dictionary += "  /Creator ";
+        ERC(creatorstr, utf8_to_pdfmetastr(opts.creator));
+        obj_data.dictionary += creatorstr;
+        obj_data.dictionary += "\n";
+    }
     obj_data.dictionary += "  /Producer (CapyPDF " CAPYPDF_VERSION_STR ")\n";
     obj_data.dictionary += "  /CreationDate ";
     obj_data.dictionary += current_date_string();

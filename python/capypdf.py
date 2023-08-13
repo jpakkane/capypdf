@@ -103,6 +103,7 @@ cfunc_types = (
 ('capy_options_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 ('capy_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_options_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_output_intent', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 ('capy_options_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 
@@ -274,11 +275,17 @@ class Options:
         bytes = title.encode('UTF-8')
         check_error(libfile.capy_options_set_title(self, bytes))
 
-    def set_author(self, title):
+    def set_author(self, author):
         if not isinstance(title, str):
             raise CapyPDFException('Author must be an Unicode string.')
         bytes = title.encode('UTF-8')
         check_error(libfile.capy_options_set_author(self, bytes))
+
+    def set_creator(self, creator):
+        if not isinstance(title, str):
+            raise CapyPDFException('Creator must be an Unicode string.')
+        bytes = creator.encode('UTF-8')
+        check_error(libfile.capy_options_set_creator(self, bytes))
 
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))

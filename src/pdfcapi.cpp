@@ -61,6 +61,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_author(CapyPDF_Options *opt,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_creator(CapyPDF_Options *opt,
+                                                   const char *utf8_creator) CAPYPDF_NOEXCEPT {
+    auto rc = u8string::from_cstr(utf8_creator);
+    if(rc) {
+        reinterpret_cast<PdfGenerationData *>(opt)->creator = std::move(rc.value());
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)
     CAPYPDF_NOEXCEPT {
     *out_ptr = reinterpret_cast<CapyPDF_PageProperties *>(new PageProperties);

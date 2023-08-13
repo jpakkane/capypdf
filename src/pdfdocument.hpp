@@ -183,6 +183,7 @@ struct PdfGenerationData {
     PageProperties default_page_properties;
     u8string title;
     u8string author;
+    u8string creator;
     CapyPDF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     ColorProfiles prof;
     std::optional<CAPYPDF_Intent_Subtype> subtype;
