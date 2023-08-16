@@ -207,6 +207,19 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
+                                                            const CapyPDF_GraphicsState *state,
+                                                            CapyPDF_GraphicsStateId *gsid)
+    CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *s = reinterpret_cast<const GraphicsState *>(state);
+    auto rc = gen->add_graphics_state(*s);
+    if(rc) {
+        *gsid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
@@ -339,6 +352,12 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_G(CapyPDF_DrawContext *ctx, double gray) C
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_g(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_g(gray));
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_gs(CapyPDF_DrawContext *ctx,
+                                         CapyPDF_GraphicsStateId gsid) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(c->cmd_gs(gsid));
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
@@ -681,6 +700,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CapyPDF_Transition *transition
     RETNOERR;
 }
 
+// Optional Content groups
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalContentGroup **out_ptr,
                                                           const char *name) CAPYPDF_NOEXCEPT {
     // FIXME check for ASCIIness (or even more strict?)
@@ -695,6 +716,36 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalCo
     delete reinterpret_cast<OptionalContentGroup *>(ocg);
     RETNOERR;
 }
+
+// Graphics state
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_new(CapyPDF_GraphicsState **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_GraphicsState *>(new GraphicsState);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    s->CA = LimitDouble{value};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    s->ca = LimitDouble{value};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<GraphicsState *>(state);
+    RETNOERR;
+}
+
+// Error handling.
 
 const char *capy_error_message(CAPYPDF_EC error_code) CAPYPDF_NOEXCEPT {
     return error_text((ErrorCode)error_code);

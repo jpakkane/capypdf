@@ -330,7 +330,7 @@ public:
     rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname);
 
     // Graphics states
-    GstateId add_graphics_state(const GraphicsState &state);
+    rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
 
     // Functions
     FunctionId add_function(const FunctionType2 &func);

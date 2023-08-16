@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
             gs.BM = bm;
-            auto sid = gen.add_graphics_state(gs);
+            auto sid = gen.add_graphics_state(gs).value();
             ctx.cmd_q();
             ctx.cmd_gs(sid);
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.5) * 1.5 * imsize);

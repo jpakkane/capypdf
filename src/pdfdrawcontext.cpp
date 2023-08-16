@@ -389,7 +389,7 @@ ErrorCode PdfDrawContext::cmd_g(double gray) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_gs(GstateId gid) {
+ErrorCode PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
     fmt::format_to(cmd_appender, "{}/GS{} gs\n", ind, gid.id);

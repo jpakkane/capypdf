@@ -28,6 +28,7 @@
 #include <variant>
 
 #include <cstdint>
+#include <cmath>
 
 // This macro must not be used from within a namespace.
 #define DEF_BASIC_OPERATORS(TNAME)                                                                 \
@@ -132,10 +133,11 @@ private:
     constexpr static double minval = 0.0;
 
     void clamp() {
-        if(value < minval) {
+        if(std::isnan(value)) {
             value = minval;
-        }
-        if(value > maxval) {
+        } else if(value < minval) {
+            value = minval;
+        } else if(value > maxval) {
             value = maxval;
         }
     }
@@ -147,10 +149,6 @@ private:
 // accidentally mixing them up.
 
 struct SeparationId {
-    int32_t id;
-};
-
-struct GstateId {
     int32_t id;
 };
 
@@ -202,8 +200,8 @@ struct GraphicsState {
     std::optional<bool> SA;
     std::optional<CAPYPDF_Blend_Mode> BM;
     // std::optional<std::string> SMask;
-    std::optional<double> CA;
-    std::optional<double> ca;
+    std::optional<LimitDouble> CA;
+    std::optional<LimitDouble> ca;
     std::optional<bool> AIS;
     std::optional<bool> TK;
     // std::string UseBlackPtComp;

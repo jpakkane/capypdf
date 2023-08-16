@@ -222,6 +222,31 @@ class TestPDFCreation(unittest.TestCase):
                 t.render_text('Using text object!')
                 ctx.render_text_obj(t)
 
+    @validate_image('python_gstate', 200, 200)
+    def test_gstate(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            gstate = capypdf.GraphicsState()
+            gstate.set_CA(0.1)
+            gstate.set_ca(0.5)
+            gsid = g.add_graphics_state(gstate)
+            with g.page_draw_context() as ctx:
+                ctx.cmd_gs(gsid)
+                ctx.cmd_w(5)
+                ctx.cmd_rg(1.0, 0.0, 0.0)
+                ctx.cmd_re(10, 10, 180, 50)
+                ctx.cmd_B()
+                ctx.cmd_rg(0.0, 1.0, 0.0)
+                ctx.cmd_re(30, 20, 100, 150)
+                ctx.cmd_B()
+                ctx.cmd_rg(0.0, 0.0, 1.0)
+                ctx.cmd_re(80, 30, 100, 150)
+                ctx.cmd_B()
+
+
     @validate_image('python_icccolor', 200, 200)
     def test_icc(self, ofilename, w, h):
         opts = capypdf.Options()

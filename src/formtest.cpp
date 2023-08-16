@@ -85,7 +85,7 @@ void draw_gradient(PdfDrawContext &ctx, ShadingId shadeid, double x, double y) {
     ctx.cmd_sh(shadeid);
 }
 
-void draw_circles(PdfDrawContext &ctx, GstateId gsid) {
+void draw_circles(PdfDrawContext &ctx, CapyPDF_GraphicsStateId gsid) {
     ctx.cmd_gs(gsid);
     ctx.cmd_k(0, 0, 0, 0.15);
     {
@@ -148,7 +148,7 @@ int draw_group_doc() {
 
         GraphicsState gs;
         gs.BM = CAPY_BM_MULTIPLY;
-        auto gsid = gen.add_graphics_state(gs);
+        auto gsid = gen.add_graphics_state(gs).value();
 
         auto shadeid = gen.add_shading(shade);
         {

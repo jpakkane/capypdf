@@ -114,7 +114,7 @@ public:
     ErrorCode cmd_fstar();
     ErrorCode cmd_G(double gray);
     ErrorCode cmd_g(double gray);
-    ErrorCode cmd_gs(GstateId id);
+    ErrorCode cmd_gs(CapyPDF_GraphicsStateId id);
     ErrorCode cmd_h();
     ErrorCode cmd_i(double flatness);
     ErrorCode cmd_j(CAPYPDF_Line_Join join_style);

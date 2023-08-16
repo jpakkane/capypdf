@@ -1652,7 +1652,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname)
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
+rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsState &state) {
     const int32_t id = (int32_t)document_objects.size();
     std::string buf{
         R"(<<
@@ -1660,16 +1660,16 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
 )"};
     auto resource_appender = std::back_inserter(buf);
     if(state.LW) {
-        fmt::format_to(resource_appender, "  /LW /{:f}\n", *state.LW);
+        fmt::format_to(resource_appender, "  /LW {:f}\n", *state.LW);
     }
     if(state.LC) {
-        fmt::format_to(resource_appender, "  /LC /{}\n", (int)*state.LC);
+        fmt::format_to(resource_appender, "  /LC {}\n", (int)*state.LC);
     }
     if(state.LJ) {
-        fmt::format_to(resource_appender, "  /LJ /{}\n", (int)*state.LJ);
+        fmt::format_to(resource_appender, "  /LJ {}\n", (int)*state.LJ);
     }
     if(state.ML) {
-        fmt::format_to(resource_appender, "  /ML /{:f}\n", *state.ML);
+        fmt::format_to(resource_appender, "  /ML {:f}\n", *state.ML);
     }
     if(state.RI) {
         fmt::format_to(
@@ -1685,29 +1685,29 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
         fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
     }
     if(state.FT) {
-        fmt::format_to(resource_appender, "  /FT /{:f}\n", *state.FT);
+        fmt::format_to(resource_appender, "  /FT {:f}\n", *state.FT);
     }
     if(state.SM) {
-        fmt::format_to(resource_appender, "  /SM /{:f}\n", *state.SM);
+        fmt::format_to(resource_appender, "  /SM {:f}\n", *state.SM);
     }
     if(state.BM) {
         fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
     }
     if(state.CA) {
-        fmt::format_to(resource_appender, "  /CA /{:f}\n", *state.CA);
+        fmt::format_to(resource_appender, "  /CA {:f}\n", state.CA->v());
     }
     if(state.ca) {
-        fmt::format_to(resource_appender, "  /ca /{:f}\n", *state.ca);
+        fmt::format_to(resource_appender, "  /ca {:f}\n", state.ca->v());
     }
     if(state.AIS) {
-        fmt::format_to(resource_appender, "  /AIS /{}\n", *state.AIS ? "true" : "false");
+        fmt::format_to(resource_appender, "  /AIS {}\n", *state.AIS ? "true" : "false");
     }
     if(state.TK) {
-        fmt::format_to(resource_appender, "  /TK /{:}\n", *state.TK ? "true" : "false");
+        fmt::format_to(resource_appender, "  /TK {:}\n", *state.TK ? "true" : "false");
     }
     buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});
-    return GstateId{id};
+    return CapyPDF_GraphicsStateId{id};
 }
 
 FunctionId PdfDocument::add_function(const FunctionType2 &func) {

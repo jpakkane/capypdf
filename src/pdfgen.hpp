@@ -72,10 +72,12 @@ public:
     };
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
+
     SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
     }
-    GstateId add_graphics_state(const GraphicsState &state) {
+
+    rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state) {
         return pdoc.add_graphics_state(state);
     }
 

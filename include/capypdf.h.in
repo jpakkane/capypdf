@@ -156,40 +156,17 @@ enum CAPYPDF_Color_Management_Policy {
 */
 // clang-format on
 
+typedef struct _CapyPDF_Color CapyPDF_Color;
+typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
+typedef struct _CapyPDF_Generator CapyPDF_Generator;
+typedef struct _CapyPDF_GraphicsState CapyPDF_GraphicsState;
+typedef struct _CapyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
 typedef struct _CapyPDF_Options CapyPDF_Options;
 typedef struct _CapyPDF_PageProperties CapyPDF_PageProperties;
-typedef struct _CapyPDF_Generator CapyPDF_Generator;
-typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
 typedef struct _CapyPDF_Text CapyPDF_Text;
-typedef struct _CapyPDF_Color CapyPDF_Color;
-typedef struct _CapyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
 typedef struct _CapyPDF_Transition CapyPDF_Transition;
 
 typedef int32_t CAPYPDF_EC;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_ImageId;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_FontId;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_IccColorSpaceId;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_FormXObjectId;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_FormWidgetId;
-
-typedef struct {
-    int32_t id;
-} CapyPDF_EmbeddedFileId;
 
 typedef struct {
     int32_t id;
@@ -197,11 +174,39 @@ typedef struct {
 
 typedef struct {
     int32_t id;
-} CapyPDF_StructureItemId;
+} CapyPDF_EmbeddedFileId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_FontId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_FormWidgetId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_FormXObjectId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_GraphicsStateId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_IccColorSpaceId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_ImageId;
 
 typedef struct {
     int32_t id;
 } CapyPDF_OptionalContentGroupId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_StructureItemId;
 
 typedef struct {
     int32_t id;
@@ -254,6 +259,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
                                                     const char *fname,
                                                     CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
+                                                            const CapyPDF_GraphicsState *state,
+                                                            CapyPDF_GraphicsStateId *gsid)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_write(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
@@ -299,6 +308,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_f(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCE
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_fstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_G(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_g(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_gs(CapyPDF_DrawContext *ctx,
+                                         CapyPDF_GraphicsStateId gsid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_h(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_i(CapyPDF_DrawContext *ctx, double flatness) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_j(CapyPDF_DrawContext *ctx,
@@ -413,6 +424,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_destroy(CapyPDF_Transition *transition
 CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_new(CapyPDF_OptionalContentGroup **out_ptr,
                                                           const char *name) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalContentGroup *group)
+    CAPYPDF_NOEXCEPT;
+
+// Graphics state
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_new(CapyPDF_GraphicsState **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT;
 
 // Error

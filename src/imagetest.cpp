@@ -97,7 +97,7 @@ void masktest(int argc, char **argv) {
         gstate.OP = true;
         gstate.op = true;
         gstate.OPM = 1;
-        auto sid = gen.add_graphics_state(gstate);
+        auto sid = gen.add_graphics_state(gstate).value();
         {
             auto q = ctx.push_gstate();
             ctx.cmd_k(0, 1, 0, 0);

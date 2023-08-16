@@ -85,10 +85,13 @@ enum_type = ctypes.c_int32
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
-class ImageId(ctypes.Structure):
+class GraphicsStateId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
 class IccColorSpaceId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
+class ImageId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
 class OptionalContentGroupId(ctypes.Structure):
@@ -118,6 +121,7 @@ cfunc_types = (
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
+('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
@@ -138,6 +142,7 @@ cfunc_types = (
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_G', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_cmd_g', [ctypes.c_void_p, ctypes.c_double]),
+('capy_dc_cmd_gs', [ctypes.c_void_p, GraphicsStateId]),
 ('capy_dc_cmd_h', [ctypes.c_void_p]),
 ('capy_dc_cmd_i', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_cmd_J', [ctypes.c_void_p, enum_type]),
@@ -193,6 +198,11 @@ cfunc_types = (
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
+
+('capy_graphics_state_new', [ctypes.c_void_p]),
+('capy_graphics_state_set_CA', [ctypes.c_void_p, ctypes.c_double]),
+('capy_graphics_state_set_ca', [ctypes.c_void_p, ctypes.c_double]),
+('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_optional_content_group_destroy', [ctypes.c_void_p]),
@@ -372,6 +382,11 @@ class DrawContext:
 
     def cmd_g(self):
         check_error(libfile.capy_dc_cmd_g(self, gray))
+
+    def cmd_gs(self, gsid):
+        if not isinstance(gsid, GraphicsStateId):
+            raise CapyPDFException('Argument must be a graphics state id.')
+        check_error(libfile.capy_dc_cmd_gs(self, gsid))
 
     def cmd_h(self):
         check_error(libfile.capy_dc_cmd_h(self))
@@ -576,10 +591,18 @@ class Generator:
         check_error(libfile.capy_generator_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
         return w.value
 
+    def add_graphics_state(self, gs):
+        if not isinstance(gs, GraphicsState):
+            raise CapyPDFException('Argument must be a graphics state object.')
+        gsid = GraphicsStateId()
+        check_error(libfile.capy_generator_add_graphics_state(self, gs, ctypes.pointer(gsid)))
+        return gsid
+
     def add_optional_content_group(self, ocg):
         ocgid = OptionalContentGroupId()
         check_error(libfile.capy_generator_add_optional_content_group(self, ocg, ctypes.pointer(ocgid)))
         return ocgid
+
 
 class Text:
     def __init__(self, dc):
@@ -671,6 +694,21 @@ class Transition:
     def __del__(self):
         check_error(libfile.capy_transition_destroy(self))
 
+class GraphicsState:
+    def __init__(self):
+        self._as_parameter_ = None
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_graphics_state_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.capy_graphics_state_destroy(self))
+
+    def set_CA(self, value):
+        check_error(libfile.capy_graphics_state_set_CA(self, value))
+
+    def set_ca(self, value):
+        check_error(libfile.capy_graphics_state_set_ca(self, value))
 
 class OptionalContentGroup:
     def __init__(self, name):
