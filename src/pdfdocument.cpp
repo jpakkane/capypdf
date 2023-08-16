@@ -1659,13 +1659,9 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
   /Type /ExtGState
 )"};
     auto resource_appender = std::back_inserter(buf);
-    if(state.blend_mode) {
-        fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.blend_mode));
-    }
-    if(state.intent) {
-        fmt::format_to(resource_appender,
-                       "  /RenderingIntent /{}\n",
-                       rendering_intent_names.at(*state.intent));
+    if(state.RI) {
+        fmt::format_to(
+            resource_appender, "  /RenderingIntent /{}\n", rendering_intent_names.at(*state.RI));
     }
     if(state.OP) {
         fmt::format_to(resource_appender, "  /OP {}\n", *state.OP ? "true" : "false");
@@ -1675,6 +1671,9 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
     }
     if(state.OPM) {
         fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
+    }
+    if(state.BM) {
+        fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
     }
     buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});

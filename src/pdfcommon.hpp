@@ -178,12 +178,13 @@ struct OutlineId {
     int32_t id;
 };
 
+// Named and ordered according to PDF spec 2.0 section 8.4.5
 struct GraphicsState {
-    std::optional<CapyPDF_Rendering_Intent> intent;
-    std::optional<CAPYPDF_Blend_Mode> blend_mode;
+    std::optional<CapyPDF_Rendering_Intent> RI;
     std::optional<bool> OP;
     std::optional<bool> op;
     std::optional<int32_t> OPM;
+    std::optional<CAPYPDF_Blend_Mode> BM;
 };
 
 struct DeviceRGBColor {

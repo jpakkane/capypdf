@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     GraphicsState gs;
-    gs.blend_mode = CAPY_BM_MULTIPLY;
-    gs.intent = CAPY_RI_PERCEPTUAL;
+    gs.BM = CAPY_BM_MULTIPLY;
+    gs.RI = CAPY_RI_PERCEPTUAL;
     auto bg_img = gen.load_image(argv[1]).value();
     auto fg_img = gen.load_image(argv[2]).value();
     ctx.cmd_q();
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     for(int j = 3; j >= 0; --j) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
-            gs.blend_mode = bm;
+            gs.BM = bm;
             auto sid = gen.add_graphics_state(gs);
             ctx.cmd_q();
             ctx.cmd_gs(sid);

@@ -147,7 +147,7 @@ int draw_group_doc() {
         shade.extend1 = false;
 
         GraphicsState gs;
-        gs.blend_mode = CAPY_BM_MULTIPLY;
+        gs.BM = CAPY_BM_MULTIPLY;
         auto gsid = gen.add_graphics_state(gs);
 
         auto shadeid = gen.add_shading(shade);
