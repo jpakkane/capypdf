@@ -178,13 +178,36 @@ struct OutlineId {
     int32_t id;
 };
 
-// Named and ordered according to PDF spec 2.0 section 8.4.5
+// Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
+    std::optional<double> LW;
+    std::optional<CAPYPDF_Line_Cap> LC;
+    std::optional<CAPYPDF_Line_Join> LJ;
+    std::optional<double> ML;
     std::optional<CapyPDF_Rendering_Intent> RI;
     std::optional<bool> OP;
     std::optional<bool> op;
     std::optional<int32_t> OPM;
+    // std::optional<DashArray> D;
+    // std::optional<FontSomething> Font;
+    // std::optional<std::string> BG;
+    // std::optional<std::string> BG2;
+    // std::optional<std::string> UCR;
+    // std::optional<std::string> UCR2;
+    // std::optional<std::string> TR;
+    // std::optional<std::string> TR2;
+    // std::optional<str::string> HT;
+    std::optional<double> FT;
+    std::optional<double> SM;
+    std::optional<bool> SA;
     std::optional<CAPYPDF_Blend_Mode> BM;
+    // std::optional<std::string> SMask;
+    std::optional<double> CA;
+    std::optional<double> ca;
+    std::optional<bool> AIS;
+    std::optional<bool> TK;
+    // std::string UseBlackPtComp;
+    //  std::optional<Point> HTO;
 };
 
 struct DeviceRGBColor {

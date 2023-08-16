@@ -1659,6 +1659,18 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
   /Type /ExtGState
 )"};
     auto resource_appender = std::back_inserter(buf);
+    if(state.LW) {
+        fmt::format_to(resource_appender, "  /LW /{:f}\n", *state.LW);
+    }
+    if(state.LC) {
+        fmt::format_to(resource_appender, "  /LC /{}\n", (int)*state.LC);
+    }
+    if(state.LJ) {
+        fmt::format_to(resource_appender, "  /LJ /{}\n", (int)*state.LJ);
+    }
+    if(state.ML) {
+        fmt::format_to(resource_appender, "  /ML /{:f}\n", *state.ML);
+    }
     if(state.RI) {
         fmt::format_to(
             resource_appender, "  /RenderingIntent /{}\n", rendering_intent_names.at(*state.RI));
@@ -1672,8 +1684,26 @@ GstateId PdfDocument::add_graphics_state(const GraphicsState &state) {
     if(state.OPM) {
         fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
     }
+    if(state.FT) {
+        fmt::format_to(resource_appender, "  /FT /{:f}\n", *state.FT);
+    }
+    if(state.SM) {
+        fmt::format_to(resource_appender, "  /SM /{:f}\n", *state.SM);
+    }
     if(state.BM) {
         fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
+    }
+    if(state.CA) {
+        fmt::format_to(resource_appender, "  /CA /{:f}\n", *state.CA);
+    }
+    if(state.ca) {
+        fmt::format_to(resource_appender, "  /ca /{:f}\n", *state.ca);
+    }
+    if(state.AIS) {
+        fmt::format_to(resource_appender, "  /AIS /{}\n", *state.AIS ? "true" : "false");
+    }
+    if(state.TK) {
+        fmt::format_to(resource_appender, "  /TK /{:}\n", *state.TK ? "true" : "false");
     }
     buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});
