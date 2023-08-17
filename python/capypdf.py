@@ -305,13 +305,13 @@ class Options:
         check_error(libfile.capy_options_set_title(self, bytes))
 
     def set_author(self, author):
-        if not isinstance(title, str):
+        if not isinstance(author, str):
             raise CapyPDFException('Author must be an Unicode string.')
-        bytes = title.encode('UTF-8')
+        bytes = author.encode('UTF-8')
         check_error(libfile.capy_options_set_author(self, bytes))
 
     def set_creator(self, creator):
-        if not isinstance(title, str):
+        if not isinstance(creator, str):
             raise CapyPDFException('Creator must be an Unicode string.')
         bytes = creator.encode('UTF-8')
         check_error(libfile.capy_options_set_creator(self, bytes))
