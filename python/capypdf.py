@@ -28,6 +28,24 @@ class LineJoinStyle(Enum):
     Round = 1
     Bevel = 2
 
+class BlendMode(Enum):
+    Normal = 0
+    Multiply = 1
+    Screen = 2
+    Overlay = 3
+    Darken = 4
+    Lighten = 5
+    Colordodge = 6
+    Colorburn = 7
+    Hardlight = 8
+    Softlight = 9
+    Difference = 10
+    Exclusion = 11
+    Hue = 12
+    Saturation = 13
+    Color = 14
+    Luminosity = 15
+
 class Colorspace(Enum):
     DeviceRGB = 0
     DeviceGray = 1
@@ -202,6 +220,7 @@ cfunc_types = (
 ('capy_graphics_state_new', [ctypes.c_void_p]),
 ('capy_graphics_state_set_CA', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_graphics_state_set_ca', [ctypes.c_void_p, ctypes.c_double]),
+('capy_graphics_state_set_BM', [ctypes.c_void_p, enum_type]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
@@ -709,6 +728,9 @@ class GraphicsState:
 
     def set_ca(self, value):
         check_error(libfile.capy_graphics_state_set_ca(self, value))
+
+    def set_BM(self, blendmode):
+        check_error(libfile.capy_graphics_state_set_BM(self, blendmode.value))
 
 class OptionalContentGroup:
     def __init__(self, name):

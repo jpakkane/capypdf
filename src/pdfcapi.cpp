@@ -739,6 +739,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *stat
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(CapyPDF_GraphicsState *state,
+                                                     CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    s->BM = blendmode;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<GraphicsState *>(state);
