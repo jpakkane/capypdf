@@ -121,6 +121,49 @@ void draw_circles(PdfDrawContext &ctx, CapyPDF_GraphicsStateId gsid) {
 int draw_group_doc() {
     // PDF 2.0 spec page 409.
     PdfGenerationData opts;
+
+    opts.default_page_properties.mediabox->x2 = 200;
+    opts.default_page_properties.mediabox->y2 = 200;
+    opts.title = u8string::from_cstr("Transparency group test").value();
+    opts.author = u8string::from_cstr("Test Person").value();
+    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    GenPopper genpop("tr_test.pdf", opts);
+    PdfGen &gen = *genpop.g;
+    CapyPDF_TransparencyGroupId tgid;
+    GraphicsState gs;
+    gs.ca = 0.5;
+    // Note: does not need to set CA, as layer composition operations treat everything as
+    // "non-stroke".
+    auto gsid = gen.add_graphics_state(gs).value();
+    {
+        auto groupctx = gen.new_transparency_group(100, 100);
+        groupctx.cmd_w(10);
+        groupctx.cmd_rg(0.9, 0.1, 0.1);
+        groupctx.cmd_RG(0.1, 0.9, 0.2);
+        groupctx.cmd_re(0, 0, 100, 100);
+        groupctx.cmd_b();
+        TransparencyGroupExtra ex;
+        //        ex.I = false;
+        //        ex.K = true;
+        tgid = gen.add_transparency_group(groupctx, &ex).value();
+    }
+    {
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
+        ctx.cmd_g(0.5);
+        ctx.cmd_re(0, 0, 200, 100);
+        ctx.cmd_f();
+        auto st = ctx.push_gstate();
+        ctx.translate(50, 50);
+        ctx.cmd_gs(gsid);
+        ctx.cmd_Do(tgid);
+    }
+    return 0;
+}
+
+int draw_transp_doc() {
+    // PDF 2.0 spec page 409.
+    PdfGenerationData opts;
     const char *icc_out =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 
@@ -209,6 +252,9 @@ int draw_group_doc() {
 
 int main(int argc, char **argv) {
     if(draw_simple_form() != 0) {
+        return 1;
+    }
+    if(draw_transp_doc() != 0) {
         return 1;
     }
     return draw_group_doc();
