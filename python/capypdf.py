@@ -79,7 +79,7 @@ class RenderingIntent(Enum):
     Perceptual = 3
 
 class TextMode(Enum):
-    Fill = 0,
+    Fill = 0
     Stroke = 1
     FillStroke = 2
     Invisible = 3
