@@ -588,15 +588,15 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_render_text(CapyPDF_Text *text,
     return conv_err(t->render_text(txt.value()));
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_nonstroke_color(CapyPDF_Text *text,
-                                                    const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_set_nonstroke(CapyPDF_Text *text,
+                                                  const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     const auto *c = reinterpret_cast<const Color *>(color);
     return conv_err(t->nonstroke_color(*c));
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_text_stroke_color(CapyPDF_Text *text,
-                                                 const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
+                                               const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     const auto *c = reinterpret_cast<const Color *>(color);
     return conv_err(t->stroke_color(*c));
@@ -739,8 +739,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *stat
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(CapyPDF_GraphicsState *state,
-                                                     CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(
+    CapyPDF_GraphicsState *state, CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
     auto *s = reinterpret_cast<GraphicsState *>(state);
     s->BM = blendmode;
     RETNOERR;

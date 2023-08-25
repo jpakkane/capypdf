@@ -204,8 +204,8 @@ cfunc_types = (
 ('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
 ('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_text_stroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_text_nonstroke_color', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_text_set_stroke', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_text_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 
 ('capy_color_new', [ctypes.c_void_p]),
 ('capy_color_destroy', [ctypes.c_void_p]),
@@ -642,11 +642,11 @@ class Text:
         bytes = text.encode('UTF-8')
         check_error(libfile.capy_text_render_text(self, bytes))
 
-    def nonstroke_color(self, color):
-        check_error(libfile.capy_text_nonstroke_color(self, color))
+    def set_nonstroke(self, color):
+        check_error(libfile.capy_text_set_nonstroke(self, color))
 
-    def stroke_color(self, color):
-        check_error(libfile.capy_text_stroke_color(self, color))
+    def set_stroke(self, color):
+        check_error(libfile.capy_text_set_stroke(self, color))
 
     def cmd_Tc(self, spacing):
         check_error(libfile.capy_text_cmd_Tc(self, spacing))
