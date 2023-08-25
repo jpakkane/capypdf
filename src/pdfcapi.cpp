@@ -185,6 +185,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->embed_jpg(fname);
+    if(rc) {
+        *iid = rc.value();
+    }
     return conv_err(rc);
 }
 
@@ -193,6 +196,9 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
                                                    CapyPDF_FontId *fid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_font(fname);
+    if(rc) {
+        *fid = rc.value();
+    }
     return conv_err(rc);
 }
 
