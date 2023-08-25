@@ -112,15 +112,15 @@ public:
     ErrorCode cmd_f();
     // ErrorCode cmd_F(); PDF spec says this is obsolete.
     ErrorCode cmd_fstar();
-    ErrorCode cmd_G(double gray);
-    ErrorCode cmd_g(double gray);
+    ErrorCode cmd_G(LimitDouble gray);
+    ErrorCode cmd_g(LimitDouble gray);
     ErrorCode cmd_gs(CapyPDF_GraphicsStateId id);
     ErrorCode cmd_h();
     ErrorCode cmd_i(double flatness);
     ErrorCode cmd_j(CAPYPDF_Line_Join join_style);
     ErrorCode cmd_J(CAPYPDF_Line_Cap cap_style);
-    ErrorCode cmd_K(double c, double m, double y, double k);
-    ErrorCode cmd_k(double c, double m, double y, double k);
+    ErrorCode cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
+    ErrorCode cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
     ErrorCode cmd_l(double x, double y);
     ErrorCode cmd_m(double x, double y);
     ErrorCode cmd_M(double miterlimit);
@@ -128,8 +128,8 @@ public:
     ErrorCode cmd_q(); // Save
     ErrorCode cmd_Q(); // Restore
     ErrorCode cmd_re(double x, double y, double w, double h);
-    ErrorCode cmd_RG(double r, double g, double b);
-    ErrorCode cmd_rg(double r, double g, double b);
+    ErrorCode cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b);
+    ErrorCode cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b);
     ErrorCode cmd_ri(CapyPDF_Rendering_Intent ri);
     ErrorCode cmd_s();
     ErrorCode cmd_S();
@@ -146,32 +146,32 @@ public:
     // Command serialization.
     ErrorCode serialize_G(std::back_insert_iterator<std::string> &out,
                           std::string_view indent,
-                          double gray) const;
+                          LimitDouble gray) const;
     ErrorCode serialize_g(std::back_insert_iterator<std::string> &out,
                           std::string_view indent,
-                          double gray) const;
+                          LimitDouble gray) const;
     ErrorCode serialize_K(std::back_insert_iterator<std::string> &out,
                           std::string_view indent,
-                          double c,
-                          double m,
-                          double y,
-                          double k) const;
+                          LimitDouble c,
+                          LimitDouble m,
+                          LimitDouble y,
+                          LimitDouble k) const;
     ErrorCode serialize_k(std::back_insert_iterator<std::string> &out,
                           std::string_view indent,
-                          double c,
-                          double m,
-                          double y,
-                          double k) const;
+                          LimitDouble c,
+                          LimitDouble m,
+                          LimitDouble y,
+                          LimitDouble k) const;
     ErrorCode serialize_RG(std::back_insert_iterator<std::string> &out,
                            std::string_view indent,
-                           double r,
-                           double g,
-                           double b) const;
+                           LimitDouble r,
+                           LimitDouble g,
+                           LimitDouble b) const;
     ErrorCode serialize_rg(std::back_insert_iterator<std::string> &out,
                            std::string_view indent,
-                           double r,
-                           double g,
-                           double b) const;
+                           LimitDouble r,
+                           LimitDouble g,
+                           LimitDouble b) const;
 
     // Color
     ErrorCode set_stroke_color(const Color &c) { return set_color(c, true); }

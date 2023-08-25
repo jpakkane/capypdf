@@ -377,9 +377,9 @@ ErrorCode PdfDrawContext::cmd_fstar() {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_G(double gray) { return serialize_G(cmd_appender, ind, gray); }
+ErrorCode PdfDrawContext::cmd_G(LimitDouble gray) { return serialize_G(cmd_appender, ind, gray); }
 
-ErrorCode PdfDrawContext::cmd_g(double gray) { return serialize_g(cmd_appender, ind, gray); }
+ErrorCode PdfDrawContext::cmd_g(LimitDouble gray) { return serialize_g(cmd_appender, ind, gray); }
 
 ErrorCode PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
@@ -414,11 +414,11 @@ ErrorCode PdfDrawContext::cmd_J(CAPYPDF_Line_Cap cap_style) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
+ErrorCode PdfDrawContext::cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
     return serialize_K(cmd_appender, ind, c, m, y, k);
 }
 
-ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
+ErrorCode PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
     return serialize_k(cmd_appender, ind, c, m, y, k);
 }
 
@@ -465,11 +465,11 @@ ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
+ErrorCode PdfDrawContext::cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b) {
     return serialize_RG(cmd_appender, ind, r, g, b);
 }
 
-ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
+ErrorCode PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b) {
     return serialize_rg(cmd_appender, ind, r, g, b);
 }
 
@@ -546,69 +546,53 @@ ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
 
 ErrorCode PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
                                       std::string_view indent,
-                                      double gray) const {
-    CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(out, "{}{:f} G\n", indent, gray);
+                                      LimitDouble gray) const {
+    fmt::format_to(out, "{}{:f} G\n", indent, gray.v());
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
                                       std::string_view indent,
-                                      double gray) const {
-    CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(out, "{}{:f} g\n", indent, gray);
+                                      LimitDouble gray) const {
+    fmt::format_to(out, "{}{:f} g\n", indent, gray.v());
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::serialize_K(std::back_insert_iterator<std::string> &out,
                                       std::string_view indent,
-                                      double c,
-                                      double m,
-                                      double y,
-                                      double k) const {
-    CHECK_COLORCOMPONENT(c);
-    CHECK_COLORCOMPONENT(m);
-    CHECK_COLORCOMPONENT(y);
-    CHECK_COLORCOMPONENT(k);
-    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c, m, y, k);
+                                      LimitDouble c,
+                                      LimitDouble m,
+                                      LimitDouble y,
+                                      LimitDouble k) const {
+    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c.v(), m.v(), y.v(), k.v());
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::serialize_k(std::back_insert_iterator<std::string> &out,
                                       std::string_view indent,
-                                      double c,
-                                      double m,
-                                      double y,
-                                      double k) const {
-    CHECK_COLORCOMPONENT(c);
-    CHECK_COLORCOMPONENT(m);
-    CHECK_COLORCOMPONENT(y);
-    CHECK_COLORCOMPONENT(k);
-    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c, m, y, k);
+                                      LimitDouble c,
+                                      LimitDouble m,
+                                      LimitDouble y,
+                                      LimitDouble k) const {
+    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c.v(), m.v(), y.v(), k.v());
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::serialize_RG(std::back_insert_iterator<std::string> &out,
                                        std::string_view indent,
-                                       double r,
-                                       double g,
-                                       double b) const {
-    CHECK_COLORCOMPONENT(r);
-    CHECK_COLORCOMPONENT(g);
-    CHECK_COLORCOMPONENT(b);
-    fmt::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r, g, b);
+                                       LimitDouble r,
+                                       LimitDouble g,
+                                       LimitDouble b) const {
+    fmt::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r.v(), g.v(), b.v());
     return ErrorCode::NoError;
 }
 
 ErrorCode PdfDrawContext::serialize_rg(std::back_insert_iterator<std::string> &out,
                                        std::string_view indent,
-                                       double r,
-                                       double g,
-                                       double b) const {
-    CHECK_COLORCOMPONENT(r);
-    CHECK_COLORCOMPONENT(g);
-    CHECK_COLORCOMPONENT(b);
-    fmt::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r, g, b);
+                                       LimitDouble r,
+                                       LimitDouble g,
+                                       LimitDouble b) const {
+    fmt::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r.v(), g.v(), b.v());
     return ErrorCode::NoError;
 }
 
