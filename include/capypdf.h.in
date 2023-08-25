@@ -156,15 +156,18 @@ enum CAPYPDF_Color_Management_Policy {
 */
 // clang-format on
 
-typedef struct _CapyPDF_Color CapyPDF_Color;
-typedef struct _CapyPDF_DrawContext CapyPDF_DrawContext;
-typedef struct _CapyPDF_Generator CapyPDF_Generator;
-typedef struct _CapyPDF_GraphicsState CapyPDF_GraphicsState;
-typedef struct _CapyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
-typedef struct _CapyPDF_Options CapyPDF_Options;
-typedef struct _CapyPDF_PageProperties CapyPDF_PageProperties;
-typedef struct _CapyPDF_Text CapyPDF_Text;
-typedef struct _CapyPDF_Transition CapyPDF_Transition;
+// These start with a lower case letter, because all
+// symbol names that start with an underscore + capital letter
+// are reserved for the standard library.
+typedef struct _capyPDF_Color CapyPDF_Color;
+typedef struct _capyPDF_DrawContext CapyPDF_DrawContext;
+typedef struct _capyPDF_Generator CapyPDF_Generator;
+typedef struct _capyPDF_GraphicsState CapyPDF_GraphicsState;
+typedef struct _capyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
+typedef struct _capyPDF_Options CapyPDF_Options;
+typedef struct _capyPDF_PageProperties CapyPDF_PageProperties;
+typedef struct _capyPDF_Text CapyPDF_Text;
+typedef struct _capyPDF_Transition CapyPDF_Transition;
 
 typedef int32_t CAPYPDF_EC;
 
@@ -432,8 +435,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *stat
                                                      double value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(CapyPDF_GraphicsState *state,
-                                                     enum CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(
+    CapyPDF_GraphicsState *state, enum CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT;
 
