@@ -143,6 +143,37 @@ public:
     ErrorCode cmd_Wstar();
     ErrorCode cmd_y(double x1, double y1, double x3, double y3);
 
+    // Command serialization.
+    ErrorCode serialize_G(std::back_insert_iterator<std::string> &out,
+                          std::string_view indent,
+                          double gray) const;
+    ErrorCode serialize_g(std::back_insert_iterator<std::string> &out,
+                          std::string_view indent,
+                          double gray) const;
+    ErrorCode serialize_K(std::back_insert_iterator<std::string> &out,
+                          std::string_view indent,
+                          double c,
+                          double m,
+                          double y,
+                          double k) const;
+    ErrorCode serialize_k(std::back_insert_iterator<std::string> &out,
+                          std::string_view indent,
+                          double c,
+                          double m,
+                          double y,
+                          double k) const;
+    ErrorCode serialize_RG(std::back_insert_iterator<std::string> &out,
+                           std::string_view indent,
+                           double r,
+                           double g,
+                           double b) const;
+    ErrorCode serialize_rg(std::back_insert_iterator<std::string> &out,
+                           std::string_view indent,
+                           double r,
+                           double g,
+                           double b) const;
+
+    // Color
     ErrorCode set_stroke_color(const Color &c) { return set_color(c, true); }
     ErrorCode set_nonstroke_color(const Color &c) { return set_color(c, false); }
 

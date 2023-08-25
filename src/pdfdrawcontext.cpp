@@ -377,17 +377,9 @@ ErrorCode PdfDrawContext::cmd_fstar() {
     return ErrorCode::NoError;
 }
 
-ErrorCode PdfDrawContext::cmd_G(double gray) {
-    CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{:f} G\n", ind, gray);
-    return ErrorCode::NoError;
-}
+ErrorCode PdfDrawContext::cmd_G(double gray) { return serialize_G(cmd_appender, ind, gray); }
 
-ErrorCode PdfDrawContext::cmd_g(double gray) {
-    CHECK_COLORCOMPONENT(gray);
-    fmt::format_to(cmd_appender, "{}{:f} g\n", ind, gray);
-    return ErrorCode::NoError;
-}
+ErrorCode PdfDrawContext::cmd_g(double gray) { return serialize_g(cmd_appender, ind, gray); }
 
 ErrorCode PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
@@ -423,20 +415,11 @@ ErrorCode PdfDrawContext::cmd_J(CAPYPDF_Line_Cap cap_style) {
 }
 
 ErrorCode PdfDrawContext::cmd_K(double c, double m, double y, double k) {
-    CHECK_COLORCOMPONENT(c);
-    CHECK_COLORCOMPONENT(m);
-    CHECK_COLORCOMPONENT(y);
-    CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} K\n", ind, c, m, y, k);
-    return ErrorCode::NoError;
+    return serialize_K(cmd_appender, ind, c, m, y, k);
 }
+
 ErrorCode PdfDrawContext::cmd_k(double c, double m, double y, double k) {
-    CHECK_COLORCOMPONENT(c);
-    CHECK_COLORCOMPONENT(m);
-    CHECK_COLORCOMPONENT(y);
-    CHECK_COLORCOMPONENT(k);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} k\n", ind, c, m, y, k);
-    return ErrorCode::NoError;
+    return serialize_k(cmd_appender, ind, c, m, y, k);
 }
 
 ErrorCode PdfDrawContext::cmd_l(double x, double y) {
@@ -483,19 +466,11 @@ ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
 }
 
 ErrorCode PdfDrawContext::cmd_RG(double r, double g, double b) {
-    CHECK_COLORCOMPONENT(r);
-    CHECK_COLORCOMPONENT(g);
-    CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} RG\n", ind, r, g, b);
-    return ErrorCode::NoError;
+    return serialize_RG(cmd_appender, ind, r, g, b);
 }
 
 ErrorCode PdfDrawContext::cmd_rg(double r, double g, double b) {
-    CHECK_COLORCOMPONENT(r);
-    CHECK_COLORCOMPONENT(g);
-    CHECK_COLORCOMPONENT(b);
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} rg\n", ind, r, g, b);
-    return ErrorCode::NoError;
+    return serialize_rg(cmd_appender, ind, r, g, b);
 }
 
 ErrorCode PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
@@ -566,6 +541,74 @@ ErrorCode PdfDrawContext::cmd_Wstar() {
 
 ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} y\n", ind, x1, y1, x3, y3);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
+                                      std::string_view indent,
+                                      double gray) const {
+    CHECK_COLORCOMPONENT(gray);
+    fmt::format_to(out, "{}{:f} G\n", indent, gray);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
+                                      std::string_view indent,
+                                      double gray) const {
+    CHECK_COLORCOMPONENT(gray);
+    fmt::format_to(out, "{}{:f} g\n", indent, gray);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_K(std::back_insert_iterator<std::string> &out,
+                                      std::string_view indent,
+                                      double c,
+                                      double m,
+                                      double y,
+                                      double k) const {
+    CHECK_COLORCOMPONENT(c);
+    CHECK_COLORCOMPONENT(m);
+    CHECK_COLORCOMPONENT(y);
+    CHECK_COLORCOMPONENT(k);
+    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c, m, y, k);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_k(std::back_insert_iterator<std::string> &out,
+                                      std::string_view indent,
+                                      double c,
+                                      double m,
+                                      double y,
+                                      double k) const {
+    CHECK_COLORCOMPONENT(c);
+    CHECK_COLORCOMPONENT(m);
+    CHECK_COLORCOMPONENT(y);
+    CHECK_COLORCOMPONENT(k);
+    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c, m, y, k);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_RG(std::back_insert_iterator<std::string> &out,
+                                       std::string_view indent,
+                                       double r,
+                                       double g,
+                                       double b) const {
+    CHECK_COLORCOMPONENT(r);
+    CHECK_COLORCOMPONENT(g);
+    CHECK_COLORCOMPONENT(b);
+    fmt::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r, g, b);
+    return ErrorCode::NoError;
+}
+
+ErrorCode PdfDrawContext::serialize_rg(std::back_insert_iterator<std::string> &out,
+                                       std::string_view indent,
+                                       double r,
+                                       double g,
+                                       double b) const {
+    CHECK_COLORCOMPONENT(r);
+    CHECK_COLORCOMPONENT(g);
+    CHECK_COLORCOMPONENT(b);
+    fmt::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r, g, b);
     return ErrorCode::NoError;
 }
 
@@ -917,27 +960,33 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             }
             fmt::format_to(app, "{}EMC\n", ind);
         } else if(std::holds_alternative<Stroke_arg>(e)) {
-            // const auto &sarg = std::get<Stroke_arg>(e);
-            printf("Not supported yet.\n");
-            std::abort();
-        } else if(std::holds_alternative<Nonstroke_arg>(e)) {
-            // FIXME: make a function to create color commands
-            // as text and use that here and in the actual set_X_color methods.
             const auto &nsarg = std::get<Nonstroke_arg>(e);
             if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-                fmt::format_to(app, "{}{:f} {:f} {:f} rg\n", ind, rgb.r.v(), rgb.g.v(), rgb.b.v());
+                ERC_PROP(serialize_RG(app, ind, rgb.r.v(), rgb.g.v(), rgb.b.v()));
+            } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
+                auto &gray = std::get<DeviceGrayColor>(nsarg.c);
+                ERC_PROP(serialize_G(app, ind, gray.v.v()));
             } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
-                fmt::format_to(app,
-                               "{}{:f} {:f} {:f} {:f} k\n",
-                               ind,
-                               cmyk.c.v(),
-                               cmyk.m.v(),
-                               cmyk.y.v(),
-                               cmyk.k.v());
+                ERC_PROP(serialize_K(app, ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v()));
             } else {
-                printf("Text nonstroke colorspace not supported yet.\n");
+                printf("Given text stroke colorspace not supported yet.\n");
+                std::abort();
+            }
+        } else if(std::holds_alternative<Nonstroke_arg>(e)) {
+            const auto &nsarg = std::get<Nonstroke_arg>(e);
+            if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
+                auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
+                ERC_PROP(serialize_rg(app, ind, rgb.r.v(), rgb.g.v(), rgb.b.v()));
+            } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
+                auto &gray = std::get<DeviceGrayColor>(nsarg.c);
+                ERC_PROP(serialize_g(app, ind, gray.v.v()));
+            } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
+                auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
+                ERC_PROP(serialize_k(app, ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v()));
+            } else {
+                printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
         } else {

@@ -126,6 +126,14 @@ struct NoReturnValue {};
     }                                                                                              \
     auto &varname = varname##_variant.value();
 
+#define ERC_PROP(func)                                                                             \
+    {                                                                                              \
+        auto temp_returncode_var = func;                                                           \
+        if(temp_returncode_var != ErrorCode::NoError) {                                            \
+            return temp_returncode_var;                                                            \
+        }                                                                                          \
+    }
+
 // For void.
 
 #define ERCV(func)                                                                                 \
