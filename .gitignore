@@ -1,6 +1,8 @@
 /.vscode
 /dist
 *~
+*.swp
+*.orig
 .settings
 .project
 .cproject
