@@ -944,15 +944,15 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
             }
             fmt::format_to(app, "{}EMC\n", ind);
         } else if(std::holds_alternative<Stroke_arg>(e)) {
-            const auto &nsarg = std::get<Nonstroke_arg>(e);
-            if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
-                auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
+            const auto &sarg = std::get<Stroke_arg>(e);
+            if(std::holds_alternative<DeviceRGBColor>(sarg.c)) {
+                auto &rgb = std::get<DeviceRGBColor>(sarg.c);
                 ERC_PROP(serialize_RG(app, ind, rgb.r.v(), rgb.g.v(), rgb.b.v()));
-            } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
-                auto &gray = std::get<DeviceGrayColor>(nsarg.c);
+            } else if(std::holds_alternative<DeviceGrayColor>(sarg.c)) {
+                auto &gray = std::get<DeviceGrayColor>(sarg.c);
                 ERC_PROP(serialize_G(app, ind, gray.v.v()));
-            } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
-                auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
+            } else if(std::holds_alternative<DeviceCMYKColor>(sarg.c)) {
+                auto &cmyk = std::get<DeviceCMYKColor>(sarg.c);
                 ERC_PROP(serialize_K(app, ind, cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v()));
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
