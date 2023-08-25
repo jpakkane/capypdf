@@ -632,6 +632,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) C
     return conv_err(t->cmd_TL(leading));
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
+                                           double a,
+                                           double b,
+                                           double c,
+                                           double d,
+                                           double e,
+                                           double f) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_Tm(a, b, c, d, e, f));
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
                                            CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);

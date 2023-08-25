@@ -200,6 +200,8 @@ cfunc_types = (
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
 ('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
+('capy_text_cmd_Tm', [ctypes.c_void_p,
+    ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
 ('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
@@ -661,6 +663,9 @@ class Text:
 
     def cmd_TL(self, leading):
         check_error(libfile.capy_text_cmd_TL(self, leading))
+
+    def cmd_Tm(self, a, b, c, d, e, f):
+        check_error(libfile.capy_text_cmd_Tm(self, a, b, c, d, e, f))
 
     def cmd_Tr(self, rendtype):
         if not isinstance(rendtype, TextMode):
