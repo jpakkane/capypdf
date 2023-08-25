@@ -544,7 +544,8 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
         RETERR(IndexOutOfBounds);
     }
     auto end_offset = size_t((int64_t)e->offset + (int64_t)e->length);
-    if(end_offset >= buf.size()) {
+    // end_offset is an one-past-the end marker.
+    if(end_offset > buf.size()) {
         RETERR(IndexOutOfBounds);
     }
     if(end_offset < 0) {
