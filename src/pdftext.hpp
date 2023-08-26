@@ -166,7 +166,7 @@ public:
         return ErrorCode::NoError;
     }
 
-    ErrorCode cmd_TM(double a, double b, double c, double d, double e, double f) {
+    ErrorCode cmd_Tm(double a, double b, double c, double d, double e, double f) {
         events.emplace_back(Tm_arg{a, b, c, d, e, f});
         return ErrorCode::NoError;
     }
