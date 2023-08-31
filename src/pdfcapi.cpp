@@ -335,6 +335,14 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
     return conv_err(c->cmd_cm(m1, m2, m3, m4, m5, m6));
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
+                                        double *dash_array,
+                                        int32_t array_size,
+                                        double phase) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(c->cmd_d(dash_array, array_size, phase));
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_EMC());
