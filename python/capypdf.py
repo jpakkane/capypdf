@@ -155,6 +155,7 @@ cfunc_types = (
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_dc_cmd_d', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int32, ctypes.c_double]),
 ('capy_dc_cmd_EMC', [ctypes.c_void_p]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
@@ -286,6 +287,11 @@ def to_bytepath(filename):
     else:
         return str(filename).encode('UTF-8')
 
+def to_array(ctype, array):
+    if not isinstance(array, (list, tuple)):
+        raise CapyPDFException('Array value argument must be an list or tupple.')
+    return (ctype * len(array))(*array), len(array)
+
 class Options:
     def __init__(self):
         opt = ctypes.c_void_p()
@@ -388,6 +394,9 @@ class DrawContext:
 
     def cmd_cm(self, m1, m2, m3, m4, m5, m6):
         check_error(libfile.capy_dc_cmd_cm(self, m1, m2, m3, m4, m5, m6))
+
+    def cmd_d(self, array, phase):
+        check_error(libfile.capy_dc_cmd_d(self, *to_array(ctypes.c_double, array), phase))
 
     def cmd_EMC(self):
         check_error(libfile.capy_dc_cmd_EMC(self))
@@ -699,12 +708,7 @@ class Color:
         check_error(libfile.capy_color_set_cmyk(self, c, m, y, k))
 
     def set_icc(self, icc_id, values):
-        if not isinstance(values, list):
-            raise CapyPDFException('Icc color value argument must be an array.')
-        num_entries = len(values)
-        doublearray = ctypes.c_double * num_entries
-        doublevalues = doublearray(*tuple(values))
-        check_error(libfile.capy_color_set_icc(self, icc_id, doublevalues, num_entries))
+        check_error(libfile.capy_color_set_icc(self, icc_id, *to_array(ctypes.c_double, values)))
 
 class Transition:
     def __init__(self, ttype, duration):
