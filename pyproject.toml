@@ -22,5 +22,5 @@ classifiers = [
 ]
 
 [tool.meson-python.args]
-setup = ['-Dcpp_std=c++23', '--debug']
+setup = ['--debug']
 install = ['--tags=runtime,python-runtime']
