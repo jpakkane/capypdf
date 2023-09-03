@@ -93,6 +93,11 @@ class IntentSubtype(Enum):
     PDFA = 1
     # PDFE = 2
 
+class ImageInterpolation(Enum):
+    Automatic = 0
+    Pixelated = 1
+    Smooth = 2
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -135,7 +140,8 @@ cfunc_types = (
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
+('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
@@ -588,9 +594,11 @@ class Generator:
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))
 
-    def embed_jpg(self, fname):
+    def embed_jpg(self, fname, interpolate=ImageInterpolation.Automatic):
+        if not isinstance(interpolate, ImageInterpolation):
+            raise CapyPDFException('Argument must be an image interpolation.')
         iid = ImageId()
-        check_error(libfile.capy_generator_embed_jpg(self, to_bytepath(fname), ctypes.pointer(iid)))
+        check_error(libfile.capy_generator_embed_jpg(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
         return iid
 
     def load_font(self, fname):
@@ -603,9 +611,11 @@ class Generator:
         check_error(libfile.capy_generator_load_icc_profile(self, to_bytepath(fname), ctypes.pointer(iid)))
         return iid
 
-    def load_image(self, fname):
+    def load_image(self, fname, interpolate=ImageInterpolation.Automatic):
+        if not isinstance(interpolate, ImageInterpolation):
+            raise CapyPDFException('Argument must be an image interpolation.')
         iid = ImageId()
-        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), ctypes.pointer(iid)))
+        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
         return iid
 
     def write(self):

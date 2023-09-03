@@ -325,9 +325,9 @@ public:
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
 
     // Images
-    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname);
+    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname);
+    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
@@ -439,15 +439,20 @@ private:
     rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
                                            int32_t h,
                                            int32_t bits_per_component,
+                                           enum CAPYPDF_Image_Interpolation interpolate,
                                            ColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            bool is_mask,
                                            std::string_view uncompressed_bytes);
 
-    rvoe<CapyPDF_ImageId> process_rgb_image(const rgb_image &image);
-    rvoe<CapyPDF_ImageId> process_gray_image(const gray_image &image);
-    rvoe<CapyPDF_ImageId> process_mono_image(const mono_image &image);
-    rvoe<CapyPDF_ImageId> process_cmyk_image(const cmyk_image &image);
+    rvoe<CapyPDF_ImageId> process_rgb_image(const rgb_image &image,
+                                            enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> process_gray_image(const gray_image &image,
+                                             enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> process_mono_image(const mono_image &image,
+                                             enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> process_cmyk_image(const cmyk_image &image,
+                                             enum CAPYPDF_Image_Interpolation interpolate);
 
     int32_t create_page_group();
     void pad_subset_fonts();

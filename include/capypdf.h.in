@@ -145,6 +145,12 @@ enum CAPYPDF_Intent_Subtype {
     // CAPY_INTENT_SUBTYPE_PDFE,
 };
 
+enum CAPYPDF_Image_Interpolation {
+    CAPY_INTERPOLATION_AUTO,
+    CAPY_INTERPOLATION_PIXELATED,
+    CAPY_INTERPOLATION_SMOOTH,
+};
+
 // clang-format off
 /* Not used yet.
 enum CAPYPDF_Color_Management_Policy {
@@ -255,12 +261,14 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
                                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
+                                                   enum CAPYPDF_Image_Interpolation interpolate,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_FontId *fid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
                                                     const char *fname,
+                                                    enum CAPYPDF_Image_Interpolation interpolate,
                                                     CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,

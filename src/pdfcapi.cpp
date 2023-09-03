@@ -182,9 +182,10 @@ CAPYPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
+                                                   enum CAPYPDF_Image_Interpolation interpolate,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    auto rc = gen->embed_jpg(fname);
+    auto rc = gen->embed_jpg(fname, interpolate);
     if(rc) {
         *iid = rc.value();
     }
@@ -204,9 +205,10 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
                                                     const char *fname,
+                                                    enum CAPYPDF_Image_Interpolation interpolate,
                                                     CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
-    auto rc = gen->load_image(fname);
+    auto rc = gen->load_image(fname, interpolate);
     if(rc) {
         *iid = rc.value();
     }
