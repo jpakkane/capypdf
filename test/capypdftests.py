@@ -26,6 +26,7 @@ os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be
 source_root = pathlib.Path(sys.argv[1])
 testdata_dir = source_root / 'testoutput'
 image_dir = source_root / 'images'
+icc_dir = source_root / 'icc'
 sys.path.append(str(source_root / 'python'))
 
 noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
@@ -254,7 +255,7 @@ class TestPDFCreation(unittest.TestCase):
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
-            cs = g.load_icc_profile('/usr/share/color/icc/colord/AdobeRGB1998.icc')
+            cs = g.load_icc_profile('/usr/share/color/icc/ghostscript/a98.icc')
             sc = capypdf.Color()
             sc.set_icc(cs, [0.1, 0.2, 0.8])
             nsc = capypdf.Color()
