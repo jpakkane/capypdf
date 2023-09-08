@@ -951,74 +951,71 @@ startxref
 }
 
 rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
-    PdfDocument *myself = this; // Needed because capturing "this" does not work for some reason.
     size_t i = 0;
     auto visitor = overloaded{
         [](DummyIndexZero &) -> rvoe<NoReturnValue> { return NoReturnValue{}; },
 
-        [&i, &myself](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_finished_object(i, pobj.dictionary, pobj.stream));
+        [&](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
+            ERCV(write_finished_object(i, pobj.dictionary, pobj.stream));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
+        [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
             ERC(compressed, flate_compress(pobj.stream));
             std::string dict = fmt::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
                                            pobj.unclosed_dictionary,
                                            compressed.size());
-            ERCV(myself->write_finished_object(i, dict, compressed));
+            ERCV(write_finished_object(i, dict, compressed));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_subset_font_data(i, ssfont));
+        [&](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
+            ERCV(write_subset_font_data(i, ssfont));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
-            myself->write_subset_font_descriptor(i,
-                                                 myself->fonts.at(ssfontd.fid.id).fontdata,
-                                                 ssfontd.subfont_data_obj,
-                                                 ssfontd.subset_num);
+        [&](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
+            write_subset_font_descriptor(
+                i, fonts.at(ssfontd.fid.id).fontdata, ssfontd.subfont_data_obj, ssfontd.subset_num);
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_subset_cmap(i, myself->fonts.at(sscmap.fid.id), sscmap.subset_id));
+        [&](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
+            ERCV(write_subset_cmap(i, fonts.at(sscmap.fid.id), sscmap.subset_id));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_subset_font(i,
-                                           myself->fonts.at(ssfont.fid.id),
-                                           0,
-                                           ssfont.subfont_descriptor_obj,
-                                           ssfont.subfont_cmap_obj));
+        [&](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
+            ERCV(write_subset_font(i,
+                                   fonts.at(ssfont.fid.id),
+                                   0,
+                                   ssfont.subfont_descriptor_obj,
+                                   ssfont.subfont_cmap_obj));
             return NoReturnValue{};
         },
 
-        [&myself](const DelayedPages &) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_pages_root());
+        [&](const DelayedPages &) -> rvoe<NoReturnValue> {
+            ERCV(write_pages_root());
             return NoReturnValue{};
         },
 
-        [&myself](const DelayedPage &dp) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_delayed_page(dp));
+        [&](const DelayedPage &dp) -> rvoe<NoReturnValue> {
+            ERCV(write_delayed_page(dp));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedCheckboxWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_checkbox_widget(i, checkbox));
+        [&](const DelayedCheckboxWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
+            ERCV(write_checkbox_widget(i, checkbox));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_annotation(i, anno));
+        [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
+            ERCV(write_annotation(i, anno));
             return NoReturnValue{};
         },
 
-        [&i, &myself](const DelayedStructItem &si) -> rvoe<NoReturnValue> {
-            ERCV(myself->write_delayed_structure_item(i, si));
+        [&](const DelayedStructItem &si) -> rvoe<NoReturnValue> {
+            ERCV(write_delayed_structure_item(i, si));
             return NoReturnValue{};
         },
     };
