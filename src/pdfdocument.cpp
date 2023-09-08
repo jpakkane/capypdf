@@ -951,57 +951,82 @@ startxref
 }
 
 rvoe<std::vector<uint64_t>> PdfDocument::write_objects() {
-    std::vector<uint64_t> object_offsets;
-    for(size_t i = 0; i < document_objects.size(); ++i) {
-        const auto &obj = document_objects[i];
-        object_offsets.push_back(ftell(ofile));
-        if(std::holds_alternative<DummyIndexZero>(obj)) {
-            // Skip.
-        } else if(std::holds_alternative<FullPDFObject>(obj)) {
-            const auto &pobj = std::get<FullPDFObject>(obj);
-            write_finished_object(i, pobj.dictionary, pobj.stream);
-        } else if(std::holds_alternative<DeflatePDFObject>(obj)) {
-            const auto &pobj = std::get<DeflatePDFObject>(obj);
+    PdfDocument *myself = this; // Needed because capturing "this" does not work for some reason.
+    size_t i = 0;
+    auto visitor = overloaded{
+        [](DummyIndexZero &) -> rvoe<NoReturnValue> { return NoReturnValue{}; },
+
+        [&i, &myself](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_finished_object(i, pobj.dictionary, pobj.stream));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
             ERC(compressed, flate_compress(pobj.stream));
             std::string dict = fmt::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
                                            pobj.unclosed_dictionary,
                                            compressed.size());
-            write_finished_object(i, dict, compressed);
-        } else if(std::holds_alternative<DelayedSubsetFontData>(obj)) {
-            const auto &ssfont = std::get<DelayedSubsetFontData>(obj);
-            ERCV(write_subset_font_data(i, ssfont));
-        } else if(std::holds_alternative<DelayedSubsetFontDescriptor>(obj)) {
-            const auto &ssfontd = std::get<DelayedSubsetFontDescriptor>(obj);
-            write_subset_font_descriptor(
-                i, fonts.at(ssfontd.fid.id).fontdata, ssfontd.subfont_data_obj, ssfontd.subset_num);
-        } else if(std::holds_alternative<DelayedSubsetCMap>(obj)) {
-            const auto &sscmap = std::get<DelayedSubsetCMap>(obj);
-            write_subset_cmap(i, fonts.at(sscmap.fid.id), sscmap.subset_id);
-        } else if(std::holds_alternative<DelayedSubsetFont>(obj)) {
-            const auto &ssfont = std::get<DelayedSubsetFont>(obj);
-            ERCV(write_subset_font(i,
-                                   fonts.at(ssfont.fid.id),
-                                   0,
-                                   ssfont.subfont_descriptor_obj,
-                                   ssfont.subfont_cmap_obj));
-        } else if(std::holds_alternative<DelayedPages>(obj)) {
-            // const auto &pages = std::get<DelayedPages>(obj);
-            write_pages_root();
-        } else if(std::holds_alternative<DelayedPage>(obj)) {
-            const auto &dp = std::get<DelayedPage>(obj);
-            ERCV(write_delayed_page(dp));
-        } else if(std::holds_alternative<DelayedCheckboxWidgetAnnotation>(obj)) {
-            const auto &checkbox = std::get<DelayedCheckboxWidgetAnnotation>(obj);
-            ERCV(write_checkbox_widget(i, checkbox));
-        } else if(std::holds_alternative<DelayedAnnotation>(obj)) {
-            const auto &annotation = std::get<DelayedAnnotation>(obj);
-            ERCV(write_annotation(i, annotation));
-        } else if(std::holds_alternative<DelayedStructItem>(obj)) {
-            const auto &si = std::get<DelayedStructItem>(obj);
-            ERCV(write_delayed_structure_item(i, si));
-        } else {
-            RETERR(Unreachable);
-        }
+            ERCV(myself->write_finished_object(i, dict, compressed));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_subset_font_data(i, ssfont));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
+            myself->write_subset_font_descriptor(i,
+                                                 myself->fonts.at(ssfontd.fid.id).fontdata,
+                                                 ssfontd.subfont_data_obj,
+                                                 ssfontd.subset_num);
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_subset_cmap(i, myself->fonts.at(sscmap.fid.id), sscmap.subset_id));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_subset_font(i,
+                                           myself->fonts.at(ssfont.fid.id),
+                                           0,
+                                           ssfont.subfont_descriptor_obj,
+                                           ssfont.subfont_cmap_obj));
+            return NoReturnValue{};
+        },
+
+        [&myself](const DelayedPages &) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_pages_root());
+            return NoReturnValue{};
+        },
+
+        [&myself](const DelayedPage &dp) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_delayed_page(dp));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedCheckboxWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_checkbox_widget(i, checkbox));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_annotation(i, anno));
+            return NoReturnValue{};
+        },
+
+        [&i, &myself](const DelayedStructItem &si) -> rvoe<NoReturnValue> {
+            ERCV(myself->write_delayed_structure_item(i, si));
+            return NoReturnValue{};
+        },
+    };
+
+    std::vector<uint64_t> object_offsets;
+    for(; i < document_objects.size(); ++i) {
+        object_offsets.push_back(ftell(ofile));
+        ERCV(std::visit(visitor, document_objects.at(i)));
     }
     return object_offsets;
 }
@@ -1061,16 +1086,15 @@ void PdfDocument::write_subset_font_descriptor(int32_t object_num,
     write_finished_object(object_num, objbuf, "");
 }
 
-void PdfDocument::write_subset_cmap(int32_t object_num,
-                                    const FontThingy &font,
-                                    int32_t subset_number) {
+rvoe<NoReturnValue>
+PdfDocument::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
     auto cmap = create_subset_cmap(font.subsets.get_subset(subset_number));
     auto dict = fmt::format(R"(<<
   /Length {}
 >>
 )",
                             cmap.length());
-    write_finished_object(object_num, dict, cmap);
+    return write_finished_object(object_num, dict, cmap);
 }
 
 void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
@@ -1479,7 +1503,8 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
     return fss;
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname,
+                                              enum CAPYPDF_Image_Interpolation interpolate) {
     ERC(image, load_image_file(fname));
     if(std::holds_alternative<rgb_image>(image)) {
         return process_rgb_image(std::get<rgb_image>(image), interpolate);
@@ -1500,8 +1525,14 @@ rvoe<CapyPDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &
         RETERR(UnsupportedFormat);
     }
     auto &im = std::get<mono_image>(image);
-    return add_image_object(
-        im.w, im.h, 1, CAPY_INTERPOLATION_AUTO, CAPYPDF_CS_DEVICE_GRAY, std::optional<int32_t>{}, true, im.pixels);
+    return add_image_object(im.w,
+                            im.h,
+                            1,
+                            CAPY_INTERPOLATION_AUTO,
+                            CAPYPDF_CS_DEVICE_GRAY,
+                            std::optional<int32_t>{},
+                            true,
+                            im.pixels);
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
@@ -1561,22 +1592,27 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::process_mono_image(const mono_image &image, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId>
+PdfDocument::process_mono_image(const mono_image &image,
+                                enum CAPYPDF_Image_Interpolation interpolate) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 1, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(
+                image.w, image.h, 1, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     return add_image_object(
         image.w, image.h, 1, interpolate, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image,
+                                                     enum CAPYPDF_Image_Interpolation interpolate) {
     std::optional<int32_t> smask_id;
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(
+                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     switch(opts.output_colorspace) {
@@ -1586,37 +1622,54 @@ rvoe<CapyPDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image, enu
     }
     case CAPYPDF_CS_DEVICE_GRAY: {
         std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
-        return add_image_object(
-            image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_RGB, smask_id, false, converted_pixels);
+        return add_image_object(image.w,
+                                image.h,
+                                8,
+                                interpolate,
+                                CAPYPDF_CS_DEVICE_RGB,
+                                smask_id,
+                                false,
+                                converted_pixels);
     }
     case CAPYPDF_CS_DEVICE_CMYK: {
         if(cm.get_cmyk().empty()) {
             RETERR(NoCmykProfile);
         }
         ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
-        return add_image_object(
-            image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_CMYK, smask_id, false, converted_pixels);
+        return add_image_object(image.w,
+                                image.h,
+                                8,
+                                interpolate,
+                                CAPYPDF_CS_DEVICE_CMYK,
+                                smask_id,
+                                false,
+                                converted_pixels);
     }
     default:
         RETERR(Unreachable);
     }
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::process_gray_image(const gray_image &image, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId>
+PdfDocument::process_gray_image(const gray_image &image,
+                                enum CAPYPDF_Image_Interpolation interpolate) {
     std::optional<int32_t> smask_id;
 
     // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
 
     if(image.alpha) {
         ERC(imgobj,
-            add_image_object(image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(
+                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imgobj.id).obj;
     }
     return add_image_object(
         image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId>
+PdfDocument::process_cmyk_image(const cmyk_image &image,
+                                enum CAPYPDF_Image_Interpolation interpolate) {
     std::optional<int32_t> smask_id;
     ColorspaceType cs;
     if(image.icc) {
@@ -1632,13 +1685,15 @@ rvoe<CapyPDF_ImageId> PdfDocument::process_cmyk_image(const cmyk_image &image, e
     }
     if(image.alpha) {
         ERC(imobj,
-            add_image_object(image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
+            add_image_object(
+                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     return add_image_object(image.w, image.h, 8, interpolate, cs, smask_id, false, image.pixels);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname,
+                                             enum CAPYPDF_Image_Interpolation interpolate) {
     ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),

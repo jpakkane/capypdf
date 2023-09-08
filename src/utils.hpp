@@ -27,6 +27,10 @@
 
 namespace capypdf {
 
+template<class... Ts> struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 rvoe<std::string> flate_compress(std::string_view data);
 
 rvoe<std::string> load_file(const char *fname);

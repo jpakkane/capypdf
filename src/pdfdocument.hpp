@@ -325,9 +325,11 @@ public:
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
 
     // Images
-    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
+                                     enum CAPYPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname, enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname,
+                                    enum CAPYPDF_Image_Interpolation interpolate);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
@@ -425,7 +427,8 @@ private:
                                       const TtfFont &font,
                                       int32_t font_data_obj,
                                       int32_t subset_number);
-    void write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
+    rvoe<NoReturnValue>
+    write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
     rvoe<NoReturnValue> write_subset_font(int32_t object_num,
                                           const FontThingy &font,
                                           int32_t subset,
