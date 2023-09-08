@@ -24,7 +24,7 @@
 #define CHCK(command)                                                                              \
     {                                                                                              \
         auto rc = command;                                                                         \
-        if(rc != ErrorCode::NoError) {                                                             \
+        if(!rc) {                                                                                  \
             std::abort();                                                                          \
         }                                                                                          \
     }

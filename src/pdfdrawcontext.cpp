@@ -214,20 +214,20 @@ std::string PdfDrawContext::build_resource_dict() {
     return resources;
 }
 
-ErrorCode PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
+rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
     if(used_widgets.find(widget) != used_widgets.end()) {
-        return ErrorCode::AnnotationReuse;
+        RETERR(AnnotationReuse);
     }
     used_widgets.insert(widget);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {
+rvoe<NoReturnValue> PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {
     if(used_annotations.find(annotation) != used_annotations.end()) {
-        return ErrorCode::AnnotationReuse;
+        RETERR(AnnotationReuse);
     }
     used_annotations.insert(annotation);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
 GstatePopper PdfDrawContext::push_gstate() {
@@ -235,31 +235,31 @@ GstatePopper PdfDrawContext::push_gstate() {
     return GstatePopper(this);
 }
 
-ErrorCode PdfDrawContext::cmd_b() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_b() {
     commands += ind;
     commands += "b\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_B() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_B() {
     commands += ind;
     commands += "B\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_bstar() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_bstar() {
     commands += ind;
     commands += "b*\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Bstar() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
     commands += ind;
     commands += "B*\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
     ++marked_depth;
     used_structures.insert(sid);
     fmt::format_to(cmd_appender,
@@ -270,56 +270,59 @@ ErrorCode PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
                    sid.id,
                    ind);
     indent(DrawStateType::MarkedContent);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     ++marked_depth;
     used_ocgs.insert(ocgid);
     fmt::format_to(cmd_appender, "{}/OC /oc{} BDC\n", ind, doc->ocg_object_number(ocgid));
     indent(DrawStateType::MarkedContent);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_BMC(std::string_view tag) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
     if(tag.empty() || tag.front() != '/') {
         std::abort();
     }
     ++marked_depth;
     fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);
     indent(DrawStateType::MarkedContent);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
     fmt::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} c\n", ind, x1, y1, x2, y2, x3, y3);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
     fmt::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} cm\n", ind, m1, m2, m3, m4, m5, m6);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_CS(std::string_view cspace_name) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_CS(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{}{} CS\n", ind, cspace_name);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_cs(std::string_view cspace_name) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_cs(std::string_view cspace_name) {
     fmt::format_to(cmd_appender, "{}{} cs\n", ind, cspace_name);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase) {
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase) {
     if(dash_array_length == 0) {
-        return ErrorCode::ZeroLengthArray;
+        RETERR(ZeroLengthArray);
     }
     for(size_t i = 0; i < dash_array_length; ++i) {
         if(dash_array[i] < 0) {
-            return ErrorCode::NegativeDash;
+            RETERR(NegativeDash);
         }
     }
     commands += ind;
@@ -328,275 +331,275 @@ ErrorCode PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, do
         fmt::format_to(cmd_appender, "{:f} ", dash_array[i]);
     }
     fmt::format_to(cmd_appender, " ] {} d\n", phase);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     if(context_type != CAPY_DC_PAGE) {
-        return ErrorCode::InvalidDrawContextType;
+        RETERR(InvalidDrawContextType);
     }
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
     fmt::format_to(cmd_appender, "{}/FXO{} Do\n", ind, doc->form_xobjects[fxoid.id].xobj_num);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
     if(context_type != CAPY_DC_PAGE) {
-        return ErrorCode::InvalidDrawContextType;
+        RETERR(InvalidDrawContextType);
     }
     CHECK_INDEXNESS(trid.id, doc->transparency_groups);
     fmt::format_to(cmd_appender, "{}/TG{} Do\n", ind, doc->transparency_groups[trid.id]);
     used_trgroups.insert(trid);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_EMC() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_EMC() {
     if(marked_depth == 0) {
-        return ErrorCode::EmcOnEmpty;
+        RETERR(EmcOnEmpty);
     }
     --marked_depth;
-    auto rc = dedent(DrawStateType::MarkedContent);
-    if(!rc) {
-        return rc.error();
-    }
+    ERCV(dedent(DrawStateType::MarkedContent));
     commands += ind;
     commands += "EMC\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_f() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_f() {
     commands += ind;
     commands += "f\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_fstar() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_fstar() {
     commands += ind;
     commands += "f*\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_G(LimitDouble gray) { return serialize_G(cmd_appender, ind, gray); }
+rvoe<NoReturnValue> PdfDrawContext::cmd_G(LimitDouble gray) {
+    return serialize_G(cmd_appender, ind, gray);
+}
 
-ErrorCode PdfDrawContext::cmd_g(LimitDouble gray) { return serialize_g(cmd_appender, ind, gray); }
+rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) {
+    return serialize_g(cmd_appender, ind, gray);
+}
 
-ErrorCode PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
     fmt::format_to(cmd_appender, "{}/GS{} gs\n", ind, gid.id);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_h() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_h() {
     commands += ind;
     commands += "h\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_i(double flatness) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_i(double flatness) {
     if(flatness < 0 || flatness > 100) {
-        return ErrorCode::InvalidFlatness;
+        RETERR(InvalidFlatness);
     }
     fmt::format_to(cmd_appender, "{}{:f} i\n", ind, flatness);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_j(CAPYPDF_Line_Join join_style) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_j(CAPYPDF_Line_Join join_style) {
     CHECK_ENUM(join_style, CAPY_LJ_BEVEL);
     fmt::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_J(CAPYPDF_Line_Cap cap_style) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_J(CAPYPDF_Line_Cap cap_style) {
     CHECK_ENUM(cap_style, CAPY_LC_PROJECTION);
     fmt::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
     return serialize_K(cmd_appender, ind, c, m, y, k);
 }
 
-ErrorCode PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
     return serialize_k(cmd_appender, ind, c, m, y, k);
 }
 
-ErrorCode PdfDrawContext::cmd_l(double x, double y) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_l(double x, double y) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} l\n", ind, x, y);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_m(double x, double y) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_m(double x, double y) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} m\n", ind, x, y);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_M(double miterlimit) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_M(double miterlimit) {
     fmt::format_to(cmd_appender, "{}{:f} M\n", ind, miterlimit);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_n() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_n() {
     commands += ind;
     commands += "n\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_q() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_q() {
     commands += ind;
     commands += "q\n";
     indent(DrawStateType::SaveState);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Q() {
-    auto rc = dedent(DrawStateType::SaveState);
-    if(!rc) {
-        return rc.error();
-    }
+rvoe<NoReturnValue> PdfDrawContext::cmd_Q() {
+    ERCV(dedent(DrawStateType::SaveState));
     commands += ind;
     commands += "Q\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_re(double x, double y, double w, double h) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_re(double x, double y, double w, double h) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} re\n", ind, x, y, w, h);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b) {
     return serialize_RG(cmd_appender, ind, r, g, b);
 }
 
-ErrorCode PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b) {
     return serialize_rg(cmd_appender, ind, r, g, b);
 }
 
-ErrorCode PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
     CHECK_ENUM(ri, CAPY_RI_PERCEPTUAL);
     fmt::format_to(cmd_appender, "{}/{} ri\n", ind, rendering_intent_names.at((int)ri));
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_s() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_s() {
     commands += ind;
     commands += "s\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_S() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_S() {
     commands += ind;
     commands += "S\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_SCN(double value) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_SCN(double value) {
     fmt::format_to(cmd_appender, "{}{:f} SCN\n", ind, value);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_scn(double value) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_scn(double value) {
     fmt::format_to(cmd_appender, "{}{:f} scn\n", ind, value);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_sh(ShadingId shid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_sh(ShadingId shid) {
     CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
     fmt::format_to(cmd_appender, "{}/SH{} sh\n", ind, shid.id);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
     CHECK_ENUM(mode, CAPY_TEXT_CLIP);
     fmt::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} v\n", ind, x2, y2, x3, y3);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_w(double w) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_w(double w) {
     if(w < 0) {
-        return ErrorCode::NegativeLineWidth;
+        RETERR(NegativeLineWidth);
     }
     fmt::format_to(cmd_appender, "{}{:f} w\n", ind, w);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_W() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_W() {
     commands += ind;
     commands += "W\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_Wstar() {
+rvoe<NoReturnValue> PdfDrawContext::cmd_Wstar() {
     commands += ind;
     commands += "W*\n";
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
     fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} y\n", ind, x1, y1, x3, y3);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
-                                      std::string_view indent,
-                                      LimitDouble gray) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
+                                                std::string_view indent,
+                                                LimitDouble gray) const {
     fmt::format_to(out, "{}{:f} G\n", indent, gray.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
-                                      std::string_view indent,
-                                      LimitDouble gray) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
+                                                std::string_view indent,
+                                                LimitDouble gray) const {
     fmt::format_to(out, "{}{:f} g\n", indent, gray.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_K(std::back_insert_iterator<std::string> &out,
-                                      std::string_view indent,
-                                      LimitDouble c,
-                                      LimitDouble m,
-                                      LimitDouble y,
-                                      LimitDouble k) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_K(std::back_insert_iterator<std::string> &out,
+                                                std::string_view indent,
+                                                LimitDouble c,
+                                                LimitDouble m,
+                                                LimitDouble y,
+                                                LimitDouble k) const {
     fmt::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c.v(), m.v(), y.v(), k.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_k(std::back_insert_iterator<std::string> &out,
-                                      std::string_view indent,
-                                      LimitDouble c,
-                                      LimitDouble m,
-                                      LimitDouble y,
-                                      LimitDouble k) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_k(std::back_insert_iterator<std::string> &out,
+                                                std::string_view indent,
+                                                LimitDouble c,
+                                                LimitDouble m,
+                                                LimitDouble y,
+                                                LimitDouble k) const {
     fmt::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c.v(), m.v(), y.v(), k.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_RG(std::back_insert_iterator<std::string> &out,
-                                       std::string_view indent,
-                                       LimitDouble r,
-                                       LimitDouble g,
-                                       LimitDouble b) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_RG(std::back_insert_iterator<std::string> &out,
+                                                 std::string_view indent,
+                                                 LimitDouble r,
+                                                 LimitDouble g,
+                                                 LimitDouble b) const {
     fmt::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r.v(), g.v(), b.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::serialize_rg(std::back_insert_iterator<std::string> &out,
-                                       std::string_view indent,
-                                       LimitDouble r,
-                                       LimitDouble g,
-                                       LimitDouble b) const {
+rvoe<NoReturnValue> PdfDrawContext::serialize_rg(std::back_insert_iterator<std::string> &out,
+                                                 std::string_view indent,
+                                                 LimitDouble r,
+                                                 LimitDouble g,
+                                                 LimitDouble b) const {
     fmt::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r.v(), g.v(), b.v());
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::set_color(const Color &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
     if(std::holds_alternative<DeviceRGBColor>(c)) {
         return set_color(std::get<DeviceRGBColor>(c), stroke);
     } else if(std::holds_alternative<DeviceGrayColor>(c)) {
@@ -613,10 +616,10 @@ ErrorCode PdfDrawContext::set_color(const Color &c, bool stroke) {
         printf("Given colorspace not supported yet.");
         std::abort();
     }
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPYPDF_CS_DEVICE_RGB: {
         if(stroke) {
@@ -634,22 +637,19 @@ ErrorCode PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
         }
     }
     case CAPYPDF_CS_DEVICE_CMYK: {
-        auto cmyk_var = cm->to_cmyk(c);
-        if(cmyk_var) {
-            auto &cmyk = cmyk_var.value();
-            if(stroke) {
-                return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-            } else {
-                return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-            }
+        ERC(cmyk, cm->to_cmyk(c));
+        if(stroke) {
+            return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+        } else {
+            return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
         }
-        return cmyk_var.error();
+        RETOK;
     }
     }
     std::abort();
 }
 
-ErrorCode PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPYPDF_CS_DEVICE_RGB: {
         auto rgb_var = cm->to_rgb(c);
@@ -675,15 +675,15 @@ ErrorCode PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
         }
     }
     default:
-        return ErrorCode::Unreachable;
+        RETERR(Unreachable);
     }
 }
 
-ErrorCode PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
     CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
     const auto &icc_info = doc->icc_profiles.at(icc.id.id);
     if(icc_info.num_channels != (int32_t)icc.values.size()) {
-        return ErrorCode::IncorrectColorChannelCount;
+        RETERR(IncorrectColorChannelCount);
     }
     used_colorspaces.insert(icc_info.object_num);
     fmt::format_to(
@@ -692,10 +692,10 @@ ErrorCode PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
         fmt::format_to(cmd_appender, "{:f} ", i);
     }
     fmt::format_to(cmd_appender, "{}\n", stroke ? "SCN" : "scn");
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
     // Assumes that switching to the gray colorspace is always ok.
     // If it is not, fix to do the same switch() as above.
     if(stroke) {
@@ -705,20 +705,17 @@ ErrorCode PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
     }
 }
 
-ErrorCode PdfDrawContext::set_color(PatternId id, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(PatternId id, bool stroke) {
     if(context_type != CAPY_DC_PAGE) {
-        return ErrorCode::PatternNotAccepted;
+        RETERR(PatternNotAccepted);
     }
     used_patterns.insert(id.id);
-    auto rc = cmd_cs("/Pattern");
-    if(rc != ErrorCode::NoError) {
-        return rc;
-    }
+    ERCV(cmd_cs("/Pattern"));
     fmt::format_to(cmd_appender, "{}/Pattern-{} {}\n", ind, id.id, stroke ? "SCN" : "scn");
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::set_color(const SeparationColor &color, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool stroke) {
     CHECK_INDEXNESS(color.id.id, doc->separation_objects);
     const auto idnum = doc->separation_object_number(color.id);
     used_colorspaces.insert(idnum);
@@ -730,17 +727,17 @@ ErrorCode PdfDrawContext::set_color(const SeparationColor &color, bool stroke) {
         cmd_cs(csname);
         cmd_scn(color.v.v());
     }
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::set_color(const LabColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     CHECK_INDEXNESS(c.id.id, doc->document_objects);
     used_colorspaces.insert(c.id.id);
     std::string csname = fmt::format("/CSpace{}", c.id.id);
     cmd_CS(csname);
     fmt::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {}\n", ind, c.l, c.a, c.b, stroke ? "SCN" : "scn");
-    return ErrorCode::NoError;
+    RETOK;
 }
 
 void PdfDrawContext::set_all_stroke_color() {
@@ -749,12 +746,12 @@ void PdfDrawContext::set_all_stroke_color() {
     cmd_SCN(1.0);
 }
 
-ErrorCode PdfDrawContext::draw_image(CapyPDF_ImageId im_id) {
+rvoe<NoReturnValue> PdfDrawContext::draw_image(CapyPDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
     fmt::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
 void PdfDrawContext::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
@@ -765,7 +762,7 @@ void PdfDrawContext::rotate(double angle) {
     cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
-ErrorCode PdfDrawContext::render_text(
+rvoe<NoReturnValue> PdfDrawContext::render_text(
     const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t(this);
     t.cmd_Tf(fid, pointsize);
@@ -820,18 +817,18 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
     return NoReturnValue{};
 }
 
-ErrorCode PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
-                                               std::vector<CharItem> &charseq,
-                                               CapyPDF_FontId fid) {
+rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
+                                                         std::vector<CharItem> &charseq,
+                                                         CapyPDF_FontId fid) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     if(text.empty()) {
-        return ErrorCode::NoError;
+        RETOK;
     }
     FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
     if(!face) {
-        return ErrorCode::BuiltinFontNotSupported;
+        RETERR(BuiltinFontNotSupported);
     }
-    ERC_CONV(glyphs, utf8_to_glyphs(text));
+    ERC(glyphs, utf8_to_glyphs(text));
 
     uint32_t previous_codepoint = -1;
     // Freetype does not support GPOS kerning because it is context-sensitive.
@@ -845,7 +842,7 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
             const auto index_right = FT_Get_Char_Index(face, codepoint);
             auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
-                return ErrorCode::FreeTypeError;
+                RETERR(FreeTypeError);
             }
             if(kerning.x != 0) {
                 // The value might be a integer, fraction or something else.
@@ -857,12 +854,12 @@ ErrorCode PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
         charseq.emplace_back(codepoint);
         previous_codepoint = codepoint;
     }
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
+rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     if(textobj.creator() != this) {
-        return ErrorCode::WrongDrawContext;
+        RETERR(WrongDrawContext);
     }
     std::string serialisation{ind + "BT\n"};
     indent(DrawStateType::Text);
@@ -902,10 +899,7 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
             std::vector<CharItem> charseq;
-            auto ec = utf8_to_kerned_chars(tj.text, charseq, current_font);
-            if(ec != ErrorCode::NoError) {
-                return std::unexpected(ec);
-            }
+            ERCV(utf8_to_kerned_chars(tj.text, charseq, current_font));
             ERCV(serialize_charsequence(
                 charseq, serialisation, current_font, current_subset, current_pointsize));
             return NoReturnValue{};
@@ -974,13 +968,13 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
             if(std::holds_alternative<DeviceRGBColor>(sarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(sarg.c);
-                ERC_PROP_HACK(serialize_RG(app, ind, rgb.r, rgb.g, rgb.b));
+                ERCV(serialize_RG(app, ind, rgb.r, rgb.g, rgb.b));
             } else if(std::holds_alternative<DeviceGrayColor>(sarg.c)) {
                 auto &gray = std::get<DeviceGrayColor>(sarg.c);
-                ERC_PROP_HACK(serialize_G(app, ind, gray.v));
+                ERCV(serialize_G(app, ind, gray.v));
             } else if(std::holds_alternative<DeviceCMYKColor>(sarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(sarg.c);
-                ERC_PROP_HACK(serialize_K(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+                ERCV(serialize_K(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
@@ -991,13 +985,13 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
         [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
             if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-                ERC_PROP_HACK(serialize_rg(app, ind, rgb.r, rgb.g, rgb.b));
+                ERCV(serialize_rg(app, ind, rgb.r, rgb.g, rgb.b));
             } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
                 auto &gray = std::get<DeviceGrayColor>(nsarg.c);
-                ERC_PROP_HACK(serialize_g(app, ind, gray.v));
+                ERCV(serialize_g(app, ind, gray.v));
             } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
-                ERC_PROP_HACK(serialize_k(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+                ERCV(serialize_k(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
@@ -1007,19 +1001,13 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     };
 
     for(const auto &e : textobj.get_events()) {
-        auto rc = std::visit(visitor, e);
-        if(!rc) {
-            return rc.error();
-        }
+        ERCV(std::visit(visitor, e));
     }
-    auto rc = dedent(DrawStateType::Text);
-    if(!rc) {
-        return rc.error();
-    }
+    ERCV(dedent(DrawStateType::Text));
     serialisation += ind;
     serialisation += "ET\n";
     commands += serialisation;
-    return ErrorCode::NoError;
+    RETOK;
 }
 
 void PdfDrawContext::render_raw_glyph(
@@ -1048,14 +1036,14 @@ void PdfDrawContext::render_raw_glyph(
                    ind);
 }
 
-ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
-                                        CapyPDF_FontId fid,
-                                        double pointsize) {
+rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
+                                                  CapyPDF_FontId fid,
+                                                  double pointsize) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     double prev_x = 0;
     double prev_y = 0;
     if(glyphs.empty()) {
-        return ErrorCode::NoError;
+        RETOK;
     }
     auto &font_data = doc->font_objects.at(fid.id);
     // FIXME, do per character.
@@ -1071,11 +1059,7 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
                    0,
                    pointsize);
     for(const auto &g : glyphs) {
-        auto rv = doc->get_subset_glyph(fid, g.codepoint);
-        if(!rv) {
-            return rv.error();
-        }
-        auto &current_subset_glyph = rv.value();
+        ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint));
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         fmt::format_to(cmd_appender, "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
@@ -1085,16 +1069,16 @@ ErrorCode PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
             cmd_appender, "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
     }
     fmt::format_to(cmd_appender, "{}ET\n", ind);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
-ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                                     CapyPDF_Builtin_Fonts font_id,
-                                                     double pointsize,
-                                                     double x,
-                                                     double y) {
+rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
+                                                               CapyPDF_Builtin_Fonts font_id,
+                                                               double pointsize,
+                                                               double x,
+                                                               double y) {
     if(doc->opts.subtype) {
-        return ErrorCode::BadOperationForIntent;
+        RETERR(BadOperationForIntent);
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
@@ -1115,7 +1099,7 @@ ErrorCode PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdoc_encoded_
                    ind,
                    pdfstring_quote(pdfdoc_encoded_text),
                    ind);
-    return ErrorCode::NoError;
+    RETOK;
 }
 
 void PdfDrawContext::draw_unit_circle() {

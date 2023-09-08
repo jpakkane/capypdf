@@ -22,6 +22,11 @@
 
 #define RETNOERR return (CAPYPDF_EC)ErrorCode::NoError
 
+#define CHECK_NULL(x)                                                                              \
+    if(x == nullptr) {                                                                             \
+        return (CAPYPDF_EC)ErrorCode::ArgIsNull;                                                   \
+    }
+
 using namespace capypdf;
 
 namespace {

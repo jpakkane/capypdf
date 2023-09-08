@@ -30,7 +30,7 @@ namespace capypdf {
 
 namespace {
 
-std::expected<rgb_image, ErrorCode> load_rgb_png(png_image &image) {
+rvoe<rgb_image> load_rgb_png(png_image &image) {
     rgb_image result;
     result.w = image.width;
     result.h = image.height;
@@ -45,7 +45,7 @@ std::expected<rgb_image, ErrorCode> load_rgb_png(png_image &image) {
     return result;
 }
 
-std::expected<rgb_image, ErrorCode> load_rgba_png(png_image &image) {
+rvoe<rgb_image> load_rgba_png(png_image &image) {
     rgb_image result;
     std::string buf;
     result.w = image.width;
@@ -71,7 +71,7 @@ std::expected<rgb_image, ErrorCode> load_rgba_png(png_image &image) {
     return std::move(result);
 }
 
-std::expected<gray_image, ErrorCode> load_ga_png(png_image &image) {
+rvoe<gray_image> load_ga_png(png_image &image) {
     gray_image result;
     std::string buf;
     result.w = image.width;
@@ -99,7 +99,7 @@ struct png_data {
     std::string colormap;
 };
 
-std::expected<png_data, ErrorCode> load_png_data(png_image &image) {
+rvoe<png_data> load_png_data(png_image &image) {
     png_data pd;
 
     auto bufsize = PNG_IMAGE_SIZE(image);
@@ -114,7 +114,7 @@ std::expected<png_data, ErrorCode> load_png_data(png_image &image) {
     return std::move(pd);
 }
 
-std::expected<mono_image, ErrorCode> load_mono_png(png_image &image) {
+rvoe<mono_image> load_mono_png(png_image &image) {
     mono_image result;
     const size_t final_size = (image.width + 7) / 8 * image.height;
     result.pixels.reserve(final_size);
@@ -174,7 +174,7 @@ bool is_1bit(std::string_view colormap) {
 }
 
 // Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
-std::expected<std::optional<mono_image>, ErrorCode> try_load_mono_alpha_png(png_image &image) {
+rvoe<std::optional<mono_image>> try_load_mono_alpha_png(png_image &image) {
     ERC(pd, load_png_data(image));
     if(!is_1bit(pd.colormap)) {
         return std::optional<mono_image>{};
@@ -230,7 +230,7 @@ std::expected<std::optional<mono_image>, ErrorCode> try_load_mono_alpha_png(png_
     return std::move(result);
 }
 
-std::expected<RasterImage, ErrorCode> load_png_file(const std::filesystem::path &fname) {
+rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
     png_image image;
     std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
 

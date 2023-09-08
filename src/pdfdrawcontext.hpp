@@ -94,122 +94,122 @@ public:
     // All methods that begin with cmd_ map directly to the PDF primitive with the same name.
 
     // They are in the same order as in Annex A of the PDF spec.
-    ErrorCode cmd_b();
-    ErrorCode cmd_B();
-    ErrorCode cmd_bstar();
-    ErrorCode cmd_Bstar();
-    ErrorCode cmd_BDC(CapyPDF_StructureItemId sid);
-    ErrorCode cmd_BDC(CapyPDF_OptionalContentGroupId id);
-    ErrorCode cmd_BMC(std::string_view tag);
-    ErrorCode cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
-    ErrorCode cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
-    ErrorCode cmd_CS(std::string_view cspace_name);
-    ErrorCode cmd_cs(std::string_view cspace_name);
-    ErrorCode cmd_d(double *dash_array, size_t dash_array_length, double phase);
-    ErrorCode cmd_Do(CapyPDF_FormXObjectId fxoid);
-    ErrorCode cmd_Do(CapyPDF_TransparencyGroupId trid);
-    ErrorCode cmd_EMC();
-    ErrorCode cmd_f();
-    // ErrorCode cmd_F(); PDF spec says this is obsolete.
-    ErrorCode cmd_fstar();
-    ErrorCode cmd_G(LimitDouble gray);
-    ErrorCode cmd_g(LimitDouble gray);
-    ErrorCode cmd_gs(CapyPDF_GraphicsStateId id);
-    ErrorCode cmd_h();
-    ErrorCode cmd_i(double flatness);
-    ErrorCode cmd_j(CAPYPDF_Line_Join join_style);
-    ErrorCode cmd_J(CAPYPDF_Line_Cap cap_style);
-    ErrorCode cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
-    ErrorCode cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
-    ErrorCode cmd_l(double x, double y);
-    ErrorCode cmd_m(double x, double y);
-    ErrorCode cmd_M(double miterlimit);
-    ErrorCode cmd_n();
-    ErrorCode cmd_q(); // Save
-    ErrorCode cmd_Q(); // Restore
-    ErrorCode cmd_re(double x, double y, double w, double h);
-    ErrorCode cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b);
-    ErrorCode cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b);
-    ErrorCode cmd_ri(CapyPDF_Rendering_Intent ri);
-    ErrorCode cmd_s();
-    ErrorCode cmd_S();
-    ErrorCode cmd_SCN(double value);
-    ErrorCode cmd_scn(double value);
-    ErrorCode cmd_sh(ShadingId shid);
-    ErrorCode cmd_Tr(CapyPDF_Text_Mode mode);
-    ErrorCode cmd_v(double x2, double y2, double x3, double y3);
-    ErrorCode cmd_w(double w);
-    ErrorCode cmd_W();
-    ErrorCode cmd_Wstar();
-    ErrorCode cmd_y(double x1, double y1, double x3, double y3);
+    rvoe<NoReturnValue> cmd_b();
+    rvoe<NoReturnValue> cmd_B();
+    rvoe<NoReturnValue> cmd_bstar();
+    rvoe<NoReturnValue> cmd_Bstar();
+    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid);
+    rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
+    rvoe<NoReturnValue> cmd_BMC(std::string_view tag);
+    rvoe<NoReturnValue> cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
+    rvoe<NoReturnValue> cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
+    rvoe<NoReturnValue> cmd_CS(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_cs(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_d(double *dash_array, size_t dash_array_length, double phase);
+    rvoe<NoReturnValue> cmd_Do(CapyPDF_FormXObjectId fxoid);
+    rvoe<NoReturnValue> cmd_Do(CapyPDF_TransparencyGroupId trid);
+    rvoe<NoReturnValue> cmd_EMC();
+    rvoe<NoReturnValue> cmd_f();
+    // rvoe<NoReturnValue> cmd_F(); PDF spec says this is obsolete.
+    rvoe<NoReturnValue> cmd_fstar();
+    rvoe<NoReturnValue> cmd_G(LimitDouble gray);
+    rvoe<NoReturnValue> cmd_g(LimitDouble gray);
+    rvoe<NoReturnValue> cmd_gs(CapyPDF_GraphicsStateId id);
+    rvoe<NoReturnValue> cmd_h();
+    rvoe<NoReturnValue> cmd_i(double flatness);
+    rvoe<NoReturnValue> cmd_j(CAPYPDF_Line_Join join_style);
+    rvoe<NoReturnValue> cmd_J(CAPYPDF_Line_Cap cap_style);
+    rvoe<NoReturnValue> cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
+    rvoe<NoReturnValue> cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
+    rvoe<NoReturnValue> cmd_l(double x, double y);
+    rvoe<NoReturnValue> cmd_m(double x, double y);
+    rvoe<NoReturnValue> cmd_M(double miterlimit);
+    rvoe<NoReturnValue> cmd_n();
+    rvoe<NoReturnValue> cmd_q(); // Save
+    rvoe<NoReturnValue> cmd_Q(); // Restore
+    rvoe<NoReturnValue> cmd_re(double x, double y, double w, double h);
+    rvoe<NoReturnValue> cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b);
+    rvoe<NoReturnValue> cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b);
+    rvoe<NoReturnValue> cmd_ri(CapyPDF_Rendering_Intent ri);
+    rvoe<NoReturnValue> cmd_s();
+    rvoe<NoReturnValue> cmd_S();
+    rvoe<NoReturnValue> cmd_SCN(double value);
+    rvoe<NoReturnValue> cmd_scn(double value);
+    rvoe<NoReturnValue> cmd_sh(ShadingId shid);
+    rvoe<NoReturnValue> cmd_Tr(CapyPDF_Text_Mode mode);
+    rvoe<NoReturnValue> cmd_v(double x2, double y2, double x3, double y3);
+    rvoe<NoReturnValue> cmd_w(double w);
+    rvoe<NoReturnValue> cmd_W();
+    rvoe<NoReturnValue> cmd_Wstar();
+    rvoe<NoReturnValue> cmd_y(double x1, double y1, double x3, double y3);
 
     // Command serialization.
-    ErrorCode serialize_G(std::back_insert_iterator<std::string> &out,
-                          std::string_view indent,
-                          LimitDouble gray) const;
-    ErrorCode serialize_g(std::back_insert_iterator<std::string> &out,
-                          std::string_view indent,
-                          LimitDouble gray) const;
-    ErrorCode serialize_K(std::back_insert_iterator<std::string> &out,
-                          std::string_view indent,
-                          LimitDouble c,
-                          LimitDouble m,
-                          LimitDouble y,
-                          LimitDouble k) const;
-    ErrorCode serialize_k(std::back_insert_iterator<std::string> &out,
-                          std::string_view indent,
-                          LimitDouble c,
-                          LimitDouble m,
-                          LimitDouble y,
-                          LimitDouble k) const;
-    ErrorCode serialize_RG(std::back_insert_iterator<std::string> &out,
-                           std::string_view indent,
-                           LimitDouble r,
-                           LimitDouble g,
-                           LimitDouble b) const;
-    ErrorCode serialize_rg(std::back_insert_iterator<std::string> &out,
-                           std::string_view indent,
-                           LimitDouble r,
-                           LimitDouble g,
-                           LimitDouble b) const;
+    rvoe<NoReturnValue> serialize_G(std::back_insert_iterator<std::string> &out,
+                                    std::string_view indent,
+                                    LimitDouble gray) const;
+    rvoe<NoReturnValue> serialize_g(std::back_insert_iterator<std::string> &out,
+                                    std::string_view indent,
+                                    LimitDouble gray) const;
+    rvoe<NoReturnValue> serialize_K(std::back_insert_iterator<std::string> &out,
+                                    std::string_view indent,
+                                    LimitDouble c,
+                                    LimitDouble m,
+                                    LimitDouble y,
+                                    LimitDouble k) const;
+    rvoe<NoReturnValue> serialize_k(std::back_insert_iterator<std::string> &out,
+                                    std::string_view indent,
+                                    LimitDouble c,
+                                    LimitDouble m,
+                                    LimitDouble y,
+                                    LimitDouble k) const;
+    rvoe<NoReturnValue> serialize_RG(std::back_insert_iterator<std::string> &out,
+                                     std::string_view indent,
+                                     LimitDouble r,
+                                     LimitDouble g,
+                                     LimitDouble b) const;
+    rvoe<NoReturnValue> serialize_rg(std::back_insert_iterator<std::string> &out,
+                                     std::string_view indent,
+                                     LimitDouble r,
+                                     LimitDouble g,
+                                     LimitDouble b) const;
 
     // Color
-    ErrorCode set_stroke_color(const Color &c) { return set_color(c, true); }
-    ErrorCode set_nonstroke_color(const Color &c) { return set_color(c, false); }
+    rvoe<NoReturnValue> set_stroke_color(const Color &c) { return set_color(c, true); }
+    rvoe<NoReturnValue> set_nonstroke_color(const Color &c) { return set_color(c, false); }
 
-    ErrorCode set_color(const Color &c, bool stroke);
-    ErrorCode set_color(const DeviceRGBColor &c, bool stroke);
-    ErrorCode set_color(const DeviceGrayColor &c, bool stroke);
-    ErrorCode set_color(const DeviceCMYKColor &c, bool stroke);
-    ErrorCode set_color(const LabColor &c, bool stroke);
-    ErrorCode set_color(const ICCColor &icc, bool stroke);
-    ErrorCode set_color(PatternId id, bool stroke);
-    ErrorCode set_color(const SeparationColor &color, bool stroke);
+    rvoe<NoReturnValue> set_color(const Color &c, bool stroke);
+    rvoe<NoReturnValue> set_color(const DeviceRGBColor &c, bool stroke);
+    rvoe<NoReturnValue> set_color(const DeviceGrayColor &c, bool stroke);
+    rvoe<NoReturnValue> set_color(const DeviceCMYKColor &c, bool stroke);
+    rvoe<NoReturnValue> set_color(const LabColor &c, bool stroke);
+    rvoe<NoReturnValue> set_color(const ICCColor &icc, bool stroke);
+    rvoe<NoReturnValue> set_color(PatternId id, bool stroke);
+    rvoe<NoReturnValue> set_color(const SeparationColor &color, bool stroke);
 
     void set_all_stroke_color();
-    ErrorCode draw_image(CapyPDF_ImageId obj_num);
+    rvoe<NoReturnValue> draw_image(CapyPDF_ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    ErrorCode
+    rvoe<NoReturnValue>
     render_text(const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y);
-    ErrorCode render_text(const PdfText &textobj);
+    rvoe<NoReturnValue> render_text(const PdfText &textobj);
     void render_raw_glyph(uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y);
-    ErrorCode
+    rvoe<NoReturnValue>
     render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);
-    ErrorCode render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
-                                         CapyPDF_Builtin_Fonts font_id,
-                                         double pointsize,
-                                         double x,
-                                         double y);
+    rvoe<NoReturnValue> render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
+                                                   CapyPDF_Builtin_Fonts font_id,
+                                                   double pointsize,
+                                                   double x,
+                                                   double y);
 
     void draw_unit_circle();
     void draw_unit_box();
 
     void clear();
 
-    ErrorCode add_form_widget(CapyPDF_FormWidgetId widget);
-    ErrorCode annotate(CapyPDF_AnnotationId annotation);
+    rvoe<NoReturnValue> add_form_widget(CapyPDF_FormWidgetId widget);
+    rvoe<NoReturnValue> annotate(CapyPDF_AnnotationId annotation);
 
     CAPYPDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
@@ -252,7 +252,7 @@ private:
                                                CapyPDF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
-    ErrorCode
+    rvoe<NoReturnValue>
     utf8_to_kerned_chars(const u8string &text, std::vector<CharItem> &charseq, CapyPDF_FontId fid);
 
     void indent(DrawStateType dtype) {

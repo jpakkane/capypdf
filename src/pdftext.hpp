@@ -114,91 +114,91 @@ class PdfText {
 public:
     explicit PdfText(PdfDrawContext *dc) : dc{dc} {};
 
-    ErrorCode cmd_BDC(CapyPDF_StructureItemId sid) {
+    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid) {
         events.emplace_back(sid);
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_EMC() {
+    rvoe<NoReturnValue> cmd_EMC() {
         events.emplace_back(Emc_arg{});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tstar() {
+    rvoe<NoReturnValue> cmd_Tstar() {
         events.emplace_back(TStar_arg{});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tc(double char_spacing) {
+    rvoe<NoReturnValue> cmd_Tc(double char_spacing) {
         events.emplace_back(Tc_arg{char_spacing});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Td(double tx, double ty) {
+    rvoe<NoReturnValue> cmd_Td(double tx, double ty) {
         events.emplace_back(Td_arg{tx, ty});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_TD(double tx, double ty) {
+    rvoe<NoReturnValue> cmd_TD(double tx, double ty) {
         events.emplace_back(TD_arg{tx, ty});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tf(CapyPDF_FontId font, double pointsize) {
+    rvoe<NoReturnValue> cmd_Tf(CapyPDF_FontId font, double pointsize) {
         events.emplace_back(Tf_arg{font, pointsize});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode render_text(const u8string &text) {
+    rvoe<NoReturnValue> render_text(const u8string &text) {
         events.emplace_back(Text_arg{text});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
     // cmd_Tj missing. It might not be needed at all.
 
-    ErrorCode cmd_TJ(std::vector<CharItem> chars) {
+    rvoe<NoReturnValue> cmd_TJ(std::vector<CharItem> chars) {
         events.emplace_back(TJ_arg{std::move(chars)});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_TL(double leading) {
+    rvoe<NoReturnValue> cmd_TL(double leading) {
         events.emplace_back(TL_arg{leading});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tm(double a, double b, double c, double d, double e, double f) {
+    rvoe<NoReturnValue> cmd_Tm(double a, double b, double c, double d, double e, double f) {
         events.emplace_back(Tm_arg{a, b, c, d, e, f});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tr(CapyPDF_Text_Mode rmode) {
+    rvoe<NoReturnValue> cmd_Tr(CapyPDF_Text_Mode rmode) {
         events.emplace_back(Tr_arg{rmode});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Ts(double rise) {
+    rvoe<NoReturnValue> cmd_Ts(double rise) {
         events.emplace_back(Ts_arg{rise});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tw(double spacing) {
+    rvoe<NoReturnValue> cmd_Tw(double spacing) {
         events.emplace_back(Tw_arg{spacing});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode cmd_Tz(double scaling) {
+    rvoe<NoReturnValue> cmd_Tz(double scaling) {
         events.emplace_back(Tz_arg{scaling});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode stroke_color(const Color &c) {
+    rvoe<NoReturnValue> stroke_color(const Color &c) {
         events.emplace_back(Stroke_arg{c});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
-    ErrorCode nonstroke_color(const Color &c) {
+    rvoe<NoReturnValue> nonstroke_color(const Color &c) {
         events.emplace_back(Nonstroke_arg{c});
-        return ErrorCode::NoError;
+        RETOK;
     }
 
     PdfDrawContext *creator() const { return dc; }

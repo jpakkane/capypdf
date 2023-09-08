@@ -68,7 +68,7 @@ int draw_simple_form() {
 
             ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 80);
             auto rc = ctx.add_form_widget(checkbox_widget);
-            if(rc != ErrorCode::NoError) {
+            if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }

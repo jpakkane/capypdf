@@ -94,7 +94,7 @@ struct NoReturnValue {};
 
 #define CHECK_INDEXNESS(ind, container)                                                            \
     if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
-        return ErrorCode::BadId;                                                                   \
+        return std::unexpected{ErrorCode::BadId};                                                  \
     }
 
 #define CHECK_INDEXNESS_V(ind, container)                                                          \
@@ -104,12 +104,7 @@ struct NoReturnValue {};
 
 #define CHECK_ENUM(v, max_enum_val)                                                                \
     if((int)v < 0 || ((int)v > (int)max_enum_val)) {                                               \
-        return ErrorCode::BadEnum;                                                                 \
-    }
-
-#define CHECK_NULL(x)                                                                              \
-    if(x == nullptr) {                                                                             \
-        return (CAPYPDF_EC)ErrorCode::ArgIsNull;                                                   \
+        return std::unexpected{ErrorCode::BadEnum};                                                \
     }
 
 #define ERC(varname, func)                                                                         \
@@ -118,29 +113,6 @@ struct NoReturnValue {};
         return std::unexpected(varname##_variant.error());                                         \
     }                                                                                              \
     auto &varname = varname##_variant.value();
-
-#define ERC_CONV(varname, func)                                                                    \
-    auto varname##_variant = func;                                                                 \
-    if(!(varname##_variant)) {                                                                     \
-        return varname##_variant.error();                                                          \
-    }                                                                                              \
-    auto &varname = varname##_variant.value();
-
-#define ERC_PROP(func)                                                                             \
-    {                                                                                              \
-        auto temp_returncode_var = func;                                                           \
-        if(temp_returncode_var != ErrorCode::NoError) {                                            \
-            return temp_returncode_var;                                                            \
-        }                                                                                          \
-    }
-
-#define ERC_PROP_HACK(func)                                                                        \
-    {                                                                                              \
-        auto temp_returncode_var = func;                                                           \
-        if(temp_returncode_var != ErrorCode::NoError) {                                            \
-            return std::unexpected{temp_returncode_var};                                           \
-        }                                                                                          \
-    }
 
 // For void.
 
@@ -153,3 +125,6 @@ struct NoReturnValue {};
     }
 
 #define RETERR(code) return std::unexpected(ErrorCode::code)
+
+#define RETOK                                                                                      \
+    return NoReturnValue {}
