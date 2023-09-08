@@ -870,50 +870,62 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
     int32_t current_subset{-1};
     CapyPDF_FontId current_font{-1};
     double current_pointsize{-1};
-    for(const auto &e : textobj.get_events()) {
-        if(std::holds_alternative<TStar_arg>(e)) {
+
+    auto visitor = overloaded{
+        [&](const TStar_arg &) -> rvoe<NoReturnValue> {
             serialisation += ind;
             serialisation += "T*\n";
-        } else if(std::holds_alternative<Tc_arg>(e)) {
-            const auto &tc = std::get<Tc_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Tc_arg &tc) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{} Tc\n", ind, tc.val);
-        } else if(std::holds_alternative<Td_arg>(e)) {
-            const auto &td = std::get<Td_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Td_arg &td) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} {:f} Td\n", ind, td.tx, td.ty);
-        } else if(std::holds_alternative<TD_arg>(e)) {
-            const auto &tD = std::get<TD_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const TD_arg &tD) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} {:f} TD\n", ind, tD.tx, tD.ty);
-        } else if(std::holds_alternative<Tf_arg>(e)) {
-            current_font = std::get<Tf_arg>(e).font;
+            return NoReturnValue{};
+        },
+
+        [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
+            current_font = tf.font;
             current_subset = -1;
-            current_pointsize = std::get<Tf_arg>(e).pointsize;
-        } else if(std::holds_alternative<Text_arg>(e)) {
-            const auto &tj = std::get<Text_arg>(e);
+            current_pointsize = tf.pointsize;
+            return NoReturnValue{};
+        },
+
+        [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
             std::vector<CharItem> charseq;
             auto ec = utf8_to_kerned_chars(tj.text, charseq, current_font);
             if(ec != ErrorCode::NoError) {
-                return ec;
+                return std::unexpected(ec);
             }
-            auto rv = serialize_charsequence(
-                charseq, serialisation, current_font, current_subset, current_pointsize);
-            if(!rv) {
-                return rv.error();
-            }
-        } else if(std::holds_alternative<TJ_arg>(e)) {
-            const auto &tJ = std::get<TJ_arg>(e);
+            ERCV(serialize_charsequence(
+                charseq, serialisation, current_font, current_subset, current_pointsize));
+            return NoReturnValue{};
+        },
+
+        [&](const TJ_arg &tJ) -> rvoe<NoReturnValue> {
             auto rc = serialize_charsequence(
                 tJ.elements, serialisation, current_font, current_subset, current_pointsize);
             if(!rc) {
-                return rc.error();
+                return std::unexpected(rc.error());
             }
-        } else if(std::holds_alternative<TL_arg>(e)) {
-            const auto &tL = std::get<TL_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const TL_arg &tL) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} TL\n", ind, tL.leading);
-        } else if(std::holds_alternative<Tr_arg>(e)) {
-            const auto &tr = std::get<Tr_arg>(e);
-            fmt::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
-        } else if(std::holds_alternative<Tm_arg>(e)) {
-            const auto &tm = std::get<Tm_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
             fmt::format_to(app,
                            "{}{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
                            ind,
@@ -923,59 +935,81 @@ ErrorCode PdfDrawContext::render_text(const PdfText &textobj) {
                            tm.d,
                            tm.e,
                            tm.f);
-        } else if(std::holds_alternative<Ts_arg>(e)) {
-            const auto &ts = std::get<Ts_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Tr_arg &tr) -> rvoe<NoReturnValue> {
+            fmt::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
+            return NoReturnValue{};
+        },
+
+        [&](const Ts_arg &ts) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} Ts\n", ind, ts.rise);
-        } else if(std::holds_alternative<Tw_arg>(e)) {
-            const auto &tw = std::get<Tw_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Tw_arg &tw) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} Tw\n", ind, tw.width);
-        } else if(std::holds_alternative<Tz_arg>(e)) {
-            const auto &tz = std::get<Tz_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Tz_arg &tz) -> rvoe<NoReturnValue> {
             fmt::format_to(app, "{}{:f} Tz\n", ind, tz.scaling);
-        } else if(std::holds_alternative<CapyPDF_StructureItemId>(e)) {
-            const auto &sid = std::get<CapyPDF_StructureItemId>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const CapyPDF_StructureItemId &sid) -> rvoe<NoReturnValue> {
             used_structures.insert(sid);
             fmt::format_to(app, "{}/P << /MCID {} >>\n{}BDC\n", ind, sid.id, ind);
             indent(DrawStateType::MarkedContent);
-        } else if(std::holds_alternative<Emc_arg>(e)) {
-            auto rc = dedent(DrawStateType::MarkedContent);
-            if(!rc) {
-                return rc.error();
-            }
+            return NoReturnValue{};
+        },
+
+        [&](const Emc_arg &) -> rvoe<NoReturnValue> {
+            ERCV(dedent(DrawStateType::MarkedContent));
             fmt::format_to(app, "{}EMC\n", ind);
-        } else if(std::holds_alternative<Stroke_arg>(e)) {
-            const auto &sarg = std::get<Stroke_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
             if(std::holds_alternative<DeviceRGBColor>(sarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(sarg.c);
-                ERC_PROP(serialize_RG(app, ind, rgb.r, rgb.g, rgb.b));
+                ERC_PROP_HACK(serialize_RG(app, ind, rgb.r, rgb.g, rgb.b));
             } else if(std::holds_alternative<DeviceGrayColor>(sarg.c)) {
                 auto &gray = std::get<DeviceGrayColor>(sarg.c);
-                ERC_PROP(serialize_G(app, ind, gray.v));
+                ERC_PROP_HACK(serialize_G(app, ind, gray.v));
             } else if(std::holds_alternative<DeviceCMYKColor>(sarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(sarg.c);
-                ERC_PROP(serialize_K(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+                ERC_PROP_HACK(serialize_K(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
             }
-        } else if(std::holds_alternative<Nonstroke_arg>(e)) {
-            const auto &nsarg = std::get<Nonstroke_arg>(e);
+            return NoReturnValue{};
+        },
+
+        [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
             if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
                 auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-                ERC_PROP(serialize_rg(app, ind, rgb.r, rgb.g, rgb.b));
+                ERC_PROP_HACK(serialize_rg(app, ind, rgb.r, rgb.g, rgb.b));
             } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
                 auto &gray = std::get<DeviceGrayColor>(nsarg.c);
-                ERC_PROP(serialize_g(app, ind, gray.v));
+                ERC_PROP_HACK(serialize_g(app, ind, gray.v));
             } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
                 auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
-                ERC_PROP(serialize_k(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+                ERC_PROP_HACK(serialize_k(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
-        } else {
-            fprintf(stderr, "Text feature not implemented yet.\n");
-            std::abort();
+            return NoReturnValue{};
+        },
+    };
+
+    for(const auto &e : textobj.get_events()) {
+        auto rc = std::visit(visitor, e);
+        if(!rc) {
+            return rc.error();
         }
     }
     auto rc = dedent(DrawStateType::Text);

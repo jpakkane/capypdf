@@ -134,6 +134,14 @@ struct NoReturnValue {};
         }                                                                                          \
     }
 
+#define ERC_PROP_HACK(func)                                                                        \
+    {                                                                                              \
+        auto temp_returncode_var = func;                                                           \
+        if(temp_returncode_var != ErrorCode::NoError) {                                            \
+            return std::unexpected{temp_returncode_var};                                           \
+        }                                                                                          \
+    }
+
 // For void.
 
 #define ERCV(func)                                                                                 \
