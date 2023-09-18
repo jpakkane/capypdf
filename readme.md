@@ -1,3 +1,7 @@
+<p align="center">
+<img src="images/capylogo_web.png">
+</p>
+
 # CapyPDF
 
 This is a library for generating PDF files. It aims to be very low level.
