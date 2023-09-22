@@ -104,7 +104,7 @@ void draw_page_1(PdfGen &gen) {
 
 void draw_page_2(PdfGen &gen) {
     PageProperties p2prop;
-    p2prop.mediabox = PdfRectangle(0, 0, 200, 300);
+    p2prop.mediabox = PdfRectangle{0, 0, 200, 300};
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.set_custom_page_properties(p2prop);

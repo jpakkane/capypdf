@@ -30,6 +30,11 @@ namespace capypdf {
 template<class... Ts> struct overloaded : Ts... {
     using Ts::operator()...;
 };
+#if defined __APPLE__
+// This should not be needed, but Xcode 15 still requires it.
+template <class ... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+#endif
 
 rvoe<std::string> flate_compress(std::string_view data);
 

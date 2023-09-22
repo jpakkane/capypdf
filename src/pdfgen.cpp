@@ -29,6 +29,8 @@
 #include FT_OPENTYPE_VALIDATE_H
 #ifdef _WIN32
 #include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 namespace capypdf {
