@@ -19,7 +19,6 @@
 #include <cstring>
 #include <cerrno>
 #include <cassert>
-#include <lcms2.h>
 #include <stdexcept>
 #include <array>
 #include <fmt/core.h>
@@ -34,15 +33,6 @@
 #endif
 
 namespace capypdf {
-
-LcmsHolder::~LcmsHolder() { deallocate(); }
-
-void LcmsHolder::deallocate() {
-    if(h) {
-        cmsCloseProfile(h);
-    }
-    h = nullptr;
-}
 
 DrawContextPopper::~DrawContextPopper() {
     switch(ctx.draw_context_type()) {

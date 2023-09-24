@@ -18,6 +18,8 @@
 #include <string_view>
 #include <utils.hpp>
 #include <expected>
+// https://github.com/mm2/Little-CMS/pull/403
+#define CMS_NO_REGISTER_KEYWORD
 #include <lcms2.h>
 #include <cassert>
 #include <stdexcept>
@@ -33,6 +35,16 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 }
 
 namespace capypdf {
+
+
+LcmsHolder::~LcmsHolder() { deallocate(); }
+
+void LcmsHolder::deallocate() {
+    if(h) {
+        cmsCloseProfile(h);
+    }
+    h = nullptr;
+}
 
 rvoe<PdfColorConverter>
 PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,

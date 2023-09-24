@@ -21,7 +21,6 @@
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
-#include <lcms2.h>
 #include <fmt/core.h>
 #include <array>
 #include <cmath>
