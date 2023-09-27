@@ -15,7 +15,7 @@
  */
 
 #include <pdfgen.hpp>
-#include <imageops.hpp>
+#include <imagefileops.hpp>
 #include <utils.hpp>
 #include <cstring>
 #include <cerrno>

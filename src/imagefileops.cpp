@@ -15,7 +15,7 @@
  */
 
 #include <filesystem>
-#include <imageops.hpp>
+#include <imagefileops.hpp>
 #include <utils.hpp>
 #include <png.h>
 #include <jpeglib.h>
