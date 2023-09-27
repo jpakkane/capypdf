@@ -126,6 +126,73 @@ rvoe<NoReturnValue> PdfGen::write() {
     return NoReturnValue{};
 }
 
+rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
+                                         enum CAPYPDF_Image_Interpolation interpolate) {
+    ERC(raw_image, load_image_file(fname));
+
+    RasterImageData image;
+    image.md.interp = interpolate;
+    if(std::holds_alternative<rgb_image>(raw_image)) {
+        auto &rgb = std::get<rgb_image>(raw_image);
+        image.md.w = rgb.w;
+        image.md.h = rgb.h;
+        image.pixels = std::move(rgb.pixels);
+        image.md.pixel_depth = 8;
+        image.md.alpha_depth = 8;
+        if(rgb.alpha) {
+            image.alpha = std::move(*rgb.alpha);
+        }
+        // FIXME, add ICC here.
+        image.md.cs = CAPYPDF_CS_DEVICE_RGB;
+    } else if(std::holds_alternative<gray_image>(raw_image)) {
+        auto &gray = std::get<gray_image>(raw_image);
+        image.md.w = gray.w;
+        image.md.h = gray.h;
+        image.pixels = std::move(gray.pixels);
+        image.md.pixel_depth = 8;
+        image.md.alpha_depth = 8;
+        if(gray.alpha) {
+            image.alpha = std::move(*gray.alpha);
+        }
+        // FIXME, add ICC here.
+        image.md.cs = CAPYPDF_CS_DEVICE_GRAY;
+    } else if(std::holds_alternative<mono_image>(raw_image)) {
+        auto &mono = std::get<mono_image>(raw_image);
+        image.md.w = mono.w;
+        image.md.h = mono.h;
+        image.pixels = std::move(mono.pixels);
+        image.md.pixel_depth = 1;
+        image.md.alpha_depth = 1;
+        if(mono.alpha) {
+            image.alpha = std::move(*mono.alpha);
+        }
+        // FIXME, add ICC here.
+        image.md.cs = CAPYPDF_CS_DEVICE_GRAY;
+    } else if(std::holds_alternative<cmyk_image>(raw_image)) {
+        auto &cmyk = std::get<cmyk_image>(raw_image);
+        image.md.w = cmyk.w;
+        image.md.h = cmyk.h;
+        image.pixels = std::move(cmyk.pixels);
+        image.md.pixel_depth = 8;
+        image.md.alpha_depth = 8;
+        if(cmyk.alpha) {
+            image.alpha = std::move(*cmyk.alpha);
+        }
+        // FIXME, add ICC here.
+        if(cmyk.icc) {
+            auto icc_prof = pdoc.find_icc_profile(*cmyk.icc);
+            if(!icc_prof) {
+                RETERR(DynamicError);
+            }
+            image.icc_id = *icc_prof;
+        }
+        image.md.cs = CAPYPDF_CS_DEVICE_CMYK;
+    } else {
+        RETERR(UnsupportedFormat);
+    }
+    return pdoc.add_image(fname, std::move(image), false);
+}
+
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);

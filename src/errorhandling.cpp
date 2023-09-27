@@ -68,6 +68,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Unsupported TIFF image.",
 "Used object with a drawing context that was not used to create it.",
 "MediaBox is missing.",
+"Image used as a mask has an alpha channel.",
 };
 
 // clang-format on

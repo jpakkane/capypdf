@@ -289,6 +289,23 @@ typedef std::variant<DummyIndexZero,
 
 typedef std::variant<CapyPDF_Colorspace, int32_t> ColorspaceType;
 
+struct RasterImageMetadata {
+    int32_t w = 0;
+    int32_t h = 0;
+    int32_t pixel_depth;
+    int32_t alpha_depth;
+    CAPYPDF_Image_Interpolation interp;
+    CapyPDF_Colorspace cs;
+    // CapyPDF_Compression pixel_compression;
+};
+
+struct RasterImageData {
+    RasterImageMetadata md;
+    std::optional<CapyPDF_IccColorSpaceId> icc_id;
+    std::string pixels;
+    std::string alpha;
+};
+
 class PdfDocument {
 public:
     static rvoe<PdfDocument> construct(const PdfGenerationData &d, PdfColorConverter cm);
@@ -328,6 +345,7 @@ public:
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      enum CAPYPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
+    rvoe<CapyPDF_ImageId> add_image(const std::filesystem::path &fname, RasterImageData image, bool is_mask);
     rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname,
                                     enum CAPYPDF_Image_Interpolation interpolate);
 

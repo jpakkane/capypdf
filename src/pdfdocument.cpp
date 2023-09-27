@@ -1532,6 +1532,34 @@ rvoe<CapyPDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &
                             im.pixels);
 }
 
+rvoe<CapyPDF_ImageId>
+PdfDocument::add_image(const std::filesystem::path &fname, RasterImageData image, bool is_mask) {
+    std::optional<int32_t> smask_id;
+    if(is_mask && !image.alpha.empty()) {
+        RETERR(MaskAndAlpha);
+    }
+    if(!image.alpha.empty()) {
+        ERC(imobj,
+            add_image_object(image.md.w,
+                             image.md.h,
+                             image.md.alpha_depth,
+                             image.md.interp,
+                             CAPYPDF_CS_DEVICE_GRAY,
+                             {},
+                             false,
+                             image.alpha));
+        smask_id = image_info.at(imobj.id).obj;
+    }
+    return add_image_object(image.md.w,
+                            image.md.h,
+                            image.md.pixel_depth,
+                            image.md.interp,
+                            image.md.cs,
+                            smask_id,
+                            is_mask,
+                            image.pixels);
+}
+
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t h,
                                                     int32_t bits_per_component,
