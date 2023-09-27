@@ -286,7 +286,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedStructItem>
     ObjectType;
 
-typedef std::variant<CapyPDF_Colorspace, int32_t> ColorspaceType;
+typedef std::variant<CapyPDF_Colorspace, CapyPDF_IccColorSpaceId> ColorspaceType;
 
 class PdfDocument {
 public:
@@ -329,8 +329,7 @@ public:
     rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
     rvoe<CapyPDF_ImageId>
     add_image(const std::filesystem::path &fname, RasterImage image, bool is_mask);
-    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg,
-                                    enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, enum CAPYPDF_Image_Interpolation interpolate);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);

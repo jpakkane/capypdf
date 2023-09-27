@@ -405,15 +405,17 @@ struct RasterImageMetadata {
     int32_t alpha_depth;
     CAPYPDF_Image_Interpolation interp;
     CapyPDF_Colorspace cs;
+    // RI to use for color conversion if needed.
+    // CapyPDF_Rendering_Intent ri = CAPY_RI_PERCEPTUAL;
 };
 
 struct RasterImage {
     RasterImageMetadata md;
-    std::optional<CapyPDF_IccColorSpaceId> icc_id;
     std::string pixels;
     std::string alpha;
-    std::string icc_profile;
+    std::string icc_profile; // std::variant<std::monostate, std::string, CapyPDF_IccColorSpaceId>;
     // CapyPDF_Compression pixel_compression;
+    // CapyPDF_Compression alpha_compression;
 };
 
 struct jpg_image {

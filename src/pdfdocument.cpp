@@ -307,6 +307,18 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
     fmt::format_to(buf_append, "{}>>\n", indent);
 }
 
+int32_t num_channels_for(const CapyPDF_Colorspace cs) {
+    switch(cs) {
+    case CAPYPDF_CS_DEVICE_RGB:
+        return 3;
+    case CAPYPDF_CS_DEVICE_GRAY:
+        return 1;
+    case CAPYPDF_CS_DEVICE_CMYK:
+        return 4;
+    }
+    std::abort();
+}
+
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -1532,15 +1544,71 @@ PdfDocument::add_image(const std::filesystem::path &fname, RasterImage image, bo
                              image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
-    // FIXME, convert color to output colorspace here.
-    return add_image_object(image.md.w,
-                            image.md.h,
-                            image.md.pixel_depth,
-                            image.md.interp,
-                            image.md.cs,
-                            smask_id,
-                            is_mask,
-                            image.pixels);
+    if(!image.icc_profile.empty()) {
+        auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                image.md.interp,
+                                icc_id,
+                                smask_id,
+                                is_mask,
+                                image.pixels);
+    }
+    if(image.md.cs == CAPYPDF_CS_DEVICE_GRAY) {
+        // Grayscale images are always passed through directly.
+        // FIXME, handle ICC profile.
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                image.md.interp,
+                                image.md.cs,
+                                smask_id,
+                                is_mask,
+                                image.pixels);
+    }
+    // Convert image to output colorspace if needed.
+    switch(opts.output_colorspace) {
+    case CAPYPDF_CS_DEVICE_RGB:
+        // FIXME, convert to RGB;
+        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                image.md.interp,
+                                image.md.cs,
+                                smask_id,
+                                is_mask,
+                                image.pixels);
+    case CAPYPDF_CS_DEVICE_GRAY:
+        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                image.md.interp,
+                                image.md.cs,
+                                smask_id,
+                                is_mask,
+                                image.pixels);
+    case CAPYPDF_CS_DEVICE_CMYK:
+        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+        if(cm.get_cmyk().empty()) {
+            RETERR(NoCmykProfile);
+        }
+        if(image.md.cs != CAPYPDF_CS_DEVICE_CMYK) {
+            // FIXME, convert to output format.
+            RETERR(UnsupportedFormat);
+        }
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                image.md.interp,
+                                image.md.cs,
+                                smask_id,
+                                is_mask,
+                                image.pixels);
+    }
+    RETERR(Unreachable);
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
@@ -1583,8 +1651,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
         if(std::holds_alternative<CapyPDF_Colorspace>(colorspace)) {
             const auto &cs = std::get<CapyPDF_Colorspace>(colorspace);
             fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
-        } else if(std::holds_alternative<int32_t>(colorspace)) {
-            const auto icc_obj = std::get<int32_t>(colorspace);
+        } else if(std::holds_alternative<CapyPDF_IccColorSpaceId>(colorspace)) {
+            const auto &icc = std::get<CapyPDF_IccColorSpaceId>(colorspace);
+            const auto icc_obj = icc_profiles.at(icc.id).object_num;
             fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");
