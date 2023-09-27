@@ -30,10 +30,12 @@ namespace capypdf {
 
 namespace {
 
-rvoe<rgb_image> load_rgb_png(png_image &image) {
-    rgb_image result;
-    result.w = image.width;
-    result.h = image.height;
+rvoe<RasterImage> load_rgb_png(png_image &image) {
+    RasterImage result;
+    result.md.w = image.width;
+    result.md.h = image.height;
+    result.md.pixel_depth = 8;
+    result.md.cs = CAPYPDF_CS_DEVICE_RGB;
     result.pixels.resize(PNG_IMAGE_SIZE(image));
 
     png_image_finish_read(
@@ -45,11 +47,14 @@ rvoe<rgb_image> load_rgb_png(png_image &image) {
     return result;
 }
 
-rvoe<rgb_image> load_rgba_png(png_image &image) {
-    rgb_image result;
+rvoe<RasterImage> load_rgba_png(png_image &image) {
+    RasterImage result;
     std::string buf;
-    result.w = image.width;
-    result.h = image.height;
+    result.md.w = image.width;
+    result.md.h = image.height;
+    result.md.pixel_depth = 8;
+    result.md.alpha_depth = 8;
+    result.md.cs = CAPYPDF_CS_DEVICE_RGB;
     buf.resize(PNG_IMAGE_SIZE(image));
     result.alpha = std::string();
 
@@ -60,22 +65,26 @@ rvoe<rgb_image> load_rgba_png(png_image &image) {
     }
     assert(buf.size() % 4 == 0);
     result.pixels.reserve(PNG_IMAGE_SIZE(image) * 3 / 4);
-    result.alpha->reserve(PNG_IMAGE_SIZE(image) / 4);
+    result.alpha.reserve(PNG_IMAGE_SIZE(image) / 4);
     for(size_t i = 0; i < buf.size(); i += 4) {
         result.pixels += buf[i];
         result.pixels += buf[i + 1];
         result.pixels += buf[i + 2];
-        *result.alpha += buf[i + 3];
+        result.alpha += buf[i + 3];
     }
 
-    return std::move(result);
+    return result;
 }
 
-rvoe<gray_image> load_ga_png(png_image &image) {
-    gray_image result;
+rvoe<RasterImage> load_ga_png(png_image &image) {
+    RasterImage result;
     std::string buf;
-    result.w = image.width;
-    result.h = image.height;
+    result.md.w = image.width;
+    result.md.h = image.height;
+    result.md.pixel_depth = 8;
+    result.md.alpha_depth = 8;
+    result.md.cs = CAPYPDF_CS_DEVICE_GRAY;
+
     buf.resize(PNG_IMAGE_SIZE(image));
     result.alpha = std::string();
 
@@ -85,13 +94,13 @@ rvoe<gray_image> load_ga_png(png_image &image) {
         RETERR(UnsupportedFormat);
     }
     result.pixels.reserve(PNG_IMAGE_SIZE(image) / 2);
-    result.alpha->reserve(PNG_IMAGE_SIZE(image) / 2);
+    result.alpha.reserve(PNG_IMAGE_SIZE(image) / 2);
     for(size_t i = 0; i < buf.size(); i += 2) {
         result.pixels += buf[i];
-        *result.alpha += buf[i + 1];
+        result.alpha += buf[i + 1];
     }
 
-    return std::move(result);
+    return result;
 }
 
 struct png_data {
@@ -114,19 +123,21 @@ rvoe<png_data> load_png_data(png_image &image) {
     return std::move(pd);
 }
 
-rvoe<mono_image> load_mono_png(png_image &image) {
-    mono_image result;
+rvoe<RasterImage> load_mono_png(png_image &image) {
+    RasterImage result;
     const size_t final_size = (image.width + 7) / 8 * image.height;
     result.pixels.reserve(final_size);
-    result.w = image.width;
-    result.h = image.height;
+    result.md.w = image.width;
+    result.md.h = image.height;
+    result.md.pixel_depth = 1;
+    result.md.cs = CAPYPDF_CS_DEVICE_GRAY;
     ERC(pd, load_png_data(image));
     size_t offset = 0;
     const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
-    const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
-    for(int j = 0; j < result.h; ++j) {
+    const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
+    for(int j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
-        for(int i = 0; i < result.w; ++i) {
+        for(int i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
             if(pd.pixels[offset] == white_pixel) {
                 current_byte |= 1;
@@ -145,7 +156,7 @@ rvoe<mono_image> load_mono_png(png_image &image) {
         result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
-    return std::move(result);
+    return result;
 }
 
 struct pngbytes {
@@ -174,28 +185,30 @@ bool is_1bit(std::string_view colormap) {
 }
 
 // Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
-rvoe<std::optional<mono_image>> try_load_mono_alpha_png(png_image &image) {
+rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     ERC(pd, load_png_data(image));
     if(!is_1bit(pd.colormap)) {
-        return std::optional<mono_image>{};
+        return std::optional<RasterImage>{};
     }
-    mono_image result;
-    result.w = image.width;
-    result.h = image.height;
+    RasterImage result;
+    result.md.w = image.width;
+    result.md.h = image.height;
     result.alpha = std::string{};
+    result.md.pixel_depth = 1;
+    result.md.alpha_depth = 1;
     const size_t final_size = (image.width + 7) / 8 * image.height;
     result.pixels.reserve(final_size);
-    result.alpha->reserve(final_size);
+    result.alpha.reserve(final_size);
     const uint8_t black_pixel = 0;
     const uint8_t transparent = 255;
-    const int num_padding_bits = (result.w % 8) == 0 ? 0 : 8 - result.w % 8;
-    for(int j = 0; j < result.h; ++j) {
+    const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
+    for(int j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
         unsigned char current_mask_byte = 255;
-        for(int i = 0; i < result.w; ++i) {
+        for(int i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
             current_mask_byte <<= 1;
-            const auto colormap_entry = pd.pixels.at(j * result.w + i);
+            const auto colormap_entry = pd.pixels.at(j * result.md.w + i);
             assert(colormap_entry * sizeof(pngbytes) < pd.colormap.size());
             if(colormap_entry != 0) {
                 ++i;
@@ -211,7 +224,7 @@ rvoe<std::optional<mono_image>> try_load_mono_alpha_png(png_image &image) {
             }
             if((i % 8 == 0) && i > 0) {
                 result.pixels.push_back(~current_byte);
-                result.alpha->push_back(~current_mask_byte);
+                result.alpha.push_back(~current_mask_byte);
                 current_byte = 0;
                 current_mask_byte = 255;
             }
@@ -223,10 +236,10 @@ rvoe<std::optional<mono_image>> try_load_mono_alpha_png(png_image &image) {
             current_mask_byte <<= num_padding_bits;
         }
         result.pixels.push_back(current_byte);
-        result.alpha->push_back(~current_mask_byte);
+        result.alpha.push_back(~current_mask_byte);
     }
     assert(result.pixels.size() == final_size);
-    assert(result.alpha->size() == final_size);
+    assert(result.alpha.size() == final_size);
     return std::move(result);
 }
 
@@ -273,6 +286,7 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     if(!tif) {
         RETERR(FileReadError);
     }
+    RasterImage result;
     std::optional<std::string> icc;
     std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
 
@@ -320,40 +334,53 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     // Maybe fail for this?
 
     if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
-        icc = std::string{(const char *)icc_data, icc_count};
+        result.icc_profile = std::string{(const char *)icc_data, icc_count};
     }
+
+    result.md.pixel_depth = bitspersample;
+    result.md.alpha_depth = bitspersample;
 
     const auto scanlinesize = TIFFScanlineSize64(tif);
     std::string line(scanlinesize, 0);
-    std::string pixels;
-    pixels.reserve(scanlinesize * h);
+    result.pixels.reserve(scanlinesize * h);
     for(uint32_t row = 0; row < h; ++row) {
         if(TIFFReadScanline(tif, line.data(), row) != 1) {
             fprintf(stderr, "TIFF decoding failed.\n");
             RETERR(FileReadError);
         }
-        pixels += line;
+        result.pixels += line;
     }
+    result.md.w = w;
+    result.md.h = h;
+    result.md.pixel_depth = 8;
+    result.md.alpha_depth = 8;
+
     switch(photometric) {
     case PHOTOMETRIC_SEPARATED:
         if(samplesperpixel != 4) {
             RETERR(UnsupportedTIFF);
         }
-        return cmyk_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+        result.md.cs = CAPYPDF_CS_DEVICE_CMYK;
+        break;
+
     case PHOTOMETRIC_RGB:
         if(samplesperpixel != 3) {
             RETERR(UnsupportedTIFF);
         }
-        return rgb_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+        result.md.cs = CAPYPDF_CS_DEVICE_RGB;
+        break;
+
     case PHOTOMETRIC_MINISBLACK:
         if(samplesperpixel != 1) {
             RETERR(UnsupportedTIFF);
         }
-        return gray_image{(int32_t)w, (int32_t)h, std::move(pixels), std::move(icc)};
+        result.md.cs = CAPYPDF_CS_DEVICE_GRAY;
+        break;
 
     default:
         RETERR(UnsupportedTIFF);
     }
+    return result;
 }
 
 } // namespace

@@ -1500,40 +1500,22 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
     return fss;
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::load_image(const std::filesystem::path &fname,
-                                              enum CAPYPDF_Image_Interpolation interpolate) {
-    ERC(image, load_image_file(fname));
-    if(std::holds_alternative<rgb_image>(image)) {
-        return process_rgb_image(std::get<rgb_image>(image), interpolate);
-    } else if(std::holds_alternative<gray_image>(image)) {
-        return process_gray_image(std::get<gray_image>(image), interpolate);
-    } else if(std::holds_alternative<mono_image>(image)) {
-        return process_mono_image(std::get<mono_image>(image), interpolate);
-    } else if(std::holds_alternative<cmyk_image>(image)) {
-        return process_cmyk_image(std::get<cmyk_image>(image), interpolate);
-    } else {
+rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image) {
+    if(image.md.cs != CAPYPDF_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
-}
-
-rvoe<CapyPDF_ImageId> PdfDocument::load_mask_image(const std::filesystem::path &fname) {
-    ERC(image, load_image_file(fname));
-    if(!std::holds_alternative<mono_image>(image)) {
-        RETERR(UnsupportedFormat);
-    }
-    auto &im = std::get<mono_image>(image);
-    return add_image_object(im.w,
-                            im.h,
-                            1,
-                            CAPY_INTERPOLATION_AUTO,
-                            CAPYPDF_CS_DEVICE_GRAY,
+    return add_image_object(image.md.w,
+                            image.md.h,
+                            image.md.pixel_depth,
+                            image.md.interp,
+                            image.md.cs,
                             std::optional<int32_t>{},
                             true,
-                            im.pixels);
+                            image.pixels);
 }
 
 rvoe<CapyPDF_ImageId>
-PdfDocument::add_image(const std::filesystem::path &fname, RasterImageData image, bool is_mask) {
+PdfDocument::add_image(const std::filesystem::path &fname, RasterImage image, bool is_mask) {
     std::optional<int32_t> smask_id;
     if(is_mask && !image.alpha.empty()) {
         RETERR(MaskAndAlpha);
@@ -1550,6 +1532,7 @@ PdfDocument::add_image(const std::filesystem::path &fname, RasterImageData image
                              image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
+    // FIXME, convert color to output colorspace here.
     return add_image_object(image.md.w,
                             image.md.h,
                             image.md.pixel_depth,
@@ -1617,109 +1600,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-rvoe<CapyPDF_ImageId>
-PdfDocument::process_mono_image(const mono_image &image,
-                                enum CAPYPDF_Image_Interpolation interpolate) {
-    std::optional<int32_t> smask_id;
-    if(image.alpha) {
-        ERC(imobj,
-            add_image_object(
-                image.w, image.h, 1, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
-        smask_id = image_info.at(imobj.id).obj;
-    }
-    return add_image_object(
-        image.w, image.h, 1, interpolate, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
-}
-
-rvoe<CapyPDF_ImageId> PdfDocument::process_rgb_image(const rgb_image &image,
-                                                     enum CAPYPDF_Image_Interpolation interpolate) {
-    std::optional<int32_t> smask_id;
-    if(image.alpha) {
-        ERC(imobj,
-            add_image_object(
-                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
-        smask_id = image_info.at(imobj.id).obj;
-    }
-    switch(opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB: {
-        return add_image_object(
-            image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_RGB, smask_id, false, image.pixels);
-    }
-    case CAPYPDF_CS_DEVICE_GRAY: {
-        std::string converted_pixels = cm.rgb_pixels_to_gray(image.pixels);
-        return add_image_object(image.w,
-                                image.h,
-                                8,
-                                interpolate,
-                                CAPYPDF_CS_DEVICE_RGB,
-                                smask_id,
-                                false,
-                                converted_pixels);
-    }
-    case CAPYPDF_CS_DEVICE_CMYK: {
-        if(cm.get_cmyk().empty()) {
-            RETERR(NoCmykProfile);
-        }
-        ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
-        return add_image_object(image.w,
-                                image.h,
-                                8,
-                                interpolate,
-                                CAPYPDF_CS_DEVICE_CMYK,
-                                smask_id,
-                                false,
-                                converted_pixels);
-    }
-    default:
-        RETERR(Unreachable);
-    }
-}
-
-rvoe<CapyPDF_ImageId>
-PdfDocument::process_gray_image(const gray_image &image,
-                                enum CAPYPDF_Image_Interpolation interpolate) {
-    std::optional<int32_t> smask_id;
-
-    // Fixme: maybe do color conversion from whatever-gray to a known gray colorspace?
-
-    if(image.alpha) {
-        ERC(imgobj,
-            add_image_object(
-                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
-        smask_id = image_info.at(imgobj.id).obj;
-    }
-    return add_image_object(
-        image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, smask_id, false, image.pixels);
-}
-
-rvoe<CapyPDF_ImageId>
-PdfDocument::process_cmyk_image(const cmyk_image &image,
-                                enum CAPYPDF_Image_Interpolation interpolate) {
-    std::optional<int32_t> smask_id;
-    ColorspaceType cs;
-    if(image.icc) {
-        auto oldicc = find_icc_profile(*image.icc);
-        if(oldicc) {
-            cs = icc_profiles.at(oldicc->id).object_num;
-        } else {
-            auto icc_obj = store_icc_profile(*image.icc, 4);
-            cs = icc_profiles.at(icc_obj.id).object_num;
-        }
-    } else {
-        cs = CAPYPDF_CS_DEVICE_CMYK;
-    }
-    if(image.alpha) {
-        ERC(imobj,
-            add_image_object(
-                image.w, image.h, 8, interpolate, CAPYPDF_CS_DEVICE_GRAY, {}, false, *image.alpha));
-        smask_id = image_info.at(imobj.id).obj;
-    }
-    return add_image_object(image.w, image.h, 8, interpolate, cs, smask_id, false, image.pixels);
-}
-
-rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(const std::filesystem::path &fname,
+rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg,
                                              enum CAPYPDF_Image_Interpolation interpolate) {
-    ERC(jpg, load_jpg(fname));
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<

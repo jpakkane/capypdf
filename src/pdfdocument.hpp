@@ -21,7 +21,6 @@
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <pdfcolorconverter.hpp>
-#include <imageops.hpp>
 
 #include <string_view>
 #include <vector>
@@ -289,23 +288,6 @@ typedef std::variant<DummyIndexZero,
 
 typedef std::variant<CapyPDF_Colorspace, int32_t> ColorspaceType;
 
-struct RasterImageMetadata {
-    int32_t w = 0;
-    int32_t h = 0;
-    int32_t pixel_depth;
-    int32_t alpha_depth;
-    CAPYPDF_Image_Interpolation interp;
-    CapyPDF_Colorspace cs;
-    // CapyPDF_Compression pixel_compression;
-};
-
-struct RasterImageData {
-    RasterImageMetadata md;
-    std::optional<CapyPDF_IccColorSpaceId> icc_id;
-    std::string pixels;
-    std::string alpha;
-};
-
 class PdfDocument {
 public:
     static rvoe<PdfDocument> construct(const PdfGenerationData &d, PdfColorConverter cm);
@@ -344,9 +326,10 @@ public:
     // Images
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      enum CAPYPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_ImageId> add_image(const std::filesystem::path &fname, RasterImageData image, bool is_mask);
-    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname,
+    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
+    rvoe<CapyPDF_ImageId>
+    add_image(const std::filesystem::path &fname, RasterImage image, bool is_mask);
+    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg,
                                     enum CAPYPDF_Image_Interpolation interpolate);
 
     // Graphics states
@@ -465,15 +448,6 @@ private:
                                            std::optional<int32_t> smask_id,
                                            bool is_mask,
                                            std::string_view uncompressed_bytes);
-
-    rvoe<CapyPDF_ImageId> process_rgb_image(const rgb_image &image,
-                                            enum CAPYPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> process_gray_image(const gray_image &image,
-                                             enum CAPYPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> process_mono_image(const mono_image &image,
-                                             enum CAPYPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> process_cmyk_image(const cmyk_image &image,
-                                             enum CAPYPDF_Image_Interpolation interpolate);
 
     int32_t create_page_group();
     void pad_subset_fonts();

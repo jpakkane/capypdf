@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "pdfcommon.hpp"
 #include <errorhandling.hpp>
 #include <cstdint>
 #include <string>
@@ -25,43 +26,6 @@
 #include <filesystem>
 
 namespace capypdf {
-
-struct mono_image {
-    int32_t w;
-    int32_t h;
-    std::string pixels;
-    std::optional<std::string> alpha;
-};
-
-struct rgb_image {
-    int32_t w;
-    int32_t h;
-    std::string pixels;
-    std::optional<std::string> alpha;
-};
-
-struct gray_image {
-    int32_t w;
-    int32_t h;
-    std::string pixels;
-    std::optional<std::string> alpha;
-};
-
-struct jpg_image {
-    int32_t w;
-    int32_t h;
-    std::string file_contents;
-};
-
-struct cmyk_image {
-    int32_t w;
-    int32_t h;
-    std::string pixels;
-    std::optional<std::string> icc;
-    std::optional<std::string> alpha;
-};
-
-typedef std::variant<mono_image, gray_image, rgb_image, cmyk_image> RasterImage;
 
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname);
 

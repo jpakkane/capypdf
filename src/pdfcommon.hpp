@@ -398,4 +398,28 @@ struct SubPageNavigation {
     // backwards transition
 };
 
+struct RasterImageMetadata {
+    int32_t w = 0;
+    int32_t h = 0;
+    int32_t pixel_depth;
+    int32_t alpha_depth;
+    CAPYPDF_Image_Interpolation interp;
+    CapyPDF_Colorspace cs;
+};
+
+struct RasterImage {
+    RasterImageMetadata md;
+    std::optional<CapyPDF_IccColorSpaceId> icc_id;
+    std::string pixels;
+    std::string alpha;
+    std::string icc_profile;
+    // CapyPDF_Compression pixel_compression;
+};
+
+struct jpg_image {
+    int32_t w;
+    int32_t h;
+    std::string file_contents;
+};
+
 } // namespace capypdf
