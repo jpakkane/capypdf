@@ -44,7 +44,7 @@ rvoe<RasterImage> load_rgb_png(png_image &image) {
         fprintf(stderr, "%s\n", image.message);
         RETERR(UnsupportedFormat);
     }
-    return result;
+    return std::move(result);
 }
 
 rvoe<RasterImage> load_rgba_png(png_image &image) {
@@ -73,7 +73,7 @@ rvoe<RasterImage> load_rgba_png(png_image &image) {
         result.alpha += buf[i + 3];
     }
 
-    return result;
+    return std::move(result);
 }
 
 rvoe<RasterImage> load_ga_png(png_image &image) {
@@ -100,7 +100,7 @@ rvoe<RasterImage> load_ga_png(png_image &image) {
         result.alpha += buf[i + 1];
     }
 
-    return result;
+    return std::move(result);
 }
 
 struct png_data {
@@ -156,7 +156,7 @@ rvoe<RasterImage> load_mono_png(png_image &image) {
         result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
-    return result;
+    return std::move(result);
 }
 
 struct pngbytes {
@@ -380,7 +380,7 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     default:
         RETERR(UnsupportedTIFF);
     }
-    return result;
+    return std::move(result);
 }
 
 } // namespace
