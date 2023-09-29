@@ -1501,17 +1501,8 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
     }
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(glyph));
     fss.ss.fid = fid;
-    if(true) {
-        fss.ss.subset_id = blub.subset;
-        fss.glyph_id = blub.offset;
-    } else {
-        fss.ss.subset_id = 0;
-        if(glyph > 255) {
-            fprintf(stderr, "Glyph ids larger than 255 not supported yet.\n");
-            std::abort();
-        }
-        fss.glyph_id = glyph;
-    }
+    fss.ss.subset_id = blub.subset;
+    fss.glyph_id = blub.offset;
     return fss;
 }
 
