@@ -1520,8 +1520,13 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image) {
                             image.pixels);
 }
 
-rvoe<CapyPDF_ImageId>
-PdfDocument::add_image(const std::filesystem::path &fname, RasterImage image, bool is_mask) {
+rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
+    if(image.md.w <= 0 || image.md.h <= 0) {
+        RETERR(InvalidImageSize);
+    }
+    if(image.pixels.empty()) {
+        RETERR(MissingPixels);
+    }
     std::optional<int32_t> smask_id;
     if(is_mask && !image.alpha.empty()) {
         RETERR(MaskAndAlpha);

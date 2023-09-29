@@ -132,7 +132,7 @@ rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
     ERC(image, load_image_file(fname));
 
     image.md.interp = interpolate;
-    return pdoc.add_image(fname, std::move(image), false);
+    return pdoc.add_image(std::move(image), false);
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::load_mask_image(const std::filesystem::path &fname) {

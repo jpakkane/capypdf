@@ -283,6 +283,44 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_re(0, 0, 160, 90)
                 ctx.cmd_f()
 
+    @validate_image('python_rasterimage', 200, 200)
+    def test_raster_image(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            image = capypdf.RasterImage()
+            image.set_size(2, 3)
+            ba = bytearray()
+            ba.append(127)
+            ba.append(0)
+            ba.append(0)
+            ba.append(255)
+            ba.append(0)
+            ba.append(0)
+
+            ba.append(0)
+            ba.append(127)
+            ba.append(0)
+            ba.append(0)
+            ba.append(255)
+            ba.append(0)
+
+            ba.append(0)
+            ba.append(0)
+            ba.append(127)
+            ba.append(0)
+            ba.append(0)
+            ba.append(255)
+
+            image.set_pixel_data(bytes(ba))
+            iid = g.add_image(image)
+            with g.page_draw_context() as ctx:
+                ctx.translate(10, 10);
+                ctx.scale(20, 30);
+                ctx.draw_image(iid)
+
     @validate_image('python_linestyles', 200, 200)
     def test_line_styles(self, ofilename, w, h):
         prop = capypdf.PageProperties()

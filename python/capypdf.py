@@ -144,6 +144,7 @@ cfunc_types = (
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -231,6 +232,12 @@ cfunc_types = (
 ('capy_graphics_state_set_ca', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_graphics_state_set_BM', [ctypes.c_void_p, enum_type]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
+
+('capy_raster_image_new', [ctypes.c_void_p]),
+('capy_raster_image_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
+('capy_raster_image_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_raster_image_destroy', [ctypes.c_void_p]),
+
 
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_optional_content_group_destroy', [ctypes.c_void_p]),
@@ -618,6 +625,13 @@ class Generator:
         check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
         return iid
 
+    def add_image(self, ri):
+        if not isinstance(ri, RasterImage):
+            raise CapyPDFException('Argument must be a raster image.')
+        iid = ImageId()
+        check_error(libfile.capy_generator_add_image(self, ri, ctypes.pointer(iid)))
+        return iid
+
     def write(self):
         check_error(libfile.capy_generator_write(self))
 
@@ -731,6 +745,24 @@ class Transition:
 
     def __del__(self):
         check_error(libfile.capy_transition_destroy(self))
+
+class RasterImage:
+    def __init__(self):
+        self._as_parameter_ = None
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_raster_image_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.capy_raster_image_destroy(self))
+
+    def set_size(self, w, h):
+        check_error(libfile.capy_raster_image_set_size(self, w, h))
+
+    def set_pixel_data(self, pixels):
+        if not isinstance(pixels, bytes):
+            raise CapyPDFException('Pixel data must be in bytes.')
+        check_error(libfile.capy_raster_image_set_pixel_data(self, pixels, len(pixels)))
 
 class GraphicsState:
     def __init__(self):

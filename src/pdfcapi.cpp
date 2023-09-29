@@ -220,6 +220,19 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
+                                                   CapyPDF_RasterImage *image,
+                                                   CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *im = reinterpret_cast<RasterImage *>(image);
+    auto rc = gen->add_image(std::move(*im));
+    if(rc) {
+        *iid = rc.value();
+    }
+    *im = RasterImage{};
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -781,6 +794,36 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(
 CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<GraphicsState *>(state);
+    RETNOERR;
+}
+
+// Raster images.
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_new(CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage{});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_set_size(CapyPDF_RasterImage *image,
+                                                     int32_t w,
+                                                     int32_t h) CAPYPDF_NOEXCEPT {
+    auto *ri = reinterpret_cast<RasterImage *>(image);
+    ri->md.w = w;
+    ri->md.h = h;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_set_pixel_data(CapyPDF_RasterImage *image,
+                                                           const char *buf,
+                                                           int32_t bufsize) CAPYPDF_NOEXCEPT {
+    auto *ri = reinterpret_cast<RasterImage *>(image);
+    ri->pixels.assign(buf, buf + bufsize);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT {
+    auto *ri = reinterpret_cast<RasterImage *>(image);
+    delete ri;
     RETNOERR;
 }
 

@@ -70,6 +70,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "MediaBox is missing.",
 "Image used as a mask has an alpha channel.",
 "Font does not have the requested glyph.",
+"Invalid image size.",
+"Missing pixel data.",
 };
 
 // clang-format on

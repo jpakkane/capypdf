@@ -401,7 +401,7 @@ struct SubPageNavigation {
 struct RasterImageMetadata {
     int32_t w = 0;
     int32_t h = 0;
-    int32_t pixel_depth;
+    int32_t pixel_depth = 8;
     int32_t alpha_depth;
     CAPYPDF_Image_Interpolation interp;
     CapyPDF_Colorspace cs;

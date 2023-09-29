@@ -58,7 +58,6 @@ public:
     rvoe<CapyPDF_ImageId>
     load_image(const std::filesystem::path &fname,
                enum CAPYPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
-
     rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
     rvoe<CapyPDF_ImageId>
     embed_jpg(const std::filesystem::path &fname,
@@ -69,6 +68,8 @@ public:
     rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname) {
         return pdoc.load_font(ft.get(), fname);
     };
+
+    rvoe<CapyPDF_ImageId> add_image(RasterImage ri) { return pdoc.add_image(std::move(ri), false); }
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
 

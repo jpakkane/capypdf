@@ -68,6 +68,8 @@ enum class ErrorCode : int32_t {
     MissingMediabox,
     MaskAndAlpha,
     MissingGlyph,
+    InvalidImageSize,
+    MissingPixels,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
