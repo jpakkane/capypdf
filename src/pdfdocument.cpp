@@ -1496,6 +1496,9 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
 
 rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t glyph) {
     SubsetGlyph fss;
+    if(FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), glyph) == 0) {
+        RETERR(MissingGlyph);
+    }
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(glyph));
     fss.ss.fid = fid;
     if(true) {
