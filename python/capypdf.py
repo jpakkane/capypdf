@@ -14,7 +14,7 @@
 
 
 import ctypes
-import os
+import os, sys
 import math
 from enum import Enum
 
@@ -244,8 +244,10 @@ cfunc_types = (
 
 )
 
-if os.name == 'nt':
+if sys.platform == 'win32':
     libfile_name = 'capypdf-0.dll'
+elif sys.platform == 'darwin':
+    libfile_name = 'libcapypdf.0.dylib'
 else:
     libfile_name = 'libcapypdf.so'
 libfile = None
@@ -265,7 +267,8 @@ if libfile is None:
     if 'site-packages' in __file__:
         sdir = os.path.split(__file__)[0]
         # Match libcapypdf.so.0.5.0 and similar names too
-        matches = glob(os.path.join(sdir, '.*capypdf*', libfile_name + "*"))
+        globber = os.path.join(sdir, '.*capypdf*', libfile_name + "*")
+        matches = glob(globber)
         if len(matches) == 1:
             libfile = ctypes.cdll.LoadLibrary(matches[0])
 
