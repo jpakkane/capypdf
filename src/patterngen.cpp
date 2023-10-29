@@ -24,8 +24,9 @@ void draw_page_1(PdfGen &gen) {
     {
         auto pop = ctx.push_gstate();
         ctx.translate(0, 100);
-        FunctionType2 rgbfunc{{0.0, 1.0}, {0.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, 1.0};
-        auto funcid = gen.add_function(rgbfunc);
+        FunctionType2 rgbfunc{
+            {0.0, 1.0}, DeviceRGBColor{0.0, 1.0, 0.0}, DeviceRGBColor{1.0, 0.0, 1.0}, 1.0};
+        auto funcid = gen.add_function(rgbfunc).value();
 
         ShadingType2 shade;
         shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
@@ -48,8 +49,9 @@ void draw_page_1(PdfGen &gen) {
     {
         auto pop = ctx.push_gstate();
         ctx.translate(100, 100);
-        FunctionType2 rgbfunc{{0.0, 1.0}, {1.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 0.7};
-        auto funcid = gen.add_function(rgbfunc);
+        FunctionType2 rgbfunc{
+            {0.0, 1.0}, DeviceRGBColor{1.0, 1.0, 0.0}, DeviceRGBColor{0.0, 0.0, 1.0}, 0.7};
+        auto funcid = gen.add_function(rgbfunc).value();
         ShadingType3 shade;
         shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
         shade.x0 = 50;

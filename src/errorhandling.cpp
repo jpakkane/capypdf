@@ -72,6 +72,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Font does not have the requested glyph.",
 "Invalid image size.",
 "Missing pixel data.",
+"Color spaces are not of the same type.",
 };
 
 // clang-format on

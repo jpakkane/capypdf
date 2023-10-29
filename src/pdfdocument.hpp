@@ -327,15 +327,14 @@ public:
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      enum CAPYPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
-    rvoe<CapyPDF_ImageId>
-    add_image(RasterImage image, bool is_mask);
+    rvoe<CapyPDF_ImageId> add_image(RasterImage image, bool is_mask);
     rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, enum CAPYPDF_Image_Interpolation interpolate);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
 
     // Functions
-    FunctionId add_function(const FunctionType2 &func);
+    rvoe<FunctionId> add_function(const FunctionType2 &func);
 
     // Shading
     ShadingId add_shading(const ShadingType2 &shade);

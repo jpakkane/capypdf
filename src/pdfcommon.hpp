@@ -271,8 +271,8 @@ struct LabColorSpace {
 
 struct FunctionType2 {
     std::vector<double> domain;
-    std::vector<double> C0;
-    std::vector<double> C1;
+    Color C0;
+    Color C1;
     double n;
 };
 

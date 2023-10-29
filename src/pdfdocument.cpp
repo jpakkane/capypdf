@@ -319,6 +319,22 @@ int32_t num_channels_for(const CapyPDF_Colorspace cs) {
     std::abort();
 }
 
+void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) {
+    if(std::holds_alternative<DeviceRGBColor>(c)) {
+        const auto &rgb = std::get<DeviceRGBColor>(c);
+        fmt::format_to(app, "{} {} {}", rgb.r.v(), rgb.g.v(), rgb.b.v());
+    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
+        const auto &gray = std::get<DeviceGrayColor>(c);
+        fmt::format_to(app, "{}", gray.v.v());
+    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
+        const auto &cmyk = std::get<DeviceCMYKColor>(c);
+        fmt::format_to(app, "{} {} {} {}", cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+    } else {
+        fprintf(stderr, "Colorspace not supported yet.\n");
+        std::abort();
+    }
+}
+
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -1757,8 +1773,11 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     return CapyPDF_GraphicsStateId{id};
 }
 
-FunctionId PdfDocument::add_function(const FunctionType2 &func) {
+rvoe<FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     const int functiontype = 2;
+    if(func.C0.index() != func.C1.index()) {
+        RETERR(ColorspaceMismatch);
+    }
     std::string buf = fmt::format(
         R"(<<
   /FunctionType {}
@@ -1774,14 +1793,10 @@ FunctionId PdfDocument::add_function(const FunctionType2 &func) {
     }
     buf += "]\n";
     buf += "  /C0 [ ";
-    for(const auto d : func.C0) {
-        fmt::format_to(resource_appender, "{} ", d);
-    }
+    color2numbers(resource_appender, func.C0);
     buf += "]\n";
     buf += "  /C1 [ ";
-    for(const auto d : func.C1) {
-        fmt::format_to(resource_appender, "{} ", d);
-    }
+    color2numbers(resource_appender, func.C1);
     buf += "]\n";
     buf += ">>\n";
 

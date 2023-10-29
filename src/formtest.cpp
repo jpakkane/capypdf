@@ -176,8 +176,11 @@ int draw_transp_doc() {
     {
         GenPopper genpop("group_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        FunctionType2 cmykfunc{{0.0, 1.0}, {0.0, 1.0, 0.0, 0.0}, {1.0, 0.0, 1.0, 0.0}, 1.0};
-        auto funcid = gen.add_function(cmykfunc);
+        FunctionType2 cmykfunc{{0.0, 1.0},
+                               DeviceCMYKColor{0.0, 1.0, 0.0, 0.0},
+                               DeviceCMYKColor{1.0, 0.0, 1.0, 0.0},
+                               1.0};
+        auto funcid = gen.add_function(cmykfunc).value();
 
         ShadingType2 shade;
         shade.colorspace = CAPYPDF_CS_DEVICE_CMYK;
