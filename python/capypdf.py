@@ -673,7 +673,7 @@ class Generator:
         if not isinstance(text, str):
             raise CapyPDFException('Text must be a Unicode string.')
         if not isinstance(font, FontId):
-            raise CapyPDFException('Argument not a colorspace object.')
+            raise CapyPDFException('Font argument is not a font id.')
         w = ctypes.c_double()
         bytes = text.encode('UTF-8')
         check_error(libfile.capy_generator_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
