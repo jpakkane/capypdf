@@ -233,6 +233,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type2_function(
+    CapyPDF_Generator *g, CapyPDF_Type2Function *func, CapyPDF_FunctionId *fid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *f = reinterpret_cast<FunctionType2 *>(func);
+    auto rc = gen->add_function(*f);
+    if(rc) {
+        *fid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -824,6 +835,26 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_set_pixel_data(CapyPDF_RasterImage *
 CAPYPDF_PUBLIC CAPYPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT {
     auto *ri = reinterpret_cast<RasterImage *>(image);
     delete ri;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_function_new(CapyPDF_Type2Function **out_ptr,
+                                                  double *domain,
+                                                  int32_t domain_size,
+                                                  const CapyPDF_Color *c1,
+                                                  const CapyPDF_Color *c2,
+                                                  double n) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Type2Function *>(
+        new FunctionType2{std::vector<double>(domain, domain + domain_size),
+                          *reinterpret_cast<const Color *>(c1),
+                          *reinterpret_cast<const Color *>(c2),
+                          n});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *func)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<FunctionType2 *>(func);
     RETNOERR;
 }
 

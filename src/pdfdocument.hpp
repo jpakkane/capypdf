@@ -334,7 +334,7 @@ public:
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
 
     // Functions
-    rvoe<FunctionId> add_function(const FunctionType2 &func);
+    rvoe<CapyPDF_FunctionId> add_function(const FunctionType2 &func);
 
     // Shading
     ShadingId add_shading(const ShadingType2 &shade);

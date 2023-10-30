@@ -152,10 +152,6 @@ struct SeparationId {
     int32_t id;
 };
 
-struct FunctionId {
-    int32_t id;
-};
-
 struct ShadingId {
     int32_t id;
 };
@@ -280,7 +276,7 @@ struct FunctionType2 {
 struct ShadingType2 {
     CapyPDF_Colorspace colorspace;
     double x0, y0, x1, y1;
-    FunctionId function;
+    CapyPDF_FunctionId function;
     bool extend0, extend1;
 };
 
@@ -288,7 +284,7 @@ struct ShadingType2 {
 struct ShadingType3 {
     CapyPDF_Colorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
-    FunctionId function;
+    CapyPDF_FunctionId function;
     bool extend0, extend1;
 };
 

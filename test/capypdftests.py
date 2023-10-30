@@ -484,5 +484,13 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.cmd_l(-1.02, 157)
                             ctx.cmd_S()
 
+    #@validate_image('python_shading', 200, 200)
+    def test_shading(self):
+        c1 = capypdf.Color()
+        c1.set_rgb(0.0, 1.0, 0.0)
+        c2 = capypdf.Color()
+        c2.set_rgb(1.0, 0.0, 1.0)
+        f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
+
 if __name__ == "__main__":
     unittest.main()

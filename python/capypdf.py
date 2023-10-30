@@ -120,6 +120,9 @@ class ImageId(ctypes.Structure):
 class OptionalContentGroupId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class Type2FunctionId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -145,6 +148,7 @@ cfunc_types = (
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -238,9 +242,12 @@ cfunc_types = (
 ('capy_raster_image_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_raster_image_destroy', [ctypes.c_void_p]),
 
-
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_optional_content_group_destroy', [ctypes.c_void_p]),
+
+('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]),
+('capy_type2_function_destroy', [ctypes.c_void_p]),
+
 
 )
 
@@ -635,6 +642,13 @@ class Generator:
         check_error(libfile.capy_generator_add_image(self, ri, ctypes.pointer(iid)))
         return iid
 
+    def add_type2_function(self, type2func):
+        if not isinstance(type2func, Type2Function):
+            raise CapyPDFException('Argument must be a function.')
+        fid = Type2FunctionId()
+        check_error(libfile.capy_generator_add_type2_function(self, type2func, ctypes.pointer(fid)))
+
+
     def write(self):
         check_error(libfile.capy_generator_write(self))
 
@@ -796,3 +810,13 @@ class OptionalContentGroup:
 
     def __del__(self):
         check_error(libfile.capy_optional_content_group_destroy(self))
+
+class Type2Function:
+    def __init__(self, domain, c1, c2, n):
+        self._as_parameter_ = None
+        t2f = ctypes.c_void_p()
+        check_error(libfile.capy_type2_function_new(ctypes.pointer(t2f), *to_array(ctypes.c_double, domain), c1, c2, n))
+        self._as_parameter_ = t2f
+
+    def __del__(self):
+        check_error(libfile.capy_type2_function_destroy(self))

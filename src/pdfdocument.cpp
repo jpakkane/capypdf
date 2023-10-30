@@ -1773,7 +1773,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     return CapyPDF_GraphicsStateId{id};
 }
 
-rvoe<FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
+rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     const int functiontype = 2;
     if(func.C0.index() != func.C1.index()) {
         RETERR(ColorspaceMismatch);
@@ -1800,7 +1800,7 @@ rvoe<FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     buf += "]\n";
     buf += ">>\n";
 
-    return FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
+    return CapyPDF_FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
 }
 
 ShadingId PdfDocument::add_shading(const ShadingType2 &shade) {
