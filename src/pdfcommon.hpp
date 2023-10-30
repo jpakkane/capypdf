@@ -152,10 +152,6 @@ struct SeparationId {
     int32_t id;
 };
 
-struct ShadingId {
-    int32_t id;
-};
-
 struct PatternId {
     int32_t id;
 };

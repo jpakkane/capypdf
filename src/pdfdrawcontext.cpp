@@ -503,7 +503,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_scn(double value) {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_sh(ShadingId shid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_sh(CapyPDF_ShadingId shid) {
     CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
     fmt::format_to(cmd_appender, "{}/SH{} sh\n", ind, shid.id);

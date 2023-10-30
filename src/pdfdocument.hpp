@@ -337,10 +337,10 @@ public:
     rvoe<CapyPDF_FunctionId> add_function(const FunctionType2 &func);
 
     // Shading
-    ShadingId add_shading(const ShadingType2 &shade);
-    ShadingId add_shading(const ShadingType3 &shade);
-    ShadingId add_shading(const ShadingType4 &shade);
-    ShadingId add_shading(const ShadingType6 &shade);
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType2 &shade);
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType3 &shade);
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType4 &shade);
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType6 &shade);
 
     // Patterns
     PatternId add_pattern(std::string_view pattern_dict, std::string_view commands);

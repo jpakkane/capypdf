@@ -135,7 +135,7 @@ public:
     rvoe<NoReturnValue> cmd_S();
     rvoe<NoReturnValue> cmd_SCN(double value);
     rvoe<NoReturnValue> cmd_scn(double value);
-    rvoe<NoReturnValue> cmd_sh(ShadingId shid);
+    rvoe<NoReturnValue> cmd_sh(CapyPDF_ShadingId shid);
     rvoe<NoReturnValue> cmd_Tr(CapyPDF_Text_Mode mode);
     rvoe<NoReturnValue> cmd_v(double x2, double y2, double x3, double y3);
     rvoe<NoReturnValue> cmd_w(double w);

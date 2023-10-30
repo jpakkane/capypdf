@@ -77,7 +77,7 @@ int draw_simple_form() {
     return 0;
 }
 
-void draw_gradient(PdfDrawContext &ctx, ShadingId shadeid, double x, double y) {
+void draw_gradient(PdfDrawContext &ctx, CapyPDF_ShadingId shadeid, double x, double y) {
     ctx.translate(x, y);
     ctx.cmd_re(0, 0, 80, 80);
     ctx.cmd_Wstar();
@@ -196,7 +196,7 @@ int draw_transp_doc() {
         gs.BM = CAPY_BM_MULTIPLY;
         auto gsid = gen.add_graphics_state(gs).value();
 
-        auto shadeid = gen.add_shading(shade);
+        auto shadeid = gen.add_shading(shade).value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;

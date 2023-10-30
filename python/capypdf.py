@@ -120,7 +120,10 @@ class ImageId(ctypes.Structure):
 class OptionalContentGroupId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
-class Type2FunctionId(ctypes.Structure):
+class FunctionId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
+class ShadingId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
 
@@ -191,6 +194,7 @@ cfunc_types = (
 ('capy_dc_cmd_ri', [ctypes.c_void_p, enum_type]),
 ('capy_dc_cmd_s', [ctypes.c_void_p]),
 ('capy_dc_cmd_S', [ctypes.c_void_p]),
+('capy_dc_cmd_sh', [ctypes.c_void_p, ShadingId]),
 ('capy_dc_cmd_v', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_w', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_dc_cmd_W', [ctypes.c_void_p]),
@@ -248,6 +252,9 @@ cfunc_types = (
 ('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]),
 ('capy_type2_function_destroy', [ctypes.c_void_p]),
 
+('capy_type2_shading_new', [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
+    FunctionId, ctypes.c_int32, ctypes.c_int32]),
+('capy_type2_shading_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -497,6 +504,9 @@ class DrawContext:
     def cmd_S(self):
         check_error(libfile.capy_dc_cmd_S(self))
 
+    def cmd_sh(self, shid):
+        check_error(libfile.capy_dc_cmd_sh(self, shid))
+
     def cmd_v(self, x2, y2, x3, y3):
         check_error(libfile.capy_dc_cmd_v(self, x2, y2, x3, y3))
 
@@ -645,9 +655,16 @@ class Generator:
     def add_type2_function(self, type2func):
         if not isinstance(type2func, Type2Function):
             raise CapyPDFException('Argument must be a function.')
-        fid = Type2FunctionId()
+        fid = FunctionId()
         check_error(libfile.capy_generator_add_type2_function(self, type2func, ctypes.pointer(fid)))
+        return fid
 
+    def add_type2_shading(self, type2shade):
+        if not isinstance(type2shade, Type2Shading):
+            raise CapyPDFException('Argument must be a shading object.')
+        shid = ShadingId()
+        check_error(libfile.capy_generator_add_type2_shading(self, type2shade, ctypes.pointer(shid)))
+        return shid
 
     def write(self):
         check_error(libfile.capy_generator_write(self))
@@ -820,3 +837,16 @@ class Type2Function:
 
     def __del__(self):
         check_error(libfile.capy_type2_function_destroy(self))
+
+class Type2Shading:
+    def __init__(self, cs, x0, y0, x1, y1, funcid, extend1, extend2):
+        e1 = 1 if extend1 else 0
+        e2 = 1 if extend2 else 0
+        self._as_parameter_ = None
+        t2s = ctypes.c_void_p()
+        check_error(libfile.capy_type2_shading_new(ctypes.pointer(t2s),
+            cs.value, x0, y0, x1, y1, funcid, e1, e2))
+        self._as_parameter_ = t2s
+
+    def __del__(self):
+        check_error(libfile.capy_type2_shading_destroy(self))

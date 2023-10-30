@@ -85,10 +85,18 @@ public:
         return pdoc.add_function(func);
     }
 
-    ShadingId add_shading(const ShadingType2 &shade) { return pdoc.add_shading(shade); }
-    ShadingId add_shading(const ShadingType3 &shade) { return pdoc.add_shading(shade); }
-    ShadingId add_shading(const ShadingType4 &shade) { return pdoc.add_shading(shade); }
-    ShadingId add_shading(const ShadingType6 &shade) { return pdoc.add_shading(shade); }
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType2 &shade) {
+        return pdoc.add_shading(shade);
+    }
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType3 &shade) {
+        return pdoc.add_shading(shade);
+    }
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType4 &shade) {
+        return pdoc.add_shading(shade);
+    }
+    rvoe<CapyPDF_ShadingId> add_shading(const ShadingType6 &shade) {
+        return pdoc.add_shading(shade);
+    }
 
     LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
 

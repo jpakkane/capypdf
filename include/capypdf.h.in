@@ -176,6 +176,7 @@ typedef struct _capyPDF_Text CapyPDF_Text;
 typedef struct _capyPDF_Transition CapyPDF_Transition;
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_Type2Function CapyPDF_Type2Function;
+typedef struct _capyPDF_Type2Shading CapyPDF_Type2Shading;
 
 typedef int32_t CAPYPDF_EC;
 
@@ -226,6 +227,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } CapyPDF_FunctionId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_ShadingId;
 
 // Options
 
@@ -281,6 +286,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type2_function(
     CapyPDF_Generator *g, CapyPDF_Type2Function *func, CapyPDF_FunctionId *fid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type2_shading(
+    CapyPDF_Generator *g, CapyPDF_Type2Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -367,6 +374,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_ri(CapyPDF_DrawContext *ctx,
                                          enum CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_s(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_S(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_sh(CapyPDF_DrawContext *ctx,
+                                         CapyPDF_ShadingId shid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_v(
     CapyPDF_DrawContext *ctx, double x2, double y2, double x3, double y3) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_w(CapyPDF_DrawContext *ctx,
@@ -488,6 +497,18 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_function_new(CapyPDF_Type2Function **out_pt
                                                   const CapyPDF_Color *c2,
                                                   double n) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *func) CAPYPDF_NOEXCEPT;
+
+// Shadings
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_new(CapyPDF_Type2Shading **out_ptr,
+                                                 enum CapyPDF_Colorspace cs,
+                                                 double x0,
+                                                 double y0,
+                                                 double x1,
+                                                 double y1,
+                                                 CapyPDF_FunctionId func,
+                                                 int32_t extend1,
+                                                 int32_t extend2) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Error
 

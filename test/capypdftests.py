@@ -484,13 +484,33 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.cmd_l(-1.02, 157)
                             ctx.cmd_S()
 
-    #@validate_image('python_shading', 200, 200)
-    def test_shading(self):
-        c1 = capypdf.Color()
-        c1.set_rgb(0.0, 1.0, 0.0)
-        c2 = capypdf.Color()
-        c2.set_rgb(1.0, 0.0, 1.0)
-        f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
+    @validate_image('python_shading', 200, 200)
+    def test_shading(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            c1 = capypdf.Color()
+            c1.set_rgb(0.0, 1.0, 0.0)
+            c2 = capypdf.Color()
+            c2.set_rgb(1.0, 0.0, 1.0)
+            f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
+            f2id = gen.add_type2_function(f2)
+            sh2 = capypdf.Type2Shading(capypdf.Colorspace.DeviceRGB,
+                                       10.0,
+                                       50.0,
+                                       90.0,
+                                       50.0,
+                                       f2id,
+                                       False,
+                                       False)
+            sh2id = gen.add_type2_shading(sh2)
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_re(10, 10, 80, 80)
+                ctx.cmd_Wstar()
+                ctx.cmd_n()
+                ctx.cmd_sh(sh2id)
 
 if __name__ == "__main__":
     unittest.main()

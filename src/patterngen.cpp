@@ -38,7 +38,7 @@ void draw_page_1(PdfGen &gen) {
         shade.extend0 = false;
         shade.extend1 = false;
 
-        auto shadeid = gen.add_shading(shade);
+        auto shadeid = gen.add_shading(shade).value();
         ctx.cmd_re(10, 10, 80, 80);
         // Shadings fill the entire clipping area. It does not
         // stick to what is inside the "current path".
@@ -64,7 +64,7 @@ void draw_page_1(PdfGen &gen) {
         shade.extend0 = false;
         shade.extend1 = true;
 
-        auto shadeid = gen.add_shading(shade);
+        auto shadeid = gen.add_shading(shade).value();
         ctx.cmd_sh(shadeid);
     }
     {
@@ -131,7 +131,7 @@ void draw_page_2(PdfGen &gen) {
 
     ShadingType4 gouraud;
     gouraud.start_strip(v1, v2, v3);
-    auto gouraudid = gen.add_shading(gouraud);
+    auto gouraudid = gen.add_shading(gouraud).value();
     ctx.cmd_sh(gouraudid);
 }
 
@@ -163,7 +163,7 @@ void draw_page_3(PdfGen &gen) {
     fp.c[3] = DeviceRGBColor{1.0, 0.0, 1.0};
 
     coons.elements.emplace_back(std::move(fp));
-    auto coonsid = gen.add_shading(coons);
+    auto coonsid = gen.add_shading(coons).value();
     ctx.cmd_sh(coonsid);
 }
 
