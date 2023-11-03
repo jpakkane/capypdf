@@ -71,6 +71,7 @@ enum class ErrorCode : int32_t {
     InvalidImageSize,
     MissingPixels,
     ColorspaceMismatch,
+    BadBoolean,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
@@ -91,6 +92,11 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
 struct NoReturnValue {};
 
 } // namespace capypdf
+
+#define CHECK_BOOLEAN(b)                                                                           \
+    if(b < 0 || b > 1) {                                                                           \
+        return conv_err(ErrorCode::BadBoolean);                                                    \
+    }
 
 #define CHECK_COLORCOMPONENT(c)                                                                    \
     if(c < 0 || c > 1) {                                                                           \

@@ -152,6 +152,8 @@ cfunc_types = (
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -661,9 +663,16 @@ class Generator:
 
     def add_type2_shading(self, type2shade):
         if not isinstance(type2shade, Type2Shading):
-            raise CapyPDFException('Argument must be a shading object.')
+            raise CapyPDFException('Argument must be a type 2 shading object.')
         shid = ShadingId()
         check_error(libfile.capy_generator_add_type2_shading(self, type2shade, ctypes.pointer(shid)))
+        return shid
+
+    def add_type3_shading(self, type3shade):
+        if not isinstance(type3shade, Type3Shading):
+            raise CapyPDFException('Argument must be a type 3shading object.')
+        shid = ShadingId()
+        check_error(libfile.capy_generator_add_type3_shading(self, type3shade, ctypes.pointer(shid)))
         return shid
 
     def write(self):
@@ -850,3 +859,18 @@ class Type2Shading:
 
     def __del__(self):
         check_error(libfile.capy_type2_shading_destroy(self))
+
+class Type3Shading:
+    def __init__(self, cs, coords, funcid, extend1, extend2):
+        e1 = 1 if extend1 else 0
+        e2 = 1 if extend2 else 0
+        if len(coords) != 6:
+            raise CapyPDFException('Coords array must hold exactly 6 doubles.')
+        self._as_parameter_ = None
+        t3s = ctypes.c_void_p()
+        check_error(libfile.capy_type3_shading_new(ctypes.pointer(t3s),
+            cs.value, to_array(ctypes.c_double, coords)[0], funcid, e1, e2))
+        self._as_parameter_ = t3s
+
+    def __del__(self):
+        check_error(libfile.capy_type3_shading_destroy_shading_destroy(self))

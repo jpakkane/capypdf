@@ -506,11 +506,24 @@ class TestPDFCreation(unittest.TestCase):
                                        False,
                                        False)
             sh2id = gen.add_type2_shading(sh2)
+            sh3 = capypdf.Type3Shading(capypdf.Colorspace.DeviceRGB,
+                                       [50, 50, 40, 40, 30, 10],
+                                       f2id,
+                                       False,
+                                       True)
+            sh3id = gen.add_type3_shading(sh3)
             with gen.page_draw_context() as ctx:
-                ctx.cmd_re(10, 10, 80, 80)
-                ctx.cmd_Wstar()
-                ctx.cmd_n()
-                ctx.cmd_sh(sh2id)
+                with ctx.push_gstate():
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh2id)
+                with ctx.push_gstate():
+                    ctx.translate(100, 0)
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh3id)
 
 if __name__ == "__main__":
     unittest.main()

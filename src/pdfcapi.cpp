@@ -255,6 +255,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type2_shading(
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type3_shading(
+    CapyPDF_Generator *g, CapyPDF_Type3Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *sh = reinterpret_cast<ShadingType3 *>(shade);
+    auto rc = gen->add_shading(*sh);
+    if(rc) {
+        *shid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -884,12 +895,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_new(CapyPDF_Type2Shading **out_ptr,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
                                                  int32_t extend2) CAPYPDF_NOEXCEPT {
-    if(extend1 < 0 || extend1 > 1) {
-        return conv_err(ErrorCode::BadEnum);
-    }
-    if(extend2 < 0 || extend2 > 1) {
-        return conv_err(ErrorCode::BadEnum);
-    }
+    CHECK_BOOLEAN(extend1);
+    CHECK_BOOLEAN(extend2);
     *out_ptr = reinterpret_cast<CapyPDF_Type2Shading *>(
         new ShadingType2{cs, x0, y0, x1, y1, func, extend1 != 0, extend2 != 0});
     RETNOERR;
@@ -897,6 +904,32 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_new(CapyPDF_Type2Shading **out_ptr,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ShadingType2 *>(shade);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_new(CapyPDF_Type3Shading **out_ptr,
+                                                 enum CapyPDF_Colorspace cs,
+                                                 double *coords,
+                                                 CapyPDF_FunctionId func,
+                                                 int32_t extend1,
+                                                 int32_t extend2) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(extend1);
+    CHECK_BOOLEAN(extend2);
+    *out_ptr = reinterpret_cast<CapyPDF_Type3Shading *>(new ShadingType3{cs,
+                                                                         coords[0],
+                                                                         coords[1],
+                                                                         coords[2],
+                                                                         coords[3],
+                                                                         coords[4],
+                                                                         coords[5],
+                                                                         func,
+                                                                         extend1 != 0,
+                                                                         extend2 != 0});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<ShadingType3 *>(shade);
     RETNOERR;
 }
 

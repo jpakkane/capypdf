@@ -73,6 +73,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Invalid image size.",
 "Missing pixel data.",
 "Color spaces are not of the same type.",
+"Boolean integer value must be 0 or 1.",
 };
 
 // clang-format on
