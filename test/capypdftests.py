@@ -512,6 +512,20 @@ class TestPDFCreation(unittest.TestCase):
                                        False,
                                        True)
             sh3id = gen.add_type3_shading(sh3)
+            sh4 = capypdf.Type4Shading(capypdf.Colorspace.DeviceRGB, 0, 0, 100, 100)
+            c1 = capypdf.Color()
+            c1.set_rgb(1, 0, 0)
+            c2 = capypdf.Color()
+            c2.set_rgb(0, 1, 0)
+            c3 = capypdf.Color()
+            c3.set_rgb(0, 0, 1)
+            sh4.extend(0, [50, 90,
+                           10, 10,
+                           90, 10],
+                           [c1, c2, c3])
+            sh4.extend(2, [90, 90], c2)
+            sh4id = gen.add_type4_shading(sh4)
+
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.cmd_re(10, 10, 80, 80)
@@ -524,6 +538,12 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_Wstar()
                     ctx.cmd_n()
                     ctx.cmd_sh(sh3id)
+                with ctx.push_gstate():
+                    ctx.translate(0, 100)
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh4id)
 
 if __name__ == "__main__":
     unittest.main()

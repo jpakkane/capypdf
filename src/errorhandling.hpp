@@ -72,6 +72,7 @@ enum class ErrorCode : int32_t {
     MissingPixels,
     ColorspaceMismatch,
     BadBoolean,
+    BadStripStart,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

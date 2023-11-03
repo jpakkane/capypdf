@@ -266,6 +266,17 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type3_shading(
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type4_shading(
+    CapyPDF_Generator *g, CapyPDF_Type4Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
+    auto rc = gen->add_shading(*sh);
+    if(rc) {
+        *shid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -930,6 +941,59 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_new(CapyPDF_Type3Shading **out_ptr,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ShadingType3 *>(shade);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_new(CapyPDF_Type4Shading **out_ptr,
+                                                 enum CapyPDF_Colorspace cs,
+                                                 double minx,
+                                                 double miny,
+                                                 double maxx,
+                                                 double maxy) CAPYPDF_NOEXCEPT {
+    auto *shobj = new ShadingType4{};
+    shobj->colorspace = cs;
+    shobj->minx = minx;
+    shobj->miny = miny;
+    shobj->maxx = maxx;
+    shobj->maxy = maxy;
+    *out_ptr = reinterpret_cast<CapyPDF_Type4Shading *>(shobj);
+    RETNOERR;
+}
+
+static ShadingPoint conv_shpoint(double *coords, Color *color) {
+    ShadingPoint sp;
+    sp.c = *color;
+    sp.p.x = coords[0];
+    sp.p.y = coords[1];
+    return sp;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
+                                                    int32_t flag,
+                                                    double *coords,
+                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
+    auto **cc = reinterpret_cast<Color **>(colors);
+    if(flag == 0) {
+        ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
+        ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
+        ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
+        sh->start_strip(sp1, sp2, sp3);
+
+    } else if(flag == 1 || flag == 2) {
+        if(sh->elements.empty()) {
+            conv_err(ErrorCode::BadStripStart);
+        }
+        ShadingPoint sp = conv_shpoint(coords, cc[0]);
+        sh->extend_strip(sp, flag);
+    } else {
+        conv_err(ErrorCode::BadEnum);
+    }
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<ShadingType4 *>(shade);
     RETNOERR;
 }
 

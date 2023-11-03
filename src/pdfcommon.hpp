@@ -298,10 +298,10 @@ struct ShadingElement {
 
 struct ShadingType4 {
     std::vector<ShadingElement> elements;
-    double minx = 0;
-    double miny = 0;
-    double maxx = 200;
-    double maxy = 200;
+    double minx;
+    double miny;
+    double maxx;
+    double maxy;
     CapyPDF_Colorspace colorspace = CAPYPDF_CS_DEVICE_RGB;
 
     void start_strip(const ShadingPoint &v0, const ShadingPoint &v1, const ShadingPoint &v2) {

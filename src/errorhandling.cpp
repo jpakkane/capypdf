@@ -74,6 +74,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Missing pixel data.",
 "Color spaces are not of the same type.",
 "Boolean integer value must be 0 or 1.",
+"Gradient must start with a full patch.",
 };
 
 // clang-format on

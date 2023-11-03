@@ -178,6 +178,7 @@ typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_Type2Function CapyPDF_Type2Function;
 typedef struct _capyPDF_Type2Shading CapyPDF_Type2Shading;
 typedef struct _capyPDF_Type3Shading CapyPDF_Type3Shading;
+typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
 
 typedef int32_t CAPYPDF_EC;
 
@@ -291,6 +292,8 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type2_shading(
     CapyPDF_Generator *g, CapyPDF_Type2Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type3_shading(
     CapyPDF_Generator *g, CapyPDF_Type3Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_type4_shading(
+    CapyPDF_Generator *g, CapyPDF_Type4Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -520,6 +523,18 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_new(CapyPDF_Type3Shading **out_ptr,
                                                  int32_t extend1,
                                                  int32_t extend2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_new(CapyPDF_Type4Shading **out_ptr,
+                                                 enum CapyPDF_Colorspace cs,
+                                                 double minx,
+                                                 double miny,
+                                                 double maxx,
+                                                 double maxy) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
+                                                    int32_t flag,
+                                                    double *coords,
+                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Error
 

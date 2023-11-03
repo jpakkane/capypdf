@@ -124,6 +124,10 @@ void draw_page_2(PdfGen &gen) {
     v3.c = DeviceRGBColor{0, 0, 1};
 
     ShadingType4 gouraud;
+    gouraud.minx = 0;
+    gouraud.miny = 0;
+    gouraud.maxx = 200;
+    gouraud.maxy = 200;
     gouraud.start_strip(v1, v2, v3);
     auto gouraudid = gen.add_shading(gouraud).value();
     ctx.cmd_sh(gouraudid);

@@ -154,6 +154,7 @@ cfunc_types = (
 ('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -254,9 +255,22 @@ cfunc_types = (
 ('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]),
 ('capy_type2_function_destroy', [ctypes.c_void_p]),
 
-('capy_type2_shading_new', [ctypes.c_void_p, enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
-    FunctionId, ctypes.c_int32, ctypes.c_int32]),
+('capy_type2_shading_new', [ctypes.c_void_p, enum_type,
+                            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
+                            FunctionId, ctypes.c_int32, ctypes.c_int32]),
 ('capy_type2_shading_destroy', [ctypes.c_void_p]),
+
+
+('capy_type3_shading_new', [ctypes.c_void_p, enum_type, ctypes.POINTER(ctypes.c_double),
+                            FunctionId, ctypes.c_int32, ctypes.c_int32]),
+('capy_type3_shading_destroy', [ctypes.c_void_p]),
+
+('capy_type4_shading_new', [ctypes.c_void_p, enum_type,
+                            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_type4_shading_extend', [ctypes.c_void_p, ctypes.c_int32,
+                               ctypes.POINTER(ctypes.c_double),
+                               ctypes.c_void_p]),
+('capy_type4_shading_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -321,7 +335,7 @@ def to_bytepath(filename):
 
 def to_array(ctype, array):
     if not isinstance(array, (list, tuple)):
-        raise CapyPDFException('Array value argument must be an list or tupple.')
+        raise CapyPDFException('Array value argument must be an list or tuple.')
     return (ctype * len(array))(*array), len(array)
 
 class Options:
@@ -670,9 +684,16 @@ class Generator:
 
     def add_type3_shading(self, type3shade):
         if not isinstance(type3shade, Type3Shading):
-            raise CapyPDFException('Argument must be a type 3shading object.')
+            raise CapyPDFException('Argument must be a type 3 shading object.')
         shid = ShadingId()
         check_error(libfile.capy_generator_add_type3_shading(self, type3shade, ctypes.pointer(shid)))
+        return shid
+
+    def add_type4_shading(self, type4shade):
+        if not isinstance(type4shade, Type4Shading):
+            raise CapyPDFException('Argument must be a type 4 shading object.')
+        shid = ShadingId()
+        check_error(libfile.capy_generator_add_type4_shading(self, type4shade, ctypes.pointer(shid)))
         return shid
 
     def write(self):
@@ -764,6 +785,9 @@ class Color:
     def __del__(self):
         if self._as_parameter_ is not None:
             check_error(libfile.capy_color_destroy(self))
+
+    def get_underlying(self):
+        return self._as_parameter_
 
     def set_rgb(self, r, g, b):
         check_error(libfile.capy_color_set_rgb(self, r, g, b))
@@ -874,3 +898,37 @@ class Type3Shading:
 
     def __del__(self):
         check_error(libfile.capy_type3_shading_destroy_shading_destroy(self))
+
+
+class Type4Shading:
+    def __init__(self, cs, minx, miny, maxx, maxy):
+        t4s = ctypes.c_void_p()
+        check_error(libfile.capy_type4_shading_new(ctypes.pointer(t4s), cs.value,
+            minx, miny, maxx, maxy))
+        self._as_parameter_ = t4s
+
+    def __del__(self):
+        check_error(libfile.capy_type4_shading_destroy(self))
+
+    def extend(self, flag, coords, colors):
+        if flag == 0:
+            if len(coords) != 6:
+                raise CapyPDFException('Must have exactly 6 floats.')
+            if len(colors) != 3:
+                raise CapyPDFException('Must have exactly 3 colors.')
+            colorptrs = [x.get_underlying() for x in colors]
+            check_error(libfile.capy_type4_shading_extend(self,
+                        flag,
+                        to_array(ctypes.c_double, coords)[0],
+                        to_array(ctypes.c_void_p, colorptrs)[0]))
+        elif flag == 1 or flag == 2:
+            if not isinstance(colors, Color):
+                raise CapyPDFException('Color argument not a color object.')
+            if len(coords) != 2:
+                raise CapyPDFException('Must have exactly 2 floats.')
+            check_error(libfile.capy_type4_shading_extend(self,
+                        flag,
+                        to_array(ctypes.c_double, coords)[0],
+                        to_array(ctypes.c_void_p, [colors.get_underlying()])[0]))
+        else:
+            raise CapyPDFException(f'Bad flag value {flag}')
