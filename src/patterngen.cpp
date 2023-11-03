@@ -113,21 +113,15 @@ void draw_page_2(PdfGen &gen) {
     ShadingPoint v1, v2, v3;
     v1.p.x = 100;
     v1.p.y = 190;
-    v1.c.r = 1;
-    v1.c.g = 0;
-    v1.c.b = 0;
+    v1.c = DeviceRGBColor{1, 0, 0};
 
     v2.p.x = 10;
     v2.p.y = 10;
-    v2.c.r = 0;
-    v2.c.g = 1;
-    v2.c.b = 0;
+    v2.c = DeviceRGBColor{0, 1, 0};
 
     v3.p.x = 190;
     v3.p.y = 10;
-    v3.c.r = 0;
-    v3.c.g = 0;
-    v3.c.b = 1;
+    v3.c = DeviceRGBColor{0, 0, 1};
 
     ShadingType4 gouraud;
     gouraud.start_strip(v1, v2, v3);

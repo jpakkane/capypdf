@@ -288,7 +288,7 @@ struct ShadingType3 {
 
 struct ShadingPoint {
     Point p;
-    DeviceRGBColor c;
+    Color c;
 };
 
 struct ShadingElement {

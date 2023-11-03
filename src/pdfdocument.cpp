@@ -219,19 +219,24 @@ std::string serialize_shade4(const ShadingType4 &shade) {
         ptr = (const char *)(&yval);
         s.append(ptr, ptr + sizeof(yval));
 
-        uint16_t rval = std::numeric_limits<uint16_t>::max() * e.sp.c.r.v();
-        uint16_t gval = std::numeric_limits<uint16_t>::max() * e.sp.c.g.v();
-        uint16_t bval = std::numeric_limits<uint16_t>::max() * e.sp.c.b.v();
-        rval = std::byteswap(rval);
-        gval = std::byteswap(gval);
-        bval = std::byteswap(bval);
-
-        ptr = (const char *)(&rval);
-        s.append(ptr, ptr + sizeof(uint16_t));
-        ptr = (const char *)(&gval);
-        s.append(ptr, ptr + sizeof(uint16_t));
-        ptr = (const char *)(&bval);
-        s.append(ptr, ptr + sizeof(uint16_t));
+        if(std::holds_alternative<DeviceRGBColor>(e.sp.c)) {
+            const auto &c = std::get<DeviceRGBColor>(e.sp.c);
+            uint16_t rval = std::numeric_limits<uint16_t>::max() * c.r.v();
+            uint16_t gval = std::numeric_limits<uint16_t>::max() * c.g.v();
+            uint16_t bval = std::numeric_limits<uint16_t>::max() * c.b.v();
+            rval = std::byteswap(rval);
+            gval = std::byteswap(gval);
+            bval = std::byteswap(bval);
+            ptr = (const char *)(&rval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+            ptr = (const char *)(&gval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+            ptr = (const char *)(&bval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+        } else {
+            fprintf(stderr, "Color space not supported yet.");
+            std::abort();
+        }
     }
     return s;
 }
