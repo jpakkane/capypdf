@@ -7,7 +7,7 @@ name = 'capypdf'
 version = '0.6.0'
 description = 'A color managed PDF generation library tech preview'
 readme = 'readme.md'
-requires-python = '>=3.8'
+requires-python = '>=3.10'
 license = {file = 'COPYING'}
 authors = [
   {name = 'Jussi Pakkanen', email = 'jpakkane@gmail.com'},
