@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     PdfGenerationData opts;
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
     opts.default_page_properties.mediabox->x1 = opts.default_page_properties.mediabox->y1 = 0;
     opts.default_page_properties.mediabox->x2 = 300;
     opts.default_page_properties.mediabox->y2 = 300;

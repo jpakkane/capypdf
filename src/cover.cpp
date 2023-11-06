@@ -132,7 +132,7 @@ int main(int, char **) {
         PdfRectangle{margin, margin, paper_width - 2 * margin, paper_height - 2 * margin};
     opts.title = u8string::from_cstr("Book cover generation experiment with utf-8 (ö).").value();
     opts.author = u8string::from_cstr("G. R. Aphicdesigner").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
+    opts.output_colorspace = CAPY_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 

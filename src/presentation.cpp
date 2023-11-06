@@ -43,7 +43,7 @@ void create_presentation() {
     opts.default_page_properties.mediabox->y2 = h;
     opts.title = u8string::from_cstr("Presentation test").value();
     opts.author = u8string::from_cstr("Joe Speaker").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
     {
         GenPopper genpop("presentation.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -85,7 +85,7 @@ void create_subpage() {
     opts.default_page_properties.mediabox->y2 = h;
     opts.title = u8string::from_cstr("Subpage navigation").value();
     opts.author = u8string::from_cstr("Joe Speaker").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
     {
         GenPopper genpop("subpage.pdf", opts);
         PdfGen &gen = *genpop.g;

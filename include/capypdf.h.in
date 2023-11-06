@@ -61,11 +61,7 @@ typedef enum {
     CAPY_FONT_COURIER_BOLDOBLIQUE,
 } CapyPDF_Builtin_Fonts;
 
-typedef enum {
-    CAPYPDF_CS_DEVICE_RGB,
-    CAPYPDF_CS_DEVICE_GRAY,
-    CAPYPDF_CS_DEVICE_CMYK
-} CapyPDF_Colorspace;
+typedef enum { CAPY_CS_DEVICE_RGB, CAPY_CS_DEVICE_GRAY, CAPY_CS_DEVICE_CMYK } CapyPDF_Colorspace;
 
 typedef enum {
     CAPY_RI_RELATIVE_COLORIMETRIC,

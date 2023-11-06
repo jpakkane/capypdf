@@ -121,13 +121,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
     CapyPDF_Options *opt, CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     switch(cs) {
-    case CAPYPDF_CS_DEVICE_RGB:
+    case CAPY_CS_DEVICE_RGB:
         opts->prof.rgb_profile_file = profile_path;
         break;
-    case CAPYPDF_CS_DEVICE_GRAY:
+    case CAPY_CS_DEVICE_GRAY:
         opts->prof.gray_profile_file = profile_path;
         break;
-    case CAPYPDF_CS_DEVICE_CMYK:
+    case CAPY_CS_DEVICE_CMYK:
         opts->prof.cmyk_profile_file = profile_path;
         break;
     }

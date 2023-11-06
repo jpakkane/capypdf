@@ -620,14 +620,14 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB: {
+    case CAPY_CS_DEVICE_RGB: {
         if(stroke) {
             return cmd_RG(c.r.v(), c.g.v(), c.b.v());
         } else {
             return cmd_rg(c.r.v(), c.g.v(), c.b.v());
         }
     }
-    case CAPYPDF_CS_DEVICE_GRAY: {
+    case CAPY_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         if(stroke) {
             return cmd_G(gray.v.v());
@@ -635,7 +635,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stro
             return cmd_g(gray.v.v());
         }
     }
-    case CAPYPDF_CS_DEVICE_CMYK: {
+    case CAPY_CS_DEVICE_CMYK: {
         ERC(cmyk, cm->to_cmyk(c));
         if(stroke) {
             return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
@@ -650,7 +650,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stro
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
     switch(doc->opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB: {
+    case CAPY_CS_DEVICE_RGB: {
         auto rgb_var = cm->to_rgb(c);
         if(stroke) {
             return cmd_RG(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
@@ -658,7 +658,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool str
             return cmd_rg(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
         }
     }
-    case CAPYPDF_CS_DEVICE_GRAY: {
+    case CAPY_CS_DEVICE_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
         if(stroke) {
             return cmd_G(gray.v.v());
@@ -666,7 +666,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool str
             return cmd_g(gray.v.v());
         }
     }
-    case CAPYPDF_CS_DEVICE_CMYK: {
+    case CAPY_CS_DEVICE_CMYK: {
         if(stroke) {
             return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
         } else {

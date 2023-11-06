@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     opts.title = u8string::from_cstr("PDF experiment").value();
     opts.author = u8string::from_cstr("Peter David Foster, esq").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_CMYK;
+    opts.output_colorspace = CAPY_CS_DEVICE_CMYK;
     opts.prof.cmyk_profile_file =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 

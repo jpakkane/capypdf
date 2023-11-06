@@ -25,7 +25,7 @@ int main(int, char **) {
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Outline test").value();
     opts.author = u8string::from_cstr("Test Person").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
     {
         GenPopper genpop("outline_test.pdf", opts);
         PdfGen &gen = *genpop.g;

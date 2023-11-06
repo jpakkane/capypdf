@@ -29,7 +29,7 @@ void draw_page_1(PdfGen &gen) {
         auto funcid = gen.add_function(rgbfunc).value();
 
         ShadingType2 shade;
-        shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
+        shade.colorspace = CAPY_CS_DEVICE_RGB;
         shade.x0 = 10;
         shade.y0 = 50;
         shade.x1 = 90;
@@ -53,7 +53,7 @@ void draw_page_1(PdfGen &gen) {
             {0.0, 1.0}, DeviceRGBColor{1.0, 1.0, 0.0}, DeviceRGBColor{0.0, 0.0, 1.0}, 0.7};
         auto funcid = gen.add_function(rgbfunc).value();
         ShadingType3 shade;
-        shade.colorspace = CAPYPDF_CS_DEVICE_RGB;
+        shade.colorspace = CAPY_CS_DEVICE_RGB;
         shade.x0 = 50;
         shade.y0 = 50;
         shade.r0 = 40;
@@ -170,7 +170,7 @@ int main() {
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("PDF pattern test").value();
     opts.author = u8string::from_cstr("Test Person").value();
-    opts.output_colorspace = CAPYPDF_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
     {
         GenPopper genpop("pattern_test.pdf", opts);
         PdfGen &gen = *genpop.g;

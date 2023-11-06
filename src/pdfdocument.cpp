@@ -314,11 +314,11 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
 
 int32_t num_channels_for(const CapyPDF_Colorspace cs) {
     switch(cs) {
-    case CAPYPDF_CS_DEVICE_RGB:
+    case CAPY_CS_DEVICE_RGB:
         return 3;
-    case CAPYPDF_CS_DEVICE_GRAY:
+    case CAPY_CS_DEVICE_GRAY:
         return 1;
-    case CAPYPDF_CS_DEVICE_CMYK:
+    case CAPY_CS_DEVICE_CMYK:
         return 4;
     }
     std::abort();
@@ -363,21 +363,21 @@ rvoe<NoReturnValue> PdfDocument::init() {
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    if(opts.output_colorspace == CAPYPDF_CS_DEVICE_CMYK) {
+    if(opts.output_colorspace == CAPY_CS_DEVICE_CMYK) {
         create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
     switch(opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB:
+    case CAPY_CS_DEVICE_RGB:
         if(!cm.get_rgb().empty()) {
             output_profile = store_icc_profile(cm.get_rgb(), 3);
         }
         break;
-    case CAPYPDF_CS_DEVICE_GRAY:
+    case CAPY_CS_DEVICE_GRAY:
         if(!cm.get_gray().empty()) {
             output_profile = store_icc_profile(cm.get_gray(), 1);
         }
         break;
-    case CAPYPDF_CS_DEVICE_CMYK:
+    case CAPY_CS_DEVICE_CMYK:
         if(cm.get_cmyk().empty()) {
             RETERR(OutputProfileMissing);
         }
@@ -1528,7 +1528,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image) {
-    if(image.md.cs != CAPYPDF_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
+    if(image.md.cs != CAPY_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
     return add_image_object(image.md.w,
@@ -1558,7 +1558,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
                              image.md.h,
                              image.md.alpha_depth,
                              image.md.interp,
-                             CAPYPDF_CS_DEVICE_GRAY,
+                             CAPY_CS_DEVICE_GRAY,
                              {},
                              false,
                              image.alpha));
@@ -1575,7 +1575,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
                                 is_mask,
                                 image.pixels);
     }
-    if(image.md.cs == CAPYPDF_CS_DEVICE_GRAY) {
+    if(image.md.cs == CAPY_CS_DEVICE_GRAY) {
         // Grayscale images are always passed through directly.
         // FIXME, handle ICC profile.
         return add_image_object(image.md.w,
@@ -1589,9 +1589,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
     }
     // Convert image to output colorspace if needed.
     switch(opts.output_colorspace) {
-    case CAPYPDF_CS_DEVICE_RGB:
+    case CAPY_CS_DEVICE_RGB:
         // FIXME, convert to RGB;
-        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
@@ -1600,8 +1600,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
                                 smask_id,
                                 is_mask,
                                 image.pixels);
-    case CAPYPDF_CS_DEVICE_GRAY:
-        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+    case CAPY_CS_DEVICE_GRAY:
+        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
@@ -1610,12 +1610,12 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
                                 smask_id,
                                 is_mask,
                                 image.pixels);
-    case CAPYPDF_CS_DEVICE_CMYK:
-        assert(image.md.cs != CAPYPDF_CS_DEVICE_GRAY);
+    case CAPY_CS_DEVICE_CMYK:
+        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
         if(cm.get_cmyk().empty()) {
             RETERR(NoCmykProfile);
         }
-        if(image.md.cs != CAPYPDF_CS_DEVICE_CMYK) {
+        if(image.md.cs != CAPY_CS_DEVICE_CMYK) {
             // FIXME, convert to output format.
             RETERR(UnsupportedFormat);
         }
