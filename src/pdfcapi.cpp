@@ -968,23 +968,29 @@ static ShadingPoint conv_shpoint(double *coords, Color *color) {
     return sp;
 }
 
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
+                                                          double *coords,
+                                                          CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
+    auto *cc = reinterpret_cast<Color **>(color);
+    ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
+    ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
+    ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
+    sh->start_strip(sp1, sp2, sp3);
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
                                                     int32_t flag,
                                                     double *coords,
-                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+                                                    CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     auto *sh = reinterpret_cast<ShadingType4 *>(shade);
-    auto **cc = reinterpret_cast<Color **>(colors);
-    if(flag == 0) {
-        ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
-        ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
-        ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
-        sh->start_strip(sp1, sp2, sp3);
-
-    } else if(flag == 1 || flag == 2) {
+    auto *cc = reinterpret_cast<Color *>(color);
+    if(flag == 1 || flag == 2) {
         if(sh->elements.empty()) {
             conv_err(ErrorCode::BadStripStart);
         }
-        ShadingPoint sp = conv_shpoint(coords, cc[0]);
+        ShadingPoint sp = conv_shpoint(coords, cc);
         sh->extend_strip(sp, flag);
     } else {
         conv_err(ErrorCode::BadEnum);

@@ -519,10 +519,10 @@ class TestPDFCreation(unittest.TestCase):
             c2.set_rgb(0, 1, 0)
             c3 = capypdf.Color()
             c3.set_rgb(0, 0, 1)
-            sh4.extend(0, [50, 90,
-                           10, 10,
-                           90, 10],
-                           [c1, c2, c3])
+            sh4.add_triangle([50, 90,
+                              10, 10,
+                              90, 10],
+                             [c1, c2, c3])
             sh4.extend(2, [90, 90], c2)
             sh4id = gen.add_type4_shading(sh4)
 

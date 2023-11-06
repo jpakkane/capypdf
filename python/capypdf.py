@@ -267,7 +267,11 @@ cfunc_types = (
 
 ('capy_type4_shading_new', [ctypes.c_void_p, enum_type,
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
-('capy_type4_shading_extend', [ctypes.c_void_p, ctypes.c_int32,
+('capy_type4_shading_add_triangle', [ctypes.c_void_p,
+                                     ctypes.POINTER(ctypes.c_double),
+                                     ctypes.c_void_p]),
+('capy_type4_shading_extend', [ctypes.c_void_p,
+                               ctypes.c_int32,
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
 ('capy_type4_shading_destroy', [ctypes.c_void_p]),
@@ -910,25 +914,25 @@ class Type4Shading:
     def __del__(self):
         check_error(libfile.capy_type4_shading_destroy(self))
 
-    def extend(self, flag, coords, colors):
-        if flag == 0:
-            if len(coords) != 6:
-                raise CapyPDFException('Must have exactly 6 floats.')
-            if len(colors) != 3:
-                raise CapyPDFException('Must have exactly 3 colors.')
-            colorptrs = [x.get_underlying() for x in colors]
-            check_error(libfile.capy_type4_shading_extend(self,
-                        flag,
-                        to_array(ctypes.c_double, coords)[0],
-                        to_array(ctypes.c_void_p, colorptrs)[0]))
-        elif flag == 1 or flag == 2:
-            if not isinstance(colors, Color):
+    def add_triangle(self, coords, colors):
+        if len(coords) != 6:
+            raise CapyPDFException('Must have exactly 6 floats.')
+        if len(colors) != 3:
+            raise CapyPDFException('Must have exactly 3 colors.')
+        colorptrs = [x.get_underlying() for x in colors]
+        check_error(libfile.capy_type4_shading_add_triangle(self,
+                    to_array(ctypes.c_double, coords)[0],
+                    to_array(ctypes.c_void_p, colorptrs)[0]))
+
+    def extend(self, flag, coords, color):
+        if flag == 1 or flag == 2:
+            if not isinstance(color, Color):
                 raise CapyPDFException('Color argument not a color object.')
             if len(coords) != 2:
                 raise CapyPDFException('Must have exactly 2 floats.')
             check_error(libfile.capy_type4_shading_extend(self,
                         flag,
                         to_array(ctypes.c_double, coords)[0],
-                        to_array(ctypes.c_void_p, [colors.get_underlying()])[0]))
+                        color))
         else:
             raise CapyPDFException(f'Bad flag value {flag}')

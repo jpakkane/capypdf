@@ -530,10 +530,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_new(CapyPDF_Type4Shading **out_ptr,
                                                  double miny,
                                                  double maxx,
                                                  double maxy) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
+                                                          double *coords,
+                                                          CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
                                                     int32_t flag,
                                                     double *coords,
-                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+                                                    CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Error
