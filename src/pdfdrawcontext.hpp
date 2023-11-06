@@ -33,7 +33,11 @@ template<> struct std::hash<capypdf::FontSubset> {
     size_t operator()(capypdf::FontSubset const &s) const noexcept {
         const size_t x = (size_t)s.fid.id;
         const size_t y = s.subset_id;
-        return (x << 32) + y;
+        if constexpr(sizeof(size_t) == 8) {
+            return (x << 32) + y;
+        } else {
+            return (x << 16) + y;
+        }
     }
 };
 
