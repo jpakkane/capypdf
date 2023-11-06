@@ -185,7 +185,7 @@ struct PdfGenerationData {
     u8string creator;
     CapyPDF_Colorspace output_colorspace = CAPYPDF_CS_DEVICE_RGB;
     ColorProfiles prof;
-    std::optional<CAPYPDF_Intent_Subtype> subtype;
+    std::optional<CapyPDF_Intent_Subtype> subtype;
     std::string intent_condition_identifier;
 };
 
@@ -325,10 +325,10 @@ public:
 
     // Images
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
-                                     enum CAPYPDF_Image_Interpolation interpolate);
+                                     CapyPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
     rvoe<CapyPDF_ImageId> add_image(RasterImage image, bool is_mask);
-    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, enum CAPYPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, CapyPDF_Image_Interpolation interpolate);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
@@ -441,7 +441,7 @@ private:
     rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
                                            int32_t h,
                                            int32_t bits_per_component,
-                                           enum CAPYPDF_Image_Interpolation interpolate,
+                                           CapyPDF_Image_Interpolation interpolate,
                                            ColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            bool is_mask,

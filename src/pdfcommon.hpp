@@ -171,8 +171,8 @@ struct OutlineId {
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
     std::optional<double> LW;
-    std::optional<CAPYPDF_Line_Cap> LC;
-    std::optional<CAPYPDF_Line_Join> LJ;
+    std::optional<CapyPDF_Line_Cap> LC;
+    std::optional<CapyPDF_Line_Join> LJ;
     std::optional<double> ML;
     std::optional<CapyPDF_Rendering_Intent> RI;
     std::optional<bool> OP;
@@ -190,7 +190,7 @@ struct GraphicsState {
     std::optional<double> FT;
     std::optional<double> SM;
     std::optional<bool> SA;
-    std::optional<CAPYPDF_Blend_Mode> BM;
+    std::optional<CapyPDF_Blend_Mode> BM;
     // std::optional<std::string> SMask;
     std::optional<LimitDouble> CA;
     std::optional<LimitDouble> ca;
@@ -362,7 +362,7 @@ struct FontSubset {
 extern const std::array<const char *, 4> rendering_intent_names;
 
 struct Transition {
-    std::optional<CAPYPDF_Transition_Type> type;
+    std::optional<CapyPDF_Transition_Type> type;
     std::optional<double> duration;
     std::optional<bool> Dm;    // true is horizontal
     std::optional<bool> M;     // true is inward
@@ -395,7 +395,7 @@ struct RasterImageMetadata {
     int32_t h = 0;
     int32_t pixel_depth = 8;
     int32_t alpha_depth;
-    CAPYPDF_Image_Interpolation interp;
+    CapyPDF_Image_Interpolation interp;
     CapyPDF_Colorspace cs;
     // RI to use for color conversion if needed.
     // CapyPDF_Rendering_Intent ri = CAPY_RI_PERCEPTUAL;

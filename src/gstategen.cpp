@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     ctx.cmd_Q();
     // There are 16 blend modes.
     const int imsize = 40;
-    CAPYPDF_Blend_Mode bm = CAPY_BM_NORMAL;
+    CapyPDF_Blend_Mode bm = CAPY_BM_NORMAL;
     for(int j = 3; j >= 0; --j) {
         for(int i = 0; i < 4; ++i) {
             GraphicsState gs;
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
             ctx.translate((i + 0.5) * 1.5 * imsize, (j + 0.3) * 1.5 * imsize);
             ctx.render_pdfdoc_text_builtin(gstate_names.at(bm), CAPY_FONT_HELVETICA, 8, 0, 0);
             ctx.cmd_Q();
-            bm = (CAPYPDF_Blend_Mode)((int)bm + 1);
+            bm = (CapyPDF_Blend_Mode)((int)bm + 1);
         }
     }
     return 0;

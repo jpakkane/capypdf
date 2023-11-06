@@ -84,7 +84,7 @@ class PdfDrawContext {
 public:
     PdfDrawContext(PdfDocument *g,
                    PdfColorConverter *cm,
-                   CAPYPDF_Draw_Context_Type dtype,
+                   CapyPDF_Draw_Context_Type dtype,
                    double w = -1,
                    double h = -1);
     ~PdfDrawContext();
@@ -121,8 +121,8 @@ public:
     rvoe<NoReturnValue> cmd_gs(CapyPDF_GraphicsStateId id);
     rvoe<NoReturnValue> cmd_h();
     rvoe<NoReturnValue> cmd_i(double flatness);
-    rvoe<NoReturnValue> cmd_j(CAPYPDF_Line_Join join_style);
-    rvoe<NoReturnValue> cmd_J(CAPYPDF_Line_Cap cap_style);
+    rvoe<NoReturnValue> cmd_j(CapyPDF_Line_Join join_style);
+    rvoe<NoReturnValue> cmd_J(CapyPDF_Line_Cap cap_style);
     rvoe<NoReturnValue> cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
     rvoe<NoReturnValue> cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
     rvoe<NoReturnValue> cmd_l(double x, double y);
@@ -215,7 +215,7 @@ public:
     rvoe<NoReturnValue> add_form_widget(CapyPDF_FormWidgetId widget);
     rvoe<NoReturnValue> annotate(CapyPDF_AnnotationId annotation);
 
-    CAPYPDF_Draw_Context_Type draw_context_type() const { return context_type; }
+    CapyPDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
 
     std::string build_resource_dict();
@@ -282,7 +282,7 @@ private:
 
     PdfDocument *doc;
     PdfColorConverter *cm;
-    CAPYPDF_Draw_Context_Type context_type;
+    CapyPDF_Draw_Context_Type context_type;
     std::string commands;
     std::back_insert_iterator<std::string> cmd_appender;
     std::unordered_set<int32_t> used_images;

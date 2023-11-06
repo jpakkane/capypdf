@@ -37,7 +37,7 @@ struct DrawContextPopper {
     explicit DrawContextPopper(PdfGen *g,
                                PdfDocument *doc,
                                PdfColorConverter *cm,
-                               CAPYPDF_Draw_Context_Type dtype)
+                               CapyPDF_Draw_Context_Type dtype)
         : g{g}, ctx{doc, cm, dtype} {}
 
     DrawContextPopper() = delete;
@@ -57,11 +57,11 @@ public:
 
     rvoe<CapyPDF_ImageId>
     load_image(const std::filesystem::path &fname,
-               enum CAPYPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
+               CapyPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
     rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
     rvoe<CapyPDF_ImageId>
     embed_jpg(const std::filesystem::path &fname,
-              enum CAPYPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
+              CapyPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
         return pdoc.embed_file(fname);
     }

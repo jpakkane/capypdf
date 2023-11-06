@@ -1634,7 +1634,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t h,
                                                     int32_t bits_per_component,
-                                                    enum CAPYPDF_Image_Interpolation interpolate,
+                                                    CapyPDF_Image_Interpolation interpolate,
                                                     ColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
                                                     bool is_mask,
@@ -1690,7 +1690,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg,
-                                             enum CAPYPDF_Image_Interpolation interpolate) {
+                                             CapyPDF_Image_Interpolation interpolate) {
     std::string buf;
     fmt::format_to(std::back_inserter(buf),
                    R"(<<

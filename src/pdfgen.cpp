@@ -128,7 +128,7 @@ rvoe<NoReturnValue> PdfGen::write() {
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
-                                         enum CAPYPDF_Image_Interpolation interpolate) {
+                                         CapyPDF_Image_Interpolation interpolate) {
     ERC(image, load_image_file(fname));
 
     image.md.interp = interpolate;
@@ -141,7 +141,7 @@ rvoe<CapyPDF_ImageId> PdfGen::load_mask_image(const std::filesystem::path &fname
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,
-                                        enum CAPYPDF_Image_Interpolation interpolate) {
+                                        CapyPDF_Image_Interpolation interpolate) {
     ERC(jpg, load_jpg(fname));
     return pdoc.embed_jpg(std::move(jpg), interpolate);
 }

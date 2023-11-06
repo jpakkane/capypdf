@@ -32,7 +32,7 @@ namespace capypdf {
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
 PdfDrawContext::PdfDrawContext(
-    PdfDocument *doc, PdfColorConverter *cm, CAPYPDF_Draw_Context_Type dtype, double w, double h)
+    PdfDocument *doc, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h)
     : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), form_xobj_w{w},
       form_xobj_h{h} {}
 
@@ -405,13 +405,13 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_i(double flatness) {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_j(CAPYPDF_Line_Join join_style) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_j(CapyPDF_Line_Join join_style) {
     CHECK_ENUM(join_style, CAPY_LJ_BEVEL);
     fmt::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_J(CAPYPDF_Line_Cap cap_style) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_J(CapyPDF_Line_Cap cap_style) {
     CHECK_ENUM(cap_style, CAPY_LC_PROJECTION);
     fmt::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
     RETOK;

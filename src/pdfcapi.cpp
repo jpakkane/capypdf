@@ -88,7 +88,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *p
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_set_pagebox(CapyPDF_PageProperties *prop,
-                                                           CAPYPDF_Page_Box boxtype,
+                                                           CapyPDF_Page_Box boxtype,
                                                            double x1,
                                                            double y1,
                                                            double x2,
@@ -118,7 +118,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
-    CapyPDF_Options *opt, enum CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
+    CapyPDF_Options *opt, CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     switch(cs) {
     case CAPYPDF_CS_DEVICE_RGB:
@@ -135,14 +135,14 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_device_profile(
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
-                                                      enum CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT {
+                                                      CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     opts->output_colorspace = cs;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
-                                                         enum CAPYPDF_Intent_Subtype stype,
+                                                         CapyPDF_Intent_Subtype stype,
                                                          const char *identifier) CAPYPDF_NOEXCEPT {
     CHECK_NULL(identifier);
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
@@ -187,7 +187,7 @@ CAPYPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
-                                                   enum CAPYPDF_Image_Interpolation interpolate,
+                                                   CapyPDF_Image_Interpolation interpolate,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->embed_jpg(fname, interpolate);
@@ -210,7 +210,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
                                                     const char *fname,
-                                                    enum CAPYPDF_Image_Interpolation interpolate,
+                                                    CapyPDF_Image_Interpolation interpolate,
                                                     CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_image(fname, interpolate);
@@ -450,13 +450,13 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_i(CapyPDF_DrawContext *ctx,
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_j(CapyPDF_DrawContext *ctx,
-                                        CAPYPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
+                                        CapyPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_j(join_style));
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_dc_cmd_J(CapyPDF_DrawContext *ctx,
-                                        CAPYPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
+                                        CapyPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_J(cap_style));
 }
@@ -781,7 +781,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_color_set_icc(CapyPDF_Color *color,
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,
-                                              CAPYPDF_Transition_Type type,
+                                              CapyPDF_Transition_Type type,
                                               double duration) CAPYPDF_NOEXCEPT {
     auto pt = new Transition{};
     pt->type = type;
@@ -835,7 +835,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *stat
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_graphics_state_set_BM(
-    CapyPDF_GraphicsState *state, CAPYPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
+    CapyPDF_GraphicsState *state, CapyPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
     auto *s = reinterpret_cast<GraphicsState *>(state);
     s->BM = blendmode;
     RETNOERR;
@@ -898,7 +898,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *fun
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_new(CapyPDF_Type2Shading **out_ptr,
-                                                 enum CapyPDF_Colorspace cs,
+                                                 CapyPDF_Colorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
@@ -919,7 +919,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_new(CapyPDF_Type3Shading **out_ptr,
-                                                 enum CapyPDF_Colorspace cs,
+                                                 CapyPDF_Colorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
@@ -945,7 +945,7 @@ CAPYPDF_PUBLIC CAPYPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade
 }
 
 CAPYPDF_PUBLIC CAPYPDF_EC capy_type4_shading_new(CapyPDF_Type4Shading **out_ptr,
-                                                 enum CapyPDF_Colorspace cs,
+                                                 CapyPDF_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
