@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 int main() {
-    CAPYPDF_EC rc;
+    CapyPDF_EC rc;
     CapyPDF_Generator *gen;
     CapyPDF_Options *opt;
 
