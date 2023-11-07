@@ -31,6 +31,8 @@ class TestSyntax(unittest.TestCase):
     def test_tab(self):
         source_root = pathlib.Path(__file__).parent.parent
         for f in source_root.glob('**/meson.build'):
+            if 'mesoncheckout' in str(f):
+                continue
             self.assertNotIn(b'\t', f.read_bytes(), str(f.resolve()))
 
 

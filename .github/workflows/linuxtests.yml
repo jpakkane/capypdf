@@ -13,9 +13,9 @@ jobs:
     steps:
       - run:  apt-get -y update && apt-get -y install git python3 python3-setuptools python3-pillow build-essential pkg-config ghostscript ninja-build libtiff-dev libjpeg-dev libpng-dev zlib1g-dev libfmt-dev libfreetype-dev liblcms2-dev fonts-noto-core
       - uses: actions/checkout@v3
-      - run:  git clone --depth=1 https://github.com/mesonbuild/meson
+      - run:  git clone --depth=1 https://github.com/mesonbuild/meson mesoncheckout
       - name: Configure
-        run: meson/meson.py setup --buildtype=debugoptimized builddir
+        run: mesoncheckout/meson.py setup --buildtype=debugoptimized builddir
       - name: Build
         run: ninja -C builddir
       - name: Test
