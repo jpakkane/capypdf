@@ -28,6 +28,11 @@ class TestSyntax(unittest.TestCase):
         headerfile = pathlib.Path('include/capypdf.h').read_text()
         self.assertTrue('bool' not in headerfile, 'The public heaader must not use booleans, use enums instead.')
 
+    def test_tab(self):
+        source_root = pathlib.Path(__file__).parent.parent
+        for f in source_root.glob('**/meson.build'):
+            self.assertNotIn(b'\t', f.read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()
