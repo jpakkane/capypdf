@@ -1,6 +1,10 @@
 name: CapyPDF CI
 run-name: ${{ github.actor }} unit tests for CapyPDF
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull-request:
 jobs:
   CapyPDF-tests:
     runs-on: ubuntu-latest
