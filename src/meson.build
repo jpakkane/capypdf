@@ -97,7 +97,8 @@ executable('loremipsum', 'loremipsum.cpp',
   dependencies: [capypdf_internal_dep]
 )
 
-if gtk_dep.found()
+# pdfviewer code needs to be ported to Windows (no mmap)
+if gtk_dep.found() and host_machine.system() != 'windows'
   executable('pdfviewer',
     'pdfviewer.cpp',
     'pdfparser.cpp',
