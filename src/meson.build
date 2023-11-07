@@ -1,5 +1,27 @@
 a4deps = [fmt_dep, png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
 
+# check whether building against LCMS requires -DCMS_DLL
+a4_extra_cxxargs = []
+if host_machine.system() == 'windows'
+  lcms_test = '''
+#include <lcms2.h>
+
+int main (int argc, char *argv[])
+{
+  cmsGetEncodedCMMversion ();
+  return 0;
+}
+'''
+  cc = meson.get_compiler('c')
+  if not cc.links(
+    lcms_test,
+    dependencies: [lcms_dep],
+	name: 'LCMS can link without -DCMS_DLL',
+  )
+    a4_extra_cxxargs += '-DCMS_DLL'
+  endif
+endif
+
 capypdf_lib = shared_library('capypdf',
   'pdfcommon.cpp',
   'pdfgen.cpp',
@@ -14,7 +36,7 @@ capypdf_lib = shared_library('capypdf',
   'errorhandling.cpp',
   include_directories: [pubinc],
   #link_args: ['-static-libstdc++'],
-  cpp_args: ['-DBUILDING_CAPYPDF'],
+  cpp_args: ['-DBUILDING_CAPYPDF'] + a4_extra_cxxargs,
   dependencies: a4deps,
   gnu_symbol_visibility: 'inlineshidden',
   version: version,
