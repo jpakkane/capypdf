@@ -901,7 +901,7 @@ class Type3Shading:
         self._as_parameter_ = t3s
 
     def __del__(self):
-        check_error(libfile.capy_type3_shading_destroy_shading_destroy(self))
+        check_error(libfile.capy_type3_shading_destroy(self))
 
 
 class Type4Shading:
