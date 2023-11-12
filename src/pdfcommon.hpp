@@ -318,13 +318,13 @@ struct ShadingType4 {
 
 struct FullCoonsPatch {
     std::array<Point, 12> p;
-    std::array<DeviceRGBColor, 4> c;
+    std::array<Color, 4> c;
 };
 
 struct ContinuationCoonsPatch {
     int flag;
     std::array<Point, 8> p;
-    std::array<DeviceRGBColor, 2> c;
+    std::array<Color, 2> c;
 };
 
 typedef std::variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;
