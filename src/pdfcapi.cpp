@@ -277,6 +277,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(
+    CapyPDF_Generator *g, CapyPDF_Type6Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+    auto rc = gen->add_shading(*sh);
+    if(rc) {
+        *shid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *gsid)
@@ -344,8 +355,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
 
 // Draw Context
 
-CapyPDF_EC
-capy_page_draw_context_new(CapyPDF_Generator *g, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
+CapyPDF_EC capy_page_draw_context_new(CapyPDF_Generator *g,
+                                      CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_page_draw_context());
     RETNOERR;
@@ -514,14 +525,12 @@ capy_dc_cmd_re(CapyPDF_DrawContext *ctx, double x, double y, double w, double h)
     return conv_err(c->cmd_re(x, y, w, h));
 }
 
-CapyPDF_EC
-capy_dc_cmd_RG(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
+CapyPDF_EC capy_dc_cmd_RG(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_RG(r, g, b));
 }
 
-CapyPDF_EC
-capy_dc_cmd_rg(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
+CapyPDF_EC capy_dc_cmd_rg(CapyPDF_DrawContext *ctx, double r, double g, double b) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(c->cmd_rg(r, g, b));
 }
@@ -1000,6 +1009,67 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ShadingType4 *>(shade);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Type6Shading **out_ptr,
+                                                 CapyPDF_Colorspace cs,
+                                                 double minx,
+                                                 double miny,
+                                                 double maxx,
+                                                 double maxy) CAPYPDF_NOEXCEPT {
+    auto *shobj = new ShadingType6{};
+    shobj->colorspace = cs;
+    shobj->minx = minx;
+    shobj->miny = miny;
+    shobj->maxx = maxx;
+    shobj->maxy = maxy;
+    *out_ptr = reinterpret_cast<CapyPDF_Type6Shading *>(shobj);
+    RETNOERR;
+}
+
+template<typename T> static void grab_coons_data(T &patch, double *coords, Color **colors) {
+    for(int i = 0; i < (int)patch.p.size(); ++i) {
+        patch.p[i].x = coords[2 * i];
+        patch.p[i].y = coords[2 * i + 1];
+    }
+    for(int i = 0; i < (int)patch.c.size(); ++i) {
+        patch.c[i] = *colors[i];
+    }
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *shade,
+                                                       double *coords,
+                                                       CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+    auto **cc = reinterpret_cast<Color **>(colors);
+    FullCoonsPatch cp;
+    grab_coons_data(cp, coords, cc);
+    sh->elements.emplace_back(std::move(cp));
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
+                                                    int32_t flag,
+                                                    double *coords,
+                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+    auto **cc = reinterpret_cast<Color **>(colors);
+    if(flag == 1 || flag == 2 || flag == 3) {
+        if(sh->elements.empty()) {
+            conv_err(ErrorCode::BadStripStart);
+        }
+        ContinuationCoonsPatch ccp;
+        grab_coons_data(ccp, coords, cc);
+        sh->elements.emplace_back(std::move(ccp));
+    } else {
+        conv_err(ErrorCode::BadEnum);
+    }
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<ShadingType6 *>(shade);
     RETNOERR;
 }
 

@@ -155,6 +155,7 @@ cfunc_types = (
 ('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_type6_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -275,6 +276,17 @@ cfunc_types = (
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
 ('capy_type4_shading_destroy', [ctypes.c_void_p]),
+
+('capy_type6_shading_new', [ctypes.c_void_p, enum_type,
+                            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_type6_shading_add_patch', [ctypes.c_void_p,
+                                  ctypes.POINTER(ctypes.c_double),
+                                  ctypes.c_void_p]),
+('capy_type6_shading_extend', [ctypes.c_void_p,
+                               ctypes.c_int32,
+                               ctypes.POINTER(ctypes.c_double),
+                               ctypes.c_void_p]),
+('capy_type6_shading_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -700,6 +712,14 @@ class Generator:
         check_error(libfile.capy_generator_add_type4_shading(self, type4shade, ctypes.pointer(shid)))
         return shid
 
+    def add_type6_shading(self, type6shade):
+        if not isinstance(type6shade, Type6Shading):
+            raise CapyPDFException('Argument must be a type 4 shading object.')
+        shid = ShadingId()
+        check_error(libfile.capy_generator_add_type6_shading(self, type6shade, ctypes.pointer(shid)))
+        return shid
+
+
     def write(self):
         check_error(libfile.capy_generator_write(self))
 
@@ -901,14 +921,14 @@ class Type3Shading:
         self._as_parameter_ = t3s
 
     def __del__(self):
-        check_error(libfile.capy_type3_shading_destroy_shading_destroy(self))
+        check_error(libfile.capy_type3_shading_destroy(self))
 
 
 class Type4Shading:
     def __init__(self, cs, minx, miny, maxx, maxy):
         t4s = ctypes.c_void_p()
         check_error(libfile.capy_type4_shading_new(ctypes.pointer(t4s), cs.value,
-            minx, miny, maxx, maxy))
+                    minx, miny, maxx, maxy))
         self._as_parameter_ = t4s
 
     def __del__(self):
@@ -934,5 +954,40 @@ class Type4Shading:
                         flag,
                         to_array(ctypes.c_double, coords)[0],
                         color))
+        else:
+            raise CapyPDFException(f'Bad flag value {flag}')
+
+
+class Type6Shading:
+    def __init__(self, cs, minx, miny, maxx, maxy):
+        t6s = ctypes.c_void_p()
+        check_error(libfile.capy_type6_shading_new(ctypes.pointer(t6s), cs.value,
+                    minx, miny, maxx, maxy))
+        self._as_parameter_ = t6s
+
+    def __del__(self):
+        check_error(libfile.capy_type6_shading_destroy(self))
+
+    def add_patch(self, coords, colors):
+        if len(coords) != 24:
+            raise CapyPDFException('Must have exactly 24 floats.')
+        if len(colors) != 4:
+            raise CapyPDFException('Must have exactly 4 colors.')
+        colorptrs = [x.get_underlying() for x in colors]
+        check_error(libfile.capy_type6_shading_add_patch(self,
+                    to_array(ctypes.c_double, coords)[0],
+                    to_array(ctypes.c_void_p, colorptrs)[0]))
+
+    def extend(self, flag, coords, colors):
+        if flag == 1 or flag == 2 or flag == 3:
+            if len(coords) != 16:
+                raise CapyPDFException('Must have exactly 16 floats.')
+            if len(colors) != 2:
+                raise CapyPDFException('Must have exactly 2 colors.')
+            colorptrs = [x.get_underlying() for x in colors]
+            check_error(libfile.capy_type6_shading_extend(self,
+                        flag,
+                        to_array(ctypes.c_double, coords)[0],
+                        to_array(ctypes.c_void_p, colorptrs)[0]))
         else:
             raise CapyPDFException(f'Bad flag value {flag}')
