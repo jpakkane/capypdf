@@ -198,74 +198,53 @@ end
     return buf;
 }
 
+template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
+    if(v < 0 || v > 1.0) {
+        RETERR(ColorOutOfRange);
+    }
+    T cval = std::numeric_limits<T>::max() * v;
+    cval = std::byteswap(cval);
+    const char *ptr = (const char *)(&cval);
+    buf.append(ptr, ptr + sizeof(T));
+    return NoReturnValue{};
+}
+
 rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
     std::string s;
     for(const auto &e : shade.elements) {
         double xratio = (e.sp.p.x - shade.minx) / (shade.maxx - shade.minx);
         double yratio = (e.sp.p.y - shade.miny) / (shade.maxy - shade.miny);
-        uint32_t xval = std::numeric_limits<uint32_t>::max() * xratio;
-        uint32_t yval = std::numeric_limits<uint32_t>::max() * yratio;
         char flag = (char)e.flag;
         assert(flag >= 0 && flag < 3);
-
-        xval = std::byteswap(xval);
-        yval = std::byteswap(yval);
-        //  FIXME: Assumes rgb is between 0 and 1;
         const char *ptr;
         ptr = (const char *)(&flag);
         s.append(ptr, ptr + sizeof(char));
-        ptr = (const char *)(&xval);
-        s.append(ptr, ptr + sizeof(xval));
-        ptr = (const char *)(&yval);
-        s.append(ptr, ptr + sizeof(yval));
+        ERCV(append_floatvalue<uint32_t>(s, xratio));
+        ERCV(append_floatvalue<uint32_t>(s, yratio));
 
         if(std::holds_alternative<DeviceRGBColor>(e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_RGB) {
                 RETERR(ColorspaceMismatch);
             }
             const auto &c = std::get<DeviceRGBColor>(e.sp.c);
-            uint16_t rval = std::numeric_limits<uint16_t>::max() * c.r.v();
-            uint16_t gval = std::numeric_limits<uint16_t>::max() * c.g.v();
-            uint16_t bval = std::numeric_limits<uint16_t>::max() * c.b.v();
-            rval = std::byteswap(rval);
-            gval = std::byteswap(gval);
-            bval = std::byteswap(bval);
-            ptr = (const char *)(&rval);
-            s.append(ptr, ptr + sizeof(uint16_t));
-            ptr = (const char *)(&gval);
-            s.append(ptr, ptr + sizeof(uint16_t));
-            ptr = (const char *)(&bval);
-            s.append(ptr, ptr + sizeof(uint16_t));
+            ERCV(append_floatvalue<uint16_t>(s, c.r.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c.g.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c.b.v()));
         } else if(std::holds_alternative<DeviceGrayColor>(e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_GRAY) {
                 RETERR(ColorspaceMismatch);
             }
             const auto &c = std::get<DeviceGrayColor>(e.sp.c);
-            uint16_t cval = std::numeric_limits<uint16_t>::max() * c.v.v();
-            cval = std::byteswap(cval);
-            ptr = (const char *)(&cval);
-            s.append(ptr, ptr + sizeof(uint16_t));
+            ERCV(append_floatvalue<uint16_t>(s, c.v.v()));
         } else if(std::holds_alternative<DeviceCMYKColor>(e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_CMYK) {
                 RETERR(ColorspaceMismatch);
             }
             const auto &c = std::get<DeviceCMYKColor>(e.sp.c);
-            uint16_t cval = std::numeric_limits<uint16_t>::max() * c.c.v();
-            uint16_t mval = std::numeric_limits<uint16_t>::max() * c.m.v();
-            uint16_t yval = std::numeric_limits<uint16_t>::max() * c.y.v();
-            uint16_t kval = std::numeric_limits<uint16_t>::max() * c.k.v();
-            cval = std::byteswap(cval);
-            mval = std::byteswap(mval);
-            yval = std::byteswap(yval);
-            kval = std::byteswap(kval);
-            ptr = (const char *)(&cval);
-            s.append(ptr, ptr + sizeof(uint16_t));
-            ptr = (const char *)(&mval);
-            s.append(ptr, ptr + sizeof(uint16_t));
-            ptr = (const char *)(&yval);
-            s.append(ptr, ptr + sizeof(uint16_t));
-            ptr = (const char *)(&kval);
-            s.append(ptr, ptr + sizeof(uint16_t));
+            ERCV(append_floatvalue<uint16_t>(s, c.c.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c.m.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c.y.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c.k.v()));
         } else {
             fprintf(stderr, "Color space not supported yet.");
             std::abort();
@@ -291,15 +270,9 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
         for(const auto &p : e.p) {
             double xratio = (p.x - shade.minx) / (shade.maxx - shade.minx);
             double yratio = (p.y - shade.miny) / (shade.maxy - shade.miny);
-            uint32_t xval = std::numeric_limits<uint32_t>::max() * xratio;
-            uint32_t yval = std::numeric_limits<uint32_t>::max() * yratio;
 
-            xval = std::byteswap(xval);
-            yval = std::byteswap(yval);
-            ptr = (const char *)(&xval);
-            s.append(ptr, ptr + sizeof(xval));
-            ptr = (const char *)(&yval);
-            s.append(ptr, ptr + sizeof(yval));
+            ERCV(append_floatvalue<uint32_t>(s, xratio));
+            ERCV(append_floatvalue<uint32_t>(s, yratio));
         }
         for(const auto &colorobj : e.c) {
             if(shade.colorspace == CAPY_CS_DEVICE_RGB) {
@@ -307,51 +280,24 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
                     RETERR(ColorspaceMismatch);
                 }
                 const auto &c = std::get<DeviceRGBColor>(colorobj);
-                uint16_t rval = std::numeric_limits<uint16_t>::max() * c.r.v();
-                uint16_t gval = std::numeric_limits<uint16_t>::max() * c.g.v();
-                uint16_t bval = std::numeric_limits<uint16_t>::max() * c.b.v();
-                rval = std::byteswap(rval);
-                gval = std::byteswap(gval);
-                bval = std::byteswap(bval);
-
-                ptr = (const char *)(&rval);
-                s.append(ptr, ptr + sizeof(uint16_t));
-                ptr = (const char *)(&gval);
-                s.append(ptr, ptr + sizeof(uint16_t));
-                ptr = (const char *)(&bval);
-                s.append(ptr, ptr + sizeof(uint16_t));
+                ERCV(append_floatvalue<uint16_t>(s, c.r.v()));
+                ERCV(append_floatvalue<uint16_t>(s, c.g.v()));
+                ERCV(append_floatvalue<uint16_t>(s, c.b.v()));
             } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
                 if(!std::holds_alternative<DeviceGrayColor>(colorobj)) {
                     RETERR(ColorspaceMismatch);
                 }
                 const auto &c = std::get<DeviceGrayColor>(colorobj);
-                uint16_t gval = std::numeric_limits<uint16_t>::max() * c.v.v();
-                gval = std::byteswap(gval);
-
-                ptr = (const char *)(&gval);
-                s.append(ptr, ptr + sizeof(uint16_t));
+                ERCV(append_floatvalue<uint16_t>(s, c.v.v()));
             } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
                 if(!std::holds_alternative<DeviceCMYKColor>(colorobj)) {
                     RETERR(ColorspaceMismatch);
                 }
                 const auto &c = std::get<DeviceCMYKColor>(colorobj);
-                uint16_t cval = std::numeric_limits<uint16_t>::max() * c.c.v();
-                uint16_t mval = std::numeric_limits<uint16_t>::max() * c.m.v();
-                uint16_t yval = std::numeric_limits<uint16_t>::max() * c.y.v();
-                uint16_t kval = std::numeric_limits<uint16_t>::max() * c.k.v();
-                cval = std::byteswap(cval);
-                mval = std::byteswap(mval);
-                yval = std::byteswap(yval);
-                kval = std::byteswap(kval);
-
-                ptr = (const char *)(&cval);
-                s.append(ptr, ptr + sizeof(uint16_t));
-                ptr = (const char *)(&mval);
-                s.append(ptr, ptr + sizeof(uint16_t));
-                ptr = (const char *)(&yval);
-                s.append(ptr, ptr + sizeof(uint16_t));
-                ptr = (const char *)(&kval);
-                s.append(ptr, ptr + sizeof(uint16_t));
+                ERCV(append_floatvalue<uint16_t>(s, c.c.v()));
+                ERCV(append_floatvalue<uint16_t>(s, c.m.v()));
+                ERCV(append_floatvalue<uint16_t>(s, c.y.v()));
+                ERCV(append_floatvalue<uint16_t>(s, c.k.v()));
             } else {
                 fprintf(stderr, "Color space not yet supported.\n");
                 std::abort();
