@@ -816,8 +816,8 @@ class Color:
     def set_rgb(self, r, g, b):
         check_error(libfile.capy_color_set_rgb(self, r, g, b))
 
-    def set_gray(self, r, g, b):
-        check_error(libfile.capy_color_set_gray(self, r, g, b))
+    def set_gray(self, g):
+        check_error(libfile.capy_color_set_gray(self, g))
 
     def set_cmyk(self, c, m, y, k):
         check_error(libfile.capy_color_set_cmyk(self, c, m, y, k))

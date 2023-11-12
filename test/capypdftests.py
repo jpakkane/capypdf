@@ -484,8 +484,8 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.cmd_l(-1.02, 157)
                             ctx.cmd_S()
 
-    @validate_image('python_shading', 200, 200)
-    def test_shading(self, ofilename, w, h):
+    @validate_image('python_shading_rgb', 200, 200)
+    def test_shading_rgb(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
@@ -574,6 +574,99 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_Wstar()
                     ctx.cmd_n()
                     ctx.cmd_sh(sh6id)
+
+    @validate_image('python_shading_gray', 200, 200)
+    def test_shading_gray(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        opt.set_colorspace(capypdf.Colorspace.DeviceGray)
+        with capypdf.Generator(ofilename, opt) as gen:
+            c1 = capypdf.Color()
+            c1.set_gray(0.0)
+            c2 = capypdf.Color()
+            c2.set_gray(1.0)
+            f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
+            f2id = gen.add_type2_function(f2)
+            sh2 = capypdf.Type2Shading(capypdf.Colorspace.DeviceGray,
+                                       10.0,
+                                       50.0,
+                                       90.0,
+                                       50.0,
+                                       f2id,
+                                       False,
+                                       False)
+            sh2id = gen.add_type2_shading(sh2)
+
+            sh3 = capypdf.Type3Shading(capypdf.Colorspace.DeviceGray,
+                                       [50, 50, 40, 40, 30, 10],
+                                       f2id,
+                                       False,
+                                       True)
+            sh3id = gen.add_type3_shading(sh3)
+
+            sh4 = capypdf.Type4Shading(capypdf.Colorspace.DeviceGray, 0, 0, 100, 100)
+            c1 = capypdf.Color()
+            c1.set_gray(1)
+            c2 = capypdf.Color()
+            c2.set_gray(0)
+            c3 = capypdf.Color()
+            c3.set_gray(0.5)
+            sh4.add_triangle([50, 90,
+                              10, 10,
+                              90, 10],
+                             [c1, c2, c3])
+            sh4.extend(2, [90, 90], c2)
+            sh4id = gen.add_type4_shading(sh4)
+
+            sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceGray, 0, 0, 100, 100)
+            sh6_coords = [50, 50,
+                          50 - 30, 50 + 30,
+                          50 + 20, 150 - 10,
+                          50, 150,
+                          50 + 20, 150 + 20,
+                          150 - 10, 150 - 5,
+                          150, 150,
+                          150 - 40, 150 - 20,
+                          150 + 20, 50 + 20,
+                          150, 50,
+                          150 - 15, 50 - 15,
+                          50 + 20, 50 + 20]
+            sh6_coords = [x/2 for x in sh6_coords]
+            sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
+            sh6_colors[0].set_gray(0)
+            sh6_colors[1].set_gray(0.3)
+            sh6_colors[2].set_gray(0.6)
+            sh6_colors[3].set_gray(1)
+            sh6.add_patch(sh6_coords, sh6_colors)
+            sh6id = gen.add_type6_shading(sh6)
+
+            with gen.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh2id)
+                with ctx.push_gstate():
+                    ctx.translate(100, 0)
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh3id)
+                with ctx.push_gstate():
+                    ctx.translate(0, 100)
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh4id)
+                with ctx.push_gstate():
+                    ctx.translate(100, 100)
+                    ctx.cmd_re(0, 0, 100, 100)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh6id)
+
 
 if __name__ == "__main__":
     unittest.main()
