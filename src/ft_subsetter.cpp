@@ -174,12 +174,13 @@ struct TTDirEntry {
     }
 
     void set_tag(const char *txt) {
-        if(strlen(txt) > 4) {
+        if(strlen(txt) != 4) {
             fprintf(stderr, "Bad tag.\n");
             std::abort();
         }
-        memset(tag, ' ', 4);
-        strncpy(tag, txt, 4);
+        for(int i = 0; i < 4; ++i) {
+            tag[i] = txt[i];
+        }
     }
 
     void swap_endian() {
