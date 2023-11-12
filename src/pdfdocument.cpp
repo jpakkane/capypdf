@@ -245,6 +245,27 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
             cval = std::byteswap(cval);
             ptr = (const char *)(&cval);
             s.append(ptr, ptr + sizeof(uint16_t));
+        } else if(std::holds_alternative<DeviceCMYKColor>(e.sp.c)) {
+            if(shade.colorspace != CAPY_CS_DEVICE_CMYK) {
+                RETERR(ColorspaceMismatch);
+            }
+            const auto &c = std::get<DeviceCMYKColor>(e.sp.c);
+            uint16_t cval = std::numeric_limits<uint16_t>::max() * c.c.v();
+            uint16_t mval = std::numeric_limits<uint16_t>::max() * c.m.v();
+            uint16_t yval = std::numeric_limits<uint16_t>::max() * c.y.v();
+            uint16_t kval = std::numeric_limits<uint16_t>::max() * c.k.v();
+            cval = std::byteswap(cval);
+            mval = std::byteswap(mval);
+            yval = std::byteswap(yval);
+            kval = std::byteswap(kval);
+            ptr = (const char *)(&cval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+            ptr = (const char *)(&mval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+            ptr = (const char *)(&yval);
+            s.append(ptr, ptr + sizeof(uint16_t));
+            ptr = (const char *)(&kval);
+            s.append(ptr, ptr + sizeof(uint16_t));
         } else {
             fprintf(stderr, "Color space not supported yet.");
             std::abort();
@@ -308,6 +329,28 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
                 gval = std::byteswap(gval);
 
                 ptr = (const char *)(&gval);
+                s.append(ptr, ptr + sizeof(uint16_t));
+            } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+                if(!std::holds_alternative<DeviceCMYKColor>(colorobj)) {
+                    RETERR(ColorspaceMismatch);
+                }
+                const auto &c = std::get<DeviceCMYKColor>(colorobj);
+                uint16_t cval = std::numeric_limits<uint16_t>::max() * c.c.v();
+                uint16_t mval = std::numeric_limits<uint16_t>::max() * c.m.v();
+                uint16_t yval = std::numeric_limits<uint16_t>::max() * c.y.v();
+                uint16_t kval = std::numeric_limits<uint16_t>::max() * c.k.v();
+                cval = std::byteswap(cval);
+                mval = std::byteswap(mval);
+                yval = std::byteswap(yval);
+                kval = std::byteswap(kval);
+
+                ptr = (const char *)(&cval);
+                s.append(ptr, ptr + sizeof(uint16_t));
+                ptr = (const char *)(&mval);
+                s.append(ptr, ptr + sizeof(uint16_t));
+                ptr = (const char *)(&yval);
+                s.append(ptr, ptr + sizeof(uint16_t));
+                ptr = (const char *)(&kval);
                 s.append(ptr, ptr + sizeof(uint16_t));
             } else {
                 fprintf(stderr, "Color space not yet supported.\n");
@@ -1921,6 +1964,12 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
 )";
     } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
         buf += "  0 1\n";
+    } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+        buf += R"(    0 1
+    0 1
+    0 1
+    0 1
+)";
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
         std::abort();
@@ -1958,6 +2007,12 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
 )";
     } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
         buf += "  0 1\n";
+    } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+        buf += R"(    0 1
+    0 1
+    0 1
+    0 1
+)";
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
         std::abort();
