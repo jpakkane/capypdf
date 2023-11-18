@@ -147,6 +147,9 @@ rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
+    if(&ctx.get_doc() != &pdoc) {
+        RETERR(IncorrectDocumentForObject);
+    }
     if(ctx.draw_context_type() != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }
