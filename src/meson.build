@@ -65,10 +65,6 @@ executable('labtest', 'labtest.cpp',
   dependencies: [capypdf_internal_dep]
 )
 
-executable('imagetest', 'imagetest.cpp',
-  dependencies: [capypdf_internal_dep]
-)
-
 executable('outlinetest', 'outlinetest.cpp',
   dependencies: [capypdf_internal_dep]
 )
