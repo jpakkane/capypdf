@@ -36,11 +36,6 @@ executable('pdfgen',
   dependencies: capypdf_internal_dep,
 )
 
-executable('covergen',
-  'cover.cpp',
-  dependencies: capypdf_internal_dep,
-)
-
 executable('fontgen',
   'fontgen.cpp',
   dependencies: capypdf_internal_dep,
@@ -48,11 +43,6 @@ executable('fontgen',
 
 executable('gstategen',
   'gstategen.cpp',
-  dependencies: [capypdf_internal_dep]
-)
-
-executable('pathgen',
-  'pathgen.cpp',
   dependencies: [capypdf_internal_dep]
 )
 
@@ -85,10 +75,6 @@ executable('fembedtest', 'fembedtest.cpp',
   dependencies: [capypdf_internal_dep]
 )
 
-executable('presentation', 'presentation.cpp',
-  dependencies: [capypdf_internal_dep]
-)
-
 executable('loremipsum', 'loremipsum.cpp',
   dependencies: [capypdf_internal_dep]
 )
@@ -102,7 +88,3 @@ endif
 
 executable('fonttester', 'fonttester.cpp',
   dependencies: [capypdf_internal_dep])
-
-if tiff_dep.found()
-  executable('tifftest', 'tifftest.cpp', dependencies: tiff_dep)
-endif
