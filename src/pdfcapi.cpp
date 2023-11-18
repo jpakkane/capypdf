@@ -220,6 +220,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(CapyPDF_Generator *g,
+                                                         const char *fname,
+                                                         CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto rc = gen->load_mask_image(fname);
+    if(rc) {
+        *iid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
                                                    CapyPDF_RasterImage *image,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
@@ -847,6 +858,31 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_BM(
     CapyPDF_GraphicsState *state, CapyPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
     auto *s = reinterpret_cast<GraphicsState *>(state);
     s->BM = blendmode;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_op(CapyPDF_GraphicsState *state,
+                                                     int32_t value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    CHECK_BOOLEAN(value);
+    s->op = value;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OP(CapyPDF_GraphicsState *state,
+                                                     int32_t value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    CHECK_BOOLEAN(value);
+    s->OP = value;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *state,
+                                                      int32_t value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    // Not actually boolean, but only values 0 and 1 are valid. See PDF spec 8.6.7.
+    CHECK_BOOLEAN(value);
+    s->OPM = value;
     RETNOERR;
 }
 

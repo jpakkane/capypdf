@@ -148,6 +148,7 @@ cfunc_types = (
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
+('capy_generator_load_mask_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -243,6 +244,9 @@ cfunc_types = (
 ('capy_graphics_state_set_CA', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_graphics_state_set_ca', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_graphics_state_set_BM', [ctypes.c_void_p, enum_type]),
+('capy_graphics_state_set_op', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_OP', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_OPM', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_raster_image_new', [ctypes.c_void_p]),
@@ -677,6 +681,11 @@ class Generator:
         check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
         return iid
 
+    def load_mask_image(self, fname):
+        iid = ImageId()
+        check_error(libfile.capy_generator_load_mask_image(self, to_bytepath(fname), ctypes.pointer(iid)))
+        return iid
+
     def add_image(self, ri):
         if not isinstance(ri, RasterImage):
             raise CapyPDFException('Argument must be a raster image.')
@@ -873,6 +882,17 @@ class GraphicsState:
 
     def set_BM(self, blendmode):
         check_error(libfile.capy_graphics_state_set_BM(self, blendmode.value))
+
+    def set_op(self, value):
+        value = 1 if value else 0
+        check_error(libfile.capy_graphics_state_set_op(self, value))
+
+    def set_OP(self, value):
+        value = 1 if value else 0
+        check_error(libfile.capy_graphics_state_set_OP(self, value))
+
+    def set_OPM(self, value):
+        check_error(libfile.capy_graphics_state_set_OPM(self, value))
 
 class OptionalContentGroup:
     def __init__(self, name):

@@ -762,5 +762,41 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_n()
                     ctx.cmd_sh(sh6id)
 
+    @validate_image('python_imagemask', 200, 200)
+    def test_imagemask(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            artfile = image_dir / 'comic-lines.png'
+            self.assertTrue(artfile.exists())
+            maskid = gen.load_mask_image(artfile)
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_re(0, 0, 100, 200)
+                ctx.cmd_rg(0.9, 0.4, 0.25)
+                ctx.cmd_f()
+                ctx.cmd_re(100, 0, 100, 200)
+                ctx.cmd_rg(0.9, 0.85, 0)
+                ctx.cmd_f()
+                with ctx.push_gstate():
+                    ctx.cmd_rg(0.06, 0.26, 0.05)
+                    ctx.translate(50, 85)
+                    ctx.scale(100, 100)
+                    ctx.draw_image(maskid)
+                with ctx.push_gstate():
+                    alphags = capypdf.GraphicsState()
+                    alphags.set_ca(0.5)
+                    gsid = gen.add_graphics_state(alphags)
+                    ctx.cmd_rg(0.06, 0.26, 0.05)
+                    ctx.translate(50, 10)
+                    ctx.scale(100, 100)
+                    ctx.translate(0, 0.5)
+                    ctx.scale(1, -1)
+                    ctx.translate(0, -0.5)
+                    ctx.cmd_gs(gsid)
+                    ctx.draw_image(maskid)
+
+
 if __name__ == "__main__":
     unittest.main()
