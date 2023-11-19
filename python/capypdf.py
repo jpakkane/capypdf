@@ -247,6 +247,7 @@ cfunc_types = (
 ('capy_graphics_state_set_op', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OP', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OPM', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_TK', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_raster_image_new', [ctypes.c_void_p]),
@@ -893,6 +894,11 @@ class GraphicsState:
 
     def set_OPM(self, value):
         check_error(libfile.capy_graphics_state_set_OPM(self, value))
+
+    def set_TK(self, value):
+        value = 1 if value else 0
+        check_error(libfile.capy_graphics_state_set_TK(self, value))
+
 
 class OptionalContentGroup:
     def __init__(self, name):

@@ -886,6 +886,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *sta
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
+                                                     int32_t value) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    CHECK_BOOLEAN(value);
+    s->TK = value;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<GraphicsState *>(state);

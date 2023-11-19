@@ -1775,8 +1775,8 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     if(state.OPM) {
         fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
     }
-    if(state.FT) {
-        fmt::format_to(resource_appender, "  /FT {:f}\n", *state.FT);
+    if(state.FL) {
+        fmt::format_to(resource_appender, "  /FL {:f}\n", *state.FL);
     }
     if(state.SM) {
         fmt::format_to(resource_appender, "  /SM {:f}\n", *state.SM);
@@ -1794,7 +1794,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
         fmt::format_to(resource_appender, "  /AIS {}\n", *state.AIS ? "true" : "false");
     }
     if(state.TK) {
-        fmt::format_to(resource_appender, "  /TK {:}\n", *state.TK ? "true" : "false");
+        fmt::format_to(resource_appender, "  /TK {}\n", *state.TK ? "true" : "false");
     }
     buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});

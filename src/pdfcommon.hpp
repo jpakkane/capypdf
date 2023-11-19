@@ -174,11 +174,11 @@ struct GraphicsState {
     std::optional<CapyPDF_Line_Cap> LC;
     std::optional<CapyPDF_Line_Join> LJ;
     std::optional<double> ML;
+    // std::optional<DashArray> D;
     std::optional<CapyPDF_Rendering_Intent> RI;
     std::optional<bool> OP;
     std::optional<bool> op;
     std::optional<int32_t> OPM;
-    // std::optional<DashArray> D;
     // std::optional<FontSomething> Font;
     // std::optional<std::string> BG;
     // std::optional<std::string> BG2;
@@ -187,7 +187,7 @@ struct GraphicsState {
     // std::optional<std::string> TR;
     // std::optional<std::string> TR2;
     // std::optional<str::string> HT;
-    std::optional<double> FT;
+    std::optional<double> FL;
     std::optional<double> SM;
     std::optional<bool> SA;
     std::optional<CapyPDF_Blend_Mode> BM;
@@ -196,7 +196,7 @@ struct GraphicsState {
     std::optional<LimitDouble> ca;
     std::optional<bool> AIS;
     std::optional<bool> TK;
-    // std::string UseBlackPtComp;
+    // std::optional<CapyPDF_BlackPointComp> UseBlackPtComp;
     //  std::optional<Point> HTO;
 };
 
