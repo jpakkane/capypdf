@@ -1972,15 +1972,15 @@ PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_vi
     return PatternId{add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)})};
 }
 
-OutlineId PdfDocument::add_outline(std::string_view title_utf8,
-                                   PageId dest,
-                                   std::optional<OutlineId> parent) {
+rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const u8string &title_utf8,
+                                                 PageId dest,
+                                                 std::optional<CapyPDF_OutlineId> parent) {
     const auto cur_id = (int32_t)outlines.items.size();
-    const auto par_id = parent.value_or(OutlineId{-1}).id;
+    const auto par_id = parent.value_or(CapyPDF_OutlineId{-1}).id;
     outlines.parent[cur_id] = par_id;
     outlines.children[par_id].push_back(cur_id);
-    outlines.items.emplace_back(Outline{std::string{title_utf8}, dest, parent});
-    return OutlineId{cur_id};
+    outlines.items.emplace_back(Outline{title_utf8, dest, parent});
+    return CapyPDF_OutlineId{cur_id};
 }
 
 rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,

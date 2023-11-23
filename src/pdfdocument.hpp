@@ -190,9 +190,9 @@ struct PdfGenerationData {
 };
 
 struct Outline {
-    std::string title;
+    u8string title;
     PageId dest;
-    std::optional<OutlineId> parent;
+    std::optional<CapyPDF_OutlineId> parent;
 };
 
 struct OutlineLimits {
@@ -346,8 +346,7 @@ public:
     PatternId add_pattern(std::string_view pattern_dict, std::string_view commands);
 
     // Outlines
-    OutlineId
-    add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent);
+    rvoe<CapyPDF_OutlineId> add_outline(const u8string &title_utf8, PageId dest, std::optional<CapyPDF_OutlineId> parent);
 
     // Forms
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,

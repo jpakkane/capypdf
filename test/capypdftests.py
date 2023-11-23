@@ -797,6 +797,27 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_gs(gsid)
                     ctx.draw_image(maskid)
 
+    @cleanup('outlines')
+    def test_outline(self, ofilename):
+        w = 200
+        h = 200
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_re(50, 50, 100, 100)
+                ctx.cmd_f()
+            t1 = gen.add_outline('First toplevel', 0)
+            t2 = gen.add_outline('Second toplevel', 0)
+            t3 = gen.add_outline('Third toplevel', 0)
+            t1c1 = gen.add_outline('Top1, child1', 0, t1)
+            t1c2 = gen.add_outline('Top1, child2', 0, t1)
+            gen.add_outline('Top1, child2, child1', 0, t1c2)
+            gen.add_outline('Fourth toplevel', 0)
+        # FIXME, validate that the outline tree is correct.
+
 
 if __name__ == "__main__":
     unittest.main()

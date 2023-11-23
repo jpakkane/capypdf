@@ -347,6 +347,31 @@ CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *generator,
+                                                     const char *utf8_text,
+                                                     int32_t page_number,
+                                                     CapyPDF_OutlineId *parent,
+                                                     CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    auto u8t = u8string::from_cstr(utf8_text);
+    if(!u8t) {
+        return conv_err(u8t);
+    }
+    if(page_number < 0 || page_number >= g->num_pages()) {
+        return conv_err(ErrorCode::IndexOutOfBounds);
+    }
+    auto page_id = PageId{page_number};
+    std::optional<CapyPDF_OutlineId> pobj;
+    if(parent) {
+        pobj = *parent;
+    }
+    auto rc = g->add_outline(u8t.value(), page_id, pobj);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *generator,
                                                     const char *utf8_text,
                                                     CapyPDF_FontId font,

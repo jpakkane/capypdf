@@ -235,6 +235,10 @@ typedef struct {
     int32_t id;
 } CapyPDF_ShadingId;
 
+typedef struct {
+    int32_t id;
+} CapyPDF_OutlineId;
+
 // Options
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_new(CapyPDF_Options **out_ptr) CAPYPDF_NOEXCEPT;
@@ -312,6 +316,14 @@ capy_generator_add_optional_content_group(CapyPDF_Generator *g,
                                           const CapyPDF_OptionalContentGroup *ocg,
                                           CapyPDF_OptionalContentGroupId *ocgid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
+
+// FIXME: this must be changed to support PDF links that point to
+// specific coordinates on a page.
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *generator,
+                                                     const char *utf8_text,
+                                                     int32_t page_number,
+                                                     CapyPDF_OutlineId *parent,
+                                                     CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *g,

@@ -55,10 +55,6 @@ executable('labtest', 'labtest.cpp',
   dependencies: [capypdf_internal_dep]
 )
 
-executable('outlinetest', 'outlinetest.cpp',
-  dependencies: [capypdf_internal_dep]
-)
-
 executable('formxobj', 'formxobj.cpp',
   dependencies: [capypdf_internal_dep]
 )

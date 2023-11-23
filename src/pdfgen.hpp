@@ -136,8 +136,8 @@ public:
         return pdoc.add_transparency_group(ctx, ex);
     }
 
-    OutlineId
-    add_outline(std::string_view title_utf8, PageId dest, std::optional<OutlineId> parent) {
+    rvoe<CapyPDF_OutlineId>
+    add_outline(const u8string &title_utf8, PageId dest, std::optional<CapyPDF_OutlineId> parent) {
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 

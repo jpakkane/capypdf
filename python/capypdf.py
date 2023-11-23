@@ -126,6 +126,9 @@ class FunctionId(ctypes.Structure):
 class ShadingId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class OutlineId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -160,6 +163,7 @@ cfunc_types = (
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 
@@ -749,6 +753,17 @@ class Generator:
         gsid = GraphicsStateId()
         check_error(libfile.capy_generator_add_graphics_state(self, gs, ctypes.pointer(gsid)))
         return gsid
+
+    def add_outline(self, text, page_num, parent=None):
+        if isinstance(parent, OutlineId):
+            parentptr = ctypes.pointer(parent)
+        elif parent is None:
+            parentptr = None
+        else:
+            raise CapyPDFException('Parent must be outline or None')
+        oid = OutlineId()
+        check_error(libfile.capy_generator_add_outline(self, text.encode('UTF-8'), page_num, parentptr, ctypes.pointer(oid)))
+        return oid
 
     def add_optional_content_group(self, ocg):
         ocgid = OptionalContentGroupId()

@@ -164,10 +164,6 @@ struct PageId {
     int32_t id;
 };
 
-struct OutlineId {
-    int32_t id;
-};
-
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
     std::optional<double> LW;
