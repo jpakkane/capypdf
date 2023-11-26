@@ -14,12 +14,12 @@ soversion = 0
 header_install_subdir = 'capypdf-@0@'.format(soversion)
 
 fmt_dep = dependency('fmt')
-png_dep = dependency('libpng')
+png_dep = dependency(['libpng', 'PNG'])
 zlib_dep = dependency('zlib')
 lcms_dep = dependency('lcms2')
-jpeg_dep = dependency('libjpeg')
-freetype_dep = dependency('freetype2')
-tiff_dep = dependency('libtiff-4')
+jpeg_dep = dependency(['libjpeg', 'JPEG'])
+freetype_dep = dependency(['freetype2', 'FreeType'])
+tiff_dep = dependency(['libtiff-4', 'TIFF'])
 gtk_dep = dependency('gtk4', required: false)
 
 pubinc = include_directories('include')

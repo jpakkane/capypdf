@@ -19,7 +19,17 @@ import unittest
 import os, sys, pathlib, shutil, subprocess
 import PIL.Image, PIL.ImageChops
 
-if shutil.which('gs') is None:
+gs_exes = ['gs', 'gswin64', 'gswin32']
+gs_exe = None
+gswin_path = None
+for exe in gs_exes:
+    if gs_exe is None and shutil.which(exe) is not None:
+        # For Windows Ghostscript installations, find installation path
+        if os.name == 'nt':
+            gswin_path = os.path.dirname(os.path.dirname(shutil.which(exe)))
+        gs_exe = exe
+
+if gs_exe is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
 os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
@@ -29,7 +39,10 @@ image_dir = source_root / 'images'
 icc_dir = source_root / 'icc'
 sys.path.append(str(source_root / 'python'))
 
-noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
+if os.name == 'nt':
+    noto_fontdir = pathlib.Path('c:/Windows/fonts')
+else:
+    noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
 
 sys.argv = sys.argv[0:1] + sys.argv[2:]
 
@@ -61,7 +74,7 @@ def validate_image(basename, w, h):
             value = func(*args, **kwargs)
             the_truth = testdata_dir / pngname
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
-            utobj.assertEqual(subprocess.run(['gs',
+            utobj.assertEqual(subprocess.run([gs_exe,
                                               '-q',
                                               '-dNOPAUSE',
                                               '-dBATCH',
@@ -255,7 +268,12 @@ class TestPDFCreation(unittest.TestCase):
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
-            cs = g.load_icc_profile('/usr/share/color/icc/ghostscript/a98.icc')
+            if os.name == 'nt':
+                a98icc = os.path.join(gswin_path, 'iccprofiles', 'a98.icc')
+            else:
+                a98icc = '/usr/share/color/icc/ghostscript/a98.icc'
+
+            cs = g.load_icc_profile(a98icc)
             sc = capypdf.Color()
             sc.set_icc(cs, [0.1, 0.2, 0.8])
             nsc = capypdf.Color()
