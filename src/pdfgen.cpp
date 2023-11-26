@@ -246,11 +246,9 @@ PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsiz
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }
-    ERC(glyphs, utf8_to_glyphs(txt));
-
     uint32_t previous_codepoint = -1;
     const bool has_kerning = FT_HAS_KERNING(face);
-    for(const auto codepoint : glyphs) {
+    for(const auto codepoint : txt) {
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
             const auto index_left = FT_Get_Char_Index(face, previous_codepoint);

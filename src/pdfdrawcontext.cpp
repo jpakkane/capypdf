@@ -827,14 +827,13 @@ rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }
-    ERC(glyphs, utf8_to_glyphs(text));
 
     uint32_t previous_codepoint = -1;
     // Freetype does not support GPOS kerning because it is context-sensitive.
     // So this method might produce incorrect kerning. Users that need precision
     // need to use the glyph based rendering method.
     const bool has_kerning = FT_HAS_KERNING(face);
-    for(const auto codepoint : glyphs) {
+    for(const auto &codepoint : text) {
         if(has_kerning && previous_codepoint != (uint32_t)-1) {
             FT_Vector kerning;
             const auto index_left = FT_Get_Char_Index(face, previous_codepoint);

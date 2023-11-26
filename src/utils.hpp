@@ -32,8 +32,7 @@ template<class... Ts> struct overloaded : Ts... {
 };
 #if defined __APPLE__
 // This should not be needed, but Xcode 15 still requires it.
-template <class ... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 #endif
 
 rvoe<std::string> flate_compress(std::string_view data);
@@ -46,12 +45,9 @@ rvoe<std::string> load_file(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);
 
-rvoe<std::string> utf8_to_pdfmetastr(std::string_view input);
-
 rvoe<std::string> utf8_to_pdfmetastr(const u8string &input);
 
-rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input);
-rvoe<std::vector<uint32_t>> utf8_to_glyphs(const u8string &input);
+bool is_valid_utf8(std::string_view input);
 
 std::string current_date_string();
 

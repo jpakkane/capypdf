@@ -67,6 +67,63 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf {
 
+// Does not check if the given buffer is valid UTF-8.
+// If it is not, UB ensues.
+class CodepointIterator {
+public:
+    struct CharInfo {
+        uint32_t codepoint;
+        uint32_t byte_count;
+    };
+
+    using iterator_category = std::forward_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = uint32_t;
+    using pointer = const uint32_t *;
+    using reference = const uint32_t &;
+
+    CodepointIterator(const unsigned char *utf8_string) : buf{utf8_string} {}
+    CodepointIterator(const CodepointIterator &) = default;
+    CodepointIterator(CodepointIterator &&) = default;
+
+    reference operator*() {
+        compute_char_info();
+        return char_info.value().codepoint;
+    }
+
+    pointer operator->() {
+        compute_char_info();
+        return &char_info.value().codepoint;
+    }
+    CodepointIterator &operator++() {
+        compute_char_info();
+        buf += char_info.value().byte_count;
+        char_info.reset();
+        return *this;
+    }
+    CodepointIterator operator++(int) {
+        compute_char_info();
+        CodepointIterator rval{*this};
+        ++(*this);
+        return rval;
+    }
+
+    bool operator==(const CodepointIterator &o) const { return buf == o.buf; }
+    bool operator!=(const CodepointIterator &o) const { return !(*this == o); }
+
+private:
+    void compute_char_info() {
+        if(char_info) {
+            return;
+        }
+        char_info = extract_one_codepoint(buf);
+    };
+
+    CharInfo extract_one_codepoint(const unsigned char *buf);
+    const unsigned char *buf;
+    std::optional<CharInfo> char_info;
+};
+
 class u8string {
 public:
     u8string() = default;
@@ -81,6 +138,14 @@ public:
     }
 
     bool empty() const { return buf.empty(); }
+
+    CodepointIterator begin() const {
+        return CodepointIterator((const unsigned char *)buf.c_str());
+    }
+
+    CodepointIterator end() const {
+        return CodepointIterator((const unsigned char *)buf.c_str() + buf.size());
+    }
 
     u8string &operator=(u8string &&o) = default;
     u8string &operator=(const u8string &o) = default;

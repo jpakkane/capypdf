@@ -38,7 +38,7 @@ struct UtfDecodeStep {
     uint32_t num_subsequent_bytes;
 };
 
-rvoe<uint32_t> unpack_one(std::string_view input, size_t cur, const UtfDecodeStep &par) {
+bool is_valid_uf8_character(std::string_view input, size_t cur, const UtfDecodeStep &par) {
     const uint32_t byte1 = uint32_t((unsigned char)input[cur]);
     const uint32_t subsequent_header_mask = 0b011000000;
     const uint32_t subsequent_header_value = 0b10000000;
@@ -46,37 +46,32 @@ rvoe<uint32_t> unpack_one(std::string_view input, size_t cur, const UtfDecodeSte
     const uint32_t subsequent_num_data_bits = 6;
 
     if(cur + par.num_subsequent_bytes >= input.size()) {
-        RETERR(BadUtf8);
+        return false;
     }
     uint32_t unpacked = byte1 & par.byte1_data_mask;
     for(uint32_t i = 0; i < par.num_subsequent_bytes; ++i) {
         unpacked <<= subsequent_num_data_bits;
         const uint32_t subsequent = uint32_t((unsigned char)input[cur + 1 + i]);
         if((subsequent & subsequent_header_mask) != subsequent_header_value) {
-            RETERR(BadUtf8);
+            return false;
         }
         assert((unpacked & subsequent_data_mask) == 0);
         unpacked |= subsequent & subsequent_data_mask;
     }
 
-    return unpacked;
+    return true;
 }
 
-std::vector<uint16_t> glyphs_to_utf16be(const std::vector<uint32_t> &glyphs) {
-    std::vector<uint16_t> u16buf;
-    u16buf.reserve(glyphs.size());
-    for(const auto &g : glyphs) {
-        if(g < 0x10000) {
-            u16buf.push_back((uint16_t)g);
-        } else {
-            const auto reduced = g - 0x10000;
-            const auto high_surrogate = (reduced >> 10) + 0xD800;
-            const auto low_surrogate = (reduced & 0b1111111111) + 0xDC00;
-            u16buf.push_back((uint16_t)high_surrogate);
-            u16buf.push_back((uint16_t)low_surrogate);
-        }
+void append_glyph_to_utf16be(uint32_t glyph, std::vector<uint16_t> &u16buf) {
+    if(glyph < 0x10000) {
+        u16buf.push_back((uint16_t)glyph);
+    } else {
+        const auto reduced = glyph - 0x10000;
+        const auto high_surrogate = (reduced >> 10) + 0xD800;
+        const auto low_surrogate = (reduced & 0b1111111111) + 0xDC00;
+        u16buf.push_back((uint16_t)high_surrogate);
+        u16buf.push_back((uint16_t)low_surrogate);
     }
-    return u16buf;
 }
 
 } // namespace
@@ -157,27 +152,27 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-rvoe<std::string> utf8_to_pdfmetastr(std::string_view input) {
-    ERC(glyphs, utf8_to_glyphs(input));
+rvoe<std::string> utf8_to_pdfmetastr(const u8string &input) {
     // For now put everything into UTF-16 bracketstrings.
     std::string encoded = "<FEFF";
 
-    auto u16buf = glyphs_to_utf16be(glyphs);
+    //    auto u16buf = glyphs_to_utf16be(glyphs);
     auto bi = std::back_inserter(encoded);
-    for(const auto &u16 : u16buf) {
-        const auto *lower_byte = (const unsigned char *)&u16;
-        const auto *upper_byte = lower_byte + 1;
-        fmt::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
+    std::vector<uint16_t> u16buf;
+    for(const auto codepoint : input) {
+        u16buf.clear();
+        append_glyph_to_utf16be(codepoint, u16buf);
+        for(const auto &u16 : u16buf) {
+            const auto *lower_byte = (const unsigned char *)&u16;
+            const auto *upper_byte = lower_byte + 1;
+            fmt::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
+        }
     }
     encoded += '>';
     return std::move(encoded);
 }
 
-rvoe<std::string> utf8_to_pdfmetastr(const u8string &input) {
-    return utf8_to_pdfmetastr(input.sv());
-}
-
-rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input) {
+bool is_valid_utf8(std::string_view input) {
     std::vector<uint32_t> glyphs;
     UtfDecodeStep par;
     // clang-format off
@@ -203,17 +198,14 @@ rvoe<std::vector<uint32_t>> utf8_to_glyphs(std::string_view input) {
             par.byte1_data_mask = 0b111;
             par.num_subsequent_bytes = 3;
         } else {
-            RETERR(BadUtf8);
+            return false;
         }
-        ERC(unpacked, unpack_one(input, i, par));
-        glyphs.push_back(unpacked);
+        if(!is_valid_uf8_character(input, i, par)) {
+            return false;
+        }
         i += par.num_subsequent_bytes;
     }
-    return glyphs;
-}
-
-rvoe<std::vector<uint32_t>> utf8_to_glyphs(const u8string &input) {
-    return utf8_to_glyphs(input.sv());
+    return true;
 }
 
 std::string current_date_string() {
