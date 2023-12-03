@@ -409,6 +409,9 @@ rvoe<jpg_image> load_jpg(const std::filesystem::path &fname) {
 }
 
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
+    if(!std::filesystem::exists(fname)) {
+        RETERR(FileDoesNotExist);
+    }
     auto extension = fname.extension();
     if(extension == ".png" || extension == ".PNG") {
         return load_png_file(fname);

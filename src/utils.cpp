@@ -126,6 +126,10 @@ rvoe<std::string> load_file(const char *fname) {
 }
 
 rvoe<std::string> load_file(const std::filesystem::path &fname) {
+    if(!std::filesystem::is_regular_file(fname)) {
+        RETERR(FileDoesNotExist);
+    }
+
     return load_file(fname.string().c_str());
 }
 

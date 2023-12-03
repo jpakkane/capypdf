@@ -668,7 +668,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_sh(sh6id)
 
     @validate_image('python_shading_cmyk', 200, 200)
-    def test_shading_gray(self, ofilename, w, h):
+    def test_shading_cmyk(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
@@ -819,7 +819,7 @@ class TestPDFCreation(unittest.TestCase):
         # FIXME, validate that the outline tree is correct.
 
     @validate_image('python_separation', 200, 200)
-    def test_shading_gray(self, ofilename, w, h):
+    def test_separation(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
@@ -839,6 +839,32 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.set_nonstroke(gold)
                 ctx.cmd_re(50, 90, 100, 20)
                 ctx.cmd_f()
+
+    @validate_image('python_blendmodes', 200, 200)
+    def test_blendmodes(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            bgimage = gen.load_image(image_dir / 'flame_gradient.png')
+            fgimage = gen.load_image(image_dir / 'object_gradient.png')
+            with gen.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.scale(200, 200)
+                    ctx.draw_image(bgimage)
+                for j in range(4):
+                    for i in range(4):
+                        bm = capypdf.BlendMode(j*4+i)
+                        g = capypdf.GraphicsState()
+                        g.set_BM(bm)
+                        bmid = gen.add_graphics_state(g)
+                        with ctx.push_gstate():
+                            ctx.cmd_gs(bmid)
+                            ctx.translate(50*i, 150-j*50)
+                            ctx.scale(50, 50)
+                            ctx.draw_image(fgimage)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -36,11 +36,6 @@ executable('fontgen',
   dependencies: capypdf_internal_dep,
 )
 
-executable('gstategen',
-  'gstategen.cpp',
-  dependencies: [capypdf_internal_dep]
-)
-
 executable('patterngen',
   'patterngen.cpp',
   dependencies: [capypdf_internal_dep]
