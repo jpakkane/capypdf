@@ -31,11 +31,6 @@ capypdf_internal_dep = declare_dependency(include_directories: pubinc,
   dependencies: a4deps,
 )
 
-executable('pdfgen',
-  'main.cpp',
-  dependencies: capypdf_internal_dep,
-)
-
 executable('fontgen',
   'fontgen.cpp',
   dependencies: capypdf_internal_dep,
