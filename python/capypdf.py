@@ -129,6 +129,9 @@ class ShadingId(ctypes.Structure):
 class OutlineId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class SeparationId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -164,8 +167,9 @@ cfunc_types = (
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_destroy', [ctypes.c_void_p]),
+('capy_generator_create_separation_simple', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
+('capy_generator_destroy', [ctypes.c_void_p]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_add_simple_navigation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p]),
@@ -733,6 +737,13 @@ class Generator:
         check_error(libfile.capy_generator_add_type6_shading(self, type6shade, ctypes.pointer(shid)))
         return shid
 
+    def create_separation_simple(self, name, color):
+        if not isinstance(color, Color):
+            raise CapyPDFException('Color argument must be a color object.')
+        sepid = SeparationId()
+        text_bytes = name.encode('UTF-8')
+        check_error(libfile.capy_generator_create_separation_simple(self, text_bytes, color, ctypes.pointer(sepid)))
+        return sepid
 
     def write(self):
         check_error(libfile.capy_generator_write(self))

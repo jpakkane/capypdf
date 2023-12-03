@@ -73,7 +73,8 @@ public:
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
 
-    SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback) {
+    rvoe<CapyPDF_SeparationId> create_separation(std::string_view name,
+                                                 const DeviceCMYKColor &fallback) {
         return pdoc.create_separation(name, fallback);
     }
 

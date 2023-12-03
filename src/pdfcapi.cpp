@@ -322,6 +322,25 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *g,
+                                                                  const char *separation_name,
+                                                                  const CapyPDF_Color *c,
+                                                                  CapyPDF_SeparationId *sid)
+    CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    const auto *color = reinterpret_cast<const Color *>(c);
+    if(!std::holds_alternative<DeviceCMYKColor>(*color)) {
+        return conv_err(ErrorCode::ColorspaceMismatch);
+    }
+    const auto &cmyk = std::get<DeviceCMYKColor>(*color);
+    std::string_view nameview(separation_name);
+    auto rc = gen->create_separation(nameview, cmyk);
+    if(!rc) {
+        *sid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CapyPDF_EC capy_generator_write(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto rc = g->write();
@@ -822,6 +841,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_icc(CapyPDF_Color *color,
     icc.id = icc_id;
     icc.values.assign(values, values + num_values);
     *reinterpret_cast<capypdf::Color *>(color) = std::move(icc);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_separation(CapyPDF_Color *color,
+                                                    CapyPDF_SeparationId sep_id,
+                                                    double value) CAPYPDF_NOEXCEPT {
+    auto *c = reinterpret_cast<Color *>(color);
+    if(value < 0 || value > 1.0) {
+        return conv_err(ErrorCode::ColorOutOfRange);
+    }
+    *c = SeparationColor{sep_id, value};
     RETNOERR;
 }
 

@@ -818,6 +818,27 @@ class TestPDFCreation(unittest.TestCase):
             gen.add_outline('Fourth toplevel', 0)
         # FIXME, validate that the outline tree is correct.
 
+    @validate_image('python_separation', 200, 200)
+    def test_shading_gray(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
+        opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        with capypdf.Generator(ofilename, opt) as gen:
+            red = capypdf.Color()
+            red.set_cmyk(0.2, 1, 0.8, 0)
+            gold = capypdf.Color()
+            gold.set_cmyk(0, 0.03, 0.55, 0.08)
+            sepid = gen.create_separation_simple("gold", gold)
+            with gen.page_draw_context() as ctx:
+                ctx.set_nonstroke(red)
+                ctx.cmd_re(10, 10, 180, 180)
+                ctx.cmd_f()
+                ctx.set_nonstroke(gold)
+                ctx.cmd_re(50, 90, 100, 20)
+                ctx.cmd_f()
 
 if __name__ == "__main__":
     unittest.main()

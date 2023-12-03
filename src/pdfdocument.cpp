@@ -578,8 +578,12 @@ int32_t PdfDocument::add_object(ObjectType object) {
     return object_num;
 }
 
-SeparationId PdfDocument::create_separation(std::string_view name,
-                                            const DeviceCMYKColor &fallback) {
+rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(std::string_view name,
+                                                          const DeviceCMYKColor &fallback) {
+    if(!is_ascii(name)) {
+        RETERR(NotASCII);
+    }
+
     std::string stream = fmt::format(R"({{ dup {} mul
 exch {} exch dup {} mul
 exch {} mul
@@ -611,7 +615,7 @@ exch {} mul
                    name,
                    fn_num);
     separation_objects.push_back(add_object(FullPDFObject{buf, ""}));
-    return SeparationId{(int32_t)separation_objects.size() - 1};
+    return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
 LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {

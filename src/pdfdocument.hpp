@@ -313,7 +313,7 @@ public:
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
-    SeparationId create_separation(std::string_view name, const DeviceCMYKColor &fallback);
+    rvoe<CapyPDF_SeparationId> create_separation(std::string_view name, const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
 
@@ -386,7 +386,7 @@ private:
 
     int32_t image_object_number(CapyPDF_ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(CapyPDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
-    int32_t separation_object_number(SeparationId sid) { return separation_objects.at(sid.id); }
+    int32_t separation_object_number(CapyPDF_SeparationId sid) { return separation_objects.at(sid.id); }
     int32_t ocg_object_number(CapyPDF_OptionalContentGroupId ocgid) {
         return ocg_items.at(ocgid.id);
     }

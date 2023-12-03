@@ -213,10 +213,6 @@ private:
 // Every resource type has its own id type to avoid
 // accidentally mixing them up.
 
-struct SeparationId {
-    int32_t id;
-};
-
 struct PatternId {
     int32_t id;
 };
@@ -291,7 +287,7 @@ struct ICCColor {
 };
 
 struct SeparationColor {
-    SeparationId id;
+    CapyPDF_SeparationId id;
     LimitDouble v;
 };
 

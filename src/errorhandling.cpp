@@ -76,6 +76,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Boolean integer value must be 0 or 1.",
 "Gradient must start with a full patch.",
 "Object created for one document used with a different document",
+"Argument must be ASCII.",
 };
 
 // clang-format on
