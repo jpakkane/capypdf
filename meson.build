@@ -1,6 +1,6 @@
 project('capypdf', 'cpp', 'c',
   version: '0.7.0',
-  default_options : ['cpp_std=c++23', 'default_library=static'])
+  default_options : ['cpp_std=c++23,c++latest', 'default_library=static'])
 
 version = meson.project_version()
 varr = version.split('.')
