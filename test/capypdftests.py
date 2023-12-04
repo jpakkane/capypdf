@@ -92,6 +92,19 @@ def cleanup(ofilename):
         return wrapper_validate
     return decorator_validate
 
+sh6_coords = [50, 50,
+              50 - 30, 50 + 30,
+              50 + 20, 150 - 10,
+              50, 150,
+              50 + 20, 150 + 20,
+              150 - 10, 150 - 5,
+              150, 150,
+              150 - 40, 150 - 20,
+              150 + 20, 50 + 20,
+              150, 50,
+              150 - 15, 50 - 15,
+              50 + 20, 50 + 20]
+sh6_coords = [x/2 for x in sh6_coords]
 
 class TestPDFCreation(unittest.TestCase):
 
@@ -529,19 +542,6 @@ class TestPDFCreation(unittest.TestCase):
             sh4id = gen.add_type4_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceRGB, 0, 0, 100, 100)
-            sh6_coords = [50, 50,
-                          50 - 30, 50 + 30,
-                          50 + 20, 150 - 10,
-                          50, 150,
-                          50 + 20, 150 + 20,
-                          150 - 10, 150 - 5,
-                          150, 150,
-                          150 - 40, 150 - 20,
-                          150 + 20, 50 + 20,
-                          150, 50,
-                          150 - 15, 50 - 15,
-                          50 + 20, 50 + 20]
-            sh6_coords = [x/2 for x in sh6_coords]
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_rgb(1, 0, 0)
             sh6_colors[1].set_rgb(0, 1, 0)
@@ -621,19 +621,6 @@ class TestPDFCreation(unittest.TestCase):
             sh4id = gen.add_type4_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceGray, 0, 0, 100, 100)
-            sh6_coords = [50, 50,
-                          50 - 30, 50 + 30,
-                          50 + 20, 150 - 10,
-                          50, 150,
-                          50 + 20, 150 + 20,
-                          150 - 10, 150 - 5,
-                          150, 150,
-                          150 - 40, 150 - 20,
-                          150 + 20, 50 + 20,
-                          150, 50,
-                          150 - 15, 50 - 15,
-                          50 + 20, 50 + 20]
-            sh6_coords = [x/2 for x in sh6_coords]
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_gray(0)
             sh6_colors[1].set_gray(0.3)
@@ -716,19 +703,6 @@ class TestPDFCreation(unittest.TestCase):
             sh4id = gen.add_type4_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceCMYK, 0, 0, 100, 100)
-            sh6_coords = [50, 50,
-                          50 - 30, 50 + 30,
-                          50 + 20, 150 - 10,
-                          50, 150,
-                          50 + 20, 150 + 20,
-                          150 - 10, 150 - 5,
-                          150, 150,
-                          150 - 40, 150 - 20,
-                          150 + 20, 50 + 20,
-                          150, 50,
-                          150 - 15, 50 - 15,
-                          50 + 20, 50 + 20]
-            sh6_coords = [x/2 for x in sh6_coords]
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_cmyk(1, 0, 0, 0)
             sh6_colors[1].set_cmyk(0, 1, 0, 0)
