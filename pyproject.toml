@@ -4,7 +4,7 @@ requires = ['meson-python']
 
 [project]
 name = 'capypdf'
-version = '0.7.0'
+version = '0.8.0'
 description = 'A color managed PDF generation library tech preview'
 readme = 'readme.md'
 requires-python = '>=3.10'
