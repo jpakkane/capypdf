@@ -420,7 +420,7 @@ rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::string_view buf)
     }
     ERC(head, extract<TTHead>(buf, e->offset));
     head.swap_endian();
-#ifndef A4FUZZING
+#ifndef CAPYFUZZING
     assert(head.magic == 0x5f0f3cf5);
 #endif
     return head;
@@ -784,7 +784,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
         if(e.offset + e.length > buf.length()) {
             RETERR(IndexOutOfBounds);
         }
-#ifndef A4FUZZING
+#ifndef CAPYFUZZING
         auto checksum = ttf_checksum(std::string_view(buf.data() + e.offset, e.length));
         (void)checksum;
 #endif
@@ -794,7 +794,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     tf.head = head;
     ERC(maxp, load_maxp(directory, buf));
     tf.maxp = maxp;
-#ifdef A4FUZZING
+#ifdef CAPYFUZZING
     if(tf.maxp.num_glyphs > 1024) {
         RETERR(MalformedFontFile);
     }
@@ -826,7 +826,7 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
         if(subtable_format >= 15) {
             RETERR(UnsupportedFormat);
         }
-#ifndef A4FUZZING
+#ifndef CAPYFUZZING
         if(subtable_format == 0) {
             ERC(enctable, extract<TTEncodingSubtable0>(cmap, enc.subtable_offset));
             enctable.swap_endian();

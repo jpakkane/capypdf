@@ -74,3 +74,6 @@ endif
 
 executable('fonttester', 'fonttester.cpp',
   dependencies: [capypdf_internal_dep])
+
+#executable('fontfuzz', 'fontfuzz.cpp',
+#  dependencies: [capypdf_internal_dep])
