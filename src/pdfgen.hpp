@@ -37,8 +37,10 @@ struct DrawContextPopper {
     explicit DrawContextPopper(PdfGen *g,
                                PdfDocument *doc,
                                PdfColorConverter *cm,
-                               CapyPDF_Draw_Context_Type dtype)
-        : g{g}, ctx{doc, cm, dtype} {}
+                               CapyPDF_Draw_Context_Type dtype,
+                               double w,
+                               double h)
+        : g{g}, ctx{doc, cm, dtype, w, h} {}
 
     DrawContextPopper() = delete;
     DrawContextPopper(const DrawContextPopper &) = delete;
@@ -127,11 +129,11 @@ public:
         return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, w, h);
     }
 
-    ColorPatternBuilder new_color_pattern_builder(double w, double h);
+    PdfDrawContext new_color_pattern_builder(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
-    rvoe<PatternId> add_pattern(ColorPatternBuilder &cp);
+    rvoe<PatternId> add_pattern(PdfDrawContext &cp);
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
                                                              const TransparencyGroupExtra *ex) {
         return pdoc.add_transparency_group(ctx, ex);

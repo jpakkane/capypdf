@@ -191,15 +191,15 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     return rvoe<CapyPDF_FormXObjectId>{fxoid};
 }
 
-rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
-    if(cp.pctx.draw_context_type() != CAPY_DC_COLOR_TILING) {
+rvoe<PatternId> PdfGen::add_pattern(PdfDrawContext &ctx) {
+    if(ctx.draw_context_type() != CAPY_DC_COLOR_TILING) {
         RETERR(InvalidDrawContextType);
     }
-    if(cp.pctx.marked_content_depth() != 0) {
+    if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto resources = cp.pctx.build_resource_dict();
-    auto commands = cp.pctx.get_command_stream();
+    auto resources = ctx.build_resource_dict();
+    auto commands = ctx.get_command_stream();
     auto buf = fmt::format(R"(<<
   /Type /Pattern
   /PatternType 1
@@ -214,10 +214,10 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
 )",
                            0.0,
                            0.0,
-                           cp.w,
-                           cp.h,
-                           cp.w,
-                           cp.h,
+                           ctx.get_w(),
+                           ctx.get_h(),
+                           ctx.get_w(),
+                           ctx.get_h(),
                            resources,
                            commands.length());
 
@@ -225,15 +225,24 @@ rvoe<PatternId> PdfGen::add_pattern(ColorPatternBuilder &cp) {
 }
 
 DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{this, &pdoc, &pdoc.cm, CAPY_DC_PAGE};
+    return DrawContextPopper{this,
+                             &pdoc,
+                             &pdoc.cm,
+                             CAPY_DC_PAGE,
+                             pdoc.opts.default_page_properties.mediabox->w(),
+                             pdoc.opts.default_page_properties.mediabox->h()};
 }
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
-    return new PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_PAGE};
+    return new PdfDrawContext{&pdoc,
+                              &pdoc.cm,
+                              CAPY_DC_PAGE,
+                              pdoc.opts.default_page_properties.mediabox->w(),
+                              pdoc.opts.default_page_properties.mediabox->h()};
 }
 
-ColorPatternBuilder PdfGen::new_color_pattern_builder(double w, double h) {
-    return ColorPatternBuilder{PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING}, w, h};
+PdfDrawContext PdfGen::new_color_pattern_builder(double w, double h) {
+    return PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, w, h};
 }
 
 rvoe<double>

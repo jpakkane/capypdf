@@ -82,11 +82,8 @@ enum class DrawStateType {
 class PdfDrawContext {
 
 public:
-    PdfDrawContext(PdfDocument *g,
-                   PdfColorConverter *cm,
-                   CapyPDF_Draw_Context_Type dtype,
-                   double w = -1,
-                   double h = -1);
+    PdfDrawContext(
+        PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h);
     ~PdfDrawContext();
     DCSerialization serialize(const TransparencyGroupExtra *trinfo = nullptr);
 
@@ -221,9 +218,8 @@ public:
     std::string build_resource_dict();
     std::string_view get_command_stream() { return commands; }
 
-    rvoe<NoReturnValue> set_form_xobject_size(double w, double h);
-    double get_form_xobj_w() const { return form_xobj_w; }
-    double get_form_xobj_h() const { return form_xobj_h; }
+    double get_w() const { return w; }
+    double get_h() const { return h; }
 
     int32_t marked_content_depth() const { return marked_depth; }
 
@@ -307,15 +303,10 @@ private:
     // Reminder: If you add stuff here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;
-    double form_xobj_w = -1;
-    double form_xobj_h = -1;
+    double w = -1;
+    double h = -1;
     int32_t marked_depth = 0;
     std::string ind;
-};
-
-struct ColorPatternBuilder {
-    PdfDrawContext pctx;
-    double w, h;
 };
 
 } // namespace capypdf

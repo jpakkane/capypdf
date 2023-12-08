@@ -69,8 +69,7 @@ void draw_page_1(PdfGen &gen) {
     }
     {
         auto pop = ctx.push_gstate();
-        auto pattern = gen.new_color_pattern_builder(10, 10);
-        auto &pctx = pattern.pctx;
+        auto pctx = gen.new_color_pattern_builder(10, 10);
         pctx.set_nonstroke_color(DeviceRGBColor{0.9, 0.8, 0.8});
         pctx.cmd_re(0, 0, 10, 10);
         pctx.cmd_f();
@@ -81,7 +80,7 @@ void draw_page_1(PdfGen &gen) {
         pctx.cmd_f();
         pctx.cmd_re(5, 7.5, 2.5, 2.5);
         pctx.cmd_f();
-        auto patternid = gen.add_pattern(pattern).value();
+        auto patternid = gen.add_pattern(pctx).value();
 
         ctx.cmd_re(10, 10, 80, 80);
         ctx.set_color(patternid, false);
@@ -92,11 +91,10 @@ void draw_page_1(PdfGen &gen) {
     }
     {
         auto pop = ctx.push_gstate();
-        auto pattern = gen.new_color_pattern_builder(3, 3);
-        auto &pctx = pattern.pctx;
+        auto pctx = gen.new_color_pattern_builder(3, 3);
 
         pctx.render_pdfdoc_text_builtin("g", CAPY_FONT_TIMES_ROMAN, 3, 0, 2);
-        auto patternid = gen.add_pattern(pattern).value();
+        auto patternid = gen.add_pattern(pctx).value();
 
         ctx.translate(100, 10);
         ctx.set_color(patternid, false);

@@ -171,6 +171,9 @@ struct PdfRectangle {
     double y2{};
 
     static PdfRectangle a4() { return PdfRectangle{0, 0, 595.28, 841.89}; }
+
+    double w() const { return y2 - y1; }
+    double h() const { return x2 - x1; }
 };
 
 struct Point {
