@@ -313,7 +313,8 @@ public:
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
-    rvoe<CapyPDF_SeparationId> create_separation(std::string_view name, const DeviceCMYKColor &fallback);
+    rvoe<CapyPDF_SeparationId> create_separation(std::string_view name,
+                                                 const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
 
@@ -343,10 +344,11 @@ public:
     rvoe<CapyPDF_ShadingId> add_shading(const ShadingType6 &shade);
 
     // Patterns
-    PatternId add_pattern(std::string_view pattern_dict, std::string_view commands);
+    rvoe<CapyPDF_PatternId> add_pattern(PdfDrawContext &ctx);
 
     // Outlines
-    rvoe<CapyPDF_OutlineId> add_outline(const u8string &title_utf8, PageId dest, std::optional<CapyPDF_OutlineId> parent);
+    rvoe<CapyPDF_OutlineId>
+    add_outline(const u8string &title_utf8, PageId dest, std::optional<CapyPDF_OutlineId> parent);
 
     // Forms
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,
@@ -386,7 +388,9 @@ private:
 
     int32_t image_object_number(CapyPDF_ImageId iid) { return image_info.at(iid.id).obj; }
     int32_t font_object_number(CapyPDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
-    int32_t separation_object_number(CapyPDF_SeparationId sid) { return separation_objects.at(sid.id); }
+    int32_t separation_object_number(CapyPDF_SeparationId sid) {
+        return separation_objects.at(sid.id);
+    }
     int32_t ocg_object_number(CapyPDF_OptionalContentGroupId ocgid) {
         return ocg_items.at(ocgid.id);
     }

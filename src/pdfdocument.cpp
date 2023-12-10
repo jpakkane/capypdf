@@ -1972,8 +1972,40 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
     return CapyPDF_ShadingId{add_object(FullPDFObject{std::move(buf), std::move(serialized)})};
 }
 
-PatternId PdfDocument::add_pattern(std::string_view pattern_dict, std::string_view commands) {
-    return PatternId{add_object(FullPDFObject{std::string(pattern_dict), std::string(commands)})};
+rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {
+    if(&ctx.get_doc() != this) {
+        RETERR(IncorrectDocumentForObject);
+    }
+    if(ctx.draw_context_type() != CAPY_DC_COLOR_TILING) {
+        RETERR(InvalidDrawContextType);
+    }
+    if(ctx.marked_content_depth() != 0) {
+        RETERR(UnclosedMarkedContent);
+    }
+    auto resources = ctx.build_resource_dict();
+    auto commands = ctx.get_command_stream();
+    auto pattern_dict = fmt::format(R"(<<
+  /Type /Pattern
+  /PatternType 1
+  /PaintType 1
+  /TilingType 1
+  /BBox [ {:f} {:f} {:f} {:f} ]
+  /XStep {:f}
+  /YStep {:f}
+  /Resources {}
+  /Length {}
+>>
+)",
+                                    0.0,
+                                    0.0,
+                                    ctx.get_w(),
+                                    ctx.get_h(),
+                                    ctx.get_w(),
+                                    ctx.get_h(),
+                                    resources,
+                                    commands.length());
+    return CapyPDF_PatternId{
+        add_object(FullPDFObject{std::move(pattern_dict), std::string(commands)})};
 }
 
 rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const u8string &title_utf8,

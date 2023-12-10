@@ -184,7 +184,7 @@ public:
     rvoe<NoReturnValue> set_color(const DeviceCMYKColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const LabColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const ICCColor &icc, bool stroke);
-    rvoe<NoReturnValue> set_color(PatternId id, bool stroke);
+    rvoe<NoReturnValue> set_color(CapyPDF_PatternId id, bool stroke);
     rvoe<NoReturnValue> set_color(const SeparationColor &color, bool stroke);
 
     void set_all_stroke_color();

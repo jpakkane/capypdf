@@ -216,10 +216,6 @@ private:
 // Every resource type has its own id type to avoid
 // accidentally mixing them up.
 
-struct PatternId {
-    int32_t id;
-};
-
 struct LabId {
     int32_t id;
 };
@@ -300,7 +296,7 @@ typedef std::variant<DeviceRGBColor,
                      ICCColor,
                      LabColor,
                      SeparationColor,
-                     PatternId>
+                     CapyPDF_PatternId>
     Color;
 
 struct LabColorSpace {

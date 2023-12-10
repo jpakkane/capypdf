@@ -132,6 +132,9 @@ class OutlineId(ctypes.Structure):
 class SeparationId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class PatternId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -152,6 +155,7 @@ cfunc_types = (
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_mask_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -224,6 +228,8 @@ cfunc_types = (
 ('capy_dc_text_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
+('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+
 ('capy_text_destroy', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
@@ -244,6 +250,8 @@ cfunc_types = (
 ('capy_color_set_gray', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_color_set_cmyk', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_color_set_icc', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
+('capy_color_set_separation', [ctypes.c_void_p, SeparationId, ctypes.c_double]),
+('capy_color_set_pattern', [ctypes.c_void_p, PatternId]),
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
@@ -425,27 +433,13 @@ class PageProperties:
         check_error(libfile.capy_page_properties_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
 
 
-class DrawContext:
+class DrawContextBase:
+
     def __init__(self, generator):
-        dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_page_draw_context_new(generator, ctypes.pointer(dcptr)))
-        self._as_parameter_ = dcptr
         self.generator = generator
 
     def __del__(self):
         check_error(libfile.capy_dc_destroy(self))
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        try:
-            self.generator.add_page(self)
-        finally:
-            self.generator = None # Not very elegant.
-
-    def push_gstate(self):
-        return StateContextManager(self)
 
     def cmd_b(self):
         check_error(libfile.capy_dc_cmd_b(self))
@@ -568,11 +562,19 @@ class DrawContext:
         check_error(libfile.capy_dc_cmd_y(self, x1, y1, x3, y3))
 
     def set_stroke(self, color):
+        if isinstance(color, PatternId):
+            pattern_color = Color()
+            pattern_color.set_pattern(color)
+            color = pattern_color
         if not isinstance(color, Color):
             raise CapyPDFException('Argument must be a Color object.')
         check_error(libfile.capy_dc_set_stroke(self, color))
 
     def set_nonstroke(self, color):
+        if isinstance(color, PatternId):
+            pattern_color = Color()
+            pattern_color.set_pattern(color)
+            color = pattern_color
         if not isinstance(color, Color):
             raise CapyPDFException('Argument must be a Color object.')
         check_error(libfile.capy_dc_set_nonstroke(self, color))
@@ -610,6 +612,26 @@ class DrawContext:
     def rotate(self, angle):
         self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
 
+class DrawContext(DrawContextBase):
+
+    def __init__(self, generator):
+        super().__init__(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.capy_page_draw_context_new(generator, ctypes.pointer(dcptr)))
+        self._as_parameter_ = dcptr
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        try:
+            self.generator.add_page(self)
+        finally:
+            self.generator = None # Not very elegant.
+
+    def push_gstate(self):
+        return StateContextManager(self)
+
     def add_simple_navigation(self, ocgs, transition=None):
         arraytype = len(ocgs)*OptionalContentGroupId
         arr = arraytype(*tuple(ocgs))
@@ -625,6 +647,14 @@ class DrawContext:
             raise CapyPDFException('Argument is not a PageProperties object.')
         check_error(libfile.capy_dc_set_custom_page_properties(self, props))
 
+
+class ColorPatternDrawContext(DrawContextBase):
+
+    def __init__(self, generator, w, h):
+        super().__init__(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.capy_color_pattern_context_new(generator, ctypes.pointer(dcptr), w, h))
+        self._as_parameter_ = dcptr
 
 class StateContextManager:
     def __init__(self, ctx):
@@ -663,8 +693,16 @@ class Generator:
     def page_draw_context(self):
         return DrawContext(self)
 
+    def create_color_pattern_context(self, w, h):
+        return ColorPatternDrawContext(self, w, h)
+
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))
+
+    def add_color_pattern(self, pattern_ctx):
+        pid = PatternId()
+        check_error(libfile.capy_generator_add_color_pattern(self, pattern_ctx, ctypes.pointer(pid)))
+        return pid
 
     def embed_jpg(self, fname, interpolate=ImageInterpolation.Automatic):
         if not isinstance(interpolate, ImageInterpolation):
@@ -860,6 +898,12 @@ class Color:
 
     def set_icc(self, icc_id, values):
         check_error(libfile.capy_color_set_icc(self, icc_id, *to_array(ctypes.c_double, values)))
+
+    def set_separation(self, sepid, value):
+        check_error(libfile.capy_color_set_separation(self, sepid, value))
+
+    def set_pattern(self, pattern_id):
+        check_error(libfile.capy_color_set_pattern(self, pattern_id))
 
 class Transition:
     def __init__(self, ttype, duration):

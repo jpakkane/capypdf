@@ -185,6 +185,17 @@ CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
+    CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *pid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *colorctx = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto rc = gen->add_pattern(*colorctx);
+    if(rc) {
+        *pid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_Image_Interpolation interpolate,
@@ -335,7 +346,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Genera
     const auto &cmyk = std::get<DeviceCMYKColor>(*color);
     std::string_view nameview(separation_name);
     auto rc = gen->create_separation(nameview, cmyk);
-    if(!rc) {
+    if(rc) {
         *sid = rc.value();
     }
     return conv_err(rc);
@@ -726,6 +737,15 @@ CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *generator,
+                                                         CapyPDF_DrawContext **out_ptr,
+                                                         double w,
+                                                         double h) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(generator);
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(w, h));
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,
                                                 const char *utf8_text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
@@ -852,6 +872,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_separation(CapyPDF_Color *color,
         return conv_err(ErrorCode::ColorOutOfRange);
     }
     *c = SeparationColor{sep_id, value};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_pattern(CapyPDF_Color *color,
+                                                 CapyPDF_PatternId pat_id) CAPYPDF_NOEXCEPT {
+    auto *c = reinterpret_cast<Color *>(color);
+    *c = pat_id;
     RETNOERR;
 }
 

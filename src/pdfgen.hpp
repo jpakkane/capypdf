@@ -130,10 +130,11 @@ public:
     }
 
     PdfDrawContext new_color_pattern_builder(double w, double h);
+    PdfDrawContext *new_color_pattern(double w, double h);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
-    rvoe<PatternId> add_pattern(PdfDrawContext &cp);
+    rvoe<CapyPDF_PatternId> add_pattern(PdfDrawContext &cp);
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
                                                              const TransparencyGroupExtra *ex) {
         return pdoc.add_transparency_group(ctx, ex);

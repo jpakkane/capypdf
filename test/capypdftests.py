@@ -806,6 +806,7 @@ class TestPDFCreation(unittest.TestCase):
             gold = capypdf.Color()
             gold.set_cmyk(0, 0.03, 0.55, 0.08)
             sepid = gen.create_separation_simple("gold", gold)
+            gold.set_separation(sepid, 1.0)
             with gen.page_draw_context() as ctx:
                 ctx.set_nonstroke(red)
                 ctx.cmd_re(10, 10, 180, 180)
@@ -838,6 +839,46 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.translate(50*i, 150-j*50)
                             ctx.scale(50, 50)
                             ctx.draw_image(fgimage)
+
+    @validate_image('python_colorpattern', 200, 200)
+    def test_colorpattern(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            font = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            # Repeating pattern.
+            pctx = gen.create_color_pattern_context(10, 10)
+            pctx.cmd_rg(0.9, 0.8, 0.8)
+            pctx.cmd_re(0, 0, 10, 10)
+            pctx.cmd_f()
+            pctx.cmd_rg(0.9, 0.1, 0.1)
+            pctx.cmd_re(0, 2.5, 2.5, 5)
+            pctx.cmd_f()
+            pctx.cmd_re(5, 0, 2.5, 2.5)
+            pctx.cmd_f()
+            pctx.cmd_re(5, 7.5, 2.5, 2.5)
+            pctx.cmd_f()
+            patternid = gen.add_color_pattern(pctx)
+            # Text
+            textctx = gen.create_color_pattern_context(3, 4)
+            textctx.render_text("g", font, 3, 0, 2)
+            textpatternid = gen.add_color_pattern(textctx)
+
+            with gen.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.set_nonstroke(patternid)
+                    ctx.cmd_RG(0, 0, 0);
+                    ctx.cmd_j(capypdf.LineJoinStyle.Round)
+                    ctx.cmd_w(1.5)
+                    ctx.cmd_B()
+                with ctx.push_gstate():
+                    ctx.translate(110, 10)
+                    ctx.set_nonstroke(textpatternid)
+                    ctx.render_text("C", font, 100, 0, 5)
+
 
 
 if __name__ == "__main__":

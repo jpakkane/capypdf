@@ -598,10 +598,13 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
         return set_color(std::get<ICCColor>(c), stroke);
     } else if(std::holds_alternative<LabColor>(c)) {
         return set_color(std::get<LabColor>(c), stroke);
-    } else if(std::holds_alternative<PatternId>(c)) {
-        return set_color(std::get<PatternId>(c), stroke);
+    } else if(std::holds_alternative<CapyPDF_PatternId>(c)) {
+        return set_color(std::get<CapyPDF_PatternId>(c), stroke);
+    } else if(std::holds_alternative<SeparationColor>(c)) {
+        return set_color(std::get<SeparationColor>(c), stroke);
     } else {
-        printf("Given colorspace not supported yet.");
+        printf("Given colorspace not supported yet.\n");
+        fflush(stdout);
         std::abort();
     }
     RETOK;
@@ -693,7 +696,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceGrayColor &c, bool str
     }
 }
 
-rvoe<NoReturnValue> PdfDrawContext::set_color(PatternId id, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke) {
     if(context_type != CAPY_DC_PAGE) {
         RETERR(PatternNotAccepted);
     }
