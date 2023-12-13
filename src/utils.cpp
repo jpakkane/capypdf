@@ -156,7 +156,7 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-rvoe<std::string> utf8_to_pdfmetastr(const u8string &input) {
+std::string utf8_to_pdfmetastr(const u8string &input) {
     // For now put everything into UTF-16 bracketstrings.
     std::string encoded = "<FEFF";
 

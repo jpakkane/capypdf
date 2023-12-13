@@ -40,8 +40,10 @@ void file_embed() {
                 "<- an embedded file.", CAPY_FONT_HELVETICA, 12, 50, 100);
             ctx.annotate(fileannoid);
             auto textannoid =
-                gen.create_annotation(Annotation{TextAnnotation{"This is a text annotation"},
-                                                 PdfRectangle{150, 60, 180, 90}})
+                gen
+                    .create_annotation(Annotation{
+                        TextAnnotation{u8string::from_cstr("This is a text ännotation").value()},
+                        PdfRectangle{150, 60, 180, 90}})
                     .value();
             ctx.annotate(textannoid);
             ctx.cmd_rg(0, 0, 1);

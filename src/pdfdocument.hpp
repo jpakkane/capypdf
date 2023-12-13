@@ -235,7 +235,7 @@ struct FileAttachmentAnnotation {
 };
 
 struct TextAnnotation {
-    std::string content;
+    u8string content;
 };
 
 struct UriAnnotation {
