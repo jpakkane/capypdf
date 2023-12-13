@@ -700,8 +700,8 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke)
     if(context_type != CAPY_DC_PAGE) {
         RETERR(PatternNotAccepted);
     }
-    used_patterns.insert(id.id);
     ERCV(cmd_cs("/Pattern"));
+    used_patterns.insert(id.id);
     fmt::format_to(cmd_appender, "{}/Pattern-{} {}\n", ind, id.id, stroke ? "SCN" : "scn");
     RETOK;
 }

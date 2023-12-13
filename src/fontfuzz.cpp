@@ -18,14 +18,12 @@
 #include <string_view>
 #include <stdexcept>
 
-using namespace capypdf;
-
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-    if(!Data) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t bufsize) {
+    if(!buf) {
         return 0;
     }
     try {
-        auto font = parse_truetype_font(std::string_view((const char *)Data, Size));
+        auto font = capypdf::parse_truetype_font(std::string_view((const char *)buf, bufsize));
     } catch(const std::runtime_error &) {
     }
 
