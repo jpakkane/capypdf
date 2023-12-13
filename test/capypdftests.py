@@ -879,7 +879,20 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.set_nonstroke(textpatternid)
                     ctx.render_text("C", font, 100, 0, 5)
 
-
+    @validate_image('python_annotate', 200, 200)
+    def test_annotate(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            ta = capypdf.Annotation.new_text_annotation('This is a text ännotation.')
+            ta.set_rectangle(30, 180, 40, 190)
+            taid = gen.create_annotation(ta)
+            fid = gen.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
+            with gen.page_draw_context() as ctx:
+                ctx.annotate(taid)
+                ctx.render_text("<- This is a text annotation", fid, 11, 50, 180)
 
 if __name__ == "__main__":
     unittest.main()

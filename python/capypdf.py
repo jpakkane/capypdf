@@ -229,6 +229,7 @@ cfunc_types = (
     [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_text_new', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_dc_annotate', [ctypes.c_void_p, AnnotationId]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
@@ -311,6 +312,10 @@ cfunc_types = (
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
 ('capy_type6_shading_destroy', [ctypes.c_void_p]),
+
+('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_annotation_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -650,6 +655,8 @@ class DrawContext(DrawContextBase):
             raise CapyPDFException('Argument is not a PageProperties object.')
         check_error(libfile.capy_dc_set_custom_page_properties(self, props))
 
+    def annotate(self, annotation_id):
+        check_error(libfile.capy_dc_annotate(self, annotation_id))
 
 class ColorPatternDrawContext(DrawContextBase):
 
@@ -822,6 +829,10 @@ class Generator:
         check_error(libfile.capy_generator_add_optional_content_group(self, ocg, ctypes.pointer(ocgid)))
         return ocgid
 
+    def create_annotation(self, annotation):
+        aid = AnnotationId()
+        check_error(libfile.capy_generator_create_annotation(self, annotation, ctypes.pointer(aid)))
+        return aid
 
 class Text:
     def __init__(self, dc):
@@ -1090,3 +1101,19 @@ class Type6Shading:
                         to_array(ctypes.c_void_p, colorptrs)[0]))
         else:
             raise CapyPDFException(f'Bad flag value {flag}')
+
+class Annotation:
+    def __init__(self, handle):
+        self._as_parameter_ = handle
+
+    def __del__(self):
+        check_error(libfile.capy_annotation_destroy(self))
+
+    def set_rectangle(self, x1, y1, x2, y2):
+        check_error(libfile.capy_annotation_set_rectangle(self, x1, y1, x2, y2))
+
+    @classmethod
+    def new_text_annotation(cls, text):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_text_annotation_new(text.encode('utf-8'), ctypes.pointer(ta)))
+        return Annotation(ta)

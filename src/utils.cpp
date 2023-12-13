@@ -173,7 +173,7 @@ std::string utf8_to_pdfmetastr(const u8string &input) {
         }
     }
     encoded += '>';
-    return std::move(encoded);
+    return encoded;
 }
 
 bool is_valid_utf8(std::string_view input) {

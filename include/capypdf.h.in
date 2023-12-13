@@ -332,6 +332,10 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_optional_content_group(CapyPDF_Generator *g,
                                           const CapyPDF_OptionalContentGroup *ocg,
                                           CapyPDF_OptionalContentGroupId *ocgid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *g,
+                                                           CapyPDF_Annotation *annotation,
+                                                           CapyPDF_AnnotationId *aid)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
 
 // FIXME: this must be changed to support PDF links that point to
@@ -452,6 +456,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
                                            CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
     CapyPDF_DrawContext *dc, const CapyPDF_PageProperties *custom_properties);
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *dc,
+                                           CapyPDF_AnnotationId aid) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
@@ -608,6 +614,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
                                                     double *coords,
                                                     CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT;
+
+// Annotations.
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
+                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
+    CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;
 
 // Error
 

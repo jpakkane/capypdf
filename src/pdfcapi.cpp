@@ -371,6 +371,19 @@ capy_generator_add_optional_content_group(CapyPDF_Generator *generator,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
+                                                           CapyPDF_Annotation *annotation,
+                                                           CapyPDF_AnnotationId *aid)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto rc = g->create_annotation(*a);
+    if(rc) {
+        *aid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     delete g;
@@ -706,7 +719,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dc);
     auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
     return conv_err(ctx->set_custom_page_properties(*cprop));
-    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *dc,
+                                           CapyPDF_AnnotationId aid) CAPYPDF_NOEXCEPT {
+    auto *ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    return conv_err(ctx->annotate(aid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC
@@ -1196,6 +1214,31 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ShadingType6 *>(shade);
+    RETNOERR;
+}
+
+// Annotations
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
+                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    auto u8str = u8string::from_cstr(utf8_text);
+    if(!u8str) {
+        return conv_err(u8str);
+    }
+    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(
+        new Annotation{TextAnnotation{std::move(u8str.value())}, {}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
+    CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT {
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    a->rect = PdfRectangle{x1, y1, x2, y2};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<Annotation *>(annotation);
     RETNOERR;
 }
 
