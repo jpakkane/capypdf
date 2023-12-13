@@ -23,7 +23,7 @@ if shutil.which('gs') is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
 os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
-source_root = pathlib.Path(sys.argv[1])
+source_root = pathlib.Path(__file__).parent.parent
 testdata_dir = source_root / 'testoutput'
 image_dir = source_root / 'images'
 icc_dir = source_root / 'icc'
