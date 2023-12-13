@@ -1259,35 +1259,36 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     auto loc = annotation_use.find(annotation.id);
     // It is ok for an annotation not to be used.
 
+    assert(annotation.a.rect);
     std::string dict = fmt::format(R"(<<
   /Type /Annot
   /Rect [ {:f} {:f} {:f} {:f} ]
 )",
-                                   annotation.rect.x1,
-                                   annotation.rect.y1,
-                                   annotation.rect.x2,
-                                   annotation.rect.y2);
+                                   annotation.a.rect->x1,
+                                   annotation.a.rect->y1,
+                                   annotation.a.rect->x2,
+                                   annotation.a.rect->y2);
     auto app = std::back_inserter(dict);
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);
     }
-    if(std::holds_alternative<TextAnnotation>(annotation.sub)) {
-        const auto &ta = std::get<TextAnnotation>(annotation.sub);
+    if(std::holds_alternative<TextAnnotation>(annotation.a.sub)) {
+        const auto &ta = std::get<TextAnnotation>(annotation.a.sub);
         fmt::format_to(app,
                        R"(  /Subtype /Text
   /Contents {}
 )",
                        pdfstring_quote(ta.content));
-    } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.sub)) {
-        auto &faa = std::get<FileAttachmentAnnotation>(annotation.sub);
+    } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.a.sub)) {
+        auto &faa = std::get<FileAttachmentAnnotation>(annotation.a.sub);
 
         fmt::format_to(app,
                        R"(  /Subtype /FileAttachment
   /FS {} 0 R
 )",
                        embedded_files[faa.fileid.id].filespec_obj);
-    } else if(std::holds_alternative<UriAnnotation>(annotation.sub)) {
-        auto &ua = std::get<UriAnnotation>(annotation.sub);
+    } else if(std::holds_alternative<UriAnnotation>(annotation.a.sub)) {
+        auto &ua = std::get<UriAnnotation>(annotation.a.sub);
         auto uri_as_str = pdfstring_quote(ua.uri);
         fmt::format_to(app,
                        R"(  /Subtype /Link
@@ -1299,8 +1300,8 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 )",
                        uri_as_str,
                        uri_as_str);
-    } else if(std::holds_alternative<ScreenAnnotation>(annotation.sub)) {
-        auto &sa = std::get<ScreenAnnotation>(annotation.sub);
+    } else if(std::holds_alternative<ScreenAnnotation>(annotation.a.sub)) {
+        auto &sa = std::get<ScreenAnnotation>(annotation.a.sub);
         int32_t media_filespec = embedded_files.at(sa.mediafile.id).filespec_obj;
         if(!sa.times) {
             fmt::format_to(app,
@@ -2053,16 +2054,18 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
     return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
-rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(PdfRectangle rect,
-                                                          AnnotationSubType sub) {
-    if(std::holds_alternative<UriAnnotation>(sub)) {
-        auto &u = std::get<UriAnnotation>(sub);
+rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
+    if(!a.rect) {
+        RETERR(AnnotationMissingRect);
+    }
+    if(std::holds_alternative<UriAnnotation>(a.sub)) {
+        auto &u = std::get<UriAnnotation>(a.sub);
         if(!is_ascii(u.uri)) {
             RETERR(UriNotAscii);
         }
     }
     auto annot_id = (int32_t)annotations.size();
-    auto obj_id = add_object(DelayedAnnotation{annot_id, rect, std::move(sub)});
+    auto obj_id = add_object(DelayedAnnotation{annot_id, a});
     annotations.push_back((int32_t)obj_id);
     return CapyPDF_AnnotationId{annot_id};
 }

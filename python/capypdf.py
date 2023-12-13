@@ -105,6 +105,9 @@ class CapyPDFException(Exception):
 ec_type = ctypes.c_int32
 enum_type = ctypes.c_int32
 
+class AnnotationId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 class FontId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 

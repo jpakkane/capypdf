@@ -114,8 +114,8 @@ public:
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
-    rvoe<CapyPDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype) {
-        return pdoc.create_annotation(rect, std::move(subtype));
+    rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a) {
+        return pdoc.create_annotation(a);
     }
 
     DrawContextPopper guarded_page_context();

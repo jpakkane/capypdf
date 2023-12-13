@@ -29,9 +29,9 @@ void file_embed() {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         auto efid = gen.embed_file("embed.txt").value();
-        auto fileannoid =
-            gen.create_annotation(PdfRectangle{35, 95, 45, 105}, FileAttachmentAnnotation{efid})
-                .value();
+        auto fileannoid = gen.create_annotation(Annotation{FileAttachmentAnnotation{efid},
+                                                           PdfRectangle{35, 95, 45, 105}})
+                              .value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
@@ -39,16 +39,17 @@ void file_embed() {
             ctx.render_pdfdoc_text_builtin(
                 "<- an embedded file.", CAPY_FONT_HELVETICA, 12, 50, 100);
             ctx.annotate(fileannoid);
-            auto textannoid = gen.create_annotation(PdfRectangle{150, 60, 180, 90},
-                                                    TextAnnotation{"This is a text annotation"})
-                                  .value();
+            auto textannoid =
+                gen.create_annotation(Annotation{TextAnnotation{"This is a text annotation"},
+                                                 PdfRectangle{150, 60, 180, 90}})
+                    .value();
             ctx.annotate(textannoid);
             ctx.cmd_rg(0, 0, 1);
             ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
-            auto linkannoid =
-                gen.create_annotation(PdfRectangle{10, 10, 32, 20},
-                                      UriAnnotation{"https://github.com/mesonbuild/meson"})
-                    .value();
+            auto linkannoid = gen.create_annotation(Annotation{UriAnnotation{"https://github.com/"
+                                                                             "mesonbuild/meson"},
+                                                               PdfRectangle{10, 10, 32, 20}})
+                                  .value();
             ctx.annotate(linkannoid);
         }
     }
@@ -77,9 +78,10 @@ void video_player() {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
             ctx.render_pdfdoc_text_builtin("Video below", CAPY_FONT_HELVETICA, 12, 70, 170);
-            auto media_anno_id = gen.create_annotation(PdfRectangle{20, 20, 180, 160},
-                                                       ScreenAnnotation{efid, mimetype, subplay})
-                                     .value();
+            auto media_anno_id =
+                gen.create_annotation(Annotation{ScreenAnnotation{efid, mimetype, subplay},
+                                                 PdfRectangle{20, 20, 180, 160}})
+                    .value();
             ctx.annotate(media_anno_id);
         }
     }

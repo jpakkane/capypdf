@@ -256,10 +256,14 @@ struct ScreenAnnotation {
 typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation, ScreenAnnotation>
     AnnotationSubType;
 
+struct Annotation {
+    AnnotationSubType sub;
+    std::optional<PdfRectangle> rect;
+};
+
 struct DelayedAnnotation {
     CapyPDF_AnnotationId id;
-    PdfRectangle rect;
-    AnnotationSubType sub;
+    Annotation a;
 };
 
 struct DelayedStructItem {
@@ -360,7 +364,7 @@ public:
     rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
 
     // Annotations.
-    rvoe<CapyPDF_AnnotationId> create_annotation(PdfRectangle rect, AnnotationSubType subtype);
+    rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
 
     // Structure items
     rvoe<CapyPDF_StructureItemId> add_structure_item(std::string_view stype,
