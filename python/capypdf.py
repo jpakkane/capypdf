@@ -185,6 +185,7 @@ cfunc_types = (
 ('capy_dc_cmd_bstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_Bstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_BDC_ocg', [ctypes.c_void_p, OptionalContentGroupId]),
+('capy_dc_cmd_BMC', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_dc_cmd_c', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
@@ -465,6 +466,11 @@ class DrawContextBase:
         if not isinstance(ocg, OptionalContentGroupId):
             raise CapyPDFException('Argument must be an optional content group ID.')
         check_error(libfile.capy_dc_cmd_BDC_ocg(self, ocg))
+        # FIXME, return a context manager.
+
+    def cmd_BMC(self, tag):
+        check_error(libfile.capy_dc_cmd_BMC(self, tag.encode('UTF-8')))
+        return MarkedContextManager(self)
 
     def cmd_c(self, x1, y1, x2, y2, x3, y3):
         check_error(libfile.capy_dc_cmd_c(self, x1, y1, x2, y2, x3, y3))
@@ -677,6 +683,19 @@ class StateContextManager:
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.ctx.cmd_Q()
 
+class MarkedContextManager:
+
+    def __init__(self, dc):
+        self.dc = dc
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        try:
+            self.dc.cmd_EMC()
+        finally:
+            self.dc = None # Not very elegant.
 
 class Generator:
     def __init__(self, filename, options=None):
@@ -842,6 +861,16 @@ class Text:
         opt = ctypes.c_void_p()
         check_error(libfile.capy_dc_text_new(dc, ctypes.pointer(opt)))
         self._as_parameter_ = opt
+        self.dc = dc
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        try:
+            self.dc.render_text_obj(self)
+        finally:
+            self.dc = None # Not very elegant.
 
     def __del__(self):
         if self._as_parameter_ is not None:

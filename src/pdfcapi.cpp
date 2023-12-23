@@ -467,6 +467,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_ocg(
     return conv_err(c->cmd_BDC(ocgid));
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BMC(CapyPDF_DrawContext *ctx,
+                                          const char *tag) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(c->cmd_BMC(tag));
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_c(CapyPDF_DrawContext *ctx,
                                         double x1,
                                         double y1,

@@ -270,8 +270,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
-    if(tag.empty() || tag.front() != '/') {
-        std::abort();
+    if(tag.size() < 2 or tag.front() != '/') {
+        RETERR(BadBMC);
     }
     ++marked_depth;
     fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);

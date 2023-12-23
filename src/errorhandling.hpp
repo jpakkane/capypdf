@@ -77,6 +77,7 @@ enum class ErrorCode : int32_t {
     NotASCII,
     FileDoesNotExist,
     AnnotationMissingRect,
+    BadBMC,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
