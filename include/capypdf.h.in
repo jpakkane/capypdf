@@ -151,6 +151,12 @@ typedef enum {
     CAPY_INTERPOLATION_SMOOTH,
 } CapyPDF_Image_Interpolation;
 
+typedef enum {
+    CAPY_COMPRESSION_NONE,
+    CAPY_COMPRESSION_DEFLATE,
+    // CAPY_COMPRESSION_CCIT4,
+} CapyPDF_Compression;
+
 // clang-format off
 /* Not used yet.
 enum CAPYPDF_Color_Management_Policy {
@@ -293,6 +299,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_Image_Interpolation interpolate,
                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT;
+// FIXME, specify whether to compress the file or not.
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *g,
+                                                    const char *fname,
+                                                    CapyPDF_EmbeddedFileId *fid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_FontId *fid) CAPYPDF_NOEXCEPT;
@@ -620,6 +630,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade
 // Annotations.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
                                                    CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
+    CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;

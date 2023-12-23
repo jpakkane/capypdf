@@ -879,7 +879,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.set_nonstroke(textpatternid)
                     ctx.render_text("C", font, 100, 0, 5)
 
-    @validate_image('python_annotate', 200, 200)
+    @validate_image('python_annotate', 400, 100)
     def test_annotate(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
@@ -887,12 +887,18 @@ class TestPDFCreation(unittest.TestCase):
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             ta = capypdf.Annotation.new_text_annotation('This is a text ännotation.')
-            ta.set_rectangle(30, 180, 40, 190)
+            ta.set_rectangle(30, 80, 40, 90)
             taid = gen.create_annotation(ta)
             fid = gen.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
+            embid = gen.embed_file(image_dir / '../readme.md')
+            emba = capypdf.Annotation.new_file_attachment_annotation(embid)
+            emba.set_rectangle(30, 50, 40, 60)
+            embid = gen.create_annotation(emba)
             with gen.page_draw_context() as ctx:
                 ctx.annotate(taid)
-                ctx.render_text("<- This is a text annotation", fid, 11, 50, 180)
+                ctx.render_text("<- This is a text annotation", fid, 11, 50, 80)
+                ctx.annotate(embid)
+                ctx.render_text("<- This is a file attachment annotation", fid, 11, 50, 50)
 
     @validate_image('python_tagged', 200, 200)
     def test_tagged(self, ofilename, w, h):

@@ -208,6 +208,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *g,
+                                                    const char *fname,
+                                                    CapyPDF_EmbeddedFileId *fid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto rc = gen->embed_file(fname);
+    if(rc) {
+        *fid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_FontId *fid) CAPYPDF_NOEXCEPT {
@@ -1233,6 +1244,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
     }
     *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(
         new Annotation{TextAnnotation{std::move(u8str.value())}, {}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
+    CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr =
+        reinterpret_cast<CapyPDF_Annotation *>(new Annotation{FileAttachmentAnnotation{fid}, {}});
     RETNOERR;
 }
 

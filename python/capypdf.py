@@ -138,6 +138,9 @@ class SeparationId(ctypes.Structure):
 class PatternId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class EmbeddedFileId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -160,6 +163,7 @@ cfunc_types = (
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
+('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_mask_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -315,6 +319,7 @@ cfunc_types = (
 ('capy_type6_shading_destroy', [ctypes.c_void_p]),
 
 ('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
@@ -740,6 +745,11 @@ class Generator:
         check_error(libfile.capy_generator_embed_jpg(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
         return iid
 
+    def embed_file(self, fname):
+        fid = EmbeddedFileId()
+        check_error(libfile.capy_generator_embed_file(self, to_bytepath(fname), ctypes.pointer(fid)))
+        return fid
+
     def load_font(self, fname):
         fid = FontId()
         check_error(libfile.capy_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
@@ -1145,4 +1155,10 @@ class Annotation:
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
         check_error(libfile.capy_text_annotation_new(text.encode('utf-8'), ctypes.pointer(ta)))
+        return Annotation(ta)
+
+    @classmethod
+    def new_file_attachment_annotation(cls, fid):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_file_attachment_annotation_new(fid, ctypes.pointer(ta)))
         return Annotation(ta)
