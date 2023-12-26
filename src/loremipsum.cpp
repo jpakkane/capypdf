@@ -162,7 +162,9 @@ void render_column(const std::vector<std::string> &text_lines,
     CHCK(textobj.cmd_Tf(textfont, textsize));
     CHCK(textobj.cmd_Td(column_left, column_top));
     CHCK(textobj.cmd_TL(leading));
-    CHCK(textobj.cmd_BDC(gen.add_structure_item("p", document_root).value()));
+    CHCK(textobj.cmd_BDC(
+        asciistring::from_cstr("Document").value(),
+        gen.add_structure_item(asciistring::from_cstr("P").value(), document_root).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto l = u8string::from_cstr(text_lines[i]).value();
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -179,7 +181,10 @@ void render_column(const std::vector<std::string> &text_lines,
                 CHCK(textobj.render_text(l));
             } else {
                 CHCK(textobj.cmd_EMC());
-                CHCK(textobj.cmd_BDC(gen.add_structure_item("p", document_root).value()));
+                CHCK(textobj.cmd_BDC(
+                    asciistring::from_cstr("P").value(),
+                    gen.add_structure_item(asciistring::from_cstr("P").value(), document_root)
+                        .value()));
             }
             CHCK(textobj.cmd_Tstar());
         }
@@ -196,14 +201,18 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double titlesize = 28;
     const double authorsize = 18;
 
-    CHCK(ctx.cmd_BDC(gen.add_structure_item("Title", document_root).value()));
+    CHCK(ctx.cmd_BDC(
+        asciistring::from_cstr("P").value(),
+        gen.add_structure_item(asciistring::from_cstr("Title").value(), document_root).value()));
     CHCK(ctx.render_text(title,
                          titlefont,
                          titlesize,
                          midx - text_width(title.sv(), gen, titlefont, titlesize) / 2,
                          titley));
     CHCK(ctx.cmd_EMC());
-    CHCK(ctx.cmd_BDC(gen.add_structure_item("Author", document_root).value()));
+    CHCK(ctx.cmd_BDC(
+        asciistring::from_cstr("H2").value(),
+        gen.add_structure_item(asciistring::from_cstr("Author").value(), document_root).value()));
     CHCK(ctx.render_text(author,
                          authorfont,
                          authorsize,
@@ -234,7 +243,9 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
-    CHCK(ctx.cmd_BDC(gen.add_structure_item("Email", document_root).value()));
+    CHCK(ctx.cmd_BDC(
+        asciistring::from_cstr("H3").value(),
+        gen.add_structure_item(asciistring::from_cstr("Email").value(), document_root).value()));
     CHCK(ctx.render_text(email,
                          emailfont,
                          emailsize,
@@ -245,13 +256,14 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
 
 int main() {
     PdfGenerationData opts;
+    opts.is_tagged = true;
     GenPopper genpop("loremipsum.pdf", opts);
     PdfGen &gen = *genpop.g;
 
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    document_root = gen.add_structure_item("Document", {}).value();
+    document_root = gen.add_structure_item(asciistring::from_cstr("Document").value(), {}).value();
     draw_headings(gen, ctx);
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);

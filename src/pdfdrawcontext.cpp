@@ -247,13 +247,14 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid) {
     ++marked_depth;
     used_structures.insert(sid);
     fmt::format_to(cmd_appender,
-                   R"({}/P << /MCID {} >>
+                   R"({}/{} << /MCID {} >>
 {}BDC
 )",
+                   name.sv(),
                    ind,
                    sid.id,
                    ind);
@@ -942,9 +943,10 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             return NoReturnValue{};
         },
 
-        [&](const CapyPDF_StructureItemId &sid) -> rvoe<NoReturnValue> {
-            used_structures.insert(sid);
-            fmt::format_to(app, "{}/P << /MCID {} >>\n{}BDC\n", ind, sid.id, ind);
+        [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
+            used_structures.insert(sitem.sid);
+            fmt::format_to(
+                app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, sitem.name.sv(), sitem.sid.id, ind);
             indent(DrawStateType::MarkedContent);
             return NoReturnValue{};
         },

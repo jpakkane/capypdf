@@ -99,7 +99,7 @@ public:
     rvoe<NoReturnValue> cmd_B();
     rvoe<NoReturnValue> cmd_bstar();
     rvoe<NoReturnValue> cmd_Bstar();
-    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid);
+    rvoe<NoReturnValue> cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
     rvoe<NoReturnValue> cmd_BMC(std::string_view tag);
     rvoe<NoReturnValue> cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);

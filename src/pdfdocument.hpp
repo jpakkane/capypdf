@@ -184,6 +184,7 @@ struct PdfGenerationData {
     u8string author;
     u8string creator;
     asciistring lang;
+    bool is_tagged = false;
     CapyPDF_Colorspace output_colorspace = CAPY_CS_DEVICE_RGB;
     ColorProfiles prof;
     std::optional<CapyPDF_Intent_Subtype> subtype;
@@ -273,7 +274,7 @@ struct DelayedStructItem {
 
 struct StructItem {
     int32_t obj_id;
-    std::string stype;
+    asciistring stype;
     std::optional<CapyPDF_StructureItemId> parent;
 };
 
@@ -368,7 +369,7 @@ public:
     rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
 
     // Structure items
-    rvoe<CapyPDF_StructureItemId> add_structure_item(std::string_view stype,
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const asciistring &stype,
                                                      std::optional<CapyPDF_StructureItemId> parent);
 
     // Optional content groups

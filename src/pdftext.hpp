@@ -91,6 +91,11 @@ struct Nonstroke_arg {
     Color c;
 };
 
+struct StructureItem {
+    asciistring name;
+    CapyPDF_StructureItemId sid;
+};
+
 typedef std::variant<TStar_arg,
                      Tc_arg,
                      Td_arg,
@@ -104,7 +109,7 @@ typedef std::variant<TStar_arg,
                      Ts_arg,
                      Tw_arg,
                      Tz_arg,
-                     CapyPDF_StructureItemId,
+                     StructureItem,
                      Emc_arg,
                      Stroke_arg,
                      Nonstroke_arg>
@@ -114,8 +119,8 @@ class PdfText {
 public:
     explicit PdfText(PdfDrawContext *dc) : dc{dc} {};
 
-    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid) {
-        events.emplace_back(sid);
+    rvoe<NoReturnValue> cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid) {
+        events.emplace_back(StructureItem{name, sid});
         RETOK;
     }
 

@@ -833,6 +833,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     if(!opts.lang.empty()) {
         fmt::format_to(app, "  /Lang ({})\n", opts.lang.c_str());
     }
+    if(opts.is_tagged) {
+        fmt::format_to(app, "  /MarkInfo << /Marked true >>\n");
+    }
     if(output_intent_object) {
         fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
     }
@@ -1397,7 +1400,7 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
   /S /{}
   /P {} 0 R
 )",
-                                   si.stype,
+                                   si.stype.sv(),
                                    parent_object);
     auto app = std::back_inserter(dict);
     if(!children.empty()) {
@@ -2065,14 +2068,14 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(std::string_view stype,
+PdfDocument::add_structure_item(const asciistring &stype,
                                 std::optional<CapyPDF_StructureItemId> parent) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
-    structure_items.push_back(StructItem{obj_id, std::string(stype), parent});
+    structure_items.push_back(StructItem{obj_id, stype, parent});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
