@@ -254,8 +254,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name, CapyPDF_Str
                    R"({}/{} << /MCID {} >>
 {}BDC
 )",
-                   name.sv(),
                    ind,
+                   name.sv(),
                    MCID_id,
                    ind);
     indent(DrawStateType::MarkedContent);
