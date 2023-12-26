@@ -249,14 +249,14 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid) {
     ++marked_depth;
-    used_structures.insert(sid);
+    ERC(MCID_id, add_bcd_structure(sid));
     fmt::format_to(cmd_appender,
                    R"({}/{} << /MCID {} >>
 {}BDC
 )",
                    name.sv(),
                    ind,
-                   sid.id,
+                   MCID_id,
                    ind);
     indent(DrawStateType::MarkedContent);
     RETOK;
@@ -944,9 +944,9 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
-            used_structures.insert(sitem.sid);
+            ERC(mcid_id, add_bcd_structure(sitem.sid));
             fmt::format_to(
-                app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, sitem.name.sv(), sitem.sid.id, ind);
+                app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, sitem.name.sv(), mcid_id, ind);
             indent(DrawStateType::MarkedContent);
             return NoReturnValue{};
         },
@@ -1139,6 +1139,16 @@ rvoe<NoReturnValue> PdfDrawContext::set_custom_page_properties(const PagePropert
     }
     custom_props = new_props;
     return NoReturnValue{};
+}
+
+rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {
+    for(const auto &id : used_structures) {
+        if(id == sid) {
+            RETERR(StructureReuse);
+        }
+    }
+    used_structures.push_back(sid);
+    return (int32_t)used_structures.size() - 1;
 }
 
 } // namespace capypdf

@@ -227,7 +227,7 @@ public:
     const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
-    const std::unordered_set<CapyPDF_StructureItemId> &get_structure_usage() const {
+    const std::vector<CapyPDF_StructureItemId> &get_structure_usage() const {
         return used_structures;
     }
 
@@ -276,6 +276,8 @@ private:
         return NoReturnValue{};
     }
 
+    rvoe<int32_t> add_bcd_structure(CapyPDF_StructureItemId sid);
+
     PdfDocument *doc;
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;
@@ -291,7 +293,7 @@ private:
     std::unordered_set<int32_t> used_form_xobjects;
     std::unordered_set<CapyPDF_FormWidgetId> used_widgets;
     std::unordered_set<CapyPDF_AnnotationId> used_annotations;
-    std::unordered_set<CapyPDF_StructureItemId> used_structures;
+    std::vector<CapyPDF_StructureItemId> used_structures; // A vector because numbering is relevant.
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
     std::unordered_set<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;

@@ -311,7 +311,7 @@ public:
                                  const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,
-                                 const std::unordered_set<CapyPDF_StructureItemId> &structs,
+                                 const std::vector<CapyPDF_StructureItemId> &structs,
                                  const std::optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);
 
