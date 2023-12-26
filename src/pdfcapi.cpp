@@ -351,12 +351,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Genera
     CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     const auto *color = reinterpret_cast<const Color *>(c);
+    auto name = asciistring::from_cstr(separation_name);
+    if(!name) {
+        return conv_err(name);
+    }
     if(!std::holds_alternative<DeviceCMYKColor>(*color)) {
         return conv_err(ErrorCode::ColorspaceMismatch);
     }
     const auto &cmyk = std::get<DeviceCMYKColor>(*color);
-    std::string_view nameview(separation_name);
-    auto rc = gen->create_separation(nameview, cmyk);
+    auto rc = gen->create_separation(name.value(), cmyk);
     if(rc) {
         *sid = rc.value();
     }

@@ -61,7 +61,6 @@ enum class ErrorCode : int32_t {
     OutputProfileMissing,
     MissingIntentIdentifier,
     DrawStateEndMismatch,
-    UriNotAscii,
     UnusedOcg,
     UnsupportedTIFF,
     WrongDrawContext,

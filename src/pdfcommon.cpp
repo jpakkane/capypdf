@@ -45,6 +45,13 @@ uint32_t unpack_one(const unsigned char *valid_utf8, const UtfDecodeStep &par) {
 
 } // namespace
 
+rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
+    if(!is_ascii(cstr)) {
+        RETERR(NotASCII);
+    }
+    return asciistring(cstr);
+}
+
 rvoe<u8string> u8string::from_cstr(const char *cstr) {
     if(!is_valid_utf8(cstr)) {
         RETERR(BadUtf8);

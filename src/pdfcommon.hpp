@@ -124,6 +124,29 @@ private:
     std::optional<CharInfo> char_info;
 };
 
+class asciistring {
+public:
+    asciistring() = default;
+    asciistring(asciistring &&o) = default;
+    asciistring(const asciistring &o) = default;
+
+    std::string_view sv() const { return buf; }
+    const char *c_str() const { return buf.c_str(); }
+
+    static rvoe<asciistring> from_cstr(const char *cstr);
+    static rvoe<asciistring> from_cstr(const std::string &str) {
+        return asciistring::from_cstr(str.c_str());
+    }
+    bool empty() const { return buf.empty(); }
+
+    asciistring &operator=(asciistring &&o) = default;
+    asciistring &operator=(const asciistring &o) = default;
+
+private:
+    explicit asciistring(const char *prevalidated_ascii) : buf(prevalidated_ascii) {}
+    std::string buf;
+};
+
 class u8string {
 public:
     u8string() = default;

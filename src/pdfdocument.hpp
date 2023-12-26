@@ -239,7 +239,7 @@ struct TextAnnotation {
 };
 
 struct UriAnnotation {
-    std::string uri;
+    asciistring uri;
 };
 
 struct ClipTimes {
@@ -317,7 +317,7 @@ public:
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
-    rvoe<CapyPDF_SeparationId> create_separation(std::string_view name,
+    rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
                                                  const DeviceCMYKColor &fallback);
     LabId add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);

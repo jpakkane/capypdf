@@ -387,7 +387,8 @@ rvoe<NoReturnValue> PdfDocument::init() {
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
     if(opts.output_colorspace == CAPY_CS_DEVICE_CMYK) {
-        create_separation("All", DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
+        create_separation(asciistring::from_cstr("All").value(),
+                          DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
     switch(opts.output_colorspace) {
     case CAPY_CS_DEVICE_RGB:
@@ -578,12 +579,8 @@ int32_t PdfDocument::add_object(ObjectType object) {
     return object_num;
 }
 
-rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(std::string_view name,
+rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &name,
                                                           const DeviceCMYKColor &fallback) {
-    if(!is_ascii(name)) {
-        RETERR(NotASCII);
-    }
-
     std::string stream = fmt::format(R"({{ dup {} mul
 exch {} exch dup {} mul
 exch {} mul
@@ -612,7 +609,7 @@ exch {} mul
     {} 0 R
 ]
 )",
-                   name,
+                   name.c_str(),
                    fn_num);
     separation_objects.push_back(add_object(FullPDFObject{buf, ""}));
     return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
@@ -1289,7 +1286,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
                        embedded_files[faa.fileid.id].filespec_obj);
     } else if(std::holds_alternative<UriAnnotation>(annotation.a.sub)) {
         auto &ua = std::get<UriAnnotation>(annotation.a.sub);
-        auto uri_as_str = pdfstring_quote(ua.uri);
+        auto uri_as_str = pdfstring_quote(ua.uri.sv());
         fmt::format_to(app,
                        R"(  /Subtype /Link
   /Contents {}
@@ -2057,12 +2054,6 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
 rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
     if(!a.rect) {
         RETERR(AnnotationMissingRect);
-    }
-    if(std::holds_alternative<UriAnnotation>(a.sub)) {
-        auto &u = std::get<UriAnnotation>(a.sub);
-        if(!is_ascii(u.uri)) {
-            RETERR(UriNotAscii);
-        }
     }
     auto annot_id = (int32_t)annotations.size();
     auto obj_id = add_object(DelayedAnnotation{annot_id, a});
