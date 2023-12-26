@@ -123,6 +123,7 @@ class TestPDFCreation(unittest.TestCase):
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
+        opts.set_language('en-US')
         with capypdf.Generator(ofilename, opts) as g:
             fid = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:

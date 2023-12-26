@@ -264,6 +264,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_author(CapyPDF_Options *opt,
                                                   const char *utf8_author) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_creator(CapyPDF_Options *opt,
                                                    const char *utf8_creator) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_language(CapyPDF_Options *opt,
+                                                    const char *lang) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
     CapyPDF_Options *opt, CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,

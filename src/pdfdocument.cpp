@@ -830,6 +830,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     if(!structure.empty()) {
         buf += structure;
     }
+    if(!opts.lang.empty()) {
+        fmt::format_to(app, "  /Lang ({})\n", opts.lang.c_str());
+    }
     if(output_intent_object) {
         fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
     }
