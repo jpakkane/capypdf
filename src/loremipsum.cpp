@@ -164,7 +164,7 @@ void render_column(const std::vector<std::string> &text_lines,
     CHCK(textobj.cmd_TL(leading));
     CHCK(textobj.cmd_BDC(
         asciistring::from_cstr("Document").value(),
-        gen.add_structure_item(asciistring::from_cstr("P").value(), document_root).value()));
+        gen.add_structure_item(asciistring::from_cstr("Document").value(), document_root).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto l = u8string::from_cstr(text_lines[i]).value();
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -257,6 +257,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
 int main() {
     PdfGenerationData opts;
     opts.is_tagged = true;
+    opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("loremipsum.pdf", opts);
     PdfGen &gen = *genpop.g;
 

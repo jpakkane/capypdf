@@ -433,15 +433,14 @@ int32_t PdfDocument::create_page_group() {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-rvoe<NoReturnValue>
-PdfDocument::add_page(std::string resource_data,
-                      std::string page_data,
-                      const PageProperties &custom_props,
-                      const std::unordered_set<CapyPDF_FormWidgetId> &fws,
-                      const std::unordered_set<CapyPDF_AnnotationId> &annots,
-                      const std::vector<CapyPDF_StructureItemId> &structs,
-                      const std::optional<Transition> &transition,
-                      const std::vector<SubPageNavigation> &subnav) {
+rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
+                                          std::string page_data,
+                                          const PageProperties &custom_props,
+                                          const std::unordered_set<CapyPDF_FormWidgetId> &fws,
+                                          const std::unordered_set<CapyPDF_AnnotationId> &annots,
+                                          const std::vector<CapyPDF_StructureItemId> &structs,
+                                          const std::optional<Transition> &transition,
+                                          const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
             RETERR(AnnotationReuse);
@@ -471,6 +470,10 @@ PdfDocument::add_page(std::string resource_data,
     p.transition = transition;
     if(!subnav.empty()) {
         p.subnav_root = create_subnavigation(subnav);
+    }
+    if(!structs.empty()) {
+        p.structparents = (int32_t)structure_parent_tree_items.size();
+        structure_parent_tree_items.push_back(structs);
     }
     const auto page_num = add_object(std::move(p));
     for(const auto &fw : fws) {
@@ -730,6 +733,9 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_page(const DelayedPage &dp) {
     if(current_props.artbox) {
         write_rectangle(buf_append, "ArtBox", *current_props.artbox);
     }
+    if(dp.structparents) {
+        fmt::format_to(buf_append, "  /StructParents {}\n", dp.structparents.value());
+    }
 
     if(current_props.user_unit) {
         fmt::format_to(buf_append, "  /UserUnit {:f}\n", *current_props.user_unit);
@@ -796,6 +802,21 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
+rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
+    std::string buf = "<< /Nums [\n";
+    auto app = std::back_inserter(buf);
+    for(size_t i = 0; i < structure_parent_tree_items.size(); ++i) {
+        const auto &entry = structure_parent_tree_items[i];
+        fmt::format_to(app, "  {} [\n", i);
+        for(const auto &sitem : entry) {
+            fmt::format_to(app, "    {} 0 R\n", structure_items.at(sitem.id).obj_id);
+        }
+        buf += "  ]\n";
+    }
+    buf += "] >>\n";
+    return add_object(FullPDFObject{std::move(buf), ""});
+}
+
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -812,6 +833,8 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         outline = fmt::format("  /Outlines {} 0 R\n", outlines);
     }
     if(!structure_items.empty()) {
+        ERC(treeid, create_structure_parent_tree());
+        structure_parent_tree_object = treeid;
         create_structure_root_dict();
         structure = fmt::format("  /StructureTreeRoot {} 0 R\n", *structure_root_object);
     }
@@ -948,6 +971,10 @@ void PdfDocument::create_structure_root_dict() {
     std::string buf;
     std::optional<CapyPDF_StructureItemId> rootobj;
 
+    if(!structure_parent_tree_object) {
+        fprintf(stderr, "Internal error!\n");
+        std::abort();
+    }
     for(int32_t i = 0; i < (int32_t)structure_items.size(); ++i) {
         if(!structure_items[i].parent) {
             rootobj = CapyPDF_StructureItemId{i};
@@ -960,9 +987,13 @@ void PdfDocument::create_structure_root_dict() {
     buf = fmt::format(R"(<<
   /Type /StructTreeRoot
   /K [ {} 0 R ]
+  /ParentTree {} 0 R
+  /ParentTreeNextKey {}
 >>
 )",
-                      structure_items[rootobj->id].obj_id);
+                      structure_items[rootobj->id].obj_id,
+                      structure_parent_tree_object.value(),
+                      structure_parent_tree_items.size());
     structure_root_object = add_object(FullPDFObject{buf, ""});
 }
 
