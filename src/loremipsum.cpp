@@ -25,6 +25,7 @@
     {                                                                                              \
         auto rc = command;                                                                         \
         if(!rc) {                                                                                  \
+            fprintf(stderr, "%s\n", error_text(rc.error()));                                       \
             std::abort();                                                                          \
         }                                                                                          \
     }
@@ -229,14 +230,19 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     const double column2_left = cm2pt(21 - 2 - 8);
     const double leading = 15;
     const double textsize = 10;
+    std::unordered_map<std::string, std::string> attribs;
+    attribs["Type"] = "Pagination";
+    std::optional<std::unordered_map<std::string, std::string>> attrib_par{std::move(attribs)};
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
+    CHCK(ctx.cmd_BDC(capypdf::asciistring::from_cstr("Artifact").value(), {}, attrib_par));
     CHCK(ctx.render_text(capypdf::u8string::from_cstr("1").value(),
                          textfont,
                          textsize,
                          midx - text_width("1", gen, textfont, textsize) / 2,
                          pagenumy));
+    CHCK(ctx.cmd_EMC());
 }
 
 void draw_email(PdfGen &gen, PdfDrawContext &ctx) {

@@ -247,17 +247,29 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
+    const asciistring &name,
+    std::optional<CapyPDF_StructureItemId> sid,
+    const std::optional<std::unordered_map<std::string, std::string>> &attributes) {
+    if(!sid && !attributes) {
+        fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
+        std::abort();
+    }
+    fmt::format_to(cmd_appender, "{}/{}", ind, name.sv());
+    commands += " <<\n";
+    if(sid) {
+        ERC(MCID_id, add_bcd_structure(sid.value()));
+        fmt::format_to(cmd_appender, "{}  /MCID {}\n", ind, MCID_id);
+    }
+    if(attributes) {
+        for(const auto &[key, value] : attributes.value()) {
+            // FIXME: validate value contents properly.
+            fmt::format_to(cmd_appender, "{}  /{} ({})\n", ind, key, value);
+        }
+    }
+    fmt::format_to(cmd_appender, "{}>>\n", ind);
+    fmt::format_to(cmd_appender, "{}BDC\n", ind);
     ++marked_depth;
-    ERC(MCID_id, add_bcd_structure(sid));
-    fmt::format_to(cmd_appender,
-                   R"({}/{} << /MCID {} >>
-{}BDC
-)",
-                   ind,
-                   name.sv(),
-                   MCID_id,
-                   ind);
     indent(DrawStateType::MarkedContent);
     RETOK;
 }
@@ -1040,7 +1052,8 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     auto &font_data = doc->font_objects.at(fid.id);
     // FIXME, do per character.
     // const auto &bob =
-    //    doc->font_objects.at(doc->get_subset_glyph(fid, glyphs.front().codepoint).ss.fid.id);
+    //    doc->font_objects.at(doc->get_subset_glyph(fid,
+    //    glyphs.front().codepoint).ss.fid.id);
     fmt::format_to(cmd_appender,
                    R"({}BT
 {}  /SFont{}-{} {:f} Tf
