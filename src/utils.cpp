@@ -61,6 +61,16 @@ void append_glyph_to_utf16be(uint32_t glyph, std::vector<uint16_t> &u16buf) {
     }
 }
 
+bool needs_quoting(const unsigned char c) {
+    if(c < '!' || c > '~') {
+        return true;
+    }
+    if(c == '#' || c == '(' || c == ')' || c == ' ' || c == '/') {
+        return true;
+    }
+    return false;
+}
+
 } // namespace
 
 rvoe<std::string> flate_compress(std::string_view data) {
@@ -249,6 +259,26 @@ bool is_ascii(std::string_view text) {
         }
     }
     return true;
+}
+
+// As in PDF 2.0 spec 7.3.5
+std::string bytes2pdfstringliteral(std::string_view raw) {
+    std::string result;
+    char buf[10];
+    result.reserve(raw.size() + 1);
+    result.push_back('/');
+    for(const unsigned char c : raw) {
+        if(needs_quoting(c)) {
+            result += '#';
+            if(snprintf(buf, 10, "%02x", (unsigned int)c) != 2) {
+                std::abort();
+            }
+            result += buf;
+        } else {
+            result += c;
+        }
+    }
+    return result;
 }
 
 std::string create_trailer_id() {
