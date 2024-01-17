@@ -181,6 +181,18 @@ CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(
+    CapyPDF_Generator *g, CapyPDF_DrawContext *dctx, CapyPDF_FormXObjectId *fxid) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
+
+    auto rc = gen->add_form_xobject(*ctx);
+    if(rc) {
+        *fxid = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *pid) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
@@ -771,6 +783,15 @@ CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *g,
+                                                double w,
+                                                double h,
+                                                CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
+    auto *gen = reinterpret_cast<PdfGen *>(g);
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(gen->new_form_xobject(w, h));
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *generator,
                                                          CapyPDF_DrawContext **out_ptr,
                                                          double w,
@@ -1250,6 +1271,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     *out_ptr =
         reinterpret_cast<CapyPDF_Annotation *>(new Annotation{FileAttachmentAnnotation{fid}, {}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
+    CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr =
+        reinterpret_cast<CapyPDF_Annotation *>(new Annotation{PrintersMarkAnnotation{fid}, {}});
     RETNOERR;
 }
 

@@ -243,7 +243,15 @@ struct ScreenAnnotation {
     std::optional<ClipTimes> times;
 };
 
-typedef std::variant<TextAnnotation, FileAttachmentAnnotation, UriAnnotation, ScreenAnnotation>
+struct PrintersMarkAnnotation {
+    CapyPDF_FormXObjectId appearance;
+};
+
+typedef std::variant<TextAnnotation,
+                     FileAttachmentAnnotation,
+                     UriAnnotation,
+                     ScreenAnnotation,
+                     PrintersMarkAnnotation>
     AnnotationSubType;
 
 struct Annotation {

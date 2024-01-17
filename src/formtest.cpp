@@ -18,7 +18,8 @@ int draw_simple_form() {
         PdfGen &gen = *genpop.g;
         CapyPDF_FormXObjectId offstate, onstate;
         {
-            PdfDrawContext xobj = gen.new_form_xobject(10, 10);
+            auto xobj_h = gen.guarded_form_xobject(10, 10);
+            auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_EMC();
             auto rv = gen.add_form_xobject(xobj);
@@ -29,7 +30,8 @@ int draw_simple_form() {
             offstate = *rv;
         }
         {
-            PdfDrawContext xobj = gen.new_form_xobject(10, 10);
+            auto xobj_h = gen.guarded_form_xobject(10, 10);
+            auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_q();
             xobj.render_pdfdoc_text_builtin("X", CAPY_FONT_HELVETICA, 12, 0, 0);

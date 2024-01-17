@@ -930,5 +930,54 @@ class TestPDFCreation(unittest.TestCase):
         # NOTE: not actually tagged yet, only marked.
         # Needs a structure tree but that is not yet implemented.
 
+    @validate_image('python_printersmark', 200, 200)
+    def test_printersmark(self, ofilename, w, h):
+        cropmark_size = 5
+        bleed_size = 2*cropmark_size
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        prop.set_pagebox(capypdf.PageBox.Art, bleed_size, bleed_size, w - 2*bleed_size, h - 2*bleed_size)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        with capypdf.Generator(ofilename, opt) as gen:
+            vctx = capypdf.FormXObjectDrawContext(gen, 1, cropmark_size)
+            vctx.cmd_re(0, 0, 1, cropmark_size)
+            vctx.cmd_f()
+            vid = gen.add_form_xobject(vctx)
+            del vctx
+            hctx = capypdf.FormXObjectDrawContext(gen, cropmark_size, 1)
+            hctx.cmd_re(0, 0, cropmark_size, 1)
+            hctx.cmd_f()
+            hid = gen.add_form_xobject(hctx)
+            del hctx
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_rg(0.9, 0.1, 0.1)
+                ctx.cmd_re(bleed_size, bleed_size, w-2*bleed_size, h-2*bleed_size)
+                #ctx.cmd_re(10, 10, 20, 20)
+                ctx.cmd_f()
+
+                # Vertical annotations
+                a = capypdf.Annotation.new_printers_mark_annotation(vid)
+                a.set_rectangle(bleed_size-0.5, 0, bleed_size+.5, cropmark_size)
+                aid = gen.create_annotation(a)
+                ctx.annotate(aid)
+                a = capypdf.Annotation.new_printers_mark_annotation(vid)
+                a.set_rectangle(bleed_size-0.5, h-cropmark_size, bleed_size+.5, h)
+                aid = gen.create_annotation(a)
+                ctx.annotate(aid)
+
+                # Horizontal annotations
+                a = capypdf.Annotation.new_printers_mark_annotation(hid)
+                a.set_rectangle(0, bleed_size - 0.5, cropmark_size, bleed_size+.5)
+                aid = gen.create_annotation(a)
+                ctx.annotate(aid)
+                a = capypdf.Annotation.new_printers_mark_annotation(hid)
+                a.set_rectangle(0, h - bleed_size - 0.5, cropmark_size, h - bleed_size+.5)
+                aid = gen.create_annotation(a)
+                ctx.annotate(aid)
+
+                # The other corners would go here, but I'm lazy.
+
+
 if __name__ == "__main__":
     unittest.main()

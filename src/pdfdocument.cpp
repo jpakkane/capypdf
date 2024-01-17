@@ -1386,7 +1386,15 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
                            sa.times->starttime,
                            sa.times->endtime);
         }
+    } else if(std::holds_alternative<PrintersMarkAnnotation>(annotation.a.sub)) {
+        auto &pma = std::get<PrintersMarkAnnotation>(annotation.a.sub);
+        fmt::format_to(app,
+                       R"(  /Subtype /PrinterMark
+  /AP << /N {} 0 R >>
+)",
+                       form_xobjects.at(pma.appearance.id).xobj_num);
     } else {
+        fprintf(stderr, "Unknown annotation type.\n");
         std::abort();
     }
     dict += ">>\n";

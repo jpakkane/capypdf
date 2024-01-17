@@ -130,6 +130,8 @@ class PatternId(ctypes.Structure):
 class EmbeddedFileId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class FormXObjectId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
 
 cfunc_types = (
 
@@ -151,6 +153,7 @@ cfunc_types = (
 
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_form_xobject', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -228,6 +231,7 @@ cfunc_types = (
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
@@ -310,6 +314,7 @@ cfunc_types = (
 
 ('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
+('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
@@ -673,6 +678,15 @@ class ColorPatternDrawContext(DrawContextBase):
         check_error(libfile.capy_color_pattern_context_new(generator, ctypes.pointer(dcptr), w, h))
         self._as_parameter_ = dcptr
 
+class FormXObjectDrawContext(DrawContextBase):
+
+    def __init__(self, generator, w, h):
+        super().__init__(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.capy_form_xobject_new(generator, w, h, ctypes.pointer(dcptr)))
+        self._as_parameter_ = dcptr
+
+
 class StateContextManager:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -728,6 +742,11 @@ class Generator:
 
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))
+
+    def add_form_xobject(self, fxo_ctx):
+        fxid = FormXObjectId()
+        check_error(libfile.capy_generator_add_form_xobject(self, fxo_ctx, ctypes.pointer(fxid)))
+        return fxid
 
     def add_color_pattern(self, pattern_ctx):
         pid = PatternId()
@@ -1157,4 +1176,10 @@ class Annotation:
     def new_file_attachment_annotation(cls, fid):
         ta = ctypes.c_void_p()
         check_error(libfile.capy_file_attachment_annotation_new(fid, ctypes.pointer(ta)))
+        return Annotation(ta)
+
+    @classmethod
+    def new_printers_mark_annotation(cls, fid):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_printers_mark_annotation_new(fid, ctypes.pointer(ta)))
         return Annotation(ta)

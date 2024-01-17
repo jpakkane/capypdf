@@ -281,6 +281,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_new(const char *filename,
                                              CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
                                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(
+    CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_FormXObjectId *fxid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(CapyPDF_Generator *g,
                                                            CapyPDF_DrawContext *ctx,
                                                            CapyPDF_PatternId *pid) CAPYPDF_NOEXCEPT;
@@ -462,6 +464,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *dc,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
+// Form XObjects.
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *g,
+                                                double w,
+                                                double h,
+                                                CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
+
 // Color Pattern
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *g,
@@ -621,6 +630,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
                                                    CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
+    CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;

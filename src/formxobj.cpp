@@ -18,7 +18,8 @@ int main(int argc, char **argv) {
         PdfGen &gen = *genpop.g;
         CapyPDF_FormXObjectId xid;
         {
-            PdfDrawContext xobj = gen.new_form_xobject(10, 10);
+            auto xobj_h = gen.guarded_form_xobject(10, 10);
+            auto &xobj = xobj_h.ctx;
             xobj.cmd_w(1);
             xobj.cmd_re(0, 0, 10, 10);
             xobj.cmd_S();

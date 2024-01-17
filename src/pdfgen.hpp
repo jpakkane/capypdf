@@ -108,8 +108,11 @@ public:
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
-    PdfDrawContext new_form_xobject(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
+    DrawContextPopper guarded_form_xobject(double w, double h) {
+        return DrawContextPopper(this, &this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
+    }
+    PdfDrawContext *new_form_xobject(double w, double h) {
+        return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
     }
 
     PdfDrawContext new_transparency_group(double w, double h) {

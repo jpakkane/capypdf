@@ -32,6 +32,11 @@ DrawContextPopper::~DrawContextPopper() {
         }
         break;
     }
+    case CAPY_DC_FORM_XOBJECT: {
+        // Adding a form xobject automatically makes no sense,
+        // since you need to have the return value id to use it.
+        break;
+    }
     default:
         std::abort();
     }
