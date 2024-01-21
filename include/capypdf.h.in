@@ -144,6 +144,19 @@ typedef enum {
     // CAPY_COMPRESSION_CCIT4,
 } CapyPDF_Compression;
 
+typedef enum {
+    CAPY_ANNOTATION_FLAG_INVISIBLE = 1,
+    CAPY_ANNOTATION_FLAG_HIDDEN = (1 << 1),
+    CAPY_ANNOTATION_FLAG_PRINT = (1 << 2),
+    CAPY_ANNOTATION_FLAG_NOZOOM = (1 << 3),
+    CAPY_ANNOTATION_FLAG_NOROTATE = (1 << 4),
+    CAPY_ANNOTATION_FLAG_NOVIEW = (1 << 5),
+    CAPY_ANNOTATION_FLAG_READONLY = (1 << 6),
+    CAPY_ANNOTATION_FLAG_LOCKED = (1 << 7),
+    CAPY_ANNOTATION_FLAG_TOGGLENOVIEW = (1 << 8),
+    CAPY_ANNOTATION_FLAG_LOCKEDCONTENTS = (1 << 9),
+} CapyPDF_AnnotationFlags;
+
 // clang-format off
 /* Not used yet.
 enum CAPYPDF_Color_Management_Policy {
@@ -240,17 +253,6 @@ typedef struct {
 typedef struct {
     int32_t id;
 } CapyPDF_PatternId;
-
-#define CAPY_ANNOTATION_FLAG_INVISIBLE 1
-#define CAPY_ANNOTATION_FLAG_HIDDEN (1 << 1)
-#define CAPY_ANNOTATION_FLAG_PRINT (1 << 2)
-#define CAPY_ANNOTATION_FLAG_NOZOOM (1 << 3)
-#define CAPY_ANNOTATION_FLAG_NOROTATE (1 << 4)
-#define CAPY_ANNOTATION_FLAG_NOVIEW (1 << 5)
-#define CAPY_ANNOTATION_FLAG_READONLY (1 << 6)
-#define CAPY_ANNOTATION_FLAG_LOCKED (1 << 7)
-#define CAPY_ANNOTATION_FLAG_TOGGLENOVIEW (1 << 8)
-#define CAPY_ANNOTATION_FLAG_LOCKEDCONTENTS (1 << 9)
 
 // Options
 
