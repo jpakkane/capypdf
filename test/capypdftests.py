@@ -936,7 +936,7 @@ class TestPDFCreation(unittest.TestCase):
         bleed_size = 2*cropmark_size
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        prop.set_pagebox(capypdf.PageBox.Art, bleed_size, bleed_size, w - 2*bleed_size, h - 2*bleed_size)
+        prop.set_pagebox(capypdf.PageBox.Trim, bleed_size, bleed_size, w - 2*bleed_size, h - 2*bleed_size)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
