@@ -5,7 +5,7 @@
 import ctypes
 import os, sys
 import math
-from enum import Enum
+from enum import Enum, IntFlag, auto
 
 class LineCapStyle(Enum):
     Butt = 0
@@ -86,6 +86,18 @@ class ImageInterpolation(Enum):
     Automatic = 0
     Pixelated = 1
     Smooth = 2
+
+class AnnotationFlag(IntFlag):
+    Invisible = auto()
+    Hidden = auto()
+    Print = auto()
+    Nozoom = auto()
+    NoRotate = auto()
+    NoView = auto()
+    ReadOnly = auto()
+    Locked = auto()
+    ToggleNoView = auto()
+    LockedContents = auto()
 
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
