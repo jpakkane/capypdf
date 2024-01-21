@@ -181,25 +181,27 @@ CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(
-    CapyPDF_Generator *g, CapyPDF_DrawContext *dctx, CapyPDF_FormXObjectId *fxid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *g,
+                                                          CapyPDF_DrawContext *dctx,
+                                                          CapyPDF_FormXObjectId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
 
     auto rc = gen->add_form_xobject(*ctx);
     if(rc) {
-        *fxid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
-    CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *pid) CAPYPDF_NOEXCEPT {
+    CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *colorctx = reinterpret_cast<PdfDrawContext *>(ctx);
     auto rc = gen->add_pattern(*colorctx);
     if(rc) {
-        *pid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
@@ -207,33 +209,32 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
                                                    const char *fname,
                                                    CapyPDF_Image_Interpolation interpolate,
-                                                   CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+                                                   CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->embed_jpg(fname, interpolate);
     if(rc) {
-        *iid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *g,
-                                                    const char *fname,
-                                                    CapyPDF_EmbeddedFileId *fid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(
+    CapyPDF_Generator *g, const char *fname, CapyPDF_EmbeddedFileId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->embed_file(fname);
     if(rc) {
-        *fid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
                                                    const char *fname,
-                                                   CapyPDF_FontId *fid) CAPYPDF_NOEXCEPT {
+                                                   CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_font(fname);
     if(rc) {
-        *fid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
@@ -241,113 +242,122 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
                                                     const char *fname,
                                                     CapyPDF_Image_Interpolation interpolate,
-                                                    CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_image(fname, interpolate);
     if(rc) {
-        *iid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(CapyPDF_Generator *g,
-                                                         const char *fname,
-                                                         CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(
+    CapyPDF_Generator *g, const char *fname, CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_mask_image(fname);
     if(rc) {
-        *iid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
                                                    CapyPDF_RasterImage *image,
-                                                   CapyPDF_ImageId *iid) CAPYPDF_NOEXCEPT {
+                                                   CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *im = reinterpret_cast<RasterImage *>(image);
     auto rc = gen->add_image(std::move(*im));
     if(rc) {
-        *iid = rc.value();
+        *out_ptr = rc.value();
     }
     *im = RasterImage{};
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(
-    CapyPDF_Generator *g, CapyPDF_Type2Function *func, CapyPDF_FunctionId *fid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *g,
+                                                            CapyPDF_Type2Function *func,
+                                                            CapyPDF_FunctionId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *f = reinterpret_cast<FunctionType2 *>(func);
     auto rc = gen->add_function(*f);
     if(rc) {
-        *fid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(
-    CapyPDF_Generator *g, CapyPDF_Type2Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(CapyPDF_Generator *g,
+                                                           CapyPDF_Type2Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *sh = reinterpret_cast<ShadingType2 *>(shade);
     auto rc = gen->add_shading(*sh);
     if(rc) {
-        *shid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(
-    CapyPDF_Generator *g, CapyPDF_Type3Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(CapyPDF_Generator *g,
+                                                           CapyPDF_Type3Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *sh = reinterpret_cast<ShadingType3 *>(shade);
     auto rc = gen->add_shading(*sh);
     if(rc) {
-        *shid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(
-    CapyPDF_Generator *g, CapyPDF_Type4Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(CapyPDF_Generator *g,
+                                                           CapyPDF_Type4Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *sh = reinterpret_cast<ShadingType4 *>(shade);
     auto rc = gen->add_shading(*sh);
     if(rc) {
-        *shid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(
-    CapyPDF_Generator *g, CapyPDF_Type6Shading *shade, CapyPDF_ShadingId *shid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(CapyPDF_Generator *g,
+                                                           CapyPDF_Type6Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *sh = reinterpret_cast<ShadingType6 *>(shade);
     auto rc = gen->add_shading(*sh);
     if(rc) {
-        *shid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
-                                                            CapyPDF_GraphicsStateId *gsid)
+                                                            CapyPDF_GraphicsStateId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto *s = reinterpret_cast<const GraphicsState *>(state);
     auto rc = gen->add_graphics_state(*s);
     if(rc) {
-        *gsid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
-    CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *iid) CAPYPDF_NOEXCEPT {
+    CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     auto rc = gen->load_icc_file(fname);
     if(rc) {
-        *iid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
@@ -355,7 +365,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *g,
                                                                   const char *separation_name,
                                                                   const CapyPDF_Color *c,
-                                                                  CapyPDF_SeparationId *sid)
+                                                                  CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *gen = reinterpret_cast<PdfGen *>(g);
     const auto *color = reinterpret_cast<const Color *>(c);
@@ -369,7 +379,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Genera
     const auto &cmyk = std::get<DeviceCMYKColor>(*color);
     auto rc = gen->create_separation(name.value(), cmyk);
     if(rc) {
-        *sid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
@@ -380,28 +390,28 @@ CapyPDF_EC capy_generator_write(CapyPDF_Generator *generator) CAPYPDF_NOEXCEPT {
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC
-capy_generator_add_optional_content_group(CapyPDF_Generator *generator,
-                                          const CapyPDF_OptionalContentGroup *ocg,
-                                          CapyPDF_OptionalContentGroupId *ocgid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
+    CapyPDF_Generator *generator,
+    const CapyPDF_OptionalContentGroup *ocg,
+    CapyPDF_OptionalContentGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     const auto *group = reinterpret_cast<const OptionalContentGroup *>(ocg);
     auto rc = g->add_optional_content_group(*group);
     if(rc) {
-        *ocgid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
                                                            CapyPDF_Annotation *annotation,
-                                                           CapyPDF_AnnotationId *aid)
+                                                           CapyPDF_AnnotationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *a = reinterpret_cast<Annotation *>(annotation);
     auto rc = g->create_annotation(*a);
     if(rc) {
-        *aid = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
@@ -441,7 +451,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
                                                     const char *utf8_text,
                                                     CapyPDF_FontId font,
                                                     double pointsize,
-                                                    double *width) CAPYPDF_NOEXCEPT {
+                                                    double *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(generator);
     auto u8t = u8string::from_cstr(utf8_text);
     if(!u8t) {
@@ -449,7 +459,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *generator
     }
     auto rc = g->utf8_text_width(u8t.value(), font, pointsize);
     if(rc) {
-        *width = rc.value();
+        *out_ptr = rc.value();
     }
     return conv_err(rc);
 }
