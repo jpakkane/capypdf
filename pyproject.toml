@@ -1,6 +1,10 @@
 [build-system]
 build-backend = 'mesonpy'
-requires = ['meson-python']
+requires = ['meson-python@ git+https://github.com/mesonbuild/meson-python.git@refs/pull/551/head']
+
+[tool.meson-python]
+shared-libs-win32 = true
+
 
 [project]
 name = 'capypdf'
