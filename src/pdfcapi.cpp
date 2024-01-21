@@ -1077,12 +1077,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) 
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(CapyPDF_Type2Function **out_ptr,
-                                                  double *domain,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   int32_t domain_size,
                                                   const CapyPDF_Color *c1,
                                                   const CapyPDF_Color *c2,
-                                                  double n) CAPYPDF_NOEXCEPT {
+                                                  double n,
+                                                  CapyPDF_Type2Function **out_ptr)
+    CAPYPDF_NOEXCEPT {
     *out_ptr = reinterpret_cast<CapyPDF_Type2Function *>(
         new FunctionType2{std::vector<double>(domain, domain + domain_size),
                           *reinterpret_cast<const Color *>(c1),
@@ -1097,15 +1098,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *fun
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Type2Shading **out_ptr,
-                                                 CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Colorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
                                                  double y1,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
-                                                 int32_t extend2) CAPYPDF_NOEXCEPT {
+                                                 int32_t extend2,
+                                                 CapyPDF_Type2Shading **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(extend1);
     CHECK_BOOLEAN(extend2);
     *out_ptr = reinterpret_cast<CapyPDF_Type2Shading *>(
@@ -1118,12 +1119,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Type3Shading **out_ptr,
-                                                 CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Colorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
-                                                 int32_t extend2) CAPYPDF_NOEXCEPT {
+                                                 int32_t extend2,
+                                                 CapyPDF_Type3Shading **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(extend1);
     CHECK_BOOLEAN(extend2);
     *out_ptr = reinterpret_cast<CapyPDF_Type3Shading *>(new ShadingType3{cs,
@@ -1144,12 +1145,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Type4Shading **out_ptr,
-                                                 CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
-                                                 double maxy) CAPYPDF_NOEXCEPT {
+                                                 double maxy,
+                                                 CapyPDF_Type4Shading **out_ptr) CAPYPDF_NOEXCEPT {
     auto *shobj = new ShadingType4{};
     shobj->colorspace = cs;
     shobj->minx = minx;
@@ -1203,12 +1204,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Type6Shading **out_ptr,
-                                                 CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
-                                                 double maxy) CAPYPDF_NOEXCEPT {
+                                                 double maxy,
+                                                 CapyPDF_Type6Shading **out_ptr) CAPYPDF_NOEXCEPT {
     auto *shobj = new ShadingType6{};
     shobj->colorspace = cs;
     shobj->minx = minx;

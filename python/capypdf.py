@@ -277,21 +277,21 @@ cfunc_types = (
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_optional_content_group_destroy', [ctypes.c_void_p]),
 
-('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]),
+('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type2_function_destroy', [ctypes.c_void_p]),
 
-('capy_type2_shading_new', [ctypes.c_void_p, enum_type,
+('capy_type2_shading_new', [enum_type,
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
-                            FunctionId, ctypes.c_int32, ctypes.c_int32]),
+                            FunctionId, ctypes.c_int32, ctypes.c_int32,
+                            ctypes.c_void_p]),
 ('capy_type2_shading_destroy', [ctypes.c_void_p]),
 
 
-('capy_type3_shading_new', [ctypes.c_void_p, enum_type, ctypes.POINTER(ctypes.c_double),
-                            FunctionId, ctypes.c_int32, ctypes.c_int32]),
+('capy_type3_shading_new', [enum_type, ctypes.POINTER(ctypes.c_double),
+                            FunctionId, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p]),
 ('capy_type3_shading_destroy', [ctypes.c_void_p]),
 
-('capy_type4_shading_new', [ctypes.c_void_p, enum_type,
-                            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_type4_shading_new', [enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type4_shading_add_triangle', [ctypes.c_void_p,
                                      ctypes.POINTER(ctypes.c_double),
                                      ctypes.c_void_p]),
@@ -301,8 +301,7 @@ cfunc_types = (
                                ctypes.c_void_p]),
 ('capy_type4_shading_destroy', [ctypes.c_void_p]),
 
-('capy_type6_shading_new', [ctypes.c_void_p, enum_type,
-                            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_type6_shading_new', [enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type6_shading_add_patch', [ctypes.c_void_p,
                                   ctypes.POINTER(ctypes.c_double),
                                   ctypes.c_void_p]),
@@ -1053,7 +1052,7 @@ class Type2Function:
     def __init__(self, domain, c1, c2, n):
         self._as_parameter_ = None
         t2f = ctypes.c_void_p()
-        check_error(libfile.capy_type2_function_new(ctypes.pointer(t2f), *to_array(ctypes.c_double, domain), c1, c2, n))
+        check_error(libfile.capy_type2_function_new(*to_array(ctypes.c_double, domain), c1, c2, n, ctypes.pointer(t2f)))
         self._as_parameter_ = t2f
 
     def __del__(self):
@@ -1065,8 +1064,7 @@ class Type2Shading:
         e2 = 1 if extend2 else 0
         self._as_parameter_ = None
         t2s = ctypes.c_void_p()
-        check_error(libfile.capy_type2_shading_new(ctypes.pointer(t2s),
-            cs.value, x0, y0, x1, y1, funcid, e1, e2))
+        check_error(libfile.capy_type2_shading_new(cs.value, x0, y0, x1, y1, funcid, e1, e2, ctypes.pointer(t2s)))
         self._as_parameter_ = t2s
 
     def __del__(self):
@@ -1080,8 +1078,7 @@ class Type3Shading:
             raise CapyPDFException('Coords array must hold exactly 6 doubles.')
         self._as_parameter_ = None
         t3s = ctypes.c_void_p()
-        check_error(libfile.capy_type3_shading_new(ctypes.pointer(t3s),
-            cs.value, to_array(ctypes.c_double, coords)[0], funcid, e1, e2))
+        check_error(libfile.capy_type3_shading_new(cs.value, to_array(ctypes.c_double, coords)[0], funcid, e1, e2, ctypes.pointer(t3s)))
         self._as_parameter_ = t3s
 
     def __del__(self):
@@ -1091,8 +1088,8 @@ class Type3Shading:
 class Type4Shading:
     def __init__(self, cs, minx, miny, maxx, maxy):
         t4s = ctypes.c_void_p()
-        check_error(libfile.capy_type4_shading_new(ctypes.pointer(t4s), cs.value,
-                    minx, miny, maxx, maxy))
+        check_error(libfile.capy_type4_shading_new(cs.value,
+                    minx, miny, maxx, maxy, ctypes.pointer(t4s)))
         self._as_parameter_ = t4s
 
     def __del__(self):
@@ -1125,8 +1122,8 @@ class Type4Shading:
 class Type6Shading:
     def __init__(self, cs, minx, miny, maxx, maxy):
         t6s = ctypes.c_void_p()
-        check_error(libfile.capy_type6_shading_new(ctypes.pointer(t6s), cs.value,
-                    minx, miny, maxx, maxy))
+        check_error(libfile.capy_type6_shading_new(cs.value,
+                    minx, miny, maxx, maxy, ctypes.pointer(t6s)))
         self._as_parameter_ = t6s
 
     def __del__(self):
