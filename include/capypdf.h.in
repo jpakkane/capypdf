@@ -294,76 +294,84 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_new(const char *filename,
                                              CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
                                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
                                                    const char *fname,
                                                    CapyPDF_Image_Interpolation interpolate,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 // FIXME, specify whether to compress the file or not.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(
     CapyPDF_Generator *g, const char *fname, CapyPDF_EmbeddedFileId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    const char *fname,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     const char *fname,
                                                     CapyPDF_Image_Interpolation interpolate,
                                                     CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(CapyPDF_Generator *gen,
                                                          const char *fname,
                                                          CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *gen,
                                                             CapyPDF_Type2Function *func,
                                                             CapyPDF_FunctionId *out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(
-    CapyPDF_Generator *g, CapyPDF_Type2Shading *shade, CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(
-    CapyPDF_Generator *g, CapyPDF_Type3Shading *shade, CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(
-    CapyPDF_Generator *g, CapyPDF_Type4Shading *shade, CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(
-    CapyPDF_Generator *g, CapyPDF_Type6Shading *shade, CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(CapyPDF_Generator *gen,
+                                                           CapyPDF_Type2Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(CapyPDF_Generator *gen,
+                                                           CapyPDF_Type3Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(CapyPDF_Generator *gen,
+                                                           CapyPDF_Type4Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(CapyPDF_Generator *gen,
+                                                           CapyPDF_Type6Shading *shade,
+                                                           CapyPDF_ShadingId *out_ptr)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
-    CapyPDF_Generator *g, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *g,
+    CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *gen,
                                                                   const char *separation_name,
                                                                   const CapyPDF_Color *c,
                                                                   CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_write(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_write(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC
-capy_generator_add_optional_content_group(CapyPDF_Generator *g,
+capy_generator_add_optional_content_group(CapyPDF_Generator *gen,
                                           const CapyPDF_OptionalContentGroup *ocg,
                                           CapyPDF_OptionalContentGroupId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
                                                            CapyPDF_Annotation *annotation,
                                                            CapyPDF_AnnotationId *out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *g) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 
 // FIXME: this must be changed to support PDF links that point to
 // specific coordinates on a page.
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *generator,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      const char *utf8_text,
                                                      int32_t page_number,
                                                      CapyPDF_OutlineId *parent,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *gen,
                                                     const char *utf8_text,
                                                     CapyPDF_FontId font,
                                                     double pointsize,
@@ -372,7 +380,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *g,
 // Draw context
 
 CAPYPDF_PUBLIC CapyPDF_EC
-capy_page_draw_context_new(CapyPDF_Generator *g, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
+capy_page_draw_context_new(CapyPDF_Generator *gen, CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_b(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_B(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
@@ -481,14 +489,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEP
 
 // Form XObjects.
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 double w,
                                                 double h,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 
 // Color Pattern
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *g,
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
                                                          CapyPDF_DrawContext **out_ptr,
                                                          double w,
                                                          double h) CAPYPDF_NOEXCEPT;
