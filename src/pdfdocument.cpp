@@ -209,29 +209,26 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
         ERCV(append_floatvalue<uint32_t>(s, xratio));
         ERCV(append_floatvalue<uint32_t>(s, yratio));
 
-        if(std::holds_alternative<DeviceRGBColor>(e.sp.c)) {
+        if(auto *c = std::get_if<DeviceRGBColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_RGB) {
                 RETERR(ColorspaceMismatch);
             }
-            const auto &c = std::get<DeviceRGBColor>(e.sp.c);
-            ERCV(append_floatvalue<uint16_t>(s, c.r.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c.g.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c.b.v()));
-        } else if(std::holds_alternative<DeviceGrayColor>(e.sp.c)) {
+            ERCV(append_floatvalue<uint16_t>(s, c->r.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->g.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->b.v()));
+        } else if(auto *c = std::get_if<DeviceGrayColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_GRAY) {
                 RETERR(ColorspaceMismatch);
             }
-            const auto &c = std::get<DeviceGrayColor>(e.sp.c);
-            ERCV(append_floatvalue<uint16_t>(s, c.v.v()));
-        } else if(std::holds_alternative<DeviceCMYKColor>(e.sp.c)) {
+            ERCV(append_floatvalue<uint16_t>(s, c->v.v()));
+        } else if(auto *c = std::get_if<DeviceCMYKColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_CS_DEVICE_CMYK) {
                 RETERR(ColorspaceMismatch);
             }
-            const auto &c = std::get<DeviceCMYKColor>(e.sp.c);
-            ERCV(append_floatvalue<uint16_t>(s, c.c.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c.m.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c.y.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c.k.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->c.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->m.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->y.v()));
+            ERCV(append_floatvalue<uint16_t>(s, c->k.v()));
         } else {
             fprintf(stderr, "Color space not supported yet.");
             std::abort();
@@ -335,15 +332,12 @@ int32_t num_channels_for(const CapyPDF_Colorspace cs) {
 }
 
 void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) {
-    if(std::holds_alternative<DeviceRGBColor>(c)) {
-        const auto &rgb = std::get<DeviceRGBColor>(c);
-        fmt::format_to(app, "{} {} {}", rgb.r.v(), rgb.g.v(), rgb.b.v());
-    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
-        const auto &gray = std::get<DeviceGrayColor>(c);
-        fmt::format_to(app, "{}", gray.v.v());
-    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
-        const auto &cmyk = std::get<DeviceCMYKColor>(c);
-        fmt::format_to(app, "{} {} {} {}", cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
+    if(auto *rgb = std::get_if<DeviceRGBColor>(&c)) {
+        fmt::format_to(app, "{} {} {}", rgb->r.v(), rgb->g.v(), rgb->b.v());
+    } else if(auto *gray = std::get_if<DeviceGrayColor>(&c)) {
+        fmt::format_to(app, "{}", gray->v.v());
+    } else if(auto *cmyk = std::get_if<DeviceCMYKColor>(&c)) {
+        fmt::format_to(app, "{} {} {} {}", cmyk->c.v(), cmyk->m.v(), cmyk->y.v(), cmyk->k.v());
     } else {
         fprintf(stderr, "Colorspace not supported yet.\n");
         std::abort();
@@ -1293,24 +1287,20 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);
     }
-    if(std::holds_alternative<TextAnnotation>(annotation.a.sub)) {
-        const auto &ta = std::get<TextAnnotation>(annotation.a.sub);
+    if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
         fmt::format_to(app,
                        R"(  /Subtype /Text
   /Contents {}
 )",
-                       utf8_to_pdfmetastr(ta.content));
-    } else if(std::holds_alternative<FileAttachmentAnnotation>(annotation.a.sub)) {
-        auto &faa = std::get<FileAttachmentAnnotation>(annotation.a.sub);
-
+                       utf8_to_pdfmetastr(ta->content));
+    } else if(auto faa = std::get_if<FileAttachmentAnnotation>(&annotation.a.sub)) {
         fmt::format_to(app,
                        R"(  /Subtype /FileAttachment
   /FS {} 0 R
 )",
-                       embedded_files[faa.fileid.id].filespec_obj);
-    } else if(std::holds_alternative<UriAnnotation>(annotation.a.sub)) {
-        auto &ua = std::get<UriAnnotation>(annotation.a.sub);
-        auto uri_as_str = pdfstring_quote(ua.uri.sv());
+                       embedded_files[faa->fileid.id].filespec_obj);
+    } else if(auto ua = std::get_if<UriAnnotation>(&annotation.a.sub)) {
+        auto uri_as_str = pdfstring_quote(ua->uri.sv());
         fmt::format_to(app,
                        R"(  /Subtype /Link
   /Contents {}
@@ -1321,10 +1311,9 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
 )",
                        uri_as_str,
                        uri_as_str);
-    } else if(std::holds_alternative<ScreenAnnotation>(annotation.a.sub)) {
-        auto &sa = std::get<ScreenAnnotation>(annotation.a.sub);
-        int32_t media_filespec = embedded_files.at(sa.mediafile.id).filespec_obj;
-        if(!sa.times) {
+    } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
+        int32_t media_filespec = embedded_files.at(sa->mediafile.id).filespec_obj;
+        if(!sa->times) {
             fmt::format_to(app,
                            R"(  /Subtype /Screen
   /A <<
@@ -1346,7 +1335,7 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
   >>
 )",
                            obj_num,
-                           sa.mimetype,
+                           sa->mimetype,
                            media_filespec);
         } else {
             // NOTE! This should work but does not. Acrobat reader will error
@@ -1381,18 +1370,17 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
   >>
 )",
                            obj_num,
-                           sa.mimetype,
+                           sa->mimetype,
                            media_filespec,
-                           sa.times->starttime,
-                           sa.times->endtime);
+                           sa->times->starttime,
+                           sa->times->endtime);
         }
-    } else if(std::holds_alternative<PrintersMarkAnnotation>(annotation.a.sub)) {
-        auto &pma = std::get<PrintersMarkAnnotation>(annotation.a.sub);
+    } else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
         fmt::format_to(app,
                        R"(  /Subtype /PrinterMark
   /AP << /N {} 0 R >>
 )",
-                       form_xobjects.at(pma.appearance.id).xobj_num);
+                       form_xobjects.at(pma->appearance.id).xobj_num);
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
         std::abort();
