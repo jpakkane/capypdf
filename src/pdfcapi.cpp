@@ -173,22 +173,22 @@ CapyPDF_EC capy_generator_new(const char *filename,
 }
 
 CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *gen,
-                                   CapyPDF_DrawContext *dctx) CAPYPDF_NOEXCEPT {
+                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
 
-    auto rc = g->add_page(*ctx);
+    auto rc = g->add_page(*dc);
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
-                                                          CapyPDF_DrawContext *dctx,
+                                                          CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *ctx = reinterpret_cast<PdfDrawContext *>(dctx);
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
 
-    auto rc = g->add_form_xobject(*ctx);
+    auto rc = g->add_form_xobject(*dc);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -198,8 +198,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *gen, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *colorctx = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto rc = g->add_pattern(*colorctx);
+    auto *colordc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto rc = g->add_pattern(*colordc);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -474,35 +474,35 @@ CapyPDF_EC capy_page_draw_context_new(CapyPDF_Generator *gen,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_b(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_b());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_b());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_B(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_B());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_B());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_bstar());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_bstar());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_Bstar());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_Bstar());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_ocg(
     CapyPDF_DrawContext *ctx, CapyPDF_OptionalContentGroupId ocgid) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_BDC(ocgid));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_BDC(ocgid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BMC(CapyPDF_DrawContext *ctx,
                                           const char *tag) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_BMC(tag));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_BMC(tag));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_c(CapyPDF_DrawContext *ctx,
@@ -512,8 +512,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_c(CapyPDF_DrawContext *ctx,
                                         double y2,
                                         double x3,
                                         double y3) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_c(x1, y1, x2, y2, x3, y3));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_c(x1, y1, x2, y2, x3, y3));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
@@ -523,70 +523,70 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
                                          double m4,
                                          double m5,
                                          double m6) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_cm(m1, m2, m3, m4, m5, m6));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_cm(m1, m2, m3, m4, m5, m6));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
                                         double *dash_array,
                                         int32_t array_size,
                                         double phase) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_d(dash_array, array_size, phase));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_d(dash_array, array_size, phase));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_EMC());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_EMC());
 }
 
 CapyPDF_EC capy_dc_cmd_f(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_f());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_f());
 }
 
 CapyPDF_EC capy_dc_cmd_fstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_fstar());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_fstar());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_G(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_G(gray));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_G(gray));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_g(CapyPDF_DrawContext *ctx, double gray) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_g(gray));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_g(gray));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_gs(CapyPDF_DrawContext *ctx,
                                          CapyPDF_GraphicsStateId gsid) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_gs(gsid));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_gs(gsid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_h(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_h());
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_h());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_i(CapyPDF_DrawContext *ctx,
                                         double flatness) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_i(flatness));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_i(flatness));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_j(CapyPDF_DrawContext *ctx,
                                         CapyPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_j(join_style));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_j(join_style));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_J(CapyPDF_DrawContext *ctx,
                                         CapyPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_J(cap_style));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_J(cap_style));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC
@@ -604,8 +604,8 @@ capy_dc_cmd_K(CapyPDF_DrawContext *ctx, double c, double m, double y, double k) 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_l(CapyPDF_DrawContext *ctx,
                                         double x,
                                         double y) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->cmd_l(x, y));
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_l(x, y));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_m(CapyPDF_DrawContext *ctx,
@@ -744,39 +744,39 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_page_transition(
-    CapyPDF_DrawContext *dc, CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
-    auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    CapyPDF_DrawContext *ctx, CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
     auto t = reinterpret_cast<Transition *>(transition);
-    auto rc = ctx->set_transition(*t);
+    auto rc = dc->set_transition(*t);
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
-    CapyPDF_DrawContext *dc, const CapyPDF_PageProperties *custom_properties) {
+    CapyPDF_DrawContext *ctx, const CapyPDF_PageProperties *custom_properties) {
     CHECK_NULL(custom_properties);
-    auto *ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
     auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
-    return conv_err(ctx->set_custom_page_properties(*cprop));
+    return conv_err(dc->set_custom_page_properties(*cprop));
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *dc,
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *ctx,
                                            CapyPDF_AnnotationId aid) CAPYPDF_NOEXCEPT {
-    auto *ctx = reinterpret_cast<PdfDrawContext *>(dc);
-    return conv_err(ctx->annotate(aid));
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->annotate(aid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC
-capy_dc_add_simple_navigation(CapyPDF_DrawContext *dc,
+capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
                               int32_t array_size,
                               const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT {
-    auto ctx = reinterpret_cast<PdfDrawContext *>(dc);
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
     std::optional<Transition> transition;
     if(tr) {
         transition = *reinterpret_cast<const Transition *>(tr);
     }
     std::span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, ocgarray + array_size);
-    auto rc = ctx->add_simple_navigation(ocgspan, transition);
+    auto rc = dc->add_simple_navigation(ocgspan, transition);
     return conv_err(rc);
 }
 
