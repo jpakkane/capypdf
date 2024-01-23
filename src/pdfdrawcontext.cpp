@@ -588,20 +588,20 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_rg(std::back_insert_iterator<std::
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
-    if(std::holds_alternative<DeviceRGBColor>(c)) {
-        return set_color(std::get<DeviceRGBColor>(c), stroke);
-    } else if(std::holds_alternative<DeviceGrayColor>(c)) {
-        return set_color(std::get<DeviceGrayColor>(c), stroke);
-    } else if(std::holds_alternative<DeviceCMYKColor>(c)) {
-        return set_color(std::get<DeviceCMYKColor>(c), stroke);
-    } else if(std::holds_alternative<ICCColor>(c)) {
-        return set_color(std::get<ICCColor>(c), stroke);
-    } else if(std::holds_alternative<LabColor>(c)) {
-        return set_color(std::get<LabColor>(c), stroke);
-    } else if(std::holds_alternative<CapyPDF_PatternId>(c)) {
-        return set_color(std::get<CapyPDF_PatternId>(c), stroke);
-    } else if(std::holds_alternative<SeparationColor>(c)) {
-        return set_color(std::get<SeparationColor>(c), stroke);
+    if(auto cv = std::get_if<DeviceRGBColor>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<DeviceGrayColor>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<DeviceCMYKColor>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<ICCColor>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<LabColor>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<CapyPDF_PatternId>(&c)) {
+        return set_color(*cv, stroke);
+    } else if(auto cv = std::get_if<SeparationColor>(&c)) {
+        return set_color(*cv, stroke);
     } else {
         printf("Given colorspace not supported yet.\n");
         fflush(stdout);
@@ -770,12 +770,12 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     bool is_first = true;
     for(const auto &e : charseq) {
-        if(std::holds_alternative<double>(e)) {
+        if(auto dbl = std::get_if<double>(&e)) {
             if(is_first) {
                 serialisation += ind;
                 serialisation += "[ ";
             }
-            fmt::format_to(app, "{:f} ", std::get<double>(e));
+            fmt::format_to(app, "{:f} ", *dbl);
         } else {
             assert(std::holds_alternative<uint32_t>(e));
             const auto codepoint = std::get<uint32_t>(e);
@@ -957,15 +957,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
-            if(std::holds_alternative<DeviceRGBColor>(sarg.c)) {
-                auto &rgb = std::get<DeviceRGBColor>(sarg.c);
-                ERCV(serialize_RG(app, ind, rgb.r, rgb.g, rgb.b));
-            } else if(std::holds_alternative<DeviceGrayColor>(sarg.c)) {
-                auto &gray = std::get<DeviceGrayColor>(sarg.c);
-                ERCV(serialize_G(app, ind, gray.v));
-            } else if(std::holds_alternative<DeviceCMYKColor>(sarg.c)) {
-                auto &cmyk = std::get<DeviceCMYKColor>(sarg.c);
-                ERCV(serialize_K(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+            if(auto rgb = std::get_if<DeviceRGBColor>(&sarg.c)) {
+                ERCV(serialize_RG(app, ind, rgb->r, rgb->g, rgb->b));
+            } else if(auto gray = std::get_if<DeviceGrayColor>(&sarg.c)) {
+                ERCV(serialize_G(app, ind, gray->v));
+            } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&sarg.c)) {
+                ERCV(serialize_K(app, ind, cmyk->c, cmyk->m, cmyk->y, cmyk->k));
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
@@ -974,15 +971,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
-            if(std::holds_alternative<DeviceRGBColor>(nsarg.c)) {
-                auto &rgb = std::get<DeviceRGBColor>(nsarg.c);
-                ERCV(serialize_rg(app, ind, rgb.r, rgb.g, rgb.b));
-            } else if(std::holds_alternative<DeviceGrayColor>(nsarg.c)) {
-                auto &gray = std::get<DeviceGrayColor>(nsarg.c);
-                ERCV(serialize_g(app, ind, gray.v));
-            } else if(std::holds_alternative<DeviceCMYKColor>(nsarg.c)) {
-                auto &cmyk = std::get<DeviceCMYKColor>(nsarg.c);
-                ERCV(serialize_k(app, ind, cmyk.c, cmyk.m, cmyk.y, cmyk.k));
+            if(auto rgb = std::get_if<DeviceRGBColor>(&nsarg.c)) {
+                ERCV(serialize_rg(app, ind, rgb->r, rgb->g, rgb->b));
+            } else if(auto gray = std::get_if<DeviceGrayColor>(&nsarg.c)) {
+                ERCV(serialize_g(app, ind, gray->v));
+            } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&nsarg.c)) {
+                ERCV(serialize_k(app, ind, cmyk->c, cmyk->m, cmyk->y, cmyk->k));
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();

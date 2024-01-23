@@ -1713,12 +1713,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     if(is_mask) {
         buf += "  /ImageMask true\n";
     } else {
-        if(std::holds_alternative<CapyPDF_Colorspace>(colorspace)) {
-            const auto &cs = std::get<CapyPDF_Colorspace>(colorspace);
-            fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(cs));
-        } else if(std::holds_alternative<CapyPDF_IccColorSpaceId>(colorspace)) {
-            const auto &icc = std::get<CapyPDF_IccColorSpaceId>(colorspace);
-            const auto icc_obj = icc_profiles.at(icc.id).object_num;
+        if(auto cs = std::get_if<CapyPDF_Colorspace>(&colorspace)) {
+            fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
+        } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
+            const auto icc_obj = icc_profiles.at(icc->id).object_num;
             fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");
