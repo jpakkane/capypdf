@@ -66,6 +66,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "File does not exist.",
 "Annotation is missing location rectangle.",
 "BMC argument must be of the form \"/name\"",
+"Nesting marked content is forbidden.",
 };
 
 // clang-format on

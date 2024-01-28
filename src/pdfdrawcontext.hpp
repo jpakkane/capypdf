@@ -14,7 +14,6 @@
 #include <vector>
 #include <optional>
 #include <span>
-#include <stack>
 
 template<> struct std::hash<capypdf::FontSubset> {
     size_t operator()(capypdf::FontSubset const &s) const noexcept {
@@ -229,7 +228,7 @@ public:
 
     const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
 
-    bool has_unclosed_state() const { return !dstates.empty(); }
+    bool has_unclosed_state() const { return !dstate_stack.empty(); }
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
@@ -249,22 +248,30 @@ private:
     rvoe<NoReturnValue>
     utf8_to_kerned_chars(const u8string &text, std::vector<CharItem> &charseq, CapyPDF_FontId fid);
 
-    void indent(DrawStateType dtype) {
-        dstates.push(dtype);
+    rvoe<NoReturnValue> indent(DrawStateType dtype) {
+        if(dtype == DrawStateType::MarkedContent) {
+            for(const auto &s : dstate_stack) {
+                if(s == dtype) {
+                    RETERR(NestedBMC);
+                }
+            }
+        }
+        dstate_stack.push_back(dtype);
         ind += "  ";
+        return NoReturnValue{};
     }
 
     rvoe<NoReturnValue> dedent(DrawStateType dtype) {
-        if(dstates.empty()) {
+        if(dstate_stack.empty()) {
             RETERR(DrawStateEndMismatch);
         }
-        if(dstates.top() != dtype) {
+        if(dstate_stack.back() != dtype) {
             RETERR(DrawStateEndMismatch);
         }
         if(ind.size() < 2) {
             std::abort();
         }
-        dstates.pop();
+        dstate_stack.pop_back();
         ind.pop_back();
         ind.pop_back();
         return NoReturnValue{};
@@ -292,7 +299,8 @@ private:
     std::unordered_set<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;
 
-    std::stack<DrawStateType> dstates;
+    // Not a std::stack because we need to access all entries.
+    std::vector<DrawStateType> dstate_stack;
     std::optional<Transition> transition;
 
     PageProperties custom_props;

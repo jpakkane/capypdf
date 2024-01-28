@@ -256,8 +256,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
     }
     fmt::format_to(cmd_appender, "{}>>\n", ind);
     fmt::format_to(cmd_appender, "{}BDC\n", ind);
+    ERCV(indent(DrawStateType::MarkedContent));
     ++marked_depth;
-    indent(DrawStateType::MarkedContent);
     RETOK;
 }
 
@@ -265,7 +265,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid
     ++marked_depth;
     used_ocgs.insert(ocgid);
     fmt::format_to(cmd_appender, "{}/OC /oc{} BDC\n", ind, doc->ocg_object_number(ocgid));
-    indent(DrawStateType::MarkedContent);
+    ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
 
@@ -275,7 +275,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
     }
     ++marked_depth;
     fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);
-    indent(DrawStateType::MarkedContent);
+    ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
 
@@ -440,7 +440,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_n() {
 rvoe<NoReturnValue> PdfDrawContext::cmd_q() {
     commands += ind;
     commands += "q\n";
-    indent(DrawStateType::SaveState);
+    ERCV(indent(DrawStateType::SaveState));
     RETOK;
 }
 
@@ -852,7 +852,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         RETERR(WrongDrawContext);
     }
     std::string serialisation{ind + "BT\n"};
-    indent(DrawStateType::Text);
+    ERCV(indent(DrawStateType::Text));
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     int32_t current_subset{-1};
     CapyPDF_FontId current_font{-1};
@@ -946,7 +946,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             ERC(mcid_id, add_bcd_structure(sitem.sid));
             fmt::format_to(
                 app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, sitem.name.sv(), mcid_id, ind);
-            indent(DrawStateType::MarkedContent);
+            ERCV(indent(DrawStateType::MarkedContent));
             return NoReturnValue{};
         },
 
