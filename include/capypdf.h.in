@@ -626,12 +626,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Colorspace cs,
                                                  double maxy,
                                                  CapyPDF_Type4Shading **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
-                                                          double *coords,
-                                                          CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+                                                          const double *coords,
+                                                          const CapyPDF_Color **colors)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
                                                     int32_t flag,
-                                                    double *coords,
-                                                    CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
+                                                    const double *coords,
+                                                    const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
@@ -641,12 +642,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
                                                  double maxy,
                                                  CapyPDF_Type6Shading **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *shade,
-                                                       double *coords,
-                                                       CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+                                                       const double *coords,
+                                                       const CapyPDF_Color **colors)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
                                                     int32_t flag,
-                                                    double *coords,
-                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+                                                    const double *coords,
+                                                    const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Annotations.

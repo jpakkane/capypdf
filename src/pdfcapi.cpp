@@ -1161,7 +1161,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Colorspace cs,
     RETNOERR;
 }
 
-static ShadingPoint conv_shpoint(double *coords, Color *color) {
+static ShadingPoint conv_shpoint(const double *coords, const Color *color) {
     ShadingPoint sp;
     sp.c = *color;
     sp.p.x = coords[0];
@@ -1170,10 +1170,11 @@ static ShadingPoint conv_shpoint(double *coords, Color *color) {
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
-                                                          double *coords,
-                                                          CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
+                                                          const double *coords,
+                                                          const CapyPDF_Color **color)
+    CAPYPDF_NOEXCEPT {
     auto *sh = reinterpret_cast<ShadingType4 *>(shade);
-    auto *cc = reinterpret_cast<Color **>(color);
+    auto *cc = reinterpret_cast<const Color **>(color);
     ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
     ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
     ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
@@ -1183,10 +1184,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
                                                     int32_t flag,
-                                                    double *coords,
-                                                    CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
+                                                    const double *coords,
+                                                    const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     auto *sh = reinterpret_cast<ShadingType4 *>(shade);
-    auto *cc = reinterpret_cast<Color *>(color);
+    auto *cc = reinterpret_cast<const Color *>(color);
     if(flag == 1 || flag == 2) {
         if(sh->elements.empty()) {
             conv_err(ErrorCode::BadStripStart);
@@ -1220,7 +1221,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
     RETNOERR;
 }
 
-template<typename T> static void grab_coons_data(T &patch, double *coords, Color **colors) {
+template<typename T>
+static void grab_coons_data(T &patch, const double *coords, const Color **colors) {
     for(int i = 0; i < (int)patch.p.size(); ++i) {
         patch.p[i].x = coords[2 * i];
         patch.p[i].y = coords[2 * i + 1];
@@ -1231,10 +1233,11 @@ template<typename T> static void grab_coons_data(T &patch, double *coords, Color
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *shade,
-                                                       double *coords,
-                                                       CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+                                                       const double *coords,
+                                                       const CapyPDF_Color **colors)
+    CAPYPDF_NOEXCEPT {
     auto *sh = reinterpret_cast<ShadingType6 *>(shade);
-    auto **cc = reinterpret_cast<Color **>(colors);
+    auto **cc = reinterpret_cast<const Color **>(colors);
     FullCoonsPatch cp;
     grab_coons_data(cp, coords, cc);
     sh->elements.emplace_back(std::move(cp));
@@ -1243,10 +1246,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *sha
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
                                                     int32_t flag,
-                                                    double *coords,
-                                                    CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+                                                    const double *coords,
+                                                    const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
     auto *sh = reinterpret_cast<ShadingType6 *>(shade);
-    auto **cc = reinterpret_cast<Color **>(colors);
+    auto **cc = reinterpret_cast<const Color **>(colors);
     if(flag == 1 || flag == 2 || flag == 3) {
         if(sh->elements.empty()) {
             conv_err(ErrorCode::BadStripStart);

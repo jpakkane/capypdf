@@ -23,7 +23,6 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
 
 namespace capypdf {
 
-
 LcmsHolder::~LcmsHolder() { deallocate(); }
 
 void LcmsHolder::deallocate() {
