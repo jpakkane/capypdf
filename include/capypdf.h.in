@@ -145,6 +145,7 @@ typedef enum {
 } CapyPDF_Compression;
 
 typedef enum {
+    CAPY_ANNOTATION_FLAG_NONE = 0,
     CAPY_ANNOTATION_FLAG_INVISIBLE = 1,
     CAPY_ANNOTATION_FLAG_HIDDEN = (1 << 1),
     CAPY_ANNOTATION_FLAG_PRINT = (1 << 2),
@@ -657,6 +658,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(CapyPDF_Annotation *annotation,
+                                                    CapyPDF_AnnotationFlags flags) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;
 
 // Error

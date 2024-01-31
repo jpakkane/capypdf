@@ -327,6 +327,7 @@ cfunc_types = (
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
 )
@@ -1174,6 +1175,11 @@ class Annotation:
 
     def set_rectangle(self, x1, y1, x2, y2):
         check_error(libfile.capy_annotation_set_rectangle(self, x1, y1, x2, y2))
+
+    def set_flags(self, flags):
+        if not isinstance(flags, AnnotationFlag):
+            raise CapyPDFException('Flag argument is not an AnnotationFlag.')
+        check_error(libfile.capy_annotation_set_flags(self, flags.value ))
 
     @classmethod
     def new_text_annotation(cls, text):

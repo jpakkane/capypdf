@@ -257,6 +257,7 @@ typedef std::variant<TextAnnotation,
 struct Annotation {
     AnnotationSubType sub;
     std::optional<PdfRectangle> rect;
+    CapyPDF_AnnotationFlags flags{CAPY_ANNOTATION_FLAG_NONE};
 };
 
 struct DelayedAnnotation {

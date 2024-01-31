@@ -1278,11 +1278,13 @@ rvoe<NoReturnValue> PdfDocument::write_annotation(int obj_num,
     std::string dict = fmt::format(R"(<<
   /Type /Annot
   /Rect [ {:f} {:f} {:f} {:f} ]
+  /F {}
 )",
                                    annotation.a.rect->x1,
                                    annotation.a.rect->y1,
                                    annotation.a.rect->x2,
-                                   annotation.a.rect->y2);
+                                   annotation.a.rect->y2,
+                                   (int)annotation.a.flags);
     auto app = std::back_inserter(dict);
     if(loc != annotation_use.end()) {
         fmt::format_to(app, "  /P {} 0 R\n", loc->second);

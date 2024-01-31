@@ -953,26 +953,29 @@ class TestPDFCreation(unittest.TestCase):
             with gen.page_draw_context() as ctx:
                 ctx.cmd_rg(0.9, 0.1, 0.1)
                 ctx.cmd_re(bleed_size, bleed_size, w-2*bleed_size, h-2*bleed_size)
-                #ctx.cmd_re(10, 10, 20, 20)
                 ctx.cmd_f()
 
                 # Vertical annotations
                 a = capypdf.Annotation.new_printers_mark_annotation(vid)
                 a.set_rectangle(bleed_size-0.5, 0, bleed_size+.5, cropmark_size)
+                a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
                 aid = gen.create_annotation(a)
                 ctx.annotate(aid)
                 a = capypdf.Annotation.new_printers_mark_annotation(vid)
                 a.set_rectangle(bleed_size-0.5, h-cropmark_size, bleed_size+.5, h)
+                a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
                 aid = gen.create_annotation(a)
                 ctx.annotate(aid)
 
                 # Horizontal annotations
                 a = capypdf.Annotation.new_printers_mark_annotation(hid)
                 a.set_rectangle(0, bleed_size - 0.5, cropmark_size, bleed_size+.5)
+                a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
                 aid = gen.create_annotation(a)
                 ctx.annotate(aid)
                 a = capypdf.Annotation.new_printers_mark_annotation(hid)
                 a.set_rectangle(0, h - bleed_size - 0.5, cropmark_size, h - bleed_size+.5)
+                a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
                 aid = gen.create_annotation(a)
                 ctx.annotate(aid)
 

@@ -1299,6 +1299,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
+    CapyPDF_Annotation *annotation, CapyPDF_AnnotationFlags flags) CAPYPDF_NOEXCEPT {
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    a->flags = flags;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Annotation *>(annotation);
     RETNOERR;
