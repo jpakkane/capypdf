@@ -44,12 +44,12 @@ struct GstatePopper {
 
 struct SerializedBasicContext {
     std::string resource_dict;
-    std::string object_dict;
+    std::string unclosed_object_dict;
     std::string command_stream;
 };
 
 struct SerializedXObject {
-    std::string dict;
+    std::string dict; // FIXME, convert to unclosed so these can be compressed.
     std::string command_stream;
 };
 

@@ -177,6 +177,7 @@ struct PdfGenerationData {
     ColorProfiles prof;
     std::optional<CapyPDF_Intent_Subtype> subtype;
     std::string intent_condition_identifier;
+    bool compress_streams = false;
 };
 
 struct Outline {
@@ -304,7 +305,7 @@ public:
 
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_dict,
-                                 std::string object_dict,
+                                 std::string unclosed_object_dict,
                                  std::string command_stream,
                                  const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,

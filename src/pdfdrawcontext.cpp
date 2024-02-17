@@ -73,12 +73,7 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
     } else {
         SerializedBasicContext sc;
         sc.resource_dict = std::move(resource_dict);
-        sc.object_dict = fmt::format(
-            R"(<<
-  /Length {}
->>
-)",
-            commands.size());
+        sc.unclosed_object_dict = "<<\n";
         sc.command_stream = commands;
         return sc;
     }

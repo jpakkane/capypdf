@@ -415,7 +415,7 @@ int32_t PdfDocument::create_page_group() {
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
-                                          std::string object_dict,
+                                          std::string unclosed_object_dict,
                                           std::string command_stream,
                                           const PageProperties &custom_props,
                                           const std::unordered_set<CapyPDF_FormWidgetId> &fws,
@@ -439,8 +439,17 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         }
     }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), ""});
-    const auto commands_num =
-        add_object(FullPDFObject{std::move(object_dict), std::move(command_stream)});
+    int32_t commands_num{-1};
+    if(opts.compress_streams) {
+        commands_num = add_object(
+            DeflatePDFObject(std::move(unclosed_object_dict), std::move(command_stream)));
+    } else {
+        fmt::format_to(std::back_inserter(unclosed_object_dict),
+                       "  /Length {}\n>>\n",
+                       command_stream.length());
+        commands_num =
+            add_object(FullPDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
+    }
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
     p.custom_props = custom_props;
