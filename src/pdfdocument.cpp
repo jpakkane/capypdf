@@ -2116,7 +2116,7 @@ PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroup
     }
     auto sc_var = ctx.serialize(ex);
     auto &d = std::get<SerializedXObject>(sc_var);
-    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.stream)});
+    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
     transparency_groups.push_back(objid);
     return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
 }

@@ -176,7 +176,7 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     auto sc_var = ctx.serialize();
     assert(std::holds_alternative<SerializedXObject>(sc_var));
     auto &sc = std::get<SerializedXObject>(sc_var);
-    pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.stream));
+    pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.command_stream));
     ctx.clear();
     CapyPDF_FormXObjectId fxoid;
     fxoid.id = (int32_t)pdoc.form_xobjects.size() - 1;

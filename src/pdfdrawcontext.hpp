@@ -49,7 +49,7 @@ struct SerializedBasicContext {
 
 struct SerializedXObject {
     std::string dict;
-    std::string stream;
+    std::string command_stream;
 };
 
 typedef std::variant<SerializedBasicContext, SerializedXObject> DCSerialization;

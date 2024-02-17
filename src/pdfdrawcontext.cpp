@@ -25,8 +25,7 @@ PdfDrawContext::PdfDrawContext(
 PdfDrawContext::~PdfDrawContext() {}
 
 DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) {
-    SerializedBasicContext sc;
-    sc.dict = build_resource_dict();
+    auto resource_dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
         std::string dict = fmt::format(
             R"(<<
@@ -41,7 +40,7 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
             0.0,
             w,
             h,
-            sc.dict,
+            resource_dict,
             commands.size());
         return SerializedXObject{std::move(dict), commands};
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
@@ -68,10 +67,12 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
   /Length {}
 >>
 )",
-                       sc.dict,
+                       resource_dict,
                        commands.size());
         return SerializedXObject{std::move(dict), commands};
     } else {
+        SerializedBasicContext sc;
+        sc.dict = std::move(resource_dict);
         sc.commands = fmt::format(
             R"(<<
   /Length {}
@@ -82,8 +83,8 @@ endstream
 )",
             commands.size(),
             commands);
+        return sc;
     }
-    return sc;
 }
 
 void PdfDrawContext::clear() {
