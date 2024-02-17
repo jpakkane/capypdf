@@ -303,8 +303,9 @@ public:
     rvoe<NoReturnValue> write_to_file(FILE *output_file);
 
     // Pages
-    rvoe<NoReturnValue> add_page(std::string resource_data,
-                                 std::string page_data,
+    rvoe<NoReturnValue> add_page(std::string resource_dict,
+                                 std::string object_dict,
+                                 std::string command_stream,
                                  const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,

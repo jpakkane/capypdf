@@ -414,8 +414,9 @@ int32_t PdfDocument::create_page_group() {
     return add_object(FullPDFObject{std::move(buf), ""});
 }
 
-rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
-                                          std::string page_data,
+rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
+                                          std::string object_dict,
+                                          std::string command_stream,
                                           const PageProperties &custom_props,
                                           const std::unordered_set<CapyPDF_FormWidgetId> &fws,
                                           const std::unordered_set<CapyPDF_AnnotationId> &annots,
@@ -437,8 +438,9 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_data,
             RETERR(StructureReuse);
         }
     }
-    const auto resource_num = add_object(FullPDFObject{std::move(resource_data), ""});
-    const auto commands_num = add_object(FullPDFObject{std::move(page_data), ""});
+    const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), ""});
+    const auto commands_num =
+        add_object(FullPDFObject{std::move(object_dict), std::move(command_stream)});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
     p.custom_props = custom_props;

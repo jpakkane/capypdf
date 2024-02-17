@@ -43,8 +43,9 @@ struct GstatePopper {
 };
 
 struct SerializedBasicContext {
-    std::string dict;
-    std::string commands;
+    std::string resource_dict;
+    std::string object_dict;
+    std::string command_stream;
 };
 
 struct SerializedXObject {
