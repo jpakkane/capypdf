@@ -54,6 +54,10 @@ struct PdfTokenReal {
     double value;
 };
 
+struct PdfTokenBoolean {
+    bool value;
+};
+
 struct PdfTokenEndObj {};
 
 struct PdfTokenFinished {};
@@ -72,6 +76,7 @@ typedef std::variant<PdfTokenDictStart,
                      PdfTokenHexString,
                      PdfTokenInteger,
                      PdfTokenReal,
+                     PdfTokenBoolean,
                      PdfTokenError,
                      PdfTokenFinished>
     PdfToken;
@@ -105,12 +110,14 @@ struct PdfNodeString {
 struct PdfNodeStringLiteral {
     std::string value;
 }; // Without leading slash.
+
 struct PdfNodeHexString {
     std::string value;
 };
 
 typedef std::variant<int64_t,
                      double,
+                     bool,
                      PdfNodeArray,
                      PdfNodeDict,
                      PdfNodeObjRef,

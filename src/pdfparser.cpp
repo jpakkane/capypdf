@@ -32,6 +32,7 @@ const std::regex endobj{R"(^endobj)"};
 const std::regex number{R"(^-?\d+)"};
 const std::regex real{R"(^(-?\d+\.\d+))"};
 const std::regex hexstr{R"(^<([0-9a-fA-F]+)>)"};
+const std::regex boolstr{R"(^(true|false)\b)"};
 
 } // namespace
 
@@ -47,6 +48,7 @@ const char *text2 = R"(9 0 obj
 /CapHeight 981
 /StemV 80
 /FontFile2 7 0 R
+/BoolEntry true
 >>
 endobj
 )";
@@ -131,11 +133,11 @@ PdfToken PdfLexer::next() {
         } else if(std::regex_search(text.c_str() + offset, m, stringobj)) {
             ++offset;
             auto advance = lex_string(text.c_str() + offset);
-            if(advance < 0) {
+            if(advance <= 0) {
                 // std::cout << "\nParent string parsing failed.\n";
                 return PdfTokenError{};
             }
-            std::string temptext(text.c_str() + offset, advance);
+            std::string temptext(text.c_str() + offset, advance - 1);
             offset += advance;
             return PdfTokenString(std::move(temptext));
         } else if(std::regex_search(text.c_str() + offset, m, real)) {
@@ -153,6 +155,10 @@ PdfToken PdfLexer::next() {
             std::string hexs(text.c_str() + offset + m.position(1), m.length(1));
             offset += m.length();
             return PdfTokenHexString{std::move(hexs)};
+        } else if(std::regex_search(text.c_str() + offset, m, boolstr)) {
+            std::string_view bools(text.c_str() + offset + m.position(1), m.length(1));
+            offset += m.length();
+            return PdfTokenBoolean{bools == "true"};
         } else {
             return PdfTokenError{};
         }
@@ -186,6 +192,9 @@ std::optional<PdfValueElement> PdfParser::parse_value() {
     }
     if(auto realval = accept<PdfTokenReal>(); realval) {
         return realval->value;
+    }
+    if(auto boolval = accept<PdfTokenBoolean>(); boolval) {
+        return boolval->value;
     }
     if(auto refval = accept<PdfTokenObjRef>(); refval) {
         return PdfNodeObjRef{refval->objnum, refval->version};
@@ -288,6 +297,9 @@ void PrettyPrinter::print_value(const PdfValueElement &e, bool with_indent) {
     } else if(std::holds_alternative<double>(e)) {
         const auto &v = std::get<double>(e);
         fmt::format_to(app, "{}{}\n", ind, v);
+    } else if(std::holds_alternative<bool>(e)) {
+        const auto &v = std::get<bool>(e);
+        fmt::format_to(app, "{}{}\n", ind, v ? "true" : "false");
     } else if(std::holds_alternative<PdfNodeArray>(e)) {
         const auto &v = std::get<PdfNodeArray>(e);
         fmt::format_to(app, "{}[\n", ind);
