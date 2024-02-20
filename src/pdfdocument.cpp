@@ -467,17 +467,18 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         p.structparents = (int32_t)structure_parent_tree_items.size();
         structure_parent_tree_items.push_back(structs);
     }
-    const auto page_num = add_object(std::move(p));
+    const auto page_object_num = add_object(std::move(p));
     for(const auto &fw : fws) {
-        form_use[fw] = page_num;
+        form_use[fw] = page_object_num;
     }
     for(const auto &a : annots) {
-        annotation_use[a] = page_num;
+        annotation_use[a] = page_object_num;
     }
+    int32_t mcid_num = 0;
     for(const auto &s : structs) {
-        structure_use[s] = page_num;
+        structure_use[s] = StructureUsage{(int32_t)pages.size(), mcid_num++};
     }
-    pages.emplace_back(PageOffsets{resource_num, commands_num, page_num});
+    pages.emplace_back(PageOffsets{resource_num, commands_num, page_object_num});
     return NoReturnValue{};
 }
 
@@ -1436,6 +1437,15 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
             fmt::format_to(app, "    {} 0 R\n", structure_items.at(c.id).obj_id);
         }
         dict += "  ]\n";
+    } else {
+        // FIXME. Maybe not correct? Assumes that a struct item
+        // either has children or is used on a page. Not both.
+        const auto it = structure_use.find(dsi.sid);
+        if(it != structure_use.end()) {
+            const auto &[page_num, mcid_num] = it->second;
+            fmt::format_to(app, "  /Pg {} 0 R\n", pages.at(page_num).page_obj_num);
+            fmt::format_to(app, "  /K {}\n", mcid_num);
+        }
     }
     dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
