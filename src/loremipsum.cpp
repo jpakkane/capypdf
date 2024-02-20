@@ -153,7 +153,7 @@ void render_column(const std::vector<std::string> &text_lines,
     CHCK(textobj.cmd_TL(leading));
     CHCK(textobj.cmd_BDC(
         asciistring::from_cstr("P").value(),
-        gen.add_structure_item(asciistring::from_cstr("P").value(), title_item).value()));
+        gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_P, title_item).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto l = u8string::from_cstr(text_lines[i]).value();
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -172,7 +172,8 @@ void render_column(const std::vector<std::string> &text_lines,
                 CHCK(textobj.cmd_EMC());
                 CHCK(textobj.cmd_BDC(
                     asciistring::from_cstr("P").value(),
-                    gen.add_structure_item(asciistring::from_cstr("P").value(), title_item)
+                    gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_P,
+                                           title_item)
                         .value()));
             }
             CHCK(textobj.cmd_Tstar());
@@ -190,8 +191,9 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double titlesize = 28;
     const double authorsize = 18;
 
-    title_item =
-        gen.add_structure_item(asciistring::from_cstr("Title").value(), document_root_item).value();
+    title_item = gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_TITLE,
+                                        document_root_item)
+                     .value();
     CHCK(ctx.cmd_BDC(asciistring::from_cstr("P").value(), title_item));
     CHCK(ctx.render_text(title,
                          titlefont,
@@ -200,8 +202,8 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
                          titley));
     CHCK(ctx.cmd_EMC());
     CHCK(ctx.cmd_BDC(
-        asciistring::from_cstr("H2").value(),
-        gen.add_structure_item(asciistring::from_cstr("Author").value(), document_root_item)
+        asciistring::from_cstr("Author").value(),
+        gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_H2, document_root_item)
             .value()));
     CHCK(ctx.render_text(author,
                          authorfont,
@@ -239,8 +241,8 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
     CHCK(ctx.cmd_BDC(
-        asciistring::from_cstr("H3").value(),
-        gen.add_structure_item(asciistring::from_cstr("Email").value(), document_root_item)
+        asciistring::from_cstr("Email").value(),
+        gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_H3, document_root_item)
             .value()));
     CHCK(ctx.render_text(email,
                          emailfont,
@@ -261,7 +263,7 @@ int main() {
     auto &ctx = ctxguard.ctx;
 
     document_root_item =
-        gen.add_structure_item(asciistring::from_cstr("Document").value(), {}).value();
+        gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_DOCUMENT, {}).value();
     draw_headings(gen, ctx);
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);

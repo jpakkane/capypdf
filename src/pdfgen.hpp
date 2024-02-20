@@ -136,7 +136,8 @@ public:
     }
 
     rvoe<CapyPDF_StructureItemId>
-    add_structure_item(const asciistring &stype, std::optional<CapyPDF_StructureItemId> parent) {
+    add_structure_item(const CapyPDF_StructureTypes stype,
+                       std::optional<CapyPDF_StructureItemId> parent) {
         return pdoc.add_structure_item(stype, parent);
     }
 

@@ -39,6 +39,58 @@ std::array<const char *, 12> transition_names{
     "/Fade",
 };
 
+std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names{
+    // clang-format off
+    "/Document",
+    "/DocumentFragment",
+    "/Part",
+    "/Sect",
+    "/Div",
+    "/Aside",
+    "/NonStruct",
+    "/P",
+    "/H",
+    "/H1",
+    "/H2",
+    "/H3",
+    "/H4",
+    "/H5",
+    "/H6",
+    "/H7",
+    "/Title",
+    "/FENote",
+    "/Sub",
+    "/Lbl",
+    "/Span",
+    "/Em",
+    "/Strong",
+    "/Link",
+    "/Annot",
+    "/Form",
+    "/Ruby",
+    "/RB",
+    "/RT",
+    "/RP",
+    "/Warichu",
+    "/WT",
+    "/WP",
+    "/L",
+    "/LI",
+    "/LBody",
+    "/Table",
+    "/TR",
+    "/TH",
+    "/TD",
+    "/THead",
+    "/TBody",
+    "/TFoot",
+    "/Caption",
+    "/Figure",
+    "/Formula",
+    "/Artifact",
+    // clang-format on
+};
+
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
     if(face) {
@@ -1425,10 +1477,10 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
     }
     std::string dict = fmt::format(R"(<<
   /Type /StructElem
-  /S /{}
+  /S {}
   /P {} 0 R
 )",
-                                   si.stype.sv(),
+                                   structure_type_names.at(si.stype),
                                    parent_object);
     auto app = std::back_inserter(dict);
     if(!children.empty()) {
@@ -2103,7 +2155,7 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(const asciistring &stype,
+PdfDocument::add_structure_item(const CapyPDF_StructureTypes stype,
                                 std::optional<CapyPDF_StructureItemId> parent) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
