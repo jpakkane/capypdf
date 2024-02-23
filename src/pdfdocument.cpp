@@ -881,7 +881,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         ERC(treeid, create_structure_parent_tree());
         structure_parent_tree_object = treeid;
         create_structure_root_dict();
-        structure = fmt::format("  /StructureTreeRoot {} 0 R\n", *structure_root_object);
+        structure = fmt::format("  /StructTreeRoot {} 0 R\n", *structure_root_object);
     }
     fmt::format_to(app,
                    R"(<<
