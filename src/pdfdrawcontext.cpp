@@ -254,6 +254,12 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
     RETOK;
 }
 
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
+    auto itemtype = doc->structure_items.at(sid.id).stype;
+    ERC(astr, asciistring::from_cstr(structure_type_names.at(itemtype)));
+    return cmd_BDC(astr, sid, {});
+}
+
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     ++marked_depth;
     used_ocgs.insert(ocgid);

@@ -32,6 +32,58 @@ uint32_t unpack_one(const unsigned char *valid_utf8, const UtfDecodeStep &par) {
 
 } // namespace
 
+std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names{
+    // clang-format off
+    "Document",
+    "DocumentFragment",
+    "Part",
+    "Sect",
+    "Div",
+    "Aside",
+    "NonStruct",
+    "P",
+    "H",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "H6",
+    "H7",
+    "Title",
+    "FENote",
+    "Sub",
+    "Lbl",
+    "Span",
+    "Em",
+    "Strong",
+    "Link",
+    "Annot",
+    "Form",
+    "Ruby",
+    "RB",
+    "RT",
+    "RP",
+    "Warichu",
+    "WT",
+    "WP",
+    "L",
+    "LI",
+    "LBody",
+    "Table",
+    "TR",
+    "TH",
+    "TD",
+    "THead",
+    "TBody",
+    "TFoot",
+    "Caption",
+    "Figure",
+    "Formula",
+    "Artifact",
+    // clang-format on
+};
+
 rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
     if(!is_ascii(cstr)) {
         RETERR(NotASCII);

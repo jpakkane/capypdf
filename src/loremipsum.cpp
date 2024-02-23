@@ -192,15 +192,14 @@ void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
     const double authorsize = 18;
 
     auto title_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_H1, document_root_item).value();
-    CHCK(ctx.cmd_BDC(asciistring::from_cstr("H1").value(), title_item));
+    CHCK(ctx.cmd_BDC(title_item));
     CHCK(ctx.render_text(title,
                          titlefont,
                          titlesize,
                          midx - text_width(title.sv(), gen, titlefont, titlesize) / 2,
                          titley));
     CHCK(ctx.cmd_EMC());
-    CHCK(ctx.cmd_BDC(asciistring::from_cstr("H2").value(),
-                     gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, document_root_item).value()));
+    CHCK(ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, document_root_item).value()));
     CHCK(ctx.render_text(author,
                          authorfont,
                          authorsize,
@@ -236,8 +235,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
-    CHCK(ctx.cmd_BDC(asciistring::from_cstr("H3").value(),
-                     gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, document_root_item).value()));
+    CHCK(ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, document_root_item).value()));
     CHCK(ctx.render_text(email,
                          emailfont,
                          emailsize,
