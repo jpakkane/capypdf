@@ -463,7 +463,7 @@ int32_t PdfDocument::create_page_group() {
 >>
 )",
                                   colorspace_names.at((int)opts.output_colorspace));
-    return add_object(FullPDFObject{std::move(buf), ""});
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
@@ -490,7 +490,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
             RETERR(StructureReuse);
         }
     }
-    const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), ""});
+    const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
     int32_t commands_num{-1};
     if(opts.compress_streams) {
         commands_num = add_object(
@@ -567,7 +567,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
         rootbuf += "    ]\n  >>\n";
         fmt::format_to(rootapp, "  /Prev {} 0 R\n>>\n", root_obj + 1 + subnav.size());
 
-        add_object(FullPDFObject{std::move(rootbuf), ""});
+        add_object(FullPDFObject{std::move(rootbuf), {}});
     }
     int32_t first_obj = document_objects.size();
 
@@ -604,7 +604,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
             fmt::format_to(app, "  /Prev {} 0 R\n", first_obj + i - 1);
         }
         buf += ">>\n";
-        add_object(FullPDFObject{std::move(buf), ""});
+        add_object(FullPDFObject{std::move(buf), {}});
     }
     add_object(FullPDFObject{fmt::format(R"(<<
   /Type /NavNode
@@ -617,7 +617,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
 )",
                                          ocg_object_number(subnav.back().id),
                                          first_obj + subnav.size() - 1),
-                             ""});
+                             {}});
     return root_obj;
 }
 
@@ -659,7 +659,7 @@ exch {} mul
 )",
                    name.c_str(),
                    fn_num);
-    separation_objects.push_back(add_object(FullPDFObject{buf, ""}));
+    separation_objects.push_back(add_object(FullPDFObject{buf, {}}));
     return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
@@ -844,7 +844,7 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
         fmt::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
     }
     buf += "  ]\n>>\n";
-    return add_object(FullPDFObject{std::move(buf), ""});
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
 rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
@@ -859,7 +859,7 @@ rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
         buf += "  ]\n";
     }
     buf += "] >>\n";
-    return add_object(FullPDFObject{std::move(buf), ""});
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
@@ -929,7 +929,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         buf += "  >>\n";
     }
     buf += ">>\n";
-    add_object(FullPDFObject{buf, ""});
+    add_object(FullPDFObject{buf, {}});
     return NoReturnValue{};
 }
 
@@ -947,7 +947,7 @@ void PdfDocument::create_output_intent() {
                       intentnames.at((int)*opts.subtype),
                       pdfstring_quote(opts.intent_condition_identifier),
                       icc_profiles.at(output_profile->id).stream_num);
-    output_intent_object = add_object(FullPDFObject{buf, ""});
+    output_intent_object = add_object(FullPDFObject{buf, {}});
 }
 
 rvoe<int32_t> PdfDocument::create_outlines() {
@@ -993,7 +993,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         fmt::format_to(app,
                        "  /Parent {} 0 R\n>>",
                        parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
-        add_object(FullPDFObject{std::move(oitem), ""});
+        add_object(FullPDFObject{std::move(oitem), {}});
     }
     const auto &top_level = outlines.children.at(-1);
     std::string buf = fmt::format(R"(<<
@@ -1009,7 +1009,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 
     assert(catalog_obj_num == (int32_t)document_objects.size());
     // FIXME: add output intents here. PDF spec 14.11.5
-    return add_object(FullPDFObject{std::move(buf), ""});
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
 void PdfDocument::create_structure_root_dict() {
@@ -1039,7 +1039,7 @@ void PdfDocument::create_structure_root_dict() {
                       structure_items[rootobj->id].obj_id,
                       structure_parent_tree_object.value(),
                       structure_parent_tree_items.size());
-    structure_root_object = add_object(FullPDFObject{buf, ""});
+    structure_root_object = add_object(FullPDFObject{buf, {}});
 }
 
 rvoe<NoReturnValue>
@@ -1556,7 +1556,7 @@ CapyPDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents
                    num_channels);
     auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
     auto obj_id =
-        add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), ""});
+        add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
     return CapyPDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
@@ -1624,7 +1624,7 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
 >>
 )",
                    font_names[font]);
-    font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, ""}), size_t(-1)});
+    font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, {}}), size_t(-1)});
     auto fontid = CapyPDF_FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
@@ -2139,7 +2139,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
 )",
                        pdfstring_quote(fname.filename().string()),
                        fileobj_id);
-    auto filespec_id = add_object(FullPDFObject{std::move(dict), ""});
+    auto filespec_id = add_object(FullPDFObject{std::move(dict), {}});
     embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
     return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
@@ -2174,7 +2174,7 @@ PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
 >>
 )",
                                                    pdfstring_quote(g.name)),
-                                       ""});
+                                       {}});
     ocg_items.push_back(id);
     return CapyPDF_OptionalContentGroupId{(int32_t)ocg_items.size() - 1};
 }
