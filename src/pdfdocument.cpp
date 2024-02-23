@@ -22,9 +22,9 @@ namespace capypdf {
 
 namespace {
 
-std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
+const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
-std::array<const char *, 12> transition_names{
+const std::array<const char *, 12> transition_names{
     "/Split",
     "/Blinds",
     "/Box",

@@ -32,7 +32,7 @@ uint32_t unpack_one(const unsigned char *valid_utf8, const UtfDecodeStep &par) {
 
 } // namespace
 
-std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names{
+const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names{
     // clang-format off
     "Document",
     "DocumentFragment",

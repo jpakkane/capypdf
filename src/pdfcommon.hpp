@@ -54,7 +54,7 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf {
 
-extern std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
+extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
 
 // Does not check if the given buffer is valid UTF-8.
 // If it is not, UB ensues.
