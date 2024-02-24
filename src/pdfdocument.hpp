@@ -272,7 +272,7 @@ struct DelayedStructItem {
 
 struct StructItem {
     int32_t obj_id;
-    CapyPDF_StructureTypes stype;
+    CapyPDF_StructureType stype;
     std::optional<CapyPDF_StructureItemId> parent;
 };
 
@@ -373,7 +373,7 @@ public:
     rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
 
     // Structure items
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureTypes stype,
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
                                                      std::optional<CapyPDF_StructureItemId> parent);
 
     // Optional content groups

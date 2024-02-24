@@ -150,10 +150,8 @@ void render_column(const std::vector<std::string> &text_lines,
     CHCK(textobj.cmd_Tf(textfont, textsize));
     CHCK(textobj.cmd_Td(column_left, column_top));
     CHCK(textobj.cmd_TL(leading));
-    CHCK(textobj.cmd_BDC(
-        asciistring::from_cstr("P").value(),
-        gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_P, document_root_item)
-            .value()));
+    CHCK(
+        textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, document_root_item).value()));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto l = u8string::from_cstr(text_lines[i]).value();
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -171,10 +169,7 @@ void render_column(const std::vector<std::string> &text_lines,
             } else {
                 CHCK(textobj.cmd_EMC());
                 CHCK(textobj.cmd_BDC(
-                    asciistring::from_cstr("P").value(),
-                    gen.add_structure_item(CapyPDF_StructureTypes::CAPY_STRUCTURE_TYPE_P,
-                                           document_root_item)
-                        .value()));
+                    gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, document_root_item).value()));
             }
             CHCK(textobj.cmd_Tstar());
         }

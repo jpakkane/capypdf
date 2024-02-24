@@ -158,6 +158,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_default_page_properties(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_tagged(CapyPDF_Options *opt,
+                                                  int32_t is_tagged) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(is_tagged);
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    opts->is_tagged = is_tagged;
+    RETNOERR;
+}
+
 CapyPDF_EC capy_generator_new(const char *filename,
                               const CapyPDF_Options *options,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
@@ -352,6 +360,23 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *gen,
+                                                            const CapyPDF_StructureType stype,
+                                                            const CapyPDF_StructureItemId *parent,
+                                                            CapyPDF_StructureItemId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    std::optional<CapyPDF_StructureItemId> item_parent;
+    if(parent) {
+        item_parent = *parent;
+    }
+    auto rc = g->add_structure_item(stype, item_parent);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -491,6 +516,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NO
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(dc->cmd_Bstar());
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_builtin(
+    CapyPDF_DrawContext *ctx, CapyPDF_StructureItemId structid) CAPYPDF_NOEXCEPT {
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_BDC(structid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_ocg(
@@ -833,6 +864,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
     auto *t = reinterpret_cast<PdfText *>(text);
     const auto *c = reinterpret_cast<const Color *>(color);
     return conv_err(t->stroke_color(*c));
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_BDC_builtin(CapyPDF_Text *text,
+                                                    CapyPDF_StructureItemId stid) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_BDC(stid));
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_EMC(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_EMC());
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tc(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT {

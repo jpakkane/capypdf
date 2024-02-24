@@ -90,6 +90,7 @@ public:
     cmd_BDC(const asciistring &name,
             std::optional<CapyPDF_StructureItemId> sid,
             const std::optional<std::unordered_map<std::string, std::string>> &attributes);
+    // FIXME, needs an argument to specify extra dict.
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
     rvoe<NoReturnValue> cmd_BMC(std::string_view tag);

@@ -99,6 +99,65 @@ class AnnotationFlag(IntFlag):
     ToggleNoView = auto()
     LockedContents = auto()
 
+class StructureType(Enum):
+    Document = 0
+    DocumentFragment = 1
+
+    Part = 2,
+    Sect = 3,
+    Div = 4
+    Aside = 5
+    Nonstruct = 6
+
+    P = 7
+    H = 8
+    H1 = 9
+    H2 = 10
+    H3 = 11
+    H4 = 12
+    H5 = 13
+    H6 = 14
+    H7 = 15
+    Title = 16
+    FENote = 17
+
+    Sub = 18
+
+    Lbl = 19
+    Span = 20
+    Em = 21
+    Strong = 22
+    Link = 23
+    Annot = 24
+    Form = 25
+
+    Ruby = 26,
+    RB = 27
+    RT = 28
+    RP = 29
+    Warichu = 30
+    WT = 31
+    WP = 32
+
+    L = 33
+    Li = 34
+    LBody = 35
+    Table = 36
+    TR = 37
+    TH = 38
+    TD = 39
+    Thead = 40
+    TBody = 41
+    TFoot = 42
+
+    Caption = 43
+
+    Figure = 44
+
+    Formula = 45
+
+    Artifact = 46
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -145,6 +204,10 @@ class EmbeddedFileId(ctypes.Structure):
 class FormXObjectId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class StructureItemId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
+
 cfunc_types = (
 
 ('capy_options_new', [ctypes.c_void_p]),
@@ -157,6 +220,7 @@ cfunc_types = (
 ('capy_options_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_output_intent', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
 ('capy_options_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_options_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
 
 ('capy_page_properties_new', [ctypes.c_void_p]),
 ('capy_page_properties_destroy', [ctypes.c_void_p]),
@@ -179,6 +243,7 @@ cfunc_types = (
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type6_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_structure_item', [ctypes.c_void_p, enum_type, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -246,6 +311,8 @@ cfunc_types = (
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
+('capy_text_cmd_BDC_builtin', [ctypes.c_void_p, StructureItemId]),
+('capy_text_cmd_EMC', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
@@ -447,6 +514,11 @@ class Options:
             raise CapyPDFException('Argument is not a PageProperties object.')
         check_error(libfile.capy_options_set_default_page_properties(self, props))
 
+    def set_tagged(self, is_tagged):
+        tagint = 1 if is_tagged else 0
+        check_error(libfile.capy_options_set_tagged(self, tagint))
+
+
 class PageProperties:
     def __init__(self):
         opt = ctypes.c_void_p()
@@ -485,6 +557,12 @@ class DrawContextBase:
             raise CapyPDFException('Argument must be an optional content group ID.')
         check_error(libfile.capy_dc_cmd_BDC_ocg(self, ocg))
         # FIXME, return a context manager.
+
+    def cmd_BDC_builtin(self, structid):
+        if not isinstance(structid, StructureItemId):
+            raise CapyPDFException('Argument must be a structure item ID.')
+        check_error(libfile.capy_dc_cmd_BDC_builtin(self, structid))
+        return MarkedContextManager(self)
 
     def cmd_BMC(self, tag):
         check_error(libfile.capy_dc_cmd_BMC(self, tag.encode('UTF-8')))
@@ -841,6 +919,20 @@ class Generator:
         check_error(libfile.capy_generator_add_type6_shading(self, type6shade, ctypes.pointer(shid)))
         return shid
 
+    def add_structure_item(self, struct_type, parent=None):
+        if not isinstance(struct_type, StructureType):
+            raise CapyPDFException('First argument must be a structure item type.')
+        if parent is None:
+            parentptr = None
+        else:
+            if not isinstance(parent, StructureItemId):
+                raise CapyPDFException('Second argument must be a StructureItemID or None.')
+            parentptr = ctypes.pointer(parent)
+        stid = StructureItemId()
+        check_error(libfile.capy_generator_add_structure_item(self, struct_type.value, parentptr, ctypes.pointer(stid)))
+        return stid
+
+
     def create_separation_simple(self, name, color):
         if not isinstance(color, Color):
             raise CapyPDFException('Color argument must be a color object.')
@@ -924,6 +1016,13 @@ class Text:
 
     def set_stroke(self, color):
         check_error(libfile.capy_text_set_stroke(self, color))
+
+    def cmd_BDC_builtin(self, struct_id):
+        check_error(libfile.capy_text_cmd_BDC_builtin(self, struct_id))
+        return MarkedContextManager(self)
+
+    def cmd_EMC(self):
+        check_error(libfile.capy_text_cmd_EMC(self))
 
     def cmd_Tc(self, spacing):
         check_error(libfile.capy_text_cmd_Tc(self, spacing))

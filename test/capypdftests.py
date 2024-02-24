@@ -896,39 +896,35 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
+        opt.set_tagged(True)
         with capypdf.Generator(ofilename, opt) as gen:
             fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             bfid = gen.load_font(noto_fontdir / 'NotoSans-Bold.ttf')
-            title = 'This is the title'
+            title = 'H1 element'
+            doc_id = gen.add_structure_item(capypdf.StructureType.Document)
+
             with gen.page_draw_context() as ctx:
-                tw = gen.text_width(title,bfid, 16)
-                with ctx.cmd_BMC('/Title'):
-                    ctx.render_text(title, bfid, 16, 100-tw/2, 170)
-                with ctx.cmd_BMC('/Artifact'):
+                tw = gen.text_width(title,bfid, 14)
+                title_id = gen.add_structure_item(capypdf.StructureType.H1, doc_id)
+                with ctx.cmd_BDC_builtin(title_id):
+                    ctx.render_text(title, bfid, 14, 100-tw/2, 170)
+                with ctx.cmd_BMC('Artifact'):
                     ctx.cmd_w(1.5)
                     ctx.cmd_m(50, 155)
                     ctx.cmd_l(150, 155)
                     ctx.cmd_S()
-                with ctx.cmd_BMC('/p'):
+                with ctx.cmd_BDC_builtin(gen.add_structure_item(capypdf.StructureType.P, doc_id)):
                     with ctx.text_new() as t:
                         t.cmd_Td(20, 130)
                         t.cmd_Tf(fid, 8)
                         t.cmd_TL(10)
-                        t.render_text('This is a single paragraph of text that')
-                        t.cmd_Tstar()
-                        t.render_text('contains multiple lines.')
-                with ctx.cmd_BMC('/p'):
-                    with ctx.text_new() as t:
-                        t.cmd_Td(20, 100)
-                        t.cmd_Tf(fid, 8)
-                        t.cmd_TL(10)
-                        t.render_text('This is a second paragraph that also')
-                        t.cmd_Tstar()
-                        t.render_text('contains multiple lines. It even')
-                        t.cmd_Tstar()
-                        t.render_text('contains more than one sentence.')
-        # NOTE: not actually tagged yet, only marked.
-        # Needs a structure tree but that is not yet implemented.
+                        t.render_text('Text object inside marked content')
+                with ctx.text_new() as t:
+                    t.cmd_Td(20, 100)
+                    t.cmd_Tf(fid, 8)
+                    t.cmd_TL(10)
+                    with t.cmd_BDC_builtin(gen.add_structure_item(capypdf.StructureType.P, doc_id)):
+                        t.render_text('Marked content inside text object.')
 
     @validate_image('python_printersmark', 200, 200)
     def test_printersmark(self, ofilename, w, h):

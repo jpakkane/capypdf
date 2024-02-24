@@ -79,7 +79,6 @@ struct Nonstroke_arg {
 };
 
 struct StructureItem {
-    asciistring name;
     CapyPDF_StructureItemId sid;
 };
 
@@ -106,8 +105,8 @@ class PdfText {
 public:
     explicit PdfText(PdfDrawContext *dc) : dc{dc} {};
 
-    rvoe<NoReturnValue> cmd_BDC(const asciistring &name, CapyPDF_StructureItemId sid) {
-        events.emplace_back(StructureItem{name, sid});
+    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid) {
+        events.emplace_back(StructureItem{sid});
         RETOK;
     }
 

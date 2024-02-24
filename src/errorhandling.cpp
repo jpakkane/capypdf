@@ -65,7 +65,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Argument must be ASCII.",
 "File does not exist.",
 "Annotation is missing location rectangle.",
-"BMC argument must be of the form \"/name\"",
+"BMC argument must not start with a slash.",
 "Nesting marked content is forbidden.",
 };
 

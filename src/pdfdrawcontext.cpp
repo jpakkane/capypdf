@@ -269,11 +269,11 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
-    if(tag.size() < 2 or tag.front() != '/') {
+    if(tag.size() < 2 || tag.front() == '/') {
         RETERR(BadBMC);
     }
     ++marked_depth;
-    fmt::format_to(cmd_appender, "{}{} BMC\n", ind, tag);
+    fmt::format_to(cmd_appender, "{}/{} BMC\n", ind, tag);
     ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
@@ -943,8 +943,9 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
             ERC(mcid_id, add_bcd_structure(sitem.sid));
-            fmt::format_to(
-                app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, sitem.name.sv(), mcid_id, ind);
+            auto itemid = doc->structure_items.at(sitem.sid.id).stype;
+            const auto &itemstr = structure_type_names.at(itemid);
+            fmt::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
             ERCV(indent(DrawStateType::MarkedContent));
             return NoReturnValue{};
         },

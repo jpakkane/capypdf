@@ -2103,7 +2103,7 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(const CapyPDF_StructureTypes stype,
+PdfDocument::add_structure_item(const CapyPDF_StructureType stype,
                                 std::optional<CapyPDF_StructureItemId> parent) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
