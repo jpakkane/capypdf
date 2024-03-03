@@ -377,6 +377,23 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
+                                         const CapyPDF_RoleId role,
+                                         const CapyPDF_StructureItemId *parent,
+                                         CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    std::optional<CapyPDF_StructureItemId> item_parent;
+    if(parent) {
+        item_parent = *parent;
+    }
+    auto rc = g->add_structure_item(role, item_parent);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -435,6 +452,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *ge
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *a = reinterpret_cast<Annotation *>(annotation);
     auto rc = g->create_annotation(*a);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
+                                                           const char *name,
+                                                           CapyPDF_StructureType builtin,
+                                                           CapyPDF_RoleId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto rc = g->add_rolemap_entry(name, builtin);
     if(rc) {
         *out_ptr = rc.value();
     }

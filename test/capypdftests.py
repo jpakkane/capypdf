@@ -926,6 +926,40 @@ class TestPDFCreation(unittest.TestCase):
                     with t.cmd_BDC_builtin(gen.add_structure_item(capypdf.StructureType.P, doc_id)):
                         t.render_text('Marked content inside text object.')
 
+    @validate_image('python_customroles', 200, 200)
+    def test_tagged(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        opt.set_tagged(True)
+        with capypdf.Generator(ofilename, opt) as gen:
+            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            bfid = gen.load_font(noto_fontdir / 'NotoSans-Bold.ttf')
+            title = 'Headline text'
+            head_role = gen.add_rolemap_entry("Headline", capypdf.StructureType.H1)
+            text_role = gen.add_rolemap_entry("Text body", capypdf.StructureType.P)
+            doc_id = gen.add_structure_item(capypdf.StructureType.Document)
+
+            with gen.page_draw_context() as ctx:
+                tw = gen.text_width(title,bfid, 14)
+                title_id = gen.add_structure_item(head_role, doc_id)
+                with ctx.cmd_BDC_builtin(title_id):
+                    ctx.render_text(title, bfid, 14, 100-tw/2, 170)
+                with ctx.cmd_BDC_builtin(gen.add_structure_item(text_role, doc_id)):
+                    with ctx.text_new() as t:
+                        t.cmd_Td(20, 130)
+                        t.cmd_Tf(fid, 8)
+                        t.cmd_TL(10)
+                        t.render_text('Text object inside custom role mark.')
+                with ctx.text_new() as t:
+                    t.cmd_Td(20, 100)
+                    t.cmd_Tf(fid, 8)
+                    t.cmd_TL(10)
+                    with t.cmd_BDC_builtin(gen.add_structure_item(text_role, doc_id)):
+                        t.render_text('Custom role mark inside text object.')
+
+
     @validate_image('python_printersmark', 200, 200)
     def test_printersmark(self, ofilename, w, h):
         cropmark_size = 5

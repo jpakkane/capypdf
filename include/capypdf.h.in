@@ -317,6 +317,10 @@ typedef struct {
     int32_t id;
 } CapyPDF_PatternId;
 
+typedef struct {
+    int32_t id;
+} CapyPDF_RoleId;
+
 // Options
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_new(CapyPDF_Options **out_ptr) CAPYPDF_NOEXCEPT;
@@ -414,6 +418,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
                                                             const CapyPDF_StructureItemId *parent,
                                                             CapyPDF_StructureItemId *out_ptr)
     CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
+                                         const CapyPDF_RoleId role,
+                                         const CapyPDF_StructureItemId *parent,
+                                         CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT;
@@ -430,6 +439,11 @@ capy_generator_add_optional_content_group(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
                                                            CapyPDF_Annotation *annotation,
                                                            CapyPDF_AnnotationId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
+                                                           const char *name,
+                                                           CapyPDF_StructureType builtin,
+                                                           CapyPDF_RoleId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 

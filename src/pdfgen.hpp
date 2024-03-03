@@ -141,6 +141,11 @@ public:
         return pdoc.add_structure_item(stype, parent);
     }
 
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(const CapyPDF_RoleId role, std::optional<CapyPDF_StructureItemId> parent) {
+        return pdoc.add_structure_item(role, parent);
+    }
+
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g) {
         return pdoc.add_optional_content_group(g);
     }
@@ -153,6 +158,10 @@ public:
     }
 
     rvoe<double> utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const;
+
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_StructureType builtin_type) {
+        return pdoc.add_rolemap_entry(std::move(name), builtin_type);
+    }
 
 private:
     PdfGen(std::filesystem::path ofilename,

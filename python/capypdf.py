@@ -207,6 +207,9 @@ class FormXObjectId(ctypes.Structure):
 class StructureItemId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class RoleId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -244,12 +247,14 @@ cfunc_types = (
 ('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type6_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_structure_item', [ctypes.c_void_p, enum_type, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_custom_structure_item', [ctypes.c_void_p, RoleId, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_create_separation_simple', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
+('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -920,8 +925,6 @@ class Generator:
         return shid
 
     def add_structure_item(self, struct_type, parent=None):
-        if not isinstance(struct_type, StructureType):
-            raise CapyPDFException('First argument must be a structure item type.')
         if parent is None:
             parentptr = None
         else:
@@ -929,7 +932,12 @@ class Generator:
                 raise CapyPDFException('Second argument must be a StructureItemID or None.')
             parentptr = ctypes.pointer(parent)
         stid = StructureItemId()
-        check_error(libfile.capy_generator_add_structure_item(self, struct_type.value, parentptr, ctypes.pointer(stid)))
+        if isinstance(struct_type, StructureType):
+            check_error(libfile.capy_generator_add_structure_item(self, struct_type.value, parentptr, ctypes.pointer(stid)))
+        elif isinstance(struct_type, RoleId):
+            check_error(libfile.capy_generator_add_custom_structure_item(self, struct_type, parentptr, ctypes.pointer(stid)))
+        else:
+            raise CapyPDFException('First argument must be a structure item or role id.')
         return stid
 
 
@@ -981,6 +989,15 @@ class Generator:
         aid = AnnotationId()
         check_error(libfile.capy_generator_create_annotation(self, annotation, ctypes.pointer(aid)))
         return aid
+
+    def add_rolemap_entry(self, name, builtin_type):
+        if not isinstance(builtin_type, StructureType):
+            raise CapyPDFException('Builtin type must be a StructureType.')
+        roid = RoleId()
+        name_bytes = name.encode('ASCII')
+        check_error(libfile.capy_generator_add_rolemap_entry(self, name_bytes, builtin_type.value, ctypes.pointer(roid)))
+        return roid
+
 
 class Text:
     def __init__(self, dc):

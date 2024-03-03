@@ -272,7 +272,7 @@ struct DelayedStructItem {
 
 struct StructItem {
     int32_t obj_id;
-    CapyPDF_StructureType stype;
+    std::variant<CapyPDF_StructureType, CapyPDF_RoleId> stype;
     std::optional<CapyPDF_StructureItemId> parent;
 };
 
@@ -294,6 +294,11 @@ typedef std::variant<DummyIndexZero,
                      DelayedAnnotation,
                      DelayedStructItem>
     ObjectType;
+
+struct RolemapEnty {
+    std::string name;
+    CapyPDF_StructureType builtin;
+};
 
 typedef std::variant<CapyPDF_Colorspace, CapyPDF_IccColorSpaceId> ColorspaceType;
 
@@ -375,6 +380,8 @@ public:
     // Structure items
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
                                                      std::optional<CapyPDF_StructureItemId> parent);
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
+                                                     std::optional<CapyPDF_StructureItemId> parent);
 
     // Optional content groups
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);
@@ -387,6 +394,8 @@ public:
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
     rvoe<int32_t> create_structure_parent_tree();
+
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_StructureType builtin_type);
 
 private:
     PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
@@ -484,6 +493,7 @@ private:
     std::vector<StructItem> structure_items;
     std::vector<int32_t> ocg_items;
     std::vector<int32_t> transparency_groups;
+    std::vector<RolemapEnty> rolemap;
     // A form widget can be used on one and only one page.
     std::unordered_map<CapyPDF_FormWidgetId, int32_t> form_use;
     std::unordered_map<CapyPDF_AnnotationId, int32_t> annotation_use;

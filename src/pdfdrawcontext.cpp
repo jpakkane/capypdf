@@ -255,9 +255,17 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
-    auto itemtype = doc->structure_items.at(sid.id).stype;
-    ERC(astr, asciistring::from_cstr(structure_type_names.at(itemtype)));
-    return cmd_BDC(astr, sid, {});
+    const auto &itemtype = doc->structure_items.at(sid.id).stype;
+    if(auto builtin = std::get_if<CapyPDF_StructureType>(&itemtype)) {
+        ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
+        return cmd_BDC(astr, sid, {});
+    } else if(auto role = std::get_if<CapyPDF_RoleId>(&itemtype)) {
+        auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name, false);
+        ERC(astr, asciistring::from_cstr(quoted.c_str()));
+        return cmd_BDC(astr, sid, {});
+    } else {
+        std::abort();
+    }
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
@@ -270,7 +278,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
     if(tag.size() < 2 || tag.front() == '/') {
-        RETERR(BadBMC);
+        RETERR(SlashStart);
     }
     ++marked_depth;
     fmt::format_to(cmd_appender, "{}/{} BMC\n", ind, tag);
@@ -942,10 +950,21 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
+            // FIXME, convert to a serialize method and make
+            // this and cmd_BDC use that.
             ERC(mcid_id, add_bcd_structure(sitem.sid));
-            auto itemid = doc->structure_items.at(sitem.sid.id).stype;
-            const auto &itemstr = structure_type_names.at(itemid);
-            fmt::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
+            auto item = doc->structure_items.at(sitem.sid.id).stype;
+            if(auto itemid = std::get_if<CapyPDF_StructureType>(&item)) {
+                const auto &itemstr = structure_type_names.at(*itemid);
+                fmt::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
+            } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
+                const auto &role = *ri;
+                auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name);
+                fmt::format_to(app, "{}{} << /MCID {} >>\n{}BDC\n", ind, rolename, mcid_id, ind);
+            } else {
+                fprintf(stderr, "FIXME 1\n");
+                std::abort();
+            }
             ERCV(indent(DrawStateType::MarkedContent));
             return NoReturnValue{};
         },

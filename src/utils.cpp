@@ -262,11 +262,13 @@ bool is_ascii(std::string_view text) {
 }
 
 // As in PDF 2.0 spec 7.3.5
-std::string bytes2pdfstringliteral(std::string_view raw) {
+std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash) {
     std::string result;
     char buf[10];
     result.reserve(raw.size() + 1);
-    result.push_back('/');
+    if(add_slash) {
+        result.push_back('/');
+    }
     for(const unsigned char c : raw) {
         if(needs_quoting(c)) {
             result += '#';

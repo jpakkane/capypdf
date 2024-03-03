@@ -810,6 +810,20 @@ rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
     return add_object(FullPDFObject{std::move(buf), {}});
 }
 
+rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
+                                                    CapyPDF_StructureType builtin_type) {
+    if(name.empty() || name.front() == '/') {
+        RETERR(SlashStart);
+    }
+    for(const auto &i : rolemap) {
+        if(i.name == name) {
+            RETERR(RoleAlreadyDefined);
+        }
+    }
+    rolemap.emplace_back(RolemapEnty{std::move(name), builtin_type});
+    return (CapyPDF_RoleId)(rolemap.size() - 1);
+}
+
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -962,6 +976,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 
 void PdfDocument::create_structure_root_dict() {
     std::string buf;
+    auto app = std::back_inserter(buf);
     std::optional<CapyPDF_StructureItemId> rootobj;
 
     if(!structure_parent_tree_object) {
@@ -977,16 +992,27 @@ void PdfDocument::create_structure_root_dict() {
     }
     assert(rootobj);
     // /ParentTree
-    buf = fmt::format(R"(<<
+    fmt::format_to(app,
+                   R"(<<
   /Type /StructTreeRoot
   /K [ {} 0 R ]
   /ParentTree {} 0 R
   /ParentTreeNextKey {}
->>
 )",
-                      structure_items[rootobj->id].obj_id,
-                      structure_parent_tree_object.value(),
-                      structure_parent_tree_items.size());
+                   structure_items[rootobj->id].obj_id,
+                   structure_parent_tree_object.value(),
+                   structure_parent_tree_items.size());
+    if(!rolemap.empty()) {
+        buf += "  /RoleMap <<\n";
+        for(const auto &i : rolemap) {
+            fmt::format_to(app,
+                           "    {} /{}\n",
+                           bytes2pdfstringliteral(i.name),
+                           structure_type_names.at(i.builtin));
+        }
+        buf += "  >>\n";
+    }
+    buf += ">>\n";
     structure_root_object = add_object(FullPDFObject{buf, {}});
 }
 
@@ -1423,14 +1449,24 @@ rvoe<NoReturnValue> PdfDocument::write_delayed_structure_item(int obj_num,
             }
         }
     }
-    std::string dict = fmt::format(R"(<<
+    std::string dict = R"(<<
   /Type /StructElem
-  /S /{}
-  /P {} 0 R
-)",
-                                   structure_type_names.at(si.stype),
-                                   parent_object);
+)";
     auto app = std::back_inserter(dict);
+    if(auto bi = std::get_if<CapyPDF_StructureType>(&si.stype)) {
+        fmt::format_to(app,
+                       R"(  /S /{}
+)",
+                       structure_type_names.at(*bi));
+    } else if(auto ri = std::get_if<CapyPDF_RoleId>(&si.stype)) {
+        const auto &role = *ri;
+        fmt::format_to(app, "  /S {}\n", bytes2pdfstringliteral(rolemap.at(role.id).name));
+    } else {
+        fprintf(stderr, "UNREACHABLE.\n");
+        std::abort();
+    }
+    fmt::format_to(app, "  /P {} 0 R\n", parent_object);
+
     if(!children.empty()) {
         dict += "  /K [\n";
         for(const auto &c : children) {
@@ -2111,6 +2147,18 @@ PdfDocument::add_structure_item(const CapyPDF_StructureType stype,
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(StructItem{obj_id, stype, parent});
+    return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
+}
+
+rvoe<CapyPDF_StructureItemId>
+PdfDocument::add_structure_item(const CapyPDF_RoleId role,
+                                std::optional<CapyPDF_StructureItemId> parent) {
+    if(parent) {
+        CHECK_INDEXNESS_V(parent->id, structure_items);
+    }
+    auto stritem_id = (int32_t)structure_items.size();
+    auto obj_id = add_object(DelayedStructItem{stritem_id});
+    structure_items.push_back(StructItem{obj_id, role, parent});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
