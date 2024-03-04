@@ -442,7 +442,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     int32_t commands_num{-1};
     if(opts.compress_streams) {
         commands_num = add_object(
-            DeflatePDFObject(std::move(unclosed_object_dict), std::move(command_stream)));
+            DeflatePDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
     } else {
         fmt::format_to(std::back_inserter(unclosed_object_dict),
                        "  /Length {}\n>>\n",
@@ -821,7 +821,7 @@ rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
         }
     }
     rolemap.emplace_back(RolemapEnty{std::move(name), builtin_type});
-    return (CapyPDF_RoleId)(rolemap.size() - 1);
+    return CapyPDF_RoleId{(int32_t)rolemap.size() - 1};
 }
 
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
