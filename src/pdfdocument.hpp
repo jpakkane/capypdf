@@ -193,6 +193,7 @@ struct OutlineLimits {
 
 class PdfGen;
 class PdfDrawContext;
+class PdfWriter;
 struct ColorPatternBuilder;
 
 struct DelayedCheckboxWidgetAnnotation {
@@ -310,6 +311,7 @@ public:
 
     friend class PdfGen;
     friend class PdfDrawContext;
+    friend class PdfWriter;
 
     rvoe<NoReturnValue> write_to_file(FILE *output_file);
 

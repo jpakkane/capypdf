@@ -2,6 +2,7 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <pdfgen.hpp>
+#include <pdfwriter.hpp>
 #include <imagefileops.hpp>
 #include <utils.hpp>
 #include <cstring>
@@ -14,11 +15,6 @@
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
-#ifdef _WIN32
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
 
 namespace capypdf {
 
@@ -63,60 +59,8 @@ PdfGen::~PdfGen() {
 }
 
 rvoe<NoReturnValue> PdfGen::write() {
-    if(pdoc.pages.size() == 0) {
-        RETERR(NoPages);
-    }
-
-    auto tempfname = ofilename;
-    tempfname.replace_extension(".pdf~");
-    FILE *ofile = fopen(tempfname.string().c_str(), "wb");
-    if(!ofile) {
-        perror(nullptr);
-        RETERR(CouldNotOpenFile);
-    }
-
-    try {
-        ERCV(pdoc.write_to_file(ofile));
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        fclose(ofile);
-        RETERR(DynamicError);
-    } catch(...) {
-        fprintf(stderr, "Unexpected error.\n");
-        fclose(ofile);
-        RETERR(DynamicError);
-    }
-
-    if(fflush(ofile) != 0) {
-        perror(nullptr);
-        fclose(ofile);
-        RETERR(DynamicError);
-    }
-    if(
-#ifdef _WIN32
-        _commit(fileno(ofile))
-#else
-        fsync(fileno(ofile))
-#endif
-        != 0) {
-
-        perror(nullptr);
-        fclose(ofile);
-        RETERR(FileWriteError);
-    }
-    if(fclose(ofile) != 0) {
-        perror(nullptr);
-        RETERR(FileWriteError);
-    }
-
-    // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
-    std::error_code ec;
-    std::filesystem::rename(tempfname, ofilename, ec);
-    if(ec) {
-        fprintf(stderr, "%s\n", ec.category().message(ec.value()).c_str());
-        RETERR(FileWriteError);
-    }
-    return NoReturnValue{};
+    PdfWriter pwriter(pdoc);
+    return pwriter.write_to_file(ofilename);
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
