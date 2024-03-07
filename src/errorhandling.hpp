@@ -66,6 +66,7 @@ enum class ErrorCode : int32_t {
     SlashStart,
     NestedBMC,
     RoleAlreadyDefined,
+    WritingTwice,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

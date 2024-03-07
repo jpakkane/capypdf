@@ -68,6 +68,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Argument must not start with a slash or be empty.",
 "Nesting marked content is forbidden.",
 "Rolemap entry is already defined.",
+"There can be only one call to the write function.",
 };
 
 // clang-format on

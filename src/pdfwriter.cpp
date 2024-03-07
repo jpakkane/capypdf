@@ -126,6 +126,10 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     if(doc.pages.size() == 0) {
         RETERR(NoPages);
     }
+    if(doc.write_attempted) {
+        RETERR(WritingTwice);
+    }
+    doc.write_attempted = true;
     auto tempfname = ofilename;
     tempfname.replace_extension(".pdf~");
     FILE *ofile = fopen(tempfname.string().c_str(), "wb");

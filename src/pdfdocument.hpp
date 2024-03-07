@@ -469,6 +469,7 @@ private:
     std::optional<int32_t> structure_parent_tree_object;
     int32_t pages_object;
     int32_t page_group_object;
+    bool write_attempted = false;
 };
 
 } // namespace capypdf
