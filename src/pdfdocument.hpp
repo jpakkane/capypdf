@@ -313,8 +313,6 @@ public:
     friend class PdfDrawContext;
     friend class PdfWriter;
 
-    rvoe<NoReturnValue> write_to_file(FILE *output_file);
-
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_dict,
                                  std::string unclosed_object_dict,
@@ -403,8 +401,6 @@ private:
     PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
     rvoe<NoReturnValue> init();
 
-    rvoe<NoReturnValue> write_to_file_impl();
-
     int32_t add_object(ObjectType object);
 
     int32_t create_subnavigation(const std::vector<SubPageNavigation> &subnav);
@@ -421,48 +417,12 @@ private:
     std::optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
     CapyPDF_IccColorSpaceId store_icc_profile(std::string_view contents, int32_t num_channels);
 
-    rvoe<std::vector<uint64_t>> write_objects();
-
     rvoe<NoReturnValue> create_catalog();
+
     void create_output_intent();
     rvoe<int32_t> create_name_dict();
     rvoe<int32_t> create_outlines();
     void create_structure_root_dict();
-    std::vector<int32_t> write_pages();
-    rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
-
-    rvoe<NoReturnValue> write_pages_root();
-    rvoe<NoReturnValue> write_header();
-    rvoe<NoReturnValue> generate_info_object();
-    rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
-    rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
-
-    rvoe<NoReturnValue> write_finished_object(int32_t object_number,
-                                              std::string_view dict_data,
-                                              std::string_view stream_data);
-    rvoe<NoReturnValue> write_bytes(const char *buf,
-                                    size_t buf_size); // With error checking.
-    rvoe<NoReturnValue> write_bytes(std::string_view view) {
-        return write_bytes(view.data(), view.size());
-    }
-
-    rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
-                                               const DelayedSubsetFontData &ssfont);
-    void write_subset_font_descriptor(int32_t object_num,
-                                      const TtfFont &font,
-                                      int32_t font_data_obj,
-                                      int32_t subset_number);
-    rvoe<NoReturnValue>
-    write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
-    rvoe<NoReturnValue> write_subset_font(int32_t object_num,
-                                          const FontThingy &font,
-                                          int32_t subset,
-                                          int32_t font_descriptor_obj,
-                                          int32_t tounicode_obj);
-    rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
-                                              const DelayedCheckboxWidgetAnnotation &checkbox);
-    rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
-    rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 
     rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
                                            int32_t h,
@@ -473,6 +433,7 @@ private:
                                            bool is_mask,
                                            std::string_view uncompressed_bytes);
 
+    rvoe<NoReturnValue> generate_info_object();
     int32_t create_page_group();
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
@@ -508,8 +469,6 @@ private:
     std::optional<int32_t> structure_parent_tree_object;
     int32_t pages_object;
     int32_t page_group_object;
-
-    FILE *ofile = nullptr;
 };
 
 } // namespace capypdf

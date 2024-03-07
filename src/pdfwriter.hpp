@@ -13,7 +13,45 @@ public:
     rvoe<NoReturnValue> write_to_file(const std::filesystem::path &ofilename);
 
 private:
+    rvoe<NoReturnValue> write_to_file(FILE *output_file);
+    rvoe<NoReturnValue> write_to_file_impl();
+
+    rvoe<NoReturnValue> write_bytes(const char *buf,
+                                    size_t buf_size); // With error checking.
+    rvoe<NoReturnValue> write_bytes(std::string_view view) {
+        return write_bytes(view.data(), view.size());
+    }
+
+    rvoe<std::vector<uint64_t>> write_objects();
+
+    rvoe<NoReturnValue> write_header();
+    rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
+    rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
+    rvoe<NoReturnValue> write_finished_object(int32_t object_number,
+                                              std::string_view dict_data,
+                                              std::string_view stream_data);
+    rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
+                                               const DelayedSubsetFontData &ssfont);
+    void write_subset_font_descriptor(int32_t object_num,
+                                      const TtfFont &font,
+                                      int32_t font_data_obj,
+                                      int32_t subset_number);
+    rvoe<NoReturnValue>
+    write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
+    rvoe<NoReturnValue> write_subset_font(int32_t object_num,
+                                          const FontThingy &font,
+                                          int32_t subset,
+                                          int32_t font_descriptor_obj,
+                                          int32_t tounicode_obj);
+    rvoe<NoReturnValue> write_pages_root();
+    rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
+    rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
+                                              const DelayedCheckboxWidgetAnnotation &checkbox);
+    rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
+    rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
+
     PdfDocument &doc;
+    FILE *ofile = nullptr;
 };
 
 } // namespace capypdf
