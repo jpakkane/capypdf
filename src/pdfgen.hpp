@@ -135,15 +135,16 @@ public:
         return pdoc.add_outline(title_utf8, dest, parent);
     }
 
-    rvoe<CapyPDF_StructureItemId>
-    add_structure_item(const CapyPDF_StructureType stype,
-                       std::optional<CapyPDF_StructureItemId> parent) {
-        return pdoc.add_structure_item(stype, parent);
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
+                                                     std::optional<CapyPDF_StructureItemId> parent,
+                                                     std::optional<StructItemExtraData> extra) {
+        return pdoc.add_structure_item(stype, parent, std::move(extra));
     }
 
-    rvoe<CapyPDF_StructureItemId>
-    add_structure_item(const CapyPDF_RoleId role, std::optional<CapyPDF_StructureItemId> parent) {
-        return pdoc.add_structure_item(role, parent);
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
+                                                     std::optional<CapyPDF_StructureItemId> parent,
+                                                     std::optional<StructItemExtraData> extra) {
+        return pdoc.add_structure_item(role, parent, std::move(extra));
     }
 
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g) {

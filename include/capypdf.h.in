@@ -250,6 +250,7 @@ typedef struct _capyPDF_Type3Shading CapyPDF_Type3Shading;
 typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
 typedef struct _capyPDF_Type6Shading CapyPDF_Type6Shading;
 typedef struct _capyPDF_Annotation CapyPDF_Annotation;
+typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
 
 typedef int32_t CapyPDF_EC;
 
@@ -416,12 +417,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *gen,
                                                             const CapyPDF_StructureType stype,
                                                             const CapyPDF_StructureItemId *parent,
+                                                            CapyPDF_StructItemExtraData *extra,
                                                             CapyPDF_StructureItemId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
                                          const CapyPDF_RoleId role,
                                          const CapyPDF_StructureItemId *parent,
+                                         CapyPDF_StructItemExtraData *extra,
                                          CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
@@ -752,6 +755,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(CapyPDF_Annotation *annotation,
                                                     CapyPDF_AnnotationFlags flags) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;
+
+// Structural item extra data
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtraData **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemExtraData *extra,
+                                                            const char *title) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructItemExtraData *extra,
+                                                               const char *lang) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItemExtraData *extra,
+                                                              const char *alt) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
+    CapyPDF_StructItemExtraData *extra, const char *actual) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
+    CAPYPDF_NOEXCEPT;
 
 // Error
 

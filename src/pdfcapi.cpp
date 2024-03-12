@@ -363,6 +363,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *gen,
                                                             const CapyPDF_StructureType stype,
                                                             const CapyPDF_StructureItemId *parent,
+                                                            CapyPDF_StructItemExtraData *extra,
                                                             CapyPDF_StructureItemId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -370,7 +371,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
     if(parent) {
         item_parent = *parent;
     }
-    auto rc = g->add_structure_item(stype, item_parent);
+    std::optional<StructItemExtraData> ed;
+    if(extra) {
+        ed = *reinterpret_cast<StructItemExtraData *>(extra);
+    }
+    auto rc = g->add_structure_item(stype, item_parent, std::move(ed));
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -381,13 +386,18 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
                                          const CapyPDF_RoleId role,
                                          const CapyPDF_StructureItemId *parent,
+                                         CapyPDF_StructItemExtraData *extra,
                                          CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     std::optional<CapyPDF_StructureItemId> item_parent;
     if(parent) {
         item_parent = *parent;
     }
-    auto rc = g->add_structure_item(role, item_parent);
+    std::optional<StructItemExtraData> ed;
+    if(extra) {
+        ed = *reinterpret_cast<StructItemExtraData *>(extra);
+    }
+    auto rc = g->add_structure_item(role, item_parent, std::move(ed));
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -1383,6 +1393,58 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Annotation *>(annotation);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtraData **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_StructItemExtraData *>(new StructItemExtraData());
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemExtraData *extra,
+                                                            const char *title) CAPYPDF_NOEXCEPT {
+    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto rc = u8string::from_cstr(title);
+    if(rc) {
+        ed->T = std::move(rc.value());
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructItemExtraData *extra,
+                                                               const char *lang) CAPYPDF_NOEXCEPT {
+    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto rc = asciistring::from_cstr(lang);
+    if(rc) {
+        ed->Lang = std::move(rc.value());
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItemExtraData *extra,
+                                                              const char *alt) CAPYPDF_NOEXCEPT {
+    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto rc = u8string::from_cstr(alt);
+    if(rc) {
+        ed->Alt = std::move(rc.value());
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
+    CapyPDF_StructItemExtraData *extra, const char *actual) CAPYPDF_NOEXCEPT {
+    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto rc = u8string::from_cstr(actual);
+    if(rc) {
+        ed->ActualText = std::move(rc.value());
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<StructItemExtraData *>(extra);
     RETNOERR;
 }
 

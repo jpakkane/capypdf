@@ -762,6 +762,20 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
             fmt::format_to(app, "  /K {}\n", mcid_num);
         }
     }
+
+    // Extra elements.
+    if(!si.extra.T.empty()) {
+        fmt::format_to(app, "  /T {}\n", utf8_to_pdfmetastr(si.extra.T));
+    }
+    if(!si.extra.Lang.empty()) {
+        fmt::format_to(app, "  /Lang {}\n", pdfstring_quote(si.extra.Lang.sv()));
+    }
+    if(!si.extra.Alt.empty()) {
+        fmt::format_to(app, "  /Alt {}\n", utf8_to_pdfmetastr(si.extra.Alt));
+    }
+    if(!si.extra.ActualText.empty()) {
+        fmt::format_to(app, "  /ActualText {}\n", utf8_to_pdfmetastr(si.extra.ActualText));
+    }
     dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
     return NoReturnValue{};

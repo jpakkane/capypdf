@@ -271,10 +271,19 @@ struct DelayedStructItem {
     CapyPDF_StructureItemId sid;
 };
 
+// 14.7.2 table 355
+struct StructItemExtraData {
+    u8string T;
+    asciistring Lang;
+    u8string Alt;
+    u8string ActualText;
+};
+
 struct StructItem {
     int32_t obj_id;
     std::variant<CapyPDF_StructureType, CapyPDF_RoleId> stype;
     std::optional<CapyPDF_StructureItemId> parent;
+    StructItemExtraData extra;
 };
 
 struct StructureUsage {
@@ -379,9 +388,11 @@ public:
 
     // Structure items
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
-                                                     std::optional<CapyPDF_StructureItemId> parent);
+                                                     std::optional<CapyPDF_StructureItemId> parent,
+                                                     std::optional<StructItemExtraData> extra);
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
-                                                     std::optional<CapyPDF_StructureItemId> parent);
+                                                     std::optional<CapyPDF_StructureItemId> parent,
+                                                     std::optional<StructItemExtraData> extra);
 
     // Optional content groups
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);

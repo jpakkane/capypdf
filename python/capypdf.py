@@ -246,8 +246,8 @@ cfunc_types = (
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type6_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_structure_item', [ctypes.c_void_p, enum_type, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_custom_structure_item', [ctypes.c_void_p, RoleId, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_structure_item', [ctypes.c_void_p, enum_type, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_custom_structure_item', [ctypes.c_void_p, RoleId, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -401,6 +401,14 @@ cfunc_types = (
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
+
+('capy_struct_item_extra_data_new', [ctypes.c_void_p]),
+('capy_struct_item_extra_data_set_t', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_lang', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_alt', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_actual_text', []),
+('capy_struct_item_extra_data_destroy', []),
+
 
 )
 
@@ -924,18 +932,24 @@ class Generator:
         check_error(libfile.capy_generator_add_type6_shading(self, type6shade, ctypes.pointer(shid)))
         return shid
 
-    def add_structure_item(self, struct_type, parent=None):
+    def add_structure_item(self, struct_type, parent=None, extra=None):
         if parent is None:
             parentptr = None
         else:
             if not isinstance(parent, StructureItemId):
-                raise CapyPDFException('Second argument must be a StructureItemID or None.')
+                raise CapyPDFException('Parent argument must be a StructureItemID or None.')
             parentptr = ctypes.pointer(parent)
+        if extra is None:
+            extraptr = None
+        else:
+            if not isinstance(extra, StructItemExtraData):
+                raise CapyPDFException('Extra argument must be a StructItemExtraData.')
+            extraptr = extra._as_parameter_
         stid = StructureItemId()
         if isinstance(struct_type, StructureType):
-            check_error(libfile.capy_generator_add_structure_item(self, struct_type.value, parentptr, ctypes.pointer(stid)))
+            check_error(libfile.capy_generator_add_structure_item(self, struct_type.value, parentptr, extraptr, ctypes.pointer(stid)))
         elif isinstance(struct_type, RoleId):
-            check_error(libfile.capy_generator_add_custom_structure_item(self, struct_type, parentptr, ctypes.pointer(stid)))
+            check_error(libfile.capy_generator_add_custom_structure_item(self, struct_type, parentptr, extraptr, ctypes.pointer(stid)))
         else:
             raise CapyPDFException('First argument must be a structure item or role id.')
         return stid
@@ -1314,3 +1328,28 @@ class Annotation:
         ta = ctypes.c_void_p()
         check_error(libfile.capy_printers_mark_annotation_new(fid, ctypes.pointer(ta)))
         return Annotation(ta)
+
+class StructItemExtraData:
+    def __init__(self):
+        ed = ctypes.c_void_p()
+        check_error(libfile.capy_struct_item_extra_data_new(ctypes.pointer(ed)))
+        self._as_parameter_ = ed
+
+    def __del__(self):
+        check_error(libfile.capy_struct_item_extra_data_destroy(self))
+
+    def set_t(self, T):
+        chars = T.encode('UTF-8')
+        check_error(libfile.capy_struct_item_extra_data_set_t(self, chars))
+
+    def set_lang(self, lang):
+        chars = lang.encode('UTF-8')
+        check_error(libfile.capy_struct_item_extra_data_set_lang(self, chars))
+
+    def set_alt(self, alt):
+        chars = alt.encode('UTF-8')
+        check_error(libfile.capy_struct_item_extra_data_set_alt(self, chars))
+
+    def set_actual_text(self, actual):
+        chars = actual.encode('UTF-8')
+        check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars))

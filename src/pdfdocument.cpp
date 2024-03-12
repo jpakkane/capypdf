@@ -1418,25 +1418,29 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
 
 rvoe<CapyPDF_StructureItemId>
 PdfDocument::add_structure_item(const CapyPDF_StructureType stype,
-                                std::optional<CapyPDF_StructureItemId> parent) {
+                                std::optional<CapyPDF_StructureItemId> parent,
+                                std::optional<StructItemExtraData> extra) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
-    structure_items.push_back(StructItem{obj_id, stype, parent});
+    structure_items.push_back(
+        StructItem{obj_id, stype, parent, std::move(extra.value_or(StructItemExtraData()))});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
 rvoe<CapyPDF_StructureItemId>
 PdfDocument::add_structure_item(const CapyPDF_RoleId role,
-                                std::optional<CapyPDF_StructureItemId> parent) {
+                                std::optional<CapyPDF_StructureItemId> parent,
+                                std::optional<StructItemExtraData> extra) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
-    structure_items.push_back(StructItem{obj_id, role, parent});
+    structure_items.push_back(
+        StructItem{obj_id, role, parent, std::move(extra.value_or(StructItemExtraData()))});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 

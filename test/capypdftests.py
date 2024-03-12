@@ -901,7 +901,12 @@ class TestPDFCreation(unittest.TestCase):
             fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             bfid = gen.load_font(noto_fontdir / 'NotoSans-Bold.ttf')
             title = 'H1 element'
-            doc_id = gen.add_structure_item(capypdf.StructureType.Document)
+            title_extra = capypdf.StructItemExtraData()
+            title_extra.set_t('Main title')
+            title_extra.set_lang('fi-FI')
+            title_extra.set_alt('Alt text for H1')
+            title_extra.set_actual_text('Actual text for H1')
+            doc_id = gen.add_structure_item(capypdf.StructureType.Document, extra=title_extra)
 
             with gen.page_draw_context() as ctx:
                 tw = gen.text_width(title,bfid, 14)
@@ -927,7 +932,7 @@ class TestPDFCreation(unittest.TestCase):
                         t.render_text('Marked content inside text object.')
 
     @validate_image('python_customroles', 200, 200)
-    def test_tagged(self, ofilename, w, h):
+    def test_customroles(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
