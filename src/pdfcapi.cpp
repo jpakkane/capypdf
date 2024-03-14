@@ -249,24 +249,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     const char *fname,
-                                                    CapyPDF_Image_Interpolation interpolate,
+                                                    const CapyPDF_ImageLoadParameters *params,
                                                     CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    ImageLoadParameters par;
-    par.interp = interpolate;
-    auto rc = g->load_image(fname, par);
-    if(rc) {
-        *out_ptr = rc.value();
-    }
-    return conv_err(rc);
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(
-    CapyPDF_Generator *gen, const char *fname, CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
-    auto *g = reinterpret_cast<PdfGen *>(gen);
-    ImageLoadParameters par;
-    par.as_mask = true;
-    auto rc = g->load_image(fname, par);
+    auto *par = reinterpret_cast<const ImageLoadParameters *>(params);
+    auto rc = g->load_image(fname, *par);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -1449,6 +1436,35 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<StructItemExtraData *>(extra);
+    RETNOERR;
+}
+
+// Image load
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_new(CapyPDF_ImageLoadParameters **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_ImageLoadParameters *>(new ImageLoadParameters());
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_mask(CapyPDF_ImageLoadParameters *par,
+                                                              int32_t as_mask) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(as_mask);
+    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+    p->as_mask = as_mask;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT {
+    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+    p->interp = interp;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<ImageLoadParameters *>(par);
     RETNOERR;
 }
 

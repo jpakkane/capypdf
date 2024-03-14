@@ -147,10 +147,11 @@ class TestPDFCreation(unittest.TestCase):
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
+            params = capypdf.ImageLoadParameters()
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
-            mono_img = g.load_image(image_dir / '1bit_noalpha.png')
-            gray_img = g.load_image(image_dir / 'gray_alpha.png')
-            rgb_tif_img = g.load_image(image_dir / 'rgb_tiff.tif')
+            mono_img = g.load_image(image_dir / '1bit_noalpha.png', params)
+            gray_img = g.load_image(image_dir / 'gray_alpha.png', params)
+            rgb_tif_img = g.load_image(image_dir / 'rgb_tiff.tif', params)
             with g.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
@@ -735,7 +736,9 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opt) as gen:
             artfile = image_dir / 'comic-lines.png'
             self.assertTrue(artfile.exists())
-            maskid = gen.load_mask_image(artfile)
+            maskopt = capypdf.ImageLoadParameters()
+            maskopt.set_mask(True)
+            maskid = gen.load_image(artfile, maskopt)
             with gen.page_draw_context() as ctx:
                 ctx.cmd_re(0, 0, 100, 200)
                 ctx.cmd_rg(0.9, 0.4, 0.25)
@@ -811,9 +814,10 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
+        params = capypdf.ImageLoadParameters()
         with capypdf.Generator(ofilename, opt) as gen:
-            bgimage = gen.load_image(image_dir / 'flame_gradient.png')
-            fgimage = gen.load_image(image_dir / 'object_gradient.png')
+            bgimage = gen.load_image(image_dir / 'flame_gradient.png', params)
+            fgimage = gen.load_image(image_dir / 'object_gradient.png', params)
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.scale(200, 200)

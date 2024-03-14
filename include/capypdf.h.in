@@ -383,11 +383,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     const char *fname,
-                                                    CapyPDF_Image_Interpolation interpolate,
+                                                    const CapyPDF_ImageLoadParameters *params,
                                                     CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(CapyPDF_Generator *gen,
-                                                         const char *fname,
-                                                         CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
@@ -769,6 +766,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItem
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
     CapyPDF_StructItemExtraData *extra, const char *actual) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
+    CAPYPDF_NOEXCEPT;
+
+// Image load
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_new(CapyPDF_ImageLoadParameters **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_mask(CapyPDF_ImageLoadParameters *par,
+                                                              int32_t as_mask) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
     CAPYPDF_NOEXCEPT;
 
 // Error

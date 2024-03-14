@@ -236,8 +236,7 @@ cfunc_types = (
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
-('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
-('capy_generator_load_mask_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -406,9 +405,13 @@ cfunc_types = (
 ('capy_struct_item_extra_data_set_t', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_struct_item_extra_data_set_lang', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_struct_item_extra_data_set_alt', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_struct_item_extra_data_set_actual_text', []),
-('capy_struct_item_extra_data_destroy', []),
+('capy_struct_item_extra_data_set_actual_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_destroy', [ctypes.c_void_p]),
 
+('capy_image_load_parameters_new', [ctypes.c_void_p]),
+('capy_image_load_parameters_set_mask', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_image_load_parameters_set_interpolate', [ctypes.c_void_p, enum_type]),
+('capy_image_load_parameters_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -878,16 +881,11 @@ class Generator:
         check_error(libfile.capy_generator_load_icc_profile(self, to_bytepath(fname), ctypes.pointer(iid)))
         return iid
 
-    def load_image(self, fname, interpolate=ImageInterpolation.Automatic):
-        if not isinstance(interpolate, ImageInterpolation):
-            raise CapyPDFException('Argument must be an image interpolation.')
+    def load_image(self, fname, parameters):
+        if not isinstance(parameters, ImageLoadParameters):
+            raise CapyPDFException('Second argument must be an ImageLoadParameters object.')
         iid = ImageId()
-        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), interpolate.value, ctypes.pointer(iid)))
-        return iid
-
-    def load_mask_image(self, fname):
-        iid = ImageId()
-        check_error(libfile.capy_generator_load_mask_image(self, to_bytepath(fname), ctypes.pointer(iid)))
+        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), parameters, ctypes.pointer(iid)))
         return iid
 
     def add_image(self, ri):
@@ -1353,3 +1351,18 @@ class StructItemExtraData:
     def set_actual_text(self, actual):
         chars = actual.encode('UTF-8')
         check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars))
+
+class ImageLoadParameters:
+    def __init__(self):
+        ed = ctypes.c_void_p()
+        check_error(libfile.capy_image_load_parameters_new(ctypes.pointer(ed)))
+        self._as_parameter_ = ed
+
+    def set_mask(self, boolval):
+        intval = 1 if boolval else 0
+        check_error(libfile.capy_image_load_parameters_set_mask(self, intval))
+
+    def set_interpolate(self, ival):
+        if not isinstance(ival, ImageInterpolation):
+            raise CapyPDFException('Argument must be image interpolation enum.')
+        check_error(libfile.capy_image_load_parameters_set_interpolate(self, ival.value))
