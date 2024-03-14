@@ -64,16 +64,15 @@ rvoe<NoReturnValue> PdfGen::write() {
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
-                                         CapyPDF_Image_Interpolation interpolate) {
+                                         const ImageLoadParameters &p) {
     ERC(image, load_image_file(fname));
 
-    image.md.interp = interpolate;
-    return pdoc.add_image(std::move(image), false);
-}
-
-rvoe<CapyPDF_ImageId> PdfGen::load_mask_image(const std::filesystem::path &fname) {
-    ERC(image, load_image_file(fname));
-    return pdoc.add_mask_image(image);
+    if(p.as_mask) {
+        return pdoc.add_mask_image(image);
+    } else {
+        image.md.interp = p.interp;
+        return pdoc.add_image(std::move(image), false);
+    }
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,

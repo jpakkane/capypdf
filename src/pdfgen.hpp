@@ -44,10 +44,8 @@ public:
 
     rvoe<NoReturnValue> write();
 
-    rvoe<CapyPDF_ImageId>
-    load_image(const std::filesystem::path &fname,
-               CapyPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
-    rvoe<CapyPDF_ImageId> load_mask_image(const std::filesystem::path &fname);
+    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
+                                     const ImageLoadParameters &p);
     rvoe<CapyPDF_ImageId>
     embed_jpg(const std::filesystem::path &fname,
               CapyPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);

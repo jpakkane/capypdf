@@ -251,6 +251,7 @@ typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
 typedef struct _capyPDF_Type6Shading CapyPDF_Type6Shading;
 typedef struct _capyPDF_Annotation CapyPDF_Annotation;
 typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
+typedef struct _capyPDF_ImageLoadParamters CapyPDF_ImageLoadParameters;
 
 typedef int32_t CapyPDF_EC;
 

@@ -252,7 +252,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     CapyPDF_Image_Interpolation interpolate,
                                                     CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->load_image(fname, interpolate);
+    ImageLoadParameters par;
+    par.interp = interpolate;
+    auto rc = g->load_image(fname, par);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -262,7 +264,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_mask_image(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->load_mask_image(fname);
+    ImageLoadParameters par;
+    par.as_mask = true;
+    auto rc = g->load_image(fname, par);
     if(rc) {
         *out_ptr = rc.value();
     }
