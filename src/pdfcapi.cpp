@@ -1462,6 +1462,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_conversion_intent(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT {
+    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+    p->conversion_intent = ri;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_color_policy(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Color_Policy cp) CAPYPDF_NOEXCEPT {
+    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+    p->color_policy = cp;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ImageLoadParameters *>(par);

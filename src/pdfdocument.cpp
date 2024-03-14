@@ -913,17 +913,19 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image) {
     if(image.md.cs != CAPY_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
+    ImageLoadParameters temphack;
+    temphack.interp = image.md.interp;
+    temphack.as_mask = true;
     return add_image_object(image.md.w,
                             image.md.h,
                             image.md.pixel_depth,
-                            image.md.interp,
                             image.md.cs,
                             std::optional<int32_t>{},
-                            true,
+                            temphack,
                             image.pixels);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
+rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImageLoadParameters &params) {
     if(image.md.w <= 0 || image.md.h <= 0) {
         RETERR(InvalidImageSize);
     }
@@ -931,7 +933,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
         RETERR(MissingPixels);
     }
     std::optional<int32_t> smask_id;
-    if(is_mask && !image.alpha.empty()) {
+    if(params.as_mask && !image.alpha.empty()) {
         RETERR(MaskAndAlpha);
     }
     if(!image.alpha.empty()) {
@@ -939,23 +941,16 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
             add_image_object(image.md.w,
                              image.md.h,
                              image.md.alpha_depth,
-                             image.md.interp,
                              CAPY_CS_DEVICE_GRAY,
                              {},
-                             false,
+                             params,
                              image.alpha));
         smask_id = image_info.at(imobj.id).obj;
     }
     if(!image.icc_profile.empty()) {
         auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                image.md.interp,
-                                icc_id,
-                                smask_id,
-                                is_mask,
-                                image.pixels);
+        return add_image_object(
+            image.md.w, image.md.h, image.md.pixel_depth, icc_id, smask_id, params, image.pixels);
     }
     if(image.md.cs == CAPY_CS_DEVICE_GRAY) {
         // Grayscale images are always passed through directly.
@@ -963,10 +958,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
-                                image.md.interp,
                                 image.md.cs,
                                 smask_id,
-                                is_mask,
+                                params,
                                 image.pixels);
     }
     // Convert image to output colorspace if needed.
@@ -977,20 +971,18 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
-                                image.md.interp,
                                 image.md.cs,
                                 smask_id,
-                                is_mask,
+                                params,
                                 image.pixels);
     case CAPY_CS_DEVICE_GRAY:
         assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
-                                image.md.interp,
                                 image.md.cs,
                                 smask_id,
-                                is_mask,
+                                params,
                                 image.pixels);
     case CAPY_CS_DEVICE_CMYK:
         assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
@@ -998,16 +990,24 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
             RETERR(NoCmykProfile);
         }
         if(image.md.cs != CAPY_CS_DEVICE_CMYK) {
-            // FIXME, convert to output format.
+            assert(image.md.cs == CAPY_CS_DEVICE_RGB);
+            // FIXME, do properly.
+            ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
+            return add_image_object(image.md.w,
+                                    image.md.h,
+                                    image.md.pixel_depth,
+                                    CAPY_CS_DEVICE_CMYK,
+                                    smask_id,
+                                    params,
+                                    converted_pixels);
             RETERR(UnsupportedFormat);
         }
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
-                                image.md.interp,
                                 image.md.cs,
                                 smask_id,
-                                is_mask,
+                                params,
                                 image.pixels);
     }
     RETERR(Unreachable);
@@ -1016,10 +1016,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, bool is_mask) {
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t h,
                                                     int32_t bits_per_component,
-                                                    CapyPDF_Image_Interpolation interpolate,
                                                     ColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
-                                                    bool is_mask,
+                                                    const ImageLoadParameters &params,
                                                     std::string_view uncompressed_bytes) {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -1040,14 +1039,14 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                    compressed.size());
 
     // Auto means don't specify the interpolation
-    if(interpolate == CAPY_INTERPOLATION_PIXELATED) {
+    if(params.interp == CAPY_INTERPOLATION_PIXELATED) {
         buf += "  /Interpolate false\n";
-    } else if(interpolate == CAPY_INTERPOLATION_SMOOTH) {
+    } else if(params.interp == CAPY_INTERPOLATION_SMOOTH) {
         buf += "  /Interpolate true\n";
     }
 
     // An image may only have ImageMask or ColorSpace key, not both.
-    if(is_mask) {
+    if(params.as_mask) {
         buf += "  /ImageMask true\n";
     } else {
         if(auto cs = std::get_if<CapyPDF_Colorspace>(&colorspace)) {

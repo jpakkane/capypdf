@@ -1020,6 +1020,27 @@ class TestPDFCreation(unittest.TestCase):
 
                 # The other corners would go here, but I'm lazy.
 
+    @validate_image('python_pdfx3', 200, 200)
+    def test_pdfx3(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.Options()
+        opt.set_default_page_properties(prop)
+        opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
+        opt.set_output_intent(capypdf.IntentSubtype.PDFX, 'Uncoated Fogra 29')
+        opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        with capypdf.Generator(ofilename, opt) as gen:
+            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('This document should validate as PDF/X3.', fid, 8, 10, 180)
+                ctx.render_text('The image was converted from sRGB to DeviceCMYK on load.', fid, 6, 10, 120)
+                params = capypdf.ImageLoadParameters()
+                params.set_color_policy(capypdf.ColorPolicy.ToOutput)
+                image = gen.load_image(image_dir / 'flame_gradient.png', params)
+                with ctx.push_gstate():
+                    ctx.translate(75, 50)
+                    ctx.scale(50, 50)
+                    ctx.draw_image(image)
 
 if __name__ == "__main__":
     unittest.main()

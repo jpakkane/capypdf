@@ -131,7 +131,7 @@ class StructureType(Enum):
     Annot = 24
     Form = 25
 
-    Ruby = 26,
+    Ruby = 26
     RB = 27
     RT = 28
     RP = 29
@@ -157,6 +157,12 @@ class StructureType(Enum):
     Formula = 45
 
     Artifact = 46
+
+class ColorPolicy(Enum):
+    Preserve = 0
+    OnlyOutputPermitted = 1
+    ToOutput = 2
+    ToOutputExceptManaged = 3
 
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
@@ -411,6 +417,8 @@ cfunc_types = (
 ('capy_image_load_parameters_new', [ctypes.c_void_p]),
 ('capy_image_load_parameters_set_mask', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_image_load_parameters_set_interpolate', [ctypes.c_void_p, enum_type]),
+('capy_image_load_parameters_set_conversion_intent', [ctypes.c_void_p, enum_type]),
+('capy_image_load_parameters_set_color_policy', [ctypes.c_void_p, enum_type]),
 ('capy_image_load_parameters_destroy', [ctypes.c_void_p]),
 
 )
@@ -1366,3 +1374,13 @@ class ImageLoadParameters:
         if not isinstance(ival, ImageInterpolation):
             raise CapyPDFException('Argument must be image interpolation enum.')
         check_error(libfile.capy_image_load_parameters_set_interpolate(self, ival.value))
+
+    def set_conversion_intent(self, ri):
+        if not isinstance(ri, RenceringIntent):
+            raise CapyPDFException('Argument must be a rendering intent enum.')
+        check_error(libfile.capy_image_load_parameters_set_conversion_intent(self, ri.value))
+
+    def set_color_policy(self, cp):
+        if not isinstance(cp, ColorPolicy):
+            raise CapyPDFException('Argument must be a color policy enum.')
+        check_error(libfile.capy_image_load_parameters_set_color_policy(self, cp.value))

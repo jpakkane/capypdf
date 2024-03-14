@@ -71,7 +71,7 @@ rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
         return pdoc.add_mask_image(image);
     } else {
         image.md.interp = p.interp;
-        return pdoc.add_image(std::move(image), false);
+        return pdoc.add_image(std::move(image), p);
     }
 }
 

@@ -463,7 +463,7 @@ struct RasterImageMetadata {
     int32_t h = 0;
     int32_t pixel_depth = 8;
     int32_t alpha_depth = 0;
-    CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;
+    CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO; // FIXME: remove.
     CapyPDF_Colorspace cs = CAPY_CS_DEVICE_RGB;
     // RI to use for color conversion if needed.
     // CapyPDF_Rendering_Intent ri = CAPY_RI_PERCEPTUAL;
@@ -487,7 +487,8 @@ struct jpg_image {
 struct ImageLoadParameters {
     CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;
     bool as_mask = false;
-    CapyPDF_Rendering_Intent intent = CAPY_RI_RELATIVE_COLORIMETRIC;
+    CapyPDF_Rendering_Intent conversion_intent = CAPY_RI_RELATIVE_COLORIMETRIC;
+    CapyPDF_Color_Policy color_policy = CAPY_COLOR_POLICY_PRESERVE;
 };
 
 } // namespace capypdf

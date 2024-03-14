@@ -221,14 +221,12 @@ typedef enum {
 } CapyPDF_StructureType;
 
 // clang-format off
-/* Not used yet.
-enum CAPYPDF_Color_Management_Policy {
-    CAPY_CCP_Preserve,                  // Pass all colors directly through without conversion or checking.
-    CAPY_CCP_ToOutput,                  // Convert everything to output colorspace
-    CAPY_CCP_ToOutputExceptManaged,     // Convert everything to output cs except color managed content (ICC, L*a*b* etc)
-    CAPY_CCP_OnlyOutputAllowed,         // Use of any colorspace except output is an error except using Gray in RGB and CMYK.
-};
-*/
+typedef enum {
+    CAPY_COLOR_POLICY_PRESERVE,                // Pass all colors directly through without conversion or checking.
+    CAPY_COLOR_POLICY_ONLY_OUTPUT_PERMITTED,   // Use of any colorspace except output is an error except using Gray in RGB and CMYK.
+    CAPY_COLOR_POLICY_TO_OUTPUT,               // Convert everything to output colorspace
+    CAPY_CCP_TO_OUTPUT_EXCEPT_MANAGED,         // Convert everything to output cs except color managed content (ICC, L*a*b* etc)
+} CapyPDF_Color_Policy;
 // clang-format on
 
 // These start with a lower case letter, because all
@@ -775,6 +773,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_mask(CapyPDF_ImageLoadP
                                                               int32_t as_mask) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
     CapyPDF_ImageLoadParameters *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_conversion_intent(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_color_policy(
+    CapyPDF_ImageLoadParameters *par, CapyPDF_Color_Policy cp) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
     CAPYPDF_NOEXCEPT;
 

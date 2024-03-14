@@ -352,7 +352,7 @@ public:
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      CapyPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
-    rvoe<CapyPDF_ImageId> add_image(RasterImage image, bool is_mask);
+    rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImageLoadParameters &params);
     rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, CapyPDF_Image_Interpolation interpolate);
 
     // Graphics states
@@ -438,10 +438,9 @@ private:
     rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
                                            int32_t h,
                                            int32_t bits_per_component,
-                                           CapyPDF_Image_Interpolation interpolate,
                                            ColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
-                                           bool is_mask,
+                                           const ImageLoadParameters &params,
                                            std::string_view uncompressed_bytes);
 
     rvoe<NoReturnValue> generate_info_object();

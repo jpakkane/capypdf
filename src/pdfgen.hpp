@@ -56,7 +56,11 @@ public:
         return pdoc.load_font(ft.get(), fname);
     };
 
-    rvoe<CapyPDF_ImageId> add_image(RasterImage ri) { return pdoc.add_image(std::move(ri), false); }
+    rvoe<CapyPDF_ImageId> add_image(RasterImage ri) {
+        ImageLoadParameters par;
+        par.as_mask = false;
+        return pdoc.add_image(std::move(ri), par);
+    }
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
 
