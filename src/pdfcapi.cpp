@@ -262,10 +262,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
+                                                   const CapyPDF_ImageLoadParameters *params,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *im = reinterpret_cast<RasterImage *>(image);
-    auto rc = g->add_image(std::move(*im));
+    auto *par = reinterpret_cast<const ImageLoadParameters *>(params);
+    auto rc = g->add_image(std::move(*im), *par);
     if(rc) {
         *out_ptr = rc.value();
     }

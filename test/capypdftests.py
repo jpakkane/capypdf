@@ -319,7 +319,8 @@ class TestPDFCreation(unittest.TestCase):
             ba.append(255)
 
             image.set_pixel_data(bytes(ba))
-            iid = g.add_image(image)
+            ipar = capypdf.ImageLoadParameters()
+            iid = g.add_image(image, ipar)
             with g.page_draw_context() as ctx:
                 ctx.translate(10, 10);
                 ctx.scale(20, 30);

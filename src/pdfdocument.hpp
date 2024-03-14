@@ -351,7 +351,7 @@ public:
     // Images
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      CapyPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image);
+    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image, const ImageLoadParameters &params);
     rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImageLoadParameters &params);
     rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, CapyPDF_Image_Interpolation interpolate);
 

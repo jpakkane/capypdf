@@ -385,6 +385,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
+                                                   const CapyPDF_ImageLoadParameters *params,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *gen,
                                                             CapyPDF_Type2Function *func,

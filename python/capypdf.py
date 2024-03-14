@@ -245,7 +245,7 @@ cfunc_types = (
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
-('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -896,11 +896,13 @@ class Generator:
         check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), parameters, ctypes.pointer(iid)))
         return iid
 
-    def add_image(self, ri):
+    def add_image(self, ri, params):
         if not isinstance(ri, RasterImage):
-            raise CapyPDFException('Argument must be a raster image.')
+            raise CapyPDFException('First argument must be a raster image.')
+        if not isinstance(params, ImageLoadParameters):
+            raise CapyPDFException('Second argument must be an ImageLoadParameter object.')
         iid = ImageId()
-        check_error(libfile.capy_generator_add_image(self, ri, ctypes.pointer(iid)))
+        check_error(libfile.capy_generator_add_image(self, ri, params, ctypes.pointer(iid)))
         return iid
 
     def add_type2_function(self, type2func):

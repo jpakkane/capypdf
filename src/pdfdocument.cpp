@@ -909,19 +909,20 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
     return fss;
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image) {
+rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
+                                                  const ImageLoadParameters &params) {
     if(image.md.cs != CAPY_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
-    ImageLoadParameters temphack;
-    temphack.interp = image.md.interp;
-    temphack.as_mask = true;
+    if(!params.as_mask) {
+        std::abort();
+    }
     return add_image_object(image.md.w,
                             image.md.h,
                             image.md.pixel_depth,
                             image.md.cs,
                             std::optional<int32_t>{},
-                            temphack,
+                            params,
                             image.pixels);
 }
 
