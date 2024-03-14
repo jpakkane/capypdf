@@ -1025,11 +1025,13 @@ class TestPDFCreation(unittest.TestCase):
     def test_pdfx3(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        prop.set_pagebox(capypdf.PageBox.Trim, 1, 1, 198, 198)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
         opt.set_output_intent(capypdf.IntentSubtype.PDFX, 'Uncoated Fogra 29')
         opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        opt.set_title('PDF X3 test')
         with capypdf.Generator(ofilename, opt) as gen:
             fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             with gen.page_draw_context() as ctx:
