@@ -32,7 +32,7 @@ rvoe<std::string> load_file(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);
 
-std::string utf8_to_pdfmetastr(const u8string &input);
+std::string utf8_to_pdfutf16be(const u8string &input);
 
 bool is_valid_utf8(std::string_view input);
 

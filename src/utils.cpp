@@ -168,11 +168,9 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-std::string utf8_to_pdfmetastr(const u8string &input) {
-    // For now put everything into UTF-16 bracketstrings.
+std::string utf8_to_pdfutf16be(const u8string &input) {
     std::string encoded = "<FEFF"; // PDF 2.0 spec, 7.9.2.2.1
 
-    //    auto u16buf = glyphs_to_utf16be(glyphs);
     auto bi = std::back_inserter(encoded);
     std::vector<uint16_t> u16buf;
     for(const auto codepoint : input) {

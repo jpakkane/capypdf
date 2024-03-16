@@ -684,7 +684,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
     int32_t catalog_obj_num = first_obj_num + (int32_t)outlines.items.size();
     for(int32_t cur_id = 0; cur_id < (int32_t)outlines.items.size(); ++cur_id) {
         const auto &cur_obj = outlines.items[cur_id];
-        auto titlestr = utf8_to_pdfmetastr(cur_obj.title);
+        auto titlestr = utf8_to_pdfutf16be(cur_obj.title);
         auto parent_id = outlines.parent.at(cur_id);
         const auto &siblings = outlines.children.at(parent_id);
         std::string oitem = fmt::format(R"(<<
@@ -852,19 +852,19 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary = "<<\n";
     if(!opts.title.empty()) {
         obj_data.dictionary += "  /Title ";
-        auto titlestr = utf8_to_pdfmetastr(opts.title);
+        auto titlestr = utf8_to_pdfutf16be(opts.title);
         obj_data.dictionary += titlestr;
         obj_data.dictionary += "\n";
     }
     if(!opts.author.empty()) {
         obj_data.dictionary += "  /Author ";
-        auto authorstr = utf8_to_pdfmetastr(opts.author);
+        auto authorstr = utf8_to_pdfutf16be(opts.author);
         obj_data.dictionary += authorstr;
         obj_data.dictionary += "\n";
     }
     if(!opts.creator.empty()) {
         obj_data.dictionary += "  /Creator ";
-        auto creatorstr = utf8_to_pdfmetastr(opts.creator);
+        auto creatorstr = utf8_to_pdfutf16be(opts.creator);
         obj_data.dictionary += creatorstr;
         obj_data.dictionary += "\n";
     }
