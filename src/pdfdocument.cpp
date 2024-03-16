@@ -22,7 +22,19 @@ namespace capypdf {
 
 namespace {
 
-const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
+// const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
+
+const std::array<const char *, 9> pdfx_names{
+    "PDF/X-1:2001",
+    "PDF/X-1a:2001",
+    "PDF/X-1a:2003",
+    "PDF/X-3:2002",
+    "PDF/X-3:2003",
+    "PDF/X-4",
+    "PDF/X-4p",
+    "PDF/X-5g",
+    "PDF/X-5pg",
+};
 
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
@@ -253,7 +265,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
     page_group_object = create_page_group();
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
-    if(opts.subtype) {
+    if(opts.xtype) {
         if(!output_profile) {
             RETERR(OutputProfileMissing);
         }
@@ -653,7 +665,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 void PdfDocument::create_output_intent() {
     std::string buf;
     assert(output_profile);
-    assert(opts.subtype);
+    assert(opts.xtype);
     buf = fmt::format(R"(<<
   /Type /OutputIntent
   /S {}
@@ -661,7 +673,7 @@ void PdfDocument::create_output_intent() {
   /DestOutputProfile {} 0 R
 >>
 )",
-                      intentnames.at((int)*opts.subtype),
+                      "/GTS_PDFX",
                       pdfstring_quote(opts.intent_condition_identifier),
                       icc_profiles.at(output_profile->id).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, {}});
@@ -864,8 +876,10 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += current_date_string();
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
-    if(opts.subtype.value_or(CAPY_INTENT_SUBTYPE_PDFA) == CAPY_INTENT_SUBTYPE_PDFX) {
-        obj_data.dictionary += "  /GTS_PDFXVersion (PDF/X-3:2003)\n";
+    if(opts.xtype) {
+        obj_data.dictionary += "  (";
+        obj_data.dictionary += pdfx_names.at(*opts.xtype);
+        obj_data.dictionary += ")\n";
     }
     obj_data.dictionary += ">>\n";
     add_object(std::move(obj_data));

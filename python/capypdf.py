@@ -77,10 +77,16 @@ class TextMode(Enum):
     FillStrokeClip = 6
     Clip = 7
 
-class IntentSubtype(Enum):
-    PDFX = 0
-    PDFA = 1
-    # PDFE = 2
+class PdfXType(Enum):
+    X1_2001 = 0
+    X1A_2001 = 1
+    X1A_2003 = 2
+    X3_2002 = 3
+    X3_2003 = 4
+    X4 = 5
+    X4P = 6
+    X5G = 7
+    X5PG= 8
 
 class ImageInterpolation(Enum):
     Automatic = 0
@@ -227,7 +233,8 @@ cfunc_types = (
 ('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_options_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_output_intent', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
+('capy_options_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_options_set_pdfx', [ctypes.c_void_p, enum_type]),
 ('capy_options_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_options_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
 
@@ -528,10 +535,13 @@ class Options:
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
 
-    def set_output_intent(self, stype, identifier):
-        if not isinstance(stype, IntentSubtype):
-            raise CapyPDFException('Argument must be an intent subtype.')
-        check_error(libfile.capy_options_set_output_intent(self, stype.value, identifier.encode('utf-8')))
+    def set_output_intent(self, identifier):
+        check_error(libfile.capy_options_set_output_intent(self, identifier.encode('utf-8')))
+
+    def set_pdfx(self, xtype):
+        if not isinstance(xtype, PdfXType):
+            raise CapyPDFException('Argument must be an PDF/X type.')
+        check_error(libfile.capy_options_set_pdfx(self, xtype.value))
 
     def set_default_page_properties(self, props):
         if not isinstance(props, PageProperties):

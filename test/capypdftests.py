@@ -1029,7 +1029,8 @@ class TestPDFCreation(unittest.TestCase):
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
-        opt.set_output_intent(capypdf.IntentSubtype.PDFX, 'Uncoated Fogra 29')
+        opt.set_output_intent('Uncoated Fogra 29')
+        opt.set_pdfx(capypdf.PdfXType.X3_2003)
         opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
         opt.set_title('PDF X3 test')
         with capypdf.Generator(ofilename, opt) as gen:

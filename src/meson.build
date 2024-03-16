@@ -60,10 +60,6 @@ else
       dependencies: [capypdf_internal_dep]
     )
 
-    executable('subtypetest', 'subtype.cpp',
-      dependencies: [capypdf_internal_dep]
-    )
-
     executable('fembedtest', 'fembedtest.cpp',
       dependencies: [capypdf_internal_dep]
     )

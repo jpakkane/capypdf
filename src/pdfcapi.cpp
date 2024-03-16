@@ -138,12 +138,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
-                                                         CapyPDF_Intent_Subtype stype,
                                                          const char *identifier) CAPYPDF_NOEXCEPT {
     CHECK_NULL(identifier);
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
-    opts->subtype = stype;
     opts->intent_condition_identifier = identifier;
+    RETNOERR;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_pdfx(CapyPDF_Options *opt,
+                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    opts->xtype = xtype;
     RETNOERR;
 }
 

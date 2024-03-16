@@ -127,10 +127,16 @@ typedef enum {
 } CapyPDF_Page_Box;
 
 typedef enum {
-    CAPY_INTENT_SUBTYPE_PDFX,
-    CAPY_INTENT_SUBTYPE_PDFA,
-    // CAPY_INTENT_SUBTYPE_PDFE,
-} CapyPDF_Intent_Subtype;
+    CAPY_PDFX_1_2001,
+    CAPY_PDFX_1A_2001,
+    CAPY_PDFX_1A_2003,
+    CAPY_PDFX_3_2002,
+    CAPY_PDFX_3_2003,
+    CAPY_PDFX_4,
+    CAPY_PDFX_4P,
+    CAPY_PDFX_5G,
+    CAPY_PDFX_5PG,
+} CapyPDF_PDFX_Type;
 
 typedef enum {
     CAPY_INTERPOLATION_AUTO,
@@ -338,8 +344,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
                                                       CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
-                                                         CapyPDF_Intent_Subtype stype,
                                                          const char *identifier) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_pdfx(CapyPDF_Options *opt,
+                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_default_page_properties(
     CapyPDF_Options *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_tagged(CapyPDF_Options *opt,

@@ -175,7 +175,7 @@ struct PdfGenerationData {
     bool is_tagged = false;
     CapyPDF_Colorspace output_colorspace = CAPY_CS_DEVICE_RGB;
     ColorProfiles prof;
-    std::optional<CapyPDF_Intent_Subtype> subtype;
+    std::optional<CapyPDF_PDFX_Type> xtype;
     std::string intent_condition_identifier;
     bool compress_streams = false;
 };

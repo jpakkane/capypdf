@@ -1082,7 +1082,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
                                                                double pointsize,
                                                                double x,
                                                                double y) {
-    if(doc->opts.subtype) {
+    if(doc->opts.xtype) {
         RETERR(BadOperationForIntent);
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
