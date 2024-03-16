@@ -877,7 +877,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
     if(opts.xtype) {
-        obj_data.dictionary += "  (";
+        obj_data.dictionary += "  /GTS_PDFXVersion (";
         obj_data.dictionary += pdfx_names.at(*opts.xtype);
         obj_data.dictionary += ")\n";
     }
