@@ -868,12 +868,13 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
         obj_data.dictionary += creatorstr;
         obj_data.dictionary += "\n";
     }
+    const auto current_date = current_date_string();
     obj_data.dictionary += "  /Producer (CapyPDF " CAPYPDF_VERSION_STR ")\n";
     obj_data.dictionary += "  /CreationDate ";
-    obj_data.dictionary += current_date_string();
+    obj_data.dictionary += current_date;
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /ModDate ";
-    obj_data.dictionary += current_date_string();
+    obj_data.dictionary += current_date;
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
     if(opts.xtype) {
