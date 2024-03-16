@@ -967,10 +967,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImageLoadP
         auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
         return add_image_object(
             image.md.w, image.md.h, image.md.pixel_depth, icc_id, smask_id, params, image.pixels);
-    }
-    if(image.md.cs == CAPY_CS_DEVICE_GRAY) {
-        // Grayscale images are always passed through directly.
-        // FIXME, handle ICC profile.
+    } else {
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,
@@ -979,54 +976,6 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImageLoadP
                                 params,
                                 image.pixels);
     }
-    // Convert image to output colorspace if needed.
-    switch(opts.output_colorspace) {
-    case CAPY_CS_DEVICE_RGB:
-        // FIXME, convert to RGB;
-        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                image.md.cs,
-                                smask_id,
-                                params,
-                                image.pixels);
-    case CAPY_CS_DEVICE_GRAY:
-        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                image.md.cs,
-                                smask_id,
-                                params,
-                                image.pixels);
-    case CAPY_CS_DEVICE_CMYK:
-        assert(image.md.cs != CAPY_CS_DEVICE_GRAY);
-        if(cm.get_cmyk().empty()) {
-            RETERR(NoCmykProfile);
-        }
-        if(image.md.cs != CAPY_CS_DEVICE_CMYK) {
-            assert(image.md.cs == CAPY_CS_DEVICE_RGB);
-            // FIXME, do properly.
-            ERC(converted_pixels, cm.rgb_pixels_to_cmyk(image.pixels));
-            return add_image_object(image.md.w,
-                                    image.md.h,
-                                    image.md.pixel_depth,
-                                    CAPY_CS_DEVICE_CMYK,
-                                    smask_id,
-                                    params,
-                                    converted_pixels);
-            RETERR(UnsupportedFormat);
-        }
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                image.md.cs,
-                                smask_id,
-                                params,
-                                image.pixels);
-    }
-    RETERR(Unreachable);
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,

@@ -70,10 +70,37 @@ rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImageLoadParameters &params) {
+    ERC(output_format_image, convert_image_to_output_format(std::move(image), params));
     if(params.as_mask) {
-        return pdoc.add_mask_image(image, params);
+        return pdoc.add_mask_image(std::move(output_format_image), params);
     } else {
-        return pdoc.add_image(std::move(image), params);
+        return pdoc.add_image(std::move(output_format_image), params);
+    }
+}
+
+rvoe<RasterImage> PdfGen::convert_image_to_output_format(RasterImage ri,
+                                                         const ImageLoadParameters &params) const {
+    if(ri.md.cs == CAPY_CS_DEVICE_GRAY) {
+        // Grayscale images are always preserved as grayscale.
+        // FIXME, what should we do with calibrated gray scale images?
+        return std::move(ri);
+    }
+    switch(params.color_policy) {
+    case CAPY_COLOR_POLICY_PRESERVE:
+        return std::move(ri);
+    case CAPY_COLOR_POLICY_UNMANAGED_TO_OUTPUT:
+        if(ri.icc_profile.empty() && ri.md.cs != pdoc.opts.output_colorspace) {
+            return pdoc.cm.convert_image_to(ri, params, pdoc.opts.output_colorspace);
+        }
+        return std::move(ri);
+    case CAPY_COLOR_POLICY_ALL_TO_OUTPUT:
+        if(ri.icc_profile.empty() && ri.md.cs == pdoc.opts.output_colorspace) {
+            // Was already in the output format.
+            return std::move(ri);
+        }
+        return pdoc.cm.convert_image_to(ri, params, pdoc.opts.output_colorspace);
+    default:
+        std::abort();
     }
 }
 

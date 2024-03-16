@@ -48,6 +48,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Structures can only be used once.",
 "Operation prohibited by current output intent.",
 "Output color profile not defined.",
+"Input image color profile could not be determined.",
 "Output intent identifier missing.",
 "Draw state end mismatch.",
 "OCG not used on this page.",
@@ -69,6 +70,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Nesting marked content is forbidden.",
 "Rolemap entry is already defined.",
 "There can be only one call to the write function.",
+"Unspecified color profile error.",
 };
 
 // clang-format on

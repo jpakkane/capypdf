@@ -56,6 +56,7 @@ public:
         return pdoc.load_font(ft.get(), fname);
     };
 
+    rvoe<RasterImage> convert_image_to_output_format(RasterImage ri, const ImageLoadParameters &params) const;
     rvoe<CapyPDF_ImageId> add_image(RasterImage ri, const ImageLoadParameters &params);
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }

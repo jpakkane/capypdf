@@ -46,6 +46,7 @@ enum class ErrorCode : int32_t {
     StructureReuse,
     BadOperationForIntent,
     OutputProfileMissing,
+    InputProfileUnknown,
     MissingIntentIdentifier,
     DrawStateEndMismatch,
     UnusedOcg,
@@ -67,6 +68,7 @@ enum class ErrorCode : int32_t {
     NestedBMC,
     RoleAlreadyDefined,
     WritingTwice,
+    ProfileProblem,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

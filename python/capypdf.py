@@ -166,9 +166,8 @@ class StructureType(Enum):
 
 class ColorPolicy(Enum):
     Preserve = 0
-    OnlyOutputPermitted = 1
-    ToOutput = 2
-    ToOutputExceptManaged = 3
+    UnmanagedToOutput = 1
+    AllToOutput = 2
 
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):

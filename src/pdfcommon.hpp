@@ -470,7 +470,7 @@ struct RasterImage {
     RasterImageMetadata md;
     std::string pixels;
     std::string alpha;
-    std::string icc_profile; // std::variant<std::monostate, std::string, CapyPDF_IccColorSpaceId>;
+    std::string icc_profile;
     // CapyPDF_Compression pixel_compression;
     // CapyPDF_Compression alpha_compression;
 };

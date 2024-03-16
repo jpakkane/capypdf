@@ -1039,7 +1039,7 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('This document should validate as PDF/X3.', fid, 8, 10, 180)
                 ctx.render_text('The image was converted from sRGB to DeviceCMYK on load.', fid, 6, 10, 120)
                 params = capypdf.ImageLoadParameters()
-                params.set_color_policy(capypdf.ColorPolicy.ToOutput)
+                params.set_color_policy(capypdf.ColorPolicy.UnmanagedToOutput)
                 image = gen.load_image(image_dir / 'flame_gradient.png', params)
                 with ctx.push_gstate():
                     ctx.translate(75, 50)
