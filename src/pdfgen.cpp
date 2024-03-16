@@ -66,11 +66,14 @@ rvoe<NoReturnValue> PdfGen::write() {
 rvoe<CapyPDF_ImageId> PdfGen::load_image(const std::filesystem::path &fname,
                                          const ImageLoadParameters &p) {
     ERC(image, load_image_file(fname));
+    return add_image(std::move(image), p);
+}
 
-    if(p.as_mask) {
-        return pdoc.add_mask_image(image, p);
+rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImageLoadParameters &params) {
+    if(params.as_mask) {
+        return pdoc.add_mask_image(image, params);
     } else {
-        return pdoc.add_image(std::move(image), p);
+        return pdoc.add_image(std::move(image), params);
     }
 }
 
