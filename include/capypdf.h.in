@@ -749,8 +749,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Annotations.
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(
-    const char *utf8_text, CapyPDF_Annotation **out_ptr) CAPYoutput_format_PDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
+                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
