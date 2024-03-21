@@ -1140,25 +1140,46 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *sta
 
 // Raster images.
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_new(CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage{});
+struct RasterImageBuilder {
+    std::unique_ptr<RasterImage> i;
+};
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImageBuilder *>(
+        new RasterImageBuilder{std::make_unique<RasterImage>()});
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_set_size(CapyPDF_RasterImage *image,
-                                                     int32_t w,
-                                                     int32_t h) CAPYPDF_NOEXCEPT {
-    auto *ri = reinterpret_cast<RasterImage *>(image);
-    ri->md.w = w;
-    ri->md.h = h;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImageBuilder *builder,
+                                                             int32_t w,
+                                                             int32_t h) CAPYPDF_NOEXCEPT {
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    b->i->md.w = w;
+    b->i->md.h = h;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_set_pixel_data(CapyPDF_RasterImage *image,
-                                                           const char *buf,
-                                                           int32_t bufsize) CAPYPDF_NOEXCEPT {
-    auto *ri = reinterpret_cast<RasterImage *>(image);
-    ri->pixels.assign(buf, buf + bufsize);
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
+    CapyPDF_RasterImageBuilder *image, const char *buf, int32_t bufsize) CAPYPDF_NOEXCEPT {
+    auto *b = reinterpret_cast<RasterImageBuilder *>(image);
+    b->i->pixels.assign(buf, buf + bufsize);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
+    CapyPDF_RasterImageBuilder *builder, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    // FIXME. Check validity.
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(b->i.release());
+    b->i.reset(new RasterImage{});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageBuilder *builder)
+    CAPYPDF_NOEXCEPT {
+    auto *ri = reinterpret_cast<RasterImageBuilder *>(builder);
+    delete ri;
     RETNOERR;
 }
 

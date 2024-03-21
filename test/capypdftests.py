@@ -297,8 +297,8 @@ class TestPDFCreation(unittest.TestCase):
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
-            image = capypdf.RasterImage()
-            image.set_size(2, 3)
+            ib = capypdf.RasterImageBuilder()
+            ib.set_size(2, 3)
             ba = bytearray()
             ba.append(127)
             ba.append(0)
@@ -321,7 +321,8 @@ class TestPDFCreation(unittest.TestCase):
             ba.append(0)
             ba.append(255)
 
-            image.set_pixel_data(bytes(ba))
+            ib.set_pixel_data(bytes(ba))
+            image = ib.build()
             ipar = capypdf.ImagePdfProperties()
             iid = g.add_image(image, ipar)
             with g.page_draw_context() as ctx:

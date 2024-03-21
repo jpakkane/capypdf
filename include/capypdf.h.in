@@ -239,6 +239,7 @@ typedef struct _capyPDF_PageProperties CapyPDF_PageProperties;
 typedef struct _capyPDF_Text CapyPDF_Text;
 typedef struct _capyPDF_Transition CapyPDF_Transition;
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
+typedef struct _capyPDF_RasterImageBuilder CapyPDF_RasterImageBuilder;
 typedef struct _capyPDF_Type2Function CapyPDF_Type2Function;
 typedef struct _capyPDF_Type2Shading CapyPDF_Type2Shading;
 typedef struct _capyPDF_Type3Shading CapyPDF_Type3Shading;
@@ -673,13 +674,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *sta
     CAPYPDF_NOEXCEPT;
 
 // Raster images
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_new(CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_set_size(CapyPDF_RasterImage *image,
-                                                     int32_t w,
-                                                     int32_t h) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_set_pixel_data(CapyPDF_RasterImage *image,
-                                                           const char *buf,
-                                                           int32_t bufsize) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImageBuilder *builder,
+                                                             int32_t w,
+                                                             int32_t h) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
+    CapyPDF_RasterImageBuilder *builder, const char *buf, int32_t bufsize) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageBuilder *builder)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
+    CapyPDF_RasterImageBuilder *builder, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT;
 
 // Functions

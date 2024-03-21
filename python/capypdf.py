@@ -360,9 +360,12 @@ cfunc_types = (
 ('capy_graphics_state_set_TK', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
-('capy_raster_image_new', [ctypes.c_void_p]),
-('capy_raster_image_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
-('capy_raster_image_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_raster_image_builder_new', [ctypes.c_void_p]),
+('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
+('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_raster_image_builder_destroy', [ctypes.c_void_p]),
+
 ('capy_raster_image_destroy', [ctypes.c_void_p]),
 
 ('capy_optional_content_group_new', [ctypes.c_void_p, ctypes.c_char_p]),
@@ -1156,13 +1159,33 @@ class RasterImage:
     def __del__(self):
         check_error(libfile.capy_raster_image_destroy(self))
 
+
+class RasterImageBuilder:
+    def __init__(self, cptr = None):
+        if cptr is None:
+            self._as_parameter_ = None
+            opt = ctypes.c_void_p()
+            check_error(libfile.capy_raster_image_builder_new(ctypes.pointer(opt)))
+            self._as_parameter_ = opt
+        else:
+            self._as_parameter_ = cptr
+
+    def __del__(self):
+        check_error(libfile.capy_raster_image_builder_destroy(self))
+
     def set_size(self, w, h):
-        check_error(libfile.capy_raster_image_set_size(self, w, h))
+        check_error(libfile.capy_raster_image_builder_set_size(self, w, h))
 
     def set_pixel_data(self, pixels):
         if not isinstance(pixels, bytes):
             raise CapyPDFException('Pixel data must be in bytes.')
-        check_error(libfile.capy_raster_image_set_pixel_data(self, pixels, len(pixels)))
+        check_error(libfile.capy_raster_image_builder_set_pixel_data(self, pixels, len(pixels)))
+
+    def build(self):
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_raster_image_builder_build(self, ctypes.pointer(opt)))
+        return RasterImage(opt)
+
 
 class GraphicsState:
     def __init__(self):
