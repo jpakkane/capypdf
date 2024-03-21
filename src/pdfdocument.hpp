@@ -351,8 +351,8 @@ public:
     // Images
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      CapyPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image, const ImageLoadParameters &params);
-    rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImageLoadParameters &params);
+    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image, const ImagePDFProperties &params);
+    rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImagePDFProperties &params);
     rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, CapyPDF_Image_Interpolation interpolate);
 
     // Graphics states
@@ -440,13 +440,15 @@ private:
                                            int32_t bits_per_component,
                                            ColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
-                                           const ImageLoadParameters &params,
+                                           const ImagePDFProperties &params,
                                            std::string_view uncompressed_bytes);
 
     rvoe<NoReturnValue> generate_info_object();
     int32_t create_page_group();
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
+
+    rvoe<NoReturnValue> validate_format(const RasterImage &ri) const;
 
     PdfGenerationData opts;
     PdfColorConverter cm;

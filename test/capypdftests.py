@@ -147,11 +147,14 @@ class TestPDFCreation(unittest.TestCase):
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
-            params = capypdf.ImageLoadParameters()
+            params = capypdf.ImagePdfProperties()
             bg_img = g.embed_jpg(image_dir / 'simple.jpg')
-            mono_img = g.load_image(image_dir / '1bit_noalpha.png', params)
-            gray_img = g.load_image(image_dir / 'gray_alpha.png', params)
-            rgb_tif_img = g.load_image(image_dir / 'rgb_tiff.tif', params)
+            mono_img_ri = g.load_image(image_dir / '1bit_noalpha.png')
+            mono_img = g.add_image(mono_img_ri, params)
+            gray_img_ri = g.load_image(image_dir / 'gray_alpha.png')
+            gray_img = g.add_image(gray_img_ri, params)
+            rgb_tif_img_ri = g.load_image(image_dir / 'rgb_tiff.tif')
+            rgb_tif_img = g.add_image(rgb_tif_img_ri, params)
             with g.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
@@ -319,7 +322,7 @@ class TestPDFCreation(unittest.TestCase):
             ba.append(255)
 
             image.set_pixel_data(bytes(ba))
-            ipar = capypdf.ImageLoadParameters()
+            ipar = capypdf.ImagePdfProperties()
             iid = g.add_image(image, ipar)
             with g.page_draw_context() as ctx:
                 ctx.translate(10, 10);
@@ -737,9 +740,10 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opt) as gen:
             artfile = image_dir / 'comic-lines.png'
             self.assertTrue(artfile.exists())
-            maskopt = capypdf.ImageLoadParameters()
+            maskopt = capypdf.ImagePdfProperties()
             maskopt.set_mask(True)
-            maskid = gen.load_image(artfile, maskopt)
+            maskimage = gen.load_image(artfile)
+            maskid = gen.add_image(maskimage, maskopt)
             with gen.page_draw_context() as ctx:
                 ctx.cmd_re(0, 0, 100, 200)
                 ctx.cmd_rg(0.9, 0.4, 0.25)
@@ -815,10 +819,12 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
-        params = capypdf.ImageLoadParameters()
+        params = capypdf.ImagePdfProperties()
         with capypdf.Generator(ofilename, opt) as gen:
-            bgimage = gen.load_image(image_dir / 'flame_gradient.png', params)
-            fgimage = gen.load_image(image_dir / 'object_gradient.png', params)
+            bgimage_ri = gen.load_image(image_dir / 'flame_gradient.png')
+            bgimage = gen.add_image(bgimage_ri, params)
+            fgimage_ri = gen.load_image(image_dir / 'object_gradient.png')
+            fgimage = gen.add_image(fgimage_ri, params)
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.scale(200, 200)
@@ -1038,9 +1044,12 @@ class TestPDFCreation(unittest.TestCase):
             with gen.page_draw_context() as ctx:
                 ctx.render_text('This document should validate as PDF/X3.', fid, 8, 10, 180)
                 ctx.render_text('The image was converted from sRGB to DeviceCMYK on load.', fid, 6, 10, 120)
-                params = capypdf.ImageLoadParameters()
-                params.set_color_policy(capypdf.ColorPolicy.UnmanagedToOutput)
-                image = gen.load_image(image_dir / 'flame_gradient.png', params)
+                params = capypdf.ImagePdfProperties()
+                rgb_image = gen.load_image(image_dir / 'flame_gradient.png')
+                cmyk_image = gen.convert_image(rgb_image,
+                    capypdf.Colorspace.DeviceCMYK,
+                    capypdf.RenderingIntent.RelativeColorimetric)
+                image = gen.add_image(cmyk_image, params)
                 with ctx.push_gstate():
                     ctx.translate(75, 50)
                     ctx.scale(50, 50)

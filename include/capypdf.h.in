@@ -226,14 +226,6 @@ typedef enum {
     CAPY_STRUCTURE_TYPE_NUM_ITEMS
 } CapyPDF_StructureType;
 
-// clang-format off
-typedef enum {
-    CAPY_COLOR_POLICY_PRESERVE,                // Pass all colors directly through without conversion or checking.
-    CAPY_COLOR_POLICY_UNMANAGED_TO_OUTPUT,     // Convert everything to output cs except color managed content (ICC, L*a*b* etc)
-    CAPY_COLOR_POLICY_ALL_TO_OUTPUT,           // Convert everything to output colorspace
-} CapyPDF_Color_Policy;
-// clang-format on
-
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
@@ -254,7 +246,7 @@ typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
 typedef struct _capyPDF_Type6Shading CapyPDF_Type6Shading;
 typedef struct _capyPDF_Annotation CapyPDF_Annotation;
 typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
-typedef struct _capyPDF_ImageLoadParamters CapyPDF_ImageLoadParameters;
+typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
 
 typedef int32_t CapyPDF_EC;
 
@@ -387,11 +379,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     const char *fname,
-                                                    const CapyPDF_ImageLoadParameters *params,
-                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
+                                                    CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
+                                                       const CapyPDF_RasterImage *source,
+                                                       CapyPDF_Colorspace output_cs,
+                                                       CapyPDF_Rendering_Intent ri,
+                                                       CapyPDF_RasterImage **out_ptr)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
-                                                   const CapyPDF_ImageLoadParameters *params,
+                                                   const CapyPDF_ImagePdfProperties *params,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *gen,
                                                             CapyPDF_Type2Function *func,
@@ -747,8 +744,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Annotations.
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
-                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(
+    const char *utf8_text, CapyPDF_Annotation **out_ptr) CAPYoutput_format_PDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
@@ -774,17 +771,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItem
     CAPYPDF_NOEXCEPT;
 
 // Image load
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_new(CapyPDF_ImageLoadParameters **out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_new(CapyPDF_ImagePdfProperties **out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_mask(CapyPDF_ImageLoadParameters *par,
-                                                              int32_t as_mask) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_conversion_intent(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_color_policy(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Color_Policy cp) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_mask(CapyPDF_ImagePdfProperties *par,
+                                                             int32_t as_mask) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_interpolate(
+    CapyPDF_ImagePdfProperties *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_conversion_intent(
+    CapyPDF_ImagePdfProperties *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProperties *par)
     CAPYPDF_NOEXCEPT;
 
 // Error

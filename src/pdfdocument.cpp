@@ -925,7 +925,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
-                                                  const ImageLoadParameters &params) {
+                                                  const ImagePDFProperties &params) {
     if(image.md.cs != CAPY_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
@@ -941,13 +941,14 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
                             image.pixels);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImageLoadParameters &params) {
+rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFProperties &params) {
     if(image.md.w <= 0 || image.md.h <= 0) {
         RETERR(InvalidImageSize);
     }
     if(image.pixels.empty()) {
         RETERR(MissingPixels);
     }
+    ERCV(validate_format(image));
     std::optional<int32_t> smask_id;
     if(params.as_mask && !image.alpha.empty()) {
         RETERR(MaskAndAlpha);
@@ -983,7 +984,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t bits_per_component,
                                                     ColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
-                                                    const ImageLoadParameters &params,
+                                                    const ImagePDFProperties &params,
                                                     std::string_view uncompressed_bytes) {
     std::string buf;
     auto app = std::back_inserter(buf);
@@ -1505,6 +1506,17 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
     font_objects.push_back(
         FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
     return fid;
+}
+
+rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
+    // Check that the image has the correct format.
+    if(opts.xtype) {
+        if(ri.md.cs == CAPY_CS_DEVICE_RGB) {
+            // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
+            RETERR(ImageFormatNotPermitted);
+        }
+    }
+    return NoReturnValue{};
 }
 
 } // namespace capypdf

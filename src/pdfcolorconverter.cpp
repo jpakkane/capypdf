@@ -197,8 +197,8 @@ cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Colorspace cs) const {
 }
 
 rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
-                                                      const ImageLoadParameters &params,
-                                                      CapyPDF_Colorspace output_format) const {
+                                                      CapyPDF_Colorspace output_format,
+                                                      CapyPDF_Rendering_Intent intent) const {
     RasterImage converted;
     converted.md = ri.md;
     converted.alpha = std::move(ri.alpha);
@@ -229,7 +229,7 @@ rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
                                         input_pixelformat,
                                         output_profile,
                                         output_pixelformat,
-                                        ri2lcms.at(params.conversion_intent),
+                                        ri2lcms.at(intent),
                                         0);
     if(!transform) {
         RETERR(ProfileProblem);

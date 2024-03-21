@@ -481,11 +481,9 @@ struct jpg_image {
     std::string file_contents;
 };
 
-struct ImageLoadParameters {
+struct ImagePDFProperties {
     CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;
     bool as_mask = false;
-    CapyPDF_Rendering_Intent conversion_intent = CAPY_RI_RELATIVE_COLORIMETRIC;
-    CapyPDF_Color_Policy color_policy = CAPY_COLOR_POLICY_PRESERVE;
 };
 
 } // namespace capypdf

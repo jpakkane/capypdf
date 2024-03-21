@@ -71,6 +71,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Rolemap entry is already defined.",
 "There can be only one call to the write function.",
 "Unspecified color profile error.",
+"Image is not in format required by output settings."
 };
 
 // clang-format on

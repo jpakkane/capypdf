@@ -69,6 +69,7 @@ enum class ErrorCode : int32_t {
     RoleAlreadyDefined,
     WritingTwice,
     ProfileProblem,
+    ImageFormatNotPermitted,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

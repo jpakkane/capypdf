@@ -251,26 +251,38 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
-                                                    const char *fname,
-                                                    const CapyPDF_ImageLoadParameters *params,
-                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
+    CapyPDF_Generator *gen, const char *fname, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *par = reinterpret_cast<const ImageLoadParameters *>(params);
-    auto rc = g->load_image(fname, *par);
+    auto rc = g->load_image(fname);
     if(rc) {
-        *out_ptr = rc.value();
+        *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(rc.value())));
+    }
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
+                                                       const CapyPDF_RasterImage *source,
+                                                       CapyPDF_Colorspace output_cs,
+                                                       CapyPDF_Rendering_Intent ri,
+                                                       CapyPDF_RasterImage **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *image = reinterpret_cast<const RasterImage *>(source);
+    auto rc = g->convert_image_to_cs(*image, output_cs, ri);
+    if(rc) {
+        *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(rc.value())));
     }
     return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_RasterImage *image,
-                                                   const CapyPDF_ImageLoadParameters *params,
+                                                   const CapyPDF_ImagePdfProperties *params,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *im = reinterpret_cast<RasterImage *>(image);
-    auto *par = reinterpret_cast<const ImageLoadParameters *>(params);
+    auto *par = reinterpret_cast<const ImagePDFProperties *>(params);
     auto rc = g->add_image(std::move(*im), *par);
     if(rc) {
         *out_ptr = rc.value();
@@ -1447,44 +1459,30 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItem
 
 // Image load
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_new(CapyPDF_ImageLoadParameters **out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_new(CapyPDF_ImagePdfProperties **out_ptr)
     CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_ImageLoadParameters *>(new ImageLoadParameters());
+    *out_ptr = reinterpret_cast<CapyPDF_ImagePdfProperties *>(new ImagePDFProperties());
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_mask(CapyPDF_ImageLoadParameters *par,
-                                                              int32_t as_mask) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_mask(CapyPDF_ImagePdfProperties *par,
+                                                             int32_t as_mask) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(as_mask);
-    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+    auto p = reinterpret_cast<ImagePDFProperties *>(par);
     p->as_mask = as_mask;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_interpolate(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT {
-    auto p = reinterpret_cast<ImageLoadParameters *>(par);
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_interpolate(
+    CapyPDF_ImagePdfProperties *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT {
+    auto p = reinterpret_cast<ImagePDFProperties *>(par);
     p->interp = interp;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_conversion_intent(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT {
-    auto p = reinterpret_cast<ImageLoadParameters *>(par);
-    p->conversion_intent = ri;
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_set_color_policy(
-    CapyPDF_ImageLoadParameters *par, CapyPDF_Color_Policy cp) CAPYPDF_NOEXCEPT {
-    auto p = reinterpret_cast<ImageLoadParameters *>(par);
-    p->color_policy = cp;
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_image_load_parameters_destroy(CapyPDF_ImageLoadParameters *par)
+CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProperties *par)
     CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<ImageLoadParameters *>(par);
+    delete reinterpret_cast<ImagePDFProperties *>(par);
     RETNOERR;
 }
 

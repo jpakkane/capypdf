@@ -62,8 +62,8 @@ class PageBox(Enum):
     Art = 4
 
 class RenderingIntent(Enum):
-    Relative_Colorimetric = 0
-    ABSOLUTE_Colorimetric = 1
+    RelativeColorimetric = 0
+    AbsoluteColorimetric = 1
     Saturation = 2
     Perceptual = 3
 
@@ -164,11 +164,6 @@ class StructureType(Enum):
 
     Artifact = 46
 
-class ColorPolicy(Enum):
-    Preserve = 0
-    UnmanagedToOutput = 1
-    AllToOutput = 2
-
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -248,7 +243,8 @@ cfunc_types = (
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
-('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_convert_image', [ctypes.c_void_p, ctypes.c_void_p, enum_type, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -420,12 +416,10 @@ cfunc_types = (
 ('capy_struct_item_extra_data_set_actual_text', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_struct_item_extra_data_destroy', [ctypes.c_void_p]),
 
-('capy_image_load_parameters_new', [ctypes.c_void_p]),
-('capy_image_load_parameters_set_mask', [ctypes.c_void_p, ctypes.c_int32]),
-('capy_image_load_parameters_set_interpolate', [ctypes.c_void_p, enum_type]),
-('capy_image_load_parameters_set_conversion_intent', [ctypes.c_void_p, enum_type]),
-('capy_image_load_parameters_set_color_policy', [ctypes.c_void_p, enum_type]),
-('capy_image_load_parameters_destroy', [ctypes.c_void_p]),
+('capy_image_pdf_properties_new', [ctypes.c_void_p]),
+('capy_image_pdf_properties_set_mask', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_image_pdf_properties_set_interpolate', [ctypes.c_void_p, enum_type]),
+('capy_image_pdf_properties_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -898,18 +892,23 @@ class Generator:
         check_error(libfile.capy_generator_load_icc_profile(self, to_bytepath(fname), ctypes.pointer(iid)))
         return iid
 
-    def load_image(self, fname, parameters):
-        if not isinstance(parameters, ImageLoadParameters):
-            raise CapyPDFException('Second argument must be an ImageLoadParameters object.')
-        iid = ImageId()
-        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), parameters, ctypes.pointer(iid)))
-        return iid
+    def load_image(self, fname):
+        optr = ctypes.c_void_p()
+        check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), ctypes.pointer(optr)))
+        return RasterImage(optr)
+
+    def convert_image(self, in_image, output_cs, ri):
+        if not isinstance(in_image, RasterImage):
+            raise CapyPDFException('First argument must be a RasterImage object.')
+        optr = ctypes.c_void_p()
+        check_error(libfile.capy_generator_convert_image(self, in_image, output_cs.value, ri.value, ctypes.pointer(optr)))
+        return RasterImage(optr)
 
     def add_image(self, ri, params):
         if not isinstance(ri, RasterImage):
             raise CapyPDFException('First argument must be a raster image.')
-        if not isinstance(params, ImageLoadParameters):
-            raise CapyPDFException('Second argument must be an ImageLoadParameter object.')
+        if not isinstance(params, ImagePdfProperties):
+            raise CapyPDFException('Second argument must be an PDF property object.')
         iid = ImageId()
         check_error(libfile.capy_generator_add_image(self, ri, params, ctypes.pointer(iid)))
         return iid
@@ -1145,11 +1144,14 @@ class Transition:
         check_error(libfile.capy_transition_destroy(self))
 
 class RasterImage:
-    def __init__(self):
-        self._as_parameter_ = None
-        opt = ctypes.c_void_p()
-        check_error(libfile.capy_raster_image_new(ctypes.pointer(opt)))
-        self._as_parameter_ = opt
+    def __init__(self, cptr = None):
+        if cptr is None:
+            self._as_parameter_ = None
+            opt = ctypes.c_void_p()
+            check_error(libfile.capy_raster_image_new(ctypes.pointer(opt)))
+            self._as_parameter_ = opt
+        else:
+            self._as_parameter_ = cptr
 
     def __del__(self):
         check_error(libfile.capy_raster_image_destroy(self))
@@ -1371,27 +1373,17 @@ class StructItemExtraData:
         chars = actual.encode('UTF-8')
         check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars))
 
-class ImageLoadParameters:
+class ImagePdfProperties:
     def __init__(self):
         ed = ctypes.c_void_p()
-        check_error(libfile.capy_image_load_parameters_new(ctypes.pointer(ed)))
+        check_error(libfile.capy_image_pdf_properties_new(ctypes.pointer(ed)))
         self._as_parameter_ = ed
 
     def set_mask(self, boolval):
         intval = 1 if boolval else 0
-        check_error(libfile.capy_image_load_parameters_set_mask(self, intval))
+        check_error(libfile.capy_image_pdf_properties_set_mask(self, intval))
 
     def set_interpolate(self, ival):
         if not isinstance(ival, ImageInterpolation):
             raise CapyPDFException('Argument must be image interpolation enum.')
-        check_error(libfile.capy_image_load_parameters_set_interpolate(self, ival.value))
-
-    def set_conversion_intent(self, ri):
-        if not isinstance(ri, RenceringIntent):
-            raise CapyPDFException('Argument must be a rendering intent enum.')
-        check_error(libfile.capy_image_load_parameters_set_conversion_intent(self, ri.value))
-
-    def set_color_policy(self, cp):
-        if not isinstance(cp, ColorPolicy):
-            raise CapyPDFException('Argument must be a color policy enum.')
-        check_error(libfile.capy_image_load_parameters_set_color_policy(self, cp.value))
+        check_error(libfile.capy_image_lpdf_properties_set_interpolate(self, ival.value))
