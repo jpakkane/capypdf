@@ -1183,6 +1183,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_has_profile(const CapyPDF_RasterImage *image,
+                                                        int32_t *out_ptr) CAPYPDF_NOEXCEPT {
+    auto *i = reinterpret_cast<const RasterImage *>(image);
+    *out_ptr = i->icc_profile.empty() ? 0 : 1;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageBuilder *builder)
     CAPYPDF_NOEXCEPT {
     auto *ri = reinterpret_cast<RasterImageBuilder *>(builder);
