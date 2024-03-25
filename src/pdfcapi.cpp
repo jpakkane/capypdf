@@ -114,24 +114,24 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
-    CapyPDF_Options *opt, CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
+    CapyPDF_Options *opt, CapyPDF_DeviceColorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     switch(cs) {
-    case CAPY_CS_DEVICE_RGB:
+    case CAPY_DEVICE_CS_RGB:
         opts->prof.rgb_profile_file = profile_path;
         break;
-    case CAPY_CS_DEVICE_GRAY:
+    case CAPY_DEVICE_CS_GRAY:
         opts->prof.gray_profile_file = profile_path;
         break;
-    case CAPY_CS_DEVICE_CMYK:
+    case CAPY_DEVICE_CS_CMYK:
         opts->prof.cmyk_profile_file = profile_path;
         break;
     }
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
-                                                      CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_options_set_colorspace(CapyPDF_Options *opt, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<PdfGenerationData *>(opt);
     opts->output_colorspace = cs;
     RETNOERR;
@@ -263,7 +263,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        const CapyPDF_RasterImage *source,
-                                                       CapyPDF_Colorspace output_cs,
+                                                       CapyPDF_DeviceColorspace output_cs,
                                                        CapyPDF_Rendering_Intent ri,
                                                        CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT {
@@ -1210,7 +1210,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *fun
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
@@ -1231,7 +1231,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
@@ -1257,7 +1257,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -1317,7 +1317,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,

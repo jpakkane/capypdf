@@ -173,7 +173,7 @@ struct PdfGenerationData {
     u8string creator;
     asciistring lang;
     bool is_tagged = false;
-    CapyPDF_Colorspace output_colorspace = CAPY_CS_DEVICE_RGB;
+    CapyPDF_DeviceColorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
     std::optional<CapyPDF_PDFX_Type> xtype;
     std::string intent_condition_identifier;
@@ -310,7 +310,7 @@ struct RolemapEnty {
     CapyPDF_StructureType builtin;
 };
 
-typedef std::variant<CapyPDF_Colorspace, CapyPDF_IccColorSpaceId> ColorspaceType;
+typedef std::variant<CapyPDF_DeviceColorspace, CapyPDF_IccColorSpaceId> ColorspaceType;
 
 class PdfDocument {
 public:

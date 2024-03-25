@@ -22,7 +22,7 @@ rvoe<RasterImage> load_rgb_png(png_image &image) {
     result.md.w = image.width;
     result.md.h = image.height;
     result.md.pixel_depth = 8;
-    result.md.cs = CAPY_CS_DEVICE_RGB;
+    result.md.cs = CAPY_DEVICE_CS_RGB;
     result.pixels.resize(PNG_IMAGE_SIZE(image));
 
     png_image_finish_read(
@@ -41,7 +41,7 @@ rvoe<RasterImage> load_rgba_png(png_image &image) {
     result.md.h = image.height;
     result.md.pixel_depth = 8;
     result.md.alpha_depth = 8;
-    result.md.cs = CAPY_CS_DEVICE_RGB;
+    result.md.cs = CAPY_DEVICE_CS_RGB;
     buf.resize(PNG_IMAGE_SIZE(image));
     result.alpha = std::string();
 
@@ -70,7 +70,7 @@ rvoe<RasterImage> load_ga_png(png_image &image) {
     result.md.h = image.height;
     result.md.pixel_depth = 8;
     result.md.alpha_depth = 8;
-    result.md.cs = CAPY_CS_DEVICE_GRAY;
+    result.md.cs = CAPY_DEVICE_CS_GRAY;
 
     buf.resize(PNG_IMAGE_SIZE(image));
     result.alpha = std::string();
@@ -117,7 +117,7 @@ rvoe<RasterImage> load_mono_png(png_image &image) {
     result.md.w = image.width;
     result.md.h = image.height;
     result.md.pixel_depth = 1;
-    result.md.cs = CAPY_CS_DEVICE_GRAY;
+    result.md.cs = CAPY_DEVICE_CS_GRAY;
     ERC(pd, load_png_data(image));
     size_t offset = 0;
     const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
@@ -347,21 +347,21 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
         if(samplesperpixel != 4) {
             RETERR(UnsupportedTIFF);
         }
-        result.md.cs = CAPY_CS_DEVICE_CMYK;
+        result.md.cs = CAPY_DEVICE_CS_CMYK;
         break;
 
     case PHOTOMETRIC_RGB:
         if(samplesperpixel != 3) {
             RETERR(UnsupportedTIFF);
         }
-        result.md.cs = CAPY_CS_DEVICE_RGB;
+        result.md.cs = CAPY_DEVICE_CS_RGB;
         break;
 
     case PHOTOMETRIC_MINISBLACK:
         if(samplesperpixel != 1) {
             RETERR(UnsupportedTIFF);
         }
-        result.md.cs = CAPY_CS_DEVICE_GRAY;
+        result.md.cs = CAPY_DEVICE_CS_GRAY;
         break;
 
     default:

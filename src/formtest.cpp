@@ -12,7 +12,7 @@ int draw_simple_form() {
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Form XObject test").value();
     opts.author = u8string::from_cstr("Test Person").value();
-    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     {
         GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
@@ -115,7 +115,7 @@ int draw_group_doc() {
     opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Transparency group test").value();
     opts.author = u8string::from_cstr("Test Person").value();
-    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     GenPopper genpop("tr_test.pdf", opts);
     PdfGen &gen = *genpop.g;
     CapyPDF_TransparencyGroupId tgid;
@@ -160,7 +160,7 @@ int draw_transp_doc() {
     opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Transparency group test").value();
     opts.author = u8string::from_cstr("Test Person").value();
-    opts.output_colorspace = CAPY_CS_DEVICE_CMYK;
+    opts.output_colorspace = CAPY_DEVICE_CS_CMYK;
     opts.prof.cmyk_profile_file = icc_out;
     {
         GenPopper genpop("group_test.pdf", opts);
@@ -172,7 +172,7 @@ int draw_transp_doc() {
         auto funcid = gen.add_function(cmykfunc).value();
 
         ShadingType2 shade;
-        shade.colorspace = CAPY_CS_DEVICE_CMYK;
+        shade.colorspace = CAPY_DEVICE_CS_CMYK;
         shade.x0 = 0;
         shade.y0 = 40;
         shade.x1 = 80;

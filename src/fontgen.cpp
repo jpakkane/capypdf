@@ -11,7 +11,7 @@ void center_test() {
     u8string text = u8string::from_cstr("Centered text!").value();
     const double pt = 12;
     PdfGenerationData opts;
-    opts.output_colorspace = CAPY_CS_DEVICE_GRAY;
+    opts.output_colorspace = CAPY_DEVICE_CS_GRAY;
     opts.default_page_properties.mediabox->x2 = 200;
     opts.default_page_properties.mediabox->y2 = 200;
     GenPopper genpop("centering.pdf", opts);
@@ -39,7 +39,7 @@ void center_test() {
 
 int main(int argc, char **argv) {
     PdfGenerationData opts;
-    opts.output_colorspace = CAPY_CS_DEVICE_RGB;
+    opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     const char *regularfont;
     const char *italicfont;
     if(argc > 1) {

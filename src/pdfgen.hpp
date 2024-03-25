@@ -56,7 +56,7 @@ public:
     };
 
     rvoe<RasterImage> convert_image_to_cs(RasterImage image,
-                                          CapyPDF_Colorspace cs,
+                                          CapyPDF_DeviceColorspace cs,
                                           CapyPDF_Rendering_Intent ri) const;
     rvoe<CapyPDF_ImageId> add_image(RasterImage ri, const ImagePDFProperties &params);
 

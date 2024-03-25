@@ -506,7 +506,7 @@ class TestPDFCreation(unittest.TestCase):
             c2.set_rgb(1.0, 0.0, 1.0)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
             f2id = gen.add_type2_function(f2)
-            sh2 = capypdf.Type2Shading(capypdf.Colorspace.DeviceRGB,
+            sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
                                        10.0,
                                        50.0,
                                        90.0,
@@ -516,14 +516,14 @@ class TestPDFCreation(unittest.TestCase):
                                        False)
             sh2id = gen.add_type2_shading(sh2)
 
-            sh3 = capypdf.Type3Shading(capypdf.Colorspace.DeviceRGB,
+            sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.RGB,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
             sh3id = gen.add_type3_shading(sh3)
 
-            sh4 = capypdf.Type4Shading(capypdf.Colorspace.DeviceRGB, 0, 0, 100, 100)
+            sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.RGB, 0, 0, 100, 100)
             c1 = capypdf.Color()
             c1.set_rgb(1, 0, 0)
             c2 = capypdf.Color()
@@ -537,7 +537,7 @@ class TestPDFCreation(unittest.TestCase):
             sh4.extend(2, [90, 90], c2)
             sh4id = gen.add_type4_shading(sh4)
 
-            sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceRGB, 0, 0, 100, 100)
+            sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.RGB, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_rgb(1, 0, 0)
             sh6_colors[1].set_rgb(0, 1, 0)
@@ -577,7 +577,7 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
-        opt.set_colorspace(capypdf.Colorspace.DeviceGray)
+        opt.set_colorspace(capypdf.DeviceColorspace.Gray)
         with capypdf.Generator(ofilename, opt) as gen:
             c1 = capypdf.Color()
             c1.set_gray(0.0)
@@ -585,7 +585,7 @@ class TestPDFCreation(unittest.TestCase):
             c2.set_gray(1.0)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
             f2id = gen.add_type2_function(f2)
-            sh2 = capypdf.Type2Shading(capypdf.Colorspace.DeviceGray,
+            sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.Gray,
                                        10.0,
                                        50.0,
                                        90.0,
@@ -595,14 +595,14 @@ class TestPDFCreation(unittest.TestCase):
                                        False)
             sh2id = gen.add_type2_shading(sh2)
 
-            sh3 = capypdf.Type3Shading(capypdf.Colorspace.DeviceGray,
+            sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.Gray,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
             sh3id = gen.add_type3_shading(sh3)
 
-            sh4 = capypdf.Type4Shading(capypdf.Colorspace.DeviceGray, 0, 0, 100, 100)
+            sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.Gray, 0, 0, 100, 100)
             c1 = capypdf.Color()
             c1.set_gray(1)
             c2 = capypdf.Color()
@@ -616,7 +616,7 @@ class TestPDFCreation(unittest.TestCase):
             sh4.extend(2, [90, 90], c2)
             sh4id = gen.add_type4_shading(sh4)
 
-            sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceGray, 0, 0, 100, 100)
+            sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.Gray, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_gray(0)
             sh6_colors[1].set_gray(0.3)
@@ -656,8 +656,8 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
-        opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
-        opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
+        opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
         with capypdf.Generator(ofilename, opt) as gen:
             c1 = capypdf.Color()
             c1.set_cmyk(0.9, 0, 0.9, 0)
@@ -665,7 +665,7 @@ class TestPDFCreation(unittest.TestCase):
             c2.set_cmyk(0, 0.9, 0, 0.9)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
             f2id = gen.add_type2_function(f2)
-            sh2 = capypdf.Type2Shading(capypdf.Colorspace.DeviceCMYK,
+            sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.CMYK,
                                        10.0,
                                        50.0,
                                        90.0,
@@ -675,14 +675,14 @@ class TestPDFCreation(unittest.TestCase):
                                        False)
             sh2id = gen.add_type2_shading(sh2)
 
-            sh3 = capypdf.Type3Shading(capypdf.Colorspace.DeviceCMYK,
+            sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.CMYK,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
             sh3id = gen.add_type3_shading(sh3)
 
-            sh4 = capypdf.Type4Shading(capypdf.Colorspace.DeviceCMYK, 0, 0, 100, 100)
+            sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.CMYK, 0, 0, 100, 100)
             c1 = capypdf.Color()
             c1.set_cmyk(1, 0, 0, 0)
             c2 = capypdf.Color()
@@ -698,7 +698,7 @@ class TestPDFCreation(unittest.TestCase):
             sh4.extend(2, [90, 90], c4)
             sh4id = gen.add_type4_shading(sh4)
 
-            sh6 = capypdf.Type6Shading(capypdf.Colorspace.DeviceCMYK, 0, 0, 100, 100)
+            sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.CMYK, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
             sh6_colors[0].set_cmyk(1, 0, 0, 0)
             sh6_colors[1].set_cmyk(0, 1, 0, 0)
@@ -797,8 +797,8 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
-        opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
-        opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
+        opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
         with capypdf.Generator(ofilename, opt) as gen:
             red = capypdf.Color()
             red.set_cmyk(0.2, 1, 0.8, 0)
@@ -1035,10 +1035,10 @@ class TestPDFCreation(unittest.TestCase):
         prop.set_pagebox(capypdf.PageBox.Trim, 1, 1, 198, 198)
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
-        opt.set_colorspace(capypdf.Colorspace.DeviceCMYK)
+        opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
         opt.set_output_intent('Uncoated Fogra 29')
         opt.set_pdfx(capypdf.PdfXType.X3_2003)
-        opt.set_device_profile(capypdf.Colorspace.DeviceCMYK, icc_dir / 'FOGRA29L.icc')
+        opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
         opt.set_title('PDF X3 test')
         with capypdf.Generator(ofilename, opt) as gen:
             fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
@@ -1048,7 +1048,7 @@ class TestPDFCreation(unittest.TestCase):
                 params = capypdf.ImagePdfProperties()
                 rgb_image = gen.load_image(image_dir / 'flame_gradient.png')
                 cmyk_image = gen.convert_image(rgb_image,
-                    capypdf.Colorspace.DeviceCMYK,
+                    capypdf.DeviceColorspace.CMYK,
                     capypdf.RenderingIntent.RelativeColorimetric)
                 image = gen.add_image(cmyk_image, params)
                 with ctx.push_gstate():

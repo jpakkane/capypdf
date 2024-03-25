@@ -35,10 +35,10 @@ class BlendMode(Enum):
     Color = 14
     Luminosity = 15
 
-class Colorspace(Enum):
-    DeviceRGB = 0
-    DeviceGray = 1
-    DeviceCMYK = 2
+class DeviceColorspace(Enum):
+    RGB = 0
+    Gray = 1
+    CMYK = 2
 
 class TransitionType(Enum):
     Split = 0
@@ -500,8 +500,8 @@ class Options:
         check_error(libfile.capy_options_destroy(self))
 
     def set_colorspace(self, cs):
-        if not isinstance(cs, Colorspace):
-            raise CapyPDFException('Argument not a colorspace object.')
+        if not isinstance(cs, DeviceColorspace):
+            raise CapyPDFException('Argument not a device colorspace object.')
         check_error(libfile.capy_options_set_colorspace(self, cs.value))
 
     def set_title(self, title):

@@ -111,19 +111,19 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
         ERCV(append_floatvalue<uint32_t>(s, yratio));
 
         if(auto *c = std::get_if<DeviceRGBColor>(&e.sp.c)) {
-            if(shade.colorspace != CAPY_CS_DEVICE_RGB) {
+            if(shade.colorspace != CAPY_DEVICE_CS_RGB) {
                 RETERR(ColorspaceMismatch);
             }
             ERCV(append_floatvalue<uint16_t>(s, c->r.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->g.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->b.v()));
         } else if(auto *c = std::get_if<DeviceGrayColor>(&e.sp.c)) {
-            if(shade.colorspace != CAPY_CS_DEVICE_GRAY) {
+            if(shade.colorspace != CAPY_DEVICE_CS_GRAY) {
                 RETERR(ColorspaceMismatch);
             }
             ERCV(append_floatvalue<uint16_t>(s, c->v.v()));
         } else if(auto *c = std::get_if<DeviceCMYKColor>(&e.sp.c)) {
-            if(shade.colorspace != CAPY_CS_DEVICE_CMYK) {
+            if(shade.colorspace != CAPY_DEVICE_CS_CMYK) {
                 RETERR(ColorspaceMismatch);
             }
             ERCV(append_floatvalue<uint16_t>(s, c->c.v()));
@@ -160,7 +160,7 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
             ERCV(append_floatvalue<uint32_t>(s, yratio));
         }
         for(const auto &colorobj : e.c) {
-            if(shade.colorspace == CAPY_CS_DEVICE_RGB) {
+            if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
                 if(!std::holds_alternative<DeviceRGBColor>(colorobj)) {
                     RETERR(ColorspaceMismatch);
                 }
@@ -168,13 +168,13 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
                 ERCV(append_floatvalue<uint16_t>(s, c.r.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.g.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.b.v()));
-            } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
+            } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
                 if(!std::holds_alternative<DeviceGrayColor>(colorobj)) {
                     RETERR(ColorspaceMismatch);
                 }
                 const auto &c = std::get<DeviceGrayColor>(colorobj);
                 ERCV(append_floatvalue<uint16_t>(s, c.v.v()));
-            } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+            } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
                 if(!std::holds_alternative<DeviceCMYKColor>(colorobj)) {
                     RETERR(ColorspaceMismatch);
                 }
@@ -192,13 +192,13 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
     return s;
 }
 
-int32_t num_channels_for(const CapyPDF_Colorspace cs) {
+int32_t num_channels_for(const CapyPDF_DeviceColorspace cs) {
     switch(cs) {
-    case CAPY_CS_DEVICE_RGB:
+    case CAPY_DEVICE_CS_RGB:
         return 3;
-    case CAPY_CS_DEVICE_GRAY:
+    case CAPY_DEVICE_CS_GRAY:
         return 1;
-    case CAPY_CS_DEVICE_CMYK:
+    case CAPY_DEVICE_CS_CMYK:
         return 4;
     }
     std::abort();
@@ -240,22 +240,22 @@ rvoe<NoReturnValue> PdfDocument::init() {
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    if(opts.output_colorspace == CAPY_CS_DEVICE_CMYK) {
+    if(opts.output_colorspace == CAPY_DEVICE_CS_CMYK) {
         create_separation(asciistring::from_cstr("All").value(),
                           DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
     }
     switch(opts.output_colorspace) {
-    case CAPY_CS_DEVICE_RGB:
+    case CAPY_DEVICE_CS_RGB:
         if(!cm.get_rgb().empty()) {
             output_profile = store_icc_profile(cm.get_rgb(), 3);
         }
         break;
-    case CAPY_CS_DEVICE_GRAY:
+    case CAPY_DEVICE_CS_GRAY:
         if(!cm.get_gray().empty()) {
             output_profile = store_icc_profile(cm.get_gray(), 1);
         }
         break;
-    case CAPY_CS_DEVICE_CMYK:
+    case CAPY_DEVICE_CS_CMYK:
         if(cm.get_cmyk().empty()) {
             RETERR(OutputProfileMissing);
         }
@@ -926,7 +926,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
                                                   const ImagePDFProperties &params) {
-    if(image.md.cs != CAPY_CS_DEVICE_GRAY || image.md.pixel_depth != 1) {
+    if(image.md.cs != CAPY_DEVICE_CS_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
     if(!params.as_mask) {
@@ -958,7 +958,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
             add_image_object(image.md.w,
                              image.md.h,
                              image.md.alpha_depth,
-                             CAPY_CS_DEVICE_GRAY,
+                             CAPY_DEVICE_CS_GRAY,
                              {},
                              params,
                              image.alpha));
@@ -1015,7 +1015,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     if(params.as_mask) {
         buf += "  /ImageMask true\n";
     } else {
-        if(auto cs = std::get_if<CapyPDF_Colorspace>(&colorspace)) {
+        if(auto cs = std::get_if<CapyPDF_DeviceColorspace>(&colorspace)) {
             fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
             const auto icc_obj = icc_profiles.at(icc->id).object_num;
@@ -1225,14 +1225,14 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
         shade.maxx,
         shade.miny,
         shade.maxy);
-    if(shade.colorspace == CAPY_CS_DEVICE_RGB) {
+    if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
         buf += R"(    0 1
     0 1
     0 1
 )";
-    } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
+    } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
         buf += "  0 1\n";
-    } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+    } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
         buf += R"(    0 1
     0 1
     0 1
@@ -1268,14 +1268,14 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
         shade.maxx,
         shade.miny,
         shade.maxy);
-    if(shade.colorspace == CAPY_CS_DEVICE_RGB) {
+    if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
         buf += R"(    0 1
     0 1
     0 1
 )";
-    } else if(shade.colorspace == CAPY_CS_DEVICE_GRAY) {
+    } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
         buf += "  0 1\n";
-    } else if(shade.colorspace == CAPY_CS_DEVICE_CMYK) {
+    } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
         buf += R"(    0 1
     0 1
     0 1
@@ -1511,7 +1511,7 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
 rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
     // Check that the image has the correct format.
     if(opts.xtype) {
-        if(ri.md.cs == CAPY_CS_DEVICE_RGB) {
+        if(ri.md.cs == CAPY_DEVICE_CS_RGB) {
             // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
             RETERR(ImageFormatNotPermitted);
         }

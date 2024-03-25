@@ -338,7 +338,7 @@ struct FunctionType2 {
 
 // Linear
 struct ShadingType2 {
-    CapyPDF_Colorspace colorspace;
+    CapyPDF_DeviceColorspace colorspace;
     double x0, y0, x1, y1;
     CapyPDF_FunctionId function;
     bool extend0, extend1;
@@ -346,7 +346,7 @@ struct ShadingType2 {
 
 // Radial
 struct ShadingType3 {
-    CapyPDF_Colorspace colorspace;
+    CapyPDF_DeviceColorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     CapyPDF_FunctionId function;
     bool extend0, extend1;
@@ -370,7 +370,7 @@ struct ShadingType4 {
     double miny;
     double maxx;
     double maxy;
-    CapyPDF_Colorspace colorspace = CAPY_CS_DEVICE_RGB;
+    CapyPDF_DeviceColorspace colorspace = CAPY_DEVICE_CS_RGB;
 
     void start_strip(const ShadingPoint &v0, const ShadingPoint &v1, const ShadingPoint &v2) {
         elements.emplace_back(ShadingElement{v0, 0});
@@ -403,7 +403,7 @@ struct ShadingType6 {
     double miny = 0;
     double maxx = 200;
     double maxy = 200;
-    CapyPDF_Colorspace colorspace = CAPY_CS_DEVICE_RGB;
+    CapyPDF_DeviceColorspace colorspace = CAPY_DEVICE_CS_RGB;
 };
 
 struct TextStateParameters {
@@ -463,7 +463,7 @@ struct RasterImageMetadata {
     int32_t h = 0;
     int32_t pixel_depth = 8;
     int32_t alpha_depth = 0;
-    CapyPDF_Colorspace cs = CAPY_CS_DEVICE_RGB;
+    CapyPDF_DeviceColorspace cs = CAPY_DEVICE_CS_RGB;
 };
 
 struct RasterImage {

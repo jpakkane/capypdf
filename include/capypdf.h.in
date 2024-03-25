@@ -48,7 +48,11 @@ typedef enum {
     CAPY_FONT_COURIER_BOLDOBLIQUE,
 } CapyPDF_Builtin_Fonts;
 
-typedef enum { CAPY_CS_DEVICE_RGB, CAPY_CS_DEVICE_GRAY, CAPY_CS_DEVICE_CMYK } CapyPDF_Colorspace;
+typedef enum {
+    CAPY_DEVICE_CS_RGB,
+    CAPY_DEVICE_CS_GRAY,
+    CAPY_DEVICE_CS_CMYK
+} CapyPDF_DeviceColorspace;
 
 typedef enum {
     CAPY_RI_RELATIVE_COLORIMETRIC,
@@ -332,9 +336,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_creator(CapyPDF_Options *opt,
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_language(CapyPDF_Options *opt,
                                                     const char *lang) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
-    CapyPDF_Options *opt, CapyPDF_Colorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
+    CapyPDF_Options *opt, CapyPDF_DeviceColorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_colorspace(CapyPDF_Options *opt,
-                                                      CapyPDF_Colorspace cs) CAPYPDF_NOEXCEPT;
+                                                      CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
                                                          const char *identifier) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_pdfx(CapyPDF_Options *opt,
@@ -383,7 +387,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        const CapyPDF_RasterImage *source,
-                                                       CapyPDF_Colorspace output_cs,
+                                                       CapyPDF_DeviceColorspace output_cs,
                                                        CapyPDF_Rendering_Intent ri,
                                                        CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT;
@@ -697,7 +701,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
 CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *func) CAPYPDF_NOEXCEPT;
 
 // Shadings
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
@@ -708,7 +712,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Colorspace cs,
                                                  CapyPDF_Type2Shading **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
@@ -716,7 +720,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Colorspace cs,
                                                  CapyPDF_Type3Shading **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -732,7 +736,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Colorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
