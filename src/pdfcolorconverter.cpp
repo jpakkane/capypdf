@@ -31,6 +31,20 @@ int32_t num_bytes_for(CapyPDF_DeviceColorspace cs) {
     std::abort();
 }
 
+/*
+int32_t num_bytes_for(CapyPDF_ImageColorspace cs) {
+    switch(cs) {
+    case CAPY_IMAGE_CS_RGB:
+        return 3;
+    case CAPY_IMAGE_CS_GRAY:
+        return 1;
+    case CAPY_IMAGE_CS_CMYK:
+        return 4;
+    }
+    std::abort();
+}
+*/
+
 uint32_t pixelformat_for(CapyPDF_DeviceColorspace cs) {
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
@@ -38,6 +52,18 @@ uint32_t pixelformat_for(CapyPDF_DeviceColorspace cs) {
     case CAPY_DEVICE_CS_GRAY:
         return TYPE_GRAY_8;
     case CAPY_DEVICE_CS_CMYK:
+        return TYPE_CMYK_8;
+    }
+    std::abort();
+}
+
+uint32_t pixelformat_for(CapyPDF_ImageColorspace cs) {
+    switch(cs) {
+    case CAPY_IMAGE_CS_RGB:
+        return TYPE_RGB_8;
+    case CAPY_IMAGE_CS_GRAY:
+        return TYPE_GRAY_8;
+    case CAPY_IMAGE_CS_CMYK:
         return TYPE_CMYK_8;
     }
     std::abort();
@@ -196,6 +222,13 @@ cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_DeviceColorspace cs) const {
     std::abort();
 }
 
+cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_ImageColorspace cs) const {
+    if(cs <= CAPY_IMAGE_CS_CMYK) {
+        return profile_for((CapyPDF_DeviceColorspace)cs);
+    }
+    std::abort();
+}
+
 rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
                                                       CapyPDF_DeviceColorspace output_format,
                                                       CapyPDF_Rendering_Intent intent) const {
@@ -237,7 +270,7 @@ rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
     converted.pixels = std::string(num_pixels * num_bytes_for(output_format), '\0');
     cmsDoTransform(transform, ri.pixels.data(), converted.pixels.data(), num_pixels);
     cmsDeleteTransform(transform);
-    converted.md.cs = output_format;
+    converted.md.cs = (CapyPDF_ImageColorspace)output_format;
     converted.icc_profile.clear();
     return std::move(converted);
 }

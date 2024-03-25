@@ -40,6 +40,11 @@ class DeviceColorspace(Enum):
     Gray = 1
     CMYK = 2
 
+class ImageColorspace(Enum):
+    RGB = 0
+    Gray = 1
+    CMYK = 2
+
 class TransitionType(Enum):
     Split = 0
     Blinds = 1
@@ -364,6 +369,7 @@ cfunc_types = (
 ('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
 ('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_raster_image_get_colorspace', [ctypes.c_void_p, ctypes.POINTER(enum_type)]),
 ('capy_raster_image_builder_destroy', [ctypes.c_void_p]),
 
 ('capy_raster_image_destroy', [ctypes.c_void_p]),
@@ -1159,6 +1165,10 @@ class RasterImage:
     def __del__(self):
         check_error(libfile.capy_raster_image_destroy(self))
 
+    def get_colorspace(self):
+        val = enum_type(99)
+        check_error(libfile.capy_raster_image_get_colorspace(self, ctypes.pointer(val)))
+        return ImageColorspace(val.value)
 
 class RasterImageBuilder:
     def __init__(self, cptr = None):

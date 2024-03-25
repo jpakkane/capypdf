@@ -463,7 +463,7 @@ struct RasterImageMetadata {
     int32_t h = 0;
     int32_t pixel_depth = 8;
     int32_t alpha_depth = 0;
-    CapyPDF_DeviceColorspace cs = CAPY_DEVICE_CS_RGB;
+    CapyPDF_ImageColorspace cs = CAPY_IMAGE_CS_RGB;
 };
 
 struct RasterImage {

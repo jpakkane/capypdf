@@ -66,6 +66,7 @@ private:
     PdfColorConverter();
 
     cmsHPROFILE profile_for(CapyPDF_DeviceColorspace cs) const;
+    cmsHPROFILE profile_for(CapyPDF_ImageColorspace cs) const;
 
     LcmsHolder rgb_profile;
     LcmsHolder gray_profile;

@@ -192,9 +192,9 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
     return s;
 }
 
-int32_t num_channels_for(const CapyPDF_DeviceColorspace cs) {
+int32_t num_channels_for(const CapyPDF_ImageColorspace cs) {
     switch(cs) {
-    case CAPY_DEVICE_CS_RGB:
+    case CAPY_IMAGE_CS_RGB:
         return 3;
     case CAPY_DEVICE_CS_GRAY:
         return 1;
@@ -926,7 +926,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t gly
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
                                                   const ImagePDFProperties &params) {
-    if(image.md.cs != CAPY_DEVICE_CS_GRAY || image.md.pixel_depth != 1) {
+    if(image.md.cs != CAPY_IMAGE_CS_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
     }
     if(!params.as_mask) {
@@ -958,7 +958,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
             add_image_object(image.md.w,
                              image.md.h,
                              image.md.alpha_depth,
-                             CAPY_DEVICE_CS_GRAY,
+                             CAPY_IMAGE_CS_GRAY,
                              {},
                              params,
                              image.alpha));
@@ -982,7 +982,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
 rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     int32_t h,
                                                     int32_t bits_per_component,
-                                                    ColorspaceType colorspace,
+                                                    ImageColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
                                                     std::string_view uncompressed_bytes) {
@@ -1015,7 +1015,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     if(params.as_mask) {
         buf += "  /ImageMask true\n";
     } else {
-        if(auto cs = std::get_if<CapyPDF_DeviceColorspace>(&colorspace)) {
+        if(auto cs = std::get_if<CapyPDF_ImageColorspace>(&colorspace)) {
             fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
             const auto icc_obj = icc_profiles.at(icc->id).object_num;
@@ -1511,7 +1511,7 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
 rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
     // Check that the image has the correct format.
     if(opts.xtype) {
-        if(ri.md.cs == CAPY_DEVICE_CS_RGB) {
+        if(ri.md.cs == CAPY_IMAGE_CS_RGB) {
             // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
             RETERR(ImageFormatNotPermitted);
         }

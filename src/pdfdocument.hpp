@@ -310,7 +310,7 @@ struct RolemapEnty {
     CapyPDF_StructureType builtin;
 };
 
-typedef std::variant<CapyPDF_DeviceColorspace, CapyPDF_IccColorSpaceId> ColorspaceType;
+typedef std::variant<CapyPDF_ImageColorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
 class PdfDocument {
 public:
@@ -438,7 +438,7 @@ private:
     rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
                                            int32_t h,
                                            int32_t bits_per_component,
-                                           ColorspaceType colorspace,
+                                           ImageColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
                                            std::string_view uncompressed_bytes);

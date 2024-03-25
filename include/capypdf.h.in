@@ -55,6 +55,13 @@ typedef enum {
 } CapyPDF_DeviceColorspace;
 
 typedef enum {
+    CAPY_IMAGE_CS_RGB,
+    CAPY_IMAGE_CS_GRAY,
+    CAPY_IMAGE_CS_CMYK,
+    // CAPY_IMAGE_CS_LAB,
+} CapyPDF_ImageColorspace;
+
+typedef enum {
     CAPY_RI_RELATIVE_COLORIMETRIC,
     CAPY_RI_ABSOLUTE_COLORIMETRIC,
     CAPY_RI_SATURATION,
@@ -689,6 +696,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageB
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
+    const CapyPDF_RasterImage *image, CapyPDF_ImageColorspace *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT;
 
 // Functions

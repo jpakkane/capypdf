@@ -1047,9 +1047,11 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('The image was converted from sRGB to DeviceCMYK on load.', fid, 6, 10, 120)
                 params = capypdf.ImagePdfProperties()
                 rgb_image = gen.load_image(image_dir / 'flame_gradient.png')
+                self.assertEqual(rgb_image.get_colorspace(), capypdf.ImageColorspace.RGB)
                 cmyk_image = gen.convert_image(rgb_image,
                     capypdf.DeviceColorspace.CMYK,
                     capypdf.RenderingIntent.RelativeColorimetric)
+                self.assertEqual(cmyk_image.get_colorspace(), capypdf.ImageColorspace.CMYK)
                 image = gen.add_image(cmyk_image, params)
                 with ctx.push_gstate():
                     ctx.translate(75, 50)
