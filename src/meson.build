@@ -71,6 +71,4 @@ else
         dependencies: [zlib_dep, gtk_dep, fmt_dep])
     endif
 
-    executable('fonttester', 'fonttester.cpp',
-      dependencies: [capypdf_internal_dep])
 endif
