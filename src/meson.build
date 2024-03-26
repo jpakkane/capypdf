@@ -52,10 +52,6 @@ else
       dependencies: [capypdf_internal_dep]
     )
 
-    executable('formxobj', 'formxobj.cpp',
-      dependencies: [capypdf_internal_dep]
-    )
-
     executable('formtest', 'formtest.cpp',
       dependencies: [capypdf_internal_dep]
     )
