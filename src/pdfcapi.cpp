@@ -891,6 +891,33 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
     RETNOERR;
 }
 
+// Text
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_new(CapyPDF_KerningSequence **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_KerningSequence *>(new KernSequence());
+    RETNOERR;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_glyph(CapyPDF_KerningSequence *kseq,
+                                                             uint32_t point) CAPYPDF_NOEXCEPT {
+    auto *ks = reinterpret_cast<KernSequence *>(kseq);
+    ks->push_back(point);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_kerning(CapyPDF_KerningSequence *kseq,
+                                                               double kern) CAPYPDF_NOEXCEPT {
+    auto *ks = reinterpret_cast<KernSequence *>(kseq);
+    ks->push_back(kern);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_destroy(CapyPDF_KerningSequence *kseq)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<KernSequence *>(kseq);
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,
                                                 const char *utf8_text) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
@@ -943,6 +970,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
                                            double pointsize) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     return conv_err(t->cmd_Tf(font, pointsize));
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
+                                           CapyPDF_KerningSequence *kseq) CAPYPDF_NOEXCEPT {
+    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *ks = reinterpret_cast<KernSequence *>(kseq);
+    auto rc = t->cmd_TJ(std::move(*ks));
+    ks->clear();
+    return conv_err(rc);
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) CAPYPDF_NOEXCEPT {

@@ -327,12 +327,18 @@ cfunc_types = (
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 
+('capy_kerning_sequence_new', [ctypes.c_void_p]),
+('capy_kerning_sequence_append_glyph', [ctypes.c_void_p, ctypes.c_uint32]),
+('capy_kerning_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_double]),
+('capy_kerning_sequence_destroy', [ctypes.c_void_p]),
+
 ('capy_text_destroy', [ctypes.c_void_p]),
 ('capy_text_cmd_BDC_builtin', [ctypes.c_void_p, StructureItemId]),
 ('capy_text_cmd_EMC', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_text_cmd_Tf', [ctypes.c_void_p, FontId, ctypes.c_double]),
+('capy_text_cmd_TJ', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_cmd_TL', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -1039,6 +1045,22 @@ class Generator:
         return roid
 
 
+class KerningSequence:
+    def __init__(self):
+        opt = ctypes.c_void_p()
+        check_error(libfile.capy_kerning_sequence_new(ctypes.pointer(opt)))
+        self._as_parameter_ = opt
+
+    def __del__(self):
+        check_error(libfile.capy_kerning_sequence_destroy(self))
+
+    def append_glyph(self, glyph):
+        check_error(libfile.capy_kerning_sequence_append_glyph(self, glyph))
+
+    def append_kerning(self, kern):
+        check_error(libfile.capy_kerning_sequence_append_kerning(self, kern))
+
+
 class Text:
     def __init__(self, dc):
         if not isinstance(dc, DrawContext):
@@ -1094,6 +1116,11 @@ class Text:
 
     def cmd_TL(self, leading):
         check_error(libfile.capy_text_cmd_TL(self, leading))
+
+    def cmd_TJ(self, seq):
+        if not isinstance(seq, KerningSequence):
+            raise CapyPDFException('Argument must be a kerning sequence.')
+        check_error(libfile.capy_text_cmd_TJ(self, seq))
 
     def cmd_Tm(self, a, b, c, d, e, f):
         check_error(libfile.capy_text_cmd_Tm(self, a, b, c, d, e, f))

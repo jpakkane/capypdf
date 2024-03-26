@@ -16,6 +16,7 @@ namespace capypdf {
 class PdfDrawContext;
 
 typedef std::variant<uint32_t, double> CharItem;
+typedef std::vector<CharItem> KernSequence;
 
 struct TStar_arg {};
 
@@ -41,7 +42,7 @@ struct Text_arg {
 };
 
 struct TJ_arg {
-    std::vector<CharItem> elements;
+    KernSequence elements;
 };
 
 struct TL_arg {
@@ -147,7 +148,7 @@ public:
 
     // cmd_Tj missing. It might not be needed at all.
 
-    rvoe<NoReturnValue> cmd_TJ(std::vector<CharItem> chars) {
+    rvoe<NoReturnValue> cmd_TJ(KernSequence chars) {
         events.emplace_back(TJ_arg{std::move(chars)});
         RETOK;
     }

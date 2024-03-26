@@ -230,6 +230,29 @@ class TestPDFCreation(unittest.TestCase):
                 t.render_text('Using text object!')
                 ctx.render_text_obj(t)
 
+    @validate_image('python_kerning', 200, 200)
+    def test_kerning(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                t = ctx.text_new()
+                ks = capypdf.KerningSequence()
+                t.cmd_Tf(font, 24.0)
+                t.cmd_Td(10.0, 120.0)
+                ks.append_glyph(ord('A'))
+                ks.append_glyph(ord('V'))
+                t.cmd_TJ(ks)
+                t.cmd_Td(0, -40)
+                ks.append_glyph(ord('A'))
+                ks.append_kerning(200)
+                ks.append_glyph(ord('V'))
+                t.cmd_TJ(ks)
+                ctx.render_text_obj(t)
+
     @validate_image('python_gstate', 200, 200)
     def test_gstate(self, ofilename, w, h):
         opts = capypdf.Options()
