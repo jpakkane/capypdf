@@ -48,10 +48,6 @@ else
       dependencies: capypdf_internal_dep,
     )
 
-    executable('labtest', 'labtest.cpp',
-      dependencies: [capypdf_internal_dep]
-    )
-
     executable('formtest', 'formtest.cpp',
       dependencies: [capypdf_internal_dep]
     )

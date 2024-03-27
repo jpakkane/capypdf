@@ -293,6 +293,10 @@ typedef struct {
 
 typedef struct {
     int32_t id;
+} CapyPDF_LabColorSpaceId;
+
+typedef struct {
+    int32_t id;
 } CapyPDF_ImageId;
 
 typedef struct {
@@ -442,6 +446,16 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *gen,
+                                                            double xw,
+                                                            double yw,
+                                                            double zw,
+                                                            double amin,
+                                                            double amax,
+                                                            double bmin,
+                                                            double bmax,
+                                                            CapyPDF_LabColorSpaceId *out_ptr)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *gen,
                                                                   const char *separation_name,
                                                                   const CapyPDF_Color *c,
@@ -664,6 +678,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_separation(CapyPDF_Color *color,
                                                     double value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_pattern(CapyPDF_Color *color,
                                                  CapyPDF_PatternId pat_id) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_lab(CapyPDF_Color *color,
+                                             CapyPDF_LabColorSpaceId lab_id,
+                                             double l,
+                                             double a,
+                                             double b) CAPYPDF_NOEXCEPT;
 
 // Transition
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,

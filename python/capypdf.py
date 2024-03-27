@@ -188,6 +188,9 @@ class GraphicsStateId(ctypes.Structure):
 class IccColorSpaceId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class LabColorSpaceId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 class ImageId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
@@ -251,6 +254,7 @@ cfunc_types = (
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_convert_image', [ctypes.c_void_p, ctypes.c_void_p, enum_type, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_add_lab_colorspace', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -357,6 +361,7 @@ cfunc_types = (
 ('capy_color_set_icc', [ctypes.c_void_p, IccColorSpaceId, ctypes.POINTER(ctypes.c_double), ctypes.c_int32]),
 ('capy_color_set_separation', [ctypes.c_void_p, SeparationId, ctypes.c_double]),
 ('capy_color_set_pattern', [ctypes.c_void_p, PatternId]),
+('capy_color_set_lab', [ctypes.c_void_p, LabColorSpaceId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
 ('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
@@ -908,6 +913,11 @@ class Generator:
         check_error(libfile.capy_generator_load_icc_profile(self, to_bytepath(fname), ctypes.pointer(iid)))
         return iid
 
+    def add_lab_colorspace(self, xw, yw, zw, amin, amax, bmin, bmax):
+        lid = LabColorSpaceId()
+        check_error(libfile.capy_generator_add_lab_colorspace(self, xw, yw, zw, amin, amax, bmin, bmax, ctypes.pointer(lid)))
+        return lid
+
     def load_image(self, fname):
         optr = ctypes.c_void_p()
         check_error(libfile.capy_generator_load_image(self, to_bytepath(fname), ctypes.pointer(optr)))
@@ -1167,6 +1177,9 @@ class Color:
 
     def set_pattern(self, pattern_id):
         check_error(libfile.capy_color_set_pattern(self, pattern_id))
+
+    def set_lab(self, lab_id, l, a, b):
+        check_error(libfile.capy_color_set_lab(self, lab_id, l, a, b))
 
 class Transition:
     def __init__(self, ttype, duration):

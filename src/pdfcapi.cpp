@@ -422,6 +422,32 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     }
     return conv_err(rc);
 }
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *gen,
+                                                            double xw,
+                                                            double yw,
+                                                            double zw,
+                                                            double amin,
+                                                            double amax,
+                                                            double bmin,
+                                                            double bmax,
+                                                            CapyPDF_LabColorSpaceId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    LabColorSpace cl;
+    cl.xw = xw;
+    cl.yw = yw;
+    cl.zw = zw;
+
+    cl.amin = amin;
+    cl.amax = amax;
+    cl.bmin = bmin;
+    cl.bmax = bmax;
+    auto rc = g->add_lab_colorspace(cl);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *gen,
                                                                   const char *separation_name,
@@ -1071,6 +1097,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_pattern(CapyPDF_Color *color,
                                                  CapyPDF_PatternId pat_id) CAPYPDF_NOEXCEPT {
     auto *c = reinterpret_cast<Color *>(color);
     *c = pat_id;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_lab(CapyPDF_Color *color,
+                                             CapyPDF_LabColorSpaceId lab_id,
+                                             double l,
+                                             double a,
+                                             double b) CAPYPDF_NOEXCEPT {
+    auto *c = reinterpret_cast<Color *>(color);
+    *c = LabColor{lab_id, l, a, b};
     RETNOERR;
 }
 

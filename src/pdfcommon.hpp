@@ -228,10 +228,6 @@ private:
 // Every resource type has its own id type to avoid
 // accidentally mixing them up.
 
-struct LabId {
-    int32_t id;
-};
-
 struct PageId {
     int32_t id;
 };
@@ -286,7 +282,7 @@ struct DeviceCMYKColor {
 };
 
 struct LabColor {
-    LabId id;
+    CapyPDF_LabColorSpaceId id;
     double l;
     double a;
     double b;

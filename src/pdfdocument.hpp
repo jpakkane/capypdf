@@ -339,7 +339,7 @@ public:
     // Colors
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
                                                  const DeviceCMYKColor &fallback);
-    LabId add_lab_colorspace(const LabColorSpace &lab);
+    rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
 
     // Fonts

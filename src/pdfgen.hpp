@@ -88,7 +88,9 @@ public:
         return pdoc.add_shading(shade);
     }
 
-    LabId add_lab_colorspace(const LabColorSpace &lab) { return pdoc.add_lab_colorspace(lab); }
+    rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab) {
+        return pdoc.add_lab_colorspace(lab);
+    }
 
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
         return pdoc.load_icc_file(fname);

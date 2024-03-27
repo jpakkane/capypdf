@@ -484,7 +484,7 @@ exch {} mul
     return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
-LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
+rvoe<CapyPDF_LabColorSpaceId> PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
     std::string buf = fmt::format(
         R"([ /Lab
   <<
@@ -502,7 +502,7 @@ LabId PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
         lab.bmax);
 
     add_object(FullPDFObject{std::move(buf), {}});
-    return LabId{(int32_t)document_objects.size() - 1};
+    return CapyPDF_LabColorSpaceId{(int32_t)document_objects.size() - 1};
 }
 
 rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
