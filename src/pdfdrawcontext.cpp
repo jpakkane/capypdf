@@ -732,7 +732,11 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     CHECK_INDEXNESS(c.id.id, doc->document_objects);
     used_colorspaces.insert(c.id.id);
     std::string csname = fmt::format("/CSpace{}", c.id.id);
-    cmd_CS(csname);
+    if(stroke) {
+        cmd_CS(csname);
+    } else {
+        cmd_cs(csname);
+    }
     fmt::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {}\n", ind, c.l, c.a, c.b, stroke ? "SCN" : "scn");
     RETOK;
