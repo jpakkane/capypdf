@@ -9,9 +9,9 @@ jobs:
   CapyPDF-tests:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:lunar
+      image: ubuntu:mantic
     steps:
-      - run:  apt-get -y update && apt-get -y install git python3 python3-setuptools python3-pillow build-essential pkg-config ghostscript ninja-build libtiff-dev libjpeg-dev libpng-dev zlib1g-dev libfmt-dev libfreetype-dev liblcms2-dev fonts-noto-core
+      - run:  apt-get -y update && apt-get -y install git python3 python3-setuptools python3-pillow build-essential pkg-config ghostscript ninja-build libtiff-dev libjpeg-dev libpng-dev zlib1g-dev libfreetype-dev liblcms2-dev fonts-noto-core
       - uses: actions/checkout@v3
       - run:  git clone --depth=1 https://github.com/mesonbuild/meson mesoncheckout
       - name: Configure

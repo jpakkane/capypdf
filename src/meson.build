@@ -1,4 +1,4 @@
-capydeps = [fmt_dep, png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
+capydeps = [png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
 
 cpp_args = ['-DBUILDING_CAPYPDF']
 
@@ -64,7 +64,7 @@ else
       executable('pdfviewer',
         'pdfviewer.cpp',
         'pdfparser.cpp',
-        dependencies: [zlib_dep, gtk_dep, fmt_dep])
+        dependencies: [zlib_dep, gtk_dep])
     endif
 
 endif

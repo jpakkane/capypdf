@@ -8,7 +8,7 @@
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
-#include <fmt/core.h>
+#include <format>
 #include <array>
 #include <cmath>
 #include <cassert>
@@ -27,7 +27,7 @@ PdfDrawContext::~PdfDrawContext() {}
 DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) {
     auto resource_dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
-        std::string dict = fmt::format(
+        std::string dict = std::format(
             R"(<<
   /Type /XObject
   /Subtype /Form
@@ -49,19 +49,19 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
   /Subtype /Form
 )";
         auto app = std::back_inserter(dict);
-        fmt::format_to(app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", 0.0, 0.0, w, h);
+        std::format_to(app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", 0.0, 0.0, w, h);
         dict += R"(  /Group <<
     /S /Transparency
 )";
         if(trinfo) {
             if(trinfo->I) {
-                fmt::format_to(app, "    /I {}\n", *trinfo->I ? "true" : "false");
+                std::format_to(app, "    /I {}\n", *trinfo->I ? "true" : "false");
             }
             if(trinfo->K) {
-                fmt::format_to(app, "    /K {}\n", *trinfo->K ? "true" : "false");
+                std::format_to(app, "    /K {}\n", *trinfo->K ? "true" : "false");
             }
         }
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  >>
   /Resources {}
   /Length {}
@@ -108,18 +108,18 @@ std::string PdfDrawContext::build_resource_dict() {
         resources += "  /XObject <<\n";
         if(!used_images.empty()) {
             for(const auto &i : used_images) {
-                fmt::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
+                std::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
             }
         }
         if(!used_form_xobjects.empty()) {
             for(const auto &fx : used_form_xobjects) {
-                fmt::format_to(resource_appender, "    /FXO{} {} 0 R\n", fx, fx);
+                std::format_to(resource_appender, "    /FXO{} {} 0 R\n", fx, fx);
             }
         }
         if(!used_trgroups.empty()) {
             for(const auto &tg : used_trgroups) {
                 auto objnum = doc->transparency_groups.at(tg.id);
-                fmt::format_to(resource_appender, "    /TG{} {} 0 R\n", objnum, objnum);
+                std::format_to(resource_appender, "    /TG{} {} 0 R\n", objnum, objnum);
             }
         }
         resources += "  >>\n";
@@ -127,11 +127,11 @@ std::string PdfDrawContext::build_resource_dict() {
     if(!used_fonts.empty() || !used_subset_fonts.empty()) {
         resources += "  /Font <<\n";
         for(const auto &i : used_fonts) {
-            fmt::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
+            std::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
         }
         for(const auto &i : used_subset_fonts) {
             const auto &bob = doc->font_objects.at(i.fid.id);
-            fmt::format_to(resource_appender,
+            std::format_to(resource_appender,
                            "    /SFont{}-{} {} 0 R\n",
                            bob.font_obj,
                            i.subset_id,
@@ -142,31 +142,31 @@ std::string PdfDrawContext::build_resource_dict() {
     if(!used_colorspaces.empty() || uses_all_colorspace) {
         resources += "  /ColorSpace <<\n";
         if(uses_all_colorspace) {
-            fmt::format_to(resource_appender, "    /All {} 0 R\n", doc->separation_objects.at(0));
+            std::format_to(resource_appender, "    /All {} 0 R\n", doc->separation_objects.at(0));
         }
         for(const auto &i : used_colorspaces) {
-            fmt::format_to(resource_appender, "    /CSpace{} {} 0 R\n", i, i);
+            std::format_to(resource_appender, "    /CSpace{} {} 0 R\n", i, i);
         }
         resources += "  >>\n";
     }
     if(!used_gstates.empty()) {
         resources += "  /ExtGState <<\n";
         for(const auto &s : used_gstates) {
-            fmt::format_to(resource_appender, "    /GS{} {} 0 R \n", s, s);
+            std::format_to(resource_appender, "    /GS{} {} 0 R \n", s, s);
         }
         resources += "  >>\n";
     }
     if(!used_shadings.empty()) {
         resources += "  /Shading <<\n";
         for(const auto &s : used_shadings) {
-            fmt::format_to(resource_appender, "    /SH{} {} 0 R\n", s, s);
+            std::format_to(resource_appender, "    /SH{} {} 0 R\n", s, s);
         }
         resources += "  >>\n";
     }
     if(!used_patterns.empty()) {
         resources += "  /Pattern <<\n";
         for(const auto &s : used_patterns) {
-            fmt::format_to(resource_appender, "    /Pattern-{} {} 0 R\n", s, s);
+            std::format_to(resource_appender, "    /Pattern-{} {} 0 R\n", s, s);
         }
         resources += "  >>\n";
     }
@@ -174,7 +174,7 @@ std::string PdfDrawContext::build_resource_dict() {
         resources += "  /Properties <<\n";
         for(const auto &ocg : used_ocgs) {
             auto objnum = doc->ocg_object_number(ocg);
-            fmt::format_to(resource_appender, "    /oc{} {} 0 R\n", objnum, objnum);
+            std::format_to(resource_appender, "    /oc{} {} 0 R\n", objnum, objnum);
         }
         resources += "  >>\n";
     }
@@ -235,20 +235,20 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
         fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
         std::abort();
     }
-    fmt::format_to(cmd_appender, "{}/{}", ind, name.sv());
+    std::format_to(cmd_appender, "{}/{}", ind, name.sv());
     commands += " <<\n";
     if(sid) {
         ERC(MCID_id, add_bcd_structure(sid.value()));
-        fmt::format_to(cmd_appender, "{}  /MCID {}\n", ind, MCID_id);
+        std::format_to(cmd_appender, "{}  /MCID {}\n", ind, MCID_id);
     }
     if(attributes) {
         for(const auto &[key, value] : attributes.value()) {
             // FIXME: validate value contents properly.
-            fmt::format_to(cmd_appender, "{}  /{} ({})\n", ind, key, value);
+            std::format_to(cmd_appender, "{}  /{} ({})\n", ind, key, value);
         }
     }
-    fmt::format_to(cmd_appender, "{}>>\n", ind);
-    fmt::format_to(cmd_appender, "{}BDC\n", ind);
+    std::format_to(cmd_appender, "{}>>\n", ind);
+    std::format_to(cmd_appender, "{}BDC\n", ind);
     ERCV(indent(DrawStateType::MarkedContent));
     ++marked_depth;
     RETOK;
@@ -271,7 +271,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     ++marked_depth;
     used_ocgs.insert(ocgid);
-    fmt::format_to(cmd_appender, "{}/OC /oc{} BDC\n", ind, doc->ocg_object_number(ocgid));
+    std::format_to(cmd_appender, "{}/OC /oc{} BDC\n", ind, doc->ocg_object_number(ocgid));
     ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
@@ -281,32 +281,32 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
         RETERR(SlashStart);
     }
     ++marked_depth;
-    fmt::format_to(cmd_appender, "{}/{} BMC\n", ind, tag);
+    std::format_to(cmd_appender, "{}/{} BMC\n", ind, tag);
     ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    fmt::format_to(
+    std::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} c\n", ind, x1, y1, x2, y2, x3, y3);
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    fmt::format_to(
+    std::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {:f} {:f} {:f} cm\n", ind, m1, m2, m3, m4, m5, m6);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_CS(std::string_view cspace_name) {
-    fmt::format_to(cmd_appender, "{}{} CS\n", ind, cspace_name);
+    std::format_to(cmd_appender, "{}{} CS\n", ind, cspace_name);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_cs(std::string_view cspace_name) {
-    fmt::format_to(cmd_appender, "{}{} cs\n", ind, cspace_name);
+    std::format_to(cmd_appender, "{}{} cs\n", ind, cspace_name);
     RETOK;
 }
 
@@ -323,9 +323,9 @@ PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase
     commands += ind;
     commands += "[ ";
     for(size_t i = 0; i < dash_array_length; ++i) {
-        fmt::format_to(cmd_appender, "{:f} ", dash_array[i]);
+        std::format_to(cmd_appender, "{:f} ", dash_array[i]);
     }
-    fmt::format_to(cmd_appender, " ] {} d\n", phase);
+    std::format_to(cmd_appender, " ] {} d\n", phase);
     RETOK;
 }
 
@@ -334,7 +334,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
         RETERR(InvalidDrawContextType);
     }
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
-    fmt::format_to(cmd_appender, "{}/FXO{} Do\n", ind, doc->form_xobjects[fxoid.id].xobj_num);
+    std::format_to(cmd_appender, "{}/FXO{} Do\n", ind, doc->form_xobjects[fxoid.id].xobj_num);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
     RETOK;
 }
@@ -344,7 +344,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
         RETERR(InvalidDrawContextType);
     }
     CHECK_INDEXNESS(trid.id, doc->transparency_groups);
-    fmt::format_to(cmd_appender, "{}/TG{} Do\n", ind, doc->transparency_groups[trid.id]);
+    std::format_to(cmd_appender, "{}/TG{} Do\n", ind, doc->transparency_groups[trid.id]);
     used_trgroups.insert(trid);
     RETOK;
 }
@@ -383,7 +383,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) {
 rvoe<NoReturnValue> PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
-    fmt::format_to(cmd_appender, "{}/GS{} gs\n", ind, gid.id);
+    std::format_to(cmd_appender, "{}/GS{} gs\n", ind, gid.id);
     RETOK;
 }
 
@@ -397,19 +397,19 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_i(double flatness) {
     if(flatness < 0 || flatness > 100) {
         RETERR(InvalidFlatness);
     }
-    fmt::format_to(cmd_appender, "{}{:f} i\n", ind, flatness);
+    std::format_to(cmd_appender, "{}{:f} i\n", ind, flatness);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_j(CapyPDF_Line_Join join_style) {
     CHECK_ENUM(join_style, CAPY_LJ_BEVEL);
-    fmt::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
+    std::format_to(cmd_appender, "{}{} j\n", ind, (int)join_style);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_J(CapyPDF_Line_Cap cap_style) {
     CHECK_ENUM(cap_style, CAPY_LC_PROJECTION);
-    fmt::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
+    std::format_to(cmd_appender, "{}{} J\n", ind, (int)cap_style);
     RETOK;
 }
 
@@ -424,17 +424,17 @@ PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_l(double x, double y) {
-    fmt::format_to(cmd_appender, "{}{:f} {:f} l\n", ind, x, y);
+    std::format_to(cmd_appender, "{}{:f} {:f} l\n", ind, x, y);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_m(double x, double y) {
-    fmt::format_to(cmd_appender, "{}{:f} {:f} m\n", ind, x, y);
+    std::format_to(cmd_appender, "{}{:f} {:f} m\n", ind, x, y);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_M(double miterlimit) {
-    fmt::format_to(cmd_appender, "{}{:f} M\n", ind, miterlimit);
+    std::format_to(cmd_appender, "{}{:f} M\n", ind, miterlimit);
     RETOK;
 }
 
@@ -459,7 +459,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Q() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_re(double x, double y, double w, double h) {
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} re\n", ind, x, y, w, h);
+    std::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} re\n", ind, x, y, w, h);
     RETOK;
 }
 
@@ -473,7 +473,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDo
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
     CHECK_ENUM(ri, CAPY_RI_PERCEPTUAL);
-    fmt::format_to(cmd_appender, "{}/{} ri\n", ind, rendering_intent_names.at((int)ri));
+    std::format_to(cmd_appender, "{}/{} ri\n", ind, rendering_intent_names.at((int)ri));
     RETOK;
 }
 
@@ -490,30 +490,30 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_S() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_SCN(double value) {
-    fmt::format_to(cmd_appender, "{}{:f} SCN\n", ind, value);
+    std::format_to(cmd_appender, "{}{:f} SCN\n", ind, value);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_scn(double value) {
-    fmt::format_to(cmd_appender, "{}{:f} scn\n", ind, value);
+    std::format_to(cmd_appender, "{}{:f} scn\n", ind, value);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_sh(CapyPDF_ShadingId shid) {
     CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
-    fmt::format_to(cmd_appender, "{}/SH{} sh\n", ind, shid.id);
+    std::format_to(cmd_appender, "{}/SH{} sh\n", ind, shid.id);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
     CHECK_ENUM(mode, CAPY_TEXT_CLIP);
-    fmt::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
+    std::format_to(cmd_appender, "{}{} Tr\n", ind, (int)mode);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} v\n", ind, x2, y2, x3, y3);
+    std::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} v\n", ind, x2, y2, x3, y3);
     RETOK;
 }
 
@@ -521,7 +521,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_w(double w) {
     if(w < 0) {
         RETERR(NegativeLineWidth);
     }
-    fmt::format_to(cmd_appender, "{}{:f} w\n", ind, w);
+    std::format_to(cmd_appender, "{}{:f} w\n", ind, w);
     RETOK;
 }
 
@@ -538,21 +538,21 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Wstar() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
-    fmt::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} y\n", ind, x1, y1, x3, y3);
+    std::format_to(cmd_appender, "{}{:f} {:f} {:f} {:f} y\n", ind, x1, y1, x3, y3);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
                                                 std::string_view indent,
                                                 LimitDouble gray) const {
-    fmt::format_to(out, "{}{:f} G\n", indent, gray.v());
+    std::format_to(out, "{}{:f} G\n", indent, gray.v());
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
                                                 std::string_view indent,
                                                 LimitDouble gray) const {
-    fmt::format_to(out, "{}{:f} g\n", indent, gray.v());
+    std::format_to(out, "{}{:f} g\n", indent, gray.v());
     RETOK;
 }
 
@@ -562,7 +562,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_K(std::back_insert_iterator<std::s
                                                 LimitDouble m,
                                                 LimitDouble y,
                                                 LimitDouble k) const {
-    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c.v(), m.v(), y.v(), k.v());
+    std::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c.v(), m.v(), y.v(), k.v());
     RETOK;
 }
 
@@ -572,7 +572,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_k(std::back_insert_iterator<std::s
                                                 LimitDouble m,
                                                 LimitDouble y,
                                                 LimitDouble k) const {
-    fmt::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c.v(), m.v(), y.v(), k.v());
+    std::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c.v(), m.v(), y.v(), k.v());
     RETOK;
 }
 
@@ -581,7 +581,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_RG(std::back_insert_iterator<std::
                                                  LimitDouble r,
                                                  LimitDouble g,
                                                  LimitDouble b) const {
-    fmt::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r.v(), g.v(), b.v());
+    std::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r.v(), g.v(), b.v());
     RETOK;
 }
 
@@ -590,7 +590,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_rg(std::back_insert_iterator<std::
                                                  LimitDouble r,
                                                  LimitDouble g,
                                                  LimitDouble b) const {
-    fmt::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r.v(), g.v(), b.v());
+    std::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r.v(), g.v(), b.v());
     RETOK;
 }
 
@@ -684,12 +684,12 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const ICCColor &icc, bool stroke) 
         RETERR(IncorrectColorChannelCount);
     }
     used_colorspaces.insert(icc_info.object_num);
-    fmt::format_to(
+    std::format_to(
         cmd_appender, "{}/CSpace{} {}\n", ind, icc_info.object_num, stroke ? "CS" : "cs");
     for(const auto &i : icc.values) {
-        fmt::format_to(cmd_appender, "{:f} ", i);
+        std::format_to(cmd_appender, "{:f} ", i);
     }
-    fmt::format_to(cmd_appender, "{}\n", stroke ? "SCN" : "scn");
+    std::format_to(cmd_appender, "{}\n", stroke ? "SCN" : "scn");
     RETOK;
 }
 
@@ -709,7 +709,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke)
     }
     ERCV(cmd_cs("/Pattern"));
     used_patterns.insert(id.id);
-    fmt::format_to(cmd_appender, "{}/Pattern-{} {}\n", ind, id.id, stroke ? "SCN" : "scn");
+    std::format_to(cmd_appender, "{}/Pattern-{} {}\n", ind, id.id, stroke ? "SCN" : "scn");
     RETOK;
 }
 
@@ -717,7 +717,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool
     CHECK_INDEXNESS(color.id.id, doc->separation_objects);
     const auto idnum = doc->separation_object_number(color.id);
     used_colorspaces.insert(idnum);
-    std::string csname = fmt::format("/CSpace{}", idnum);
+    std::string csname = std::format("/CSpace{}", idnum);
     if(stroke) {
         cmd_CS(csname);
         cmd_SCN(color.v.v());
@@ -731,13 +731,13 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool
 rvoe<NoReturnValue> PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     CHECK_INDEXNESS(c.id.id, doc->document_objects);
     used_colorspaces.insert(c.id.id);
-    std::string csname = fmt::format("/CSpace{}", c.id.id);
+    std::string csname = std::format("/CSpace{}", c.id.id);
     if(stroke) {
         cmd_CS(csname);
     } else {
         cmd_cs(csname);
     }
-    fmt::format_to(
+    std::format_to(
         cmd_appender, "{}{:f} {:f} {:f} {}\n", ind, c.l, c.a, c.b, stroke ? "SCN" : "scn");
     RETOK;
 }
@@ -752,7 +752,7 @@ rvoe<NoReturnValue> PdfDrawContext::draw_image(CapyPDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
-    fmt::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
+    std::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
     RETOK;
 }
 
@@ -786,7 +786,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
                 serialisation += ind;
                 serialisation += "[ ";
             }
-            fmt::format_to(app, "{:f} ", *dbl);
+            std::format_to(app, "{:f} ", *dbl);
         } else {
             assert(std::holds_alternative<uint32_t>(e));
             const auto codepoint = std::get<uint32_t>(e);
@@ -796,7 +796,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
                 if(!is_first) {
                     serialisation += "] TJ\n";
                 }
-                fmt::format_to(app,
+                std::format_to(app,
                                "{}/SFont{}-{} {} Tf\n{}[ ",
                                ind,
                                doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
@@ -811,7 +811,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
             }
             current_font = current_subset_glyph.ss.fid;
             current_subset = current_subset_glyph.ss.subset_id;
-            fmt::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
+            std::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
         }
         is_first = false;
     }
@@ -877,17 +877,17 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Tc_arg &tc) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{} Tc\n", ind, tc.val);
+            std::format_to(app, "{}{} Tc\n", ind, tc.val);
             return NoReturnValue{};
         },
 
         [&](const Td_arg &td) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} {:f} Td\n", ind, td.tx, td.ty);
+            std::format_to(app, "{}{:f} {:f} Td\n", ind, td.tx, td.ty);
             return NoReturnValue{};
         },
 
         [&](const TD_arg &tD) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} {:f} TD\n", ind, tD.tx, tD.ty);
+            std::format_to(app, "{}{:f} {:f} TD\n", ind, tD.tx, tD.ty);
             return NoReturnValue{};
         },
 
@@ -916,12 +916,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const TL_arg &tL) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} TL\n", ind, tL.leading);
+            std::format_to(app, "{}{:f} TL\n", ind, tL.leading);
             return NoReturnValue{};
         },
 
         [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
-            fmt::format_to(app,
+            std::format_to(app,
                            "{}{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
                            ind,
                            tm.a,
@@ -934,22 +934,22 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Tr_arg &tr) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
+            std::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
             return NoReturnValue{};
         },
 
         [&](const Ts_arg &ts) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} Ts\n", ind, ts.rise);
+            std::format_to(app, "{}{:f} Ts\n", ind, ts.rise);
             return NoReturnValue{};
         },
 
         [&](const Tw_arg &tw) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} Tw\n", ind, tw.width);
+            std::format_to(app, "{}{:f} Tw\n", ind, tw.width);
             return NoReturnValue{};
         },
 
         [&](const Tz_arg &tz) -> rvoe<NoReturnValue> {
-            fmt::format_to(app, "{}{:f} Tz\n", ind, tz.scaling);
+            std::format_to(app, "{}{:f} Tz\n", ind, tz.scaling);
             return NoReturnValue{};
         },
 
@@ -960,11 +960,11 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             auto item = doc->structure_items.at(sitem.sid.id).stype;
             if(auto itemid = std::get_if<CapyPDF_StructureType>(&item)) {
                 const auto &itemstr = structure_type_names.at(*itemid);
-                fmt::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
+                std::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
             } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
                 const auto &role = *ri;
                 auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name);
-                fmt::format_to(app, "{}{} << /MCID {} >>\n{}BDC\n", ind, rolename, mcid_id, ind);
+                std::format_to(app, "{}{} << /MCID {} >>\n{}BDC\n", ind, rolename, mcid_id, ind);
             } else {
                 fprintf(stderr, "FIXME 1\n");
                 std::abort();
@@ -975,7 +975,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const Emc_arg &) -> rvoe<NoReturnValue> {
             ERCV(dedent(DrawStateType::MarkedContent));
-            fmt::format_to(app, "{}EMC\n", ind);
+            std::format_to(app, "{}EMC\n", ind);
             return NoReturnValue{};
         },
 
@@ -1025,7 +1025,7 @@ void PdfDrawContext::render_raw_glyph(
 
     const auto font_glyph_id = doc->glyph_for_codepoint(
         doc->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
-    fmt::format_to(cmd_appender,
+    std::format_to(cmd_appender,
                    R"({}BT
 {}  /Font{} {} Tf
 {}  {:f} {:f} Td
@@ -1058,7 +1058,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     // const auto &bob =
     //    doc->font_objects.at(doc->get_subset_glyph(fid,
     //    glyphs.front().codepoint).ss.fid.id);
-    fmt::format_to(cmd_appender,
+    std::format_to(cmd_appender,
                    R"({}BT
 {}  /SFont{}-{} {:f} Tf
 )",
@@ -1071,13 +1071,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
         ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint));
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
-        fmt::format_to(cmd_appender, "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
+        std::format_to(cmd_appender, "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
         prev_x = g.x;
         prev_y = g.y;
-        fmt::format_to(
+        std::format_to(
             cmd_appender, "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
     }
-    fmt::format_to(cmd_appender, "{}ET\n", ind);
+    std::format_to(cmd_appender, "{}ET\n", ind);
     RETOK;
 }
 
@@ -1091,7 +1091,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
-    fmt::format_to(cmd_appender,
+    std::format_to(cmd_appender,
                    R"({}BT
 {}  /Font{} {} Tf
 {}  {:f} {:f} Td

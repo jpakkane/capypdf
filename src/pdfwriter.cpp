@@ -4,7 +4,7 @@
 #include <pdfwriter.hpp>
 #include <utils.hpp>
 
-#include <fmt/core.h>
+#include <format>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
@@ -54,12 +54,12 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
 }
 
 void write_rectangle(auto &appender, const char *boxname, const capypdf::PdfRectangle &box) {
-    fmt::format_to(
+    std::format_to(
         appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
 }
 
 std::string create_subset_cmap(const std::vector<capypdf::TTGlyphs> &glyphs) {
-    std::string buf = fmt::format(R"(/CIDInit/ProcSet findresource begin
+    std::string buf = std::format(R"(/CIDInit/ProcSet findresource begin
 12 dict begin
 begincmap
 /CIDSystemInfo<<
@@ -83,7 +83,7 @@ endcodespacerange
         if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
             unicode_codepoint = std::get<capypdf::RegularGlyph>(g).unicode_codepoint;
         }
-        fmt::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
+        std::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
     }
     buf += R"(endbfchar
 endcmap
@@ -112,7 +112,7 @@ rvoe<std::string> build_subset_width_array(FT_Face face,
         // I don't know if this is correct or not, but it worked with all fonts I had.
         //
         // Determined via debugging empirism.
-        fmt::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
+        std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
     }
     arr += "]";
     return arr;
@@ -231,7 +231,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
 
         [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
             ERC(compressed, flate_compress(pobj.stream));
-            std::string dict = fmt::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
+            std::string dict = std::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
                                            pobj.unclosed_dictionary,
                                            compressed.size());
             ERCV(write_finished_object(i, dict, compressed));
@@ -303,7 +303,7 @@ rvoe<NoReturnValue>
 PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
     std::string buf;
     auto app = std::back_inserter(buf);
-    fmt::format_to(app,
+    std::format_to(app,
                    R"(xref
 0 {}
 )",
@@ -314,7 +314,7 @@ PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offse
             buf += "0000000000 65535 f \n"; // The end of line whitespace is significant.
             first = false;
         } else {
-            fmt::format_to(app, "{:010} 00000 n \n", i);
+            std::format_to(app, "{:010} 00000 n \n", i);
         }
     }
     return write_bytes(buf);
@@ -325,7 +325,7 @@ rvoe<NoReturnValue> PdfWriter ::write_trailer(int64_t xref_offset) {
     const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
     auto documentid = create_trailer_id();
-    fmt::format_to(std::back_inserter(buf),
+    std::format_to(std::back_inserter(buf),
                    R"(trailer
 <<
   /Size {}
@@ -351,7 +351,7 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view stream_data) {
     std::string buf;
     auto appender = std::back_inserter(buf);
-    fmt::format_to(appender, "{} 0 obj\n", object_number);
+    std::format_to(appender, "{} 0 obj\n", object_number);
     buf += dict_data;
     if(!stream_data.empty()) {
         if(buf.back() != '\n') {
@@ -381,7 +381,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
     ERC(width_arr, build_subset_width_array(face, subset_glyphs));
-    auto objbuf = fmt::format(R"(<<
+    auto objbuf = std::format(R"(<<
   /Type /Font
   /Subtype /TrueType
   /BaseFont /{}
@@ -410,7 +410,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
             font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id));
 
     ERC(compressed_bytes, flate_compress(subset_font));
-    std::string dictbuf = fmt::format(R"(<<
+    std::string dictbuf = std::format(R"(<<
   /Length {}
   /Length1 {}
   /Filter /FlateDecode
@@ -428,7 +428,7 @@ void PdfWriter::write_subset_font_descriptor(int32_t object_num,
                                              int32_t subset_number) {
     auto face = font.face.get();
     const uint32_t fflags = 4;
-    auto objbuf = fmt::format(R"(<<
+    auto objbuf = std::format(R"(<<
   /Type /FontDescriptor
   /FontName /{}
   /Flags {}
@@ -460,7 +460,7 @@ void PdfWriter::write_subset_font_descriptor(int32_t object_num,
 rvoe<NoReturnValue>
 PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
     auto cmap = create_subset_cmap(font.subsets.get_subset(subset_number));
-    auto dict = fmt::format(R"(<<
+    auto dict = std::format(R"(<<
   /Length {}
 >>
 )",
@@ -471,14 +471,14 @@ PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t
 rvoe<NoReturnValue> PdfWriter::write_pages_root() {
     std::string buf;
     auto buf_append = std::back_inserter(buf);
-    buf = fmt::format(R"(<<
+    buf = std::format(R"(<<
   /Type /Pages
   /Kids [
 )");
     for(const auto &i : doc.pages) {
-        fmt::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
+        std::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
     }
-    fmt::format_to(buf_append, "  ]\n  /Count {}\n>>\n", doc.pages.size());
+    std::format_to(buf_append, "  ]\n  /Count {}\n>>\n", doc.pages.size());
     return write_finished_object(doc.pages_object, buf, "");
 }
 
@@ -487,7 +487,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
 
     auto buf_append = std::back_inserter(buf);
     auto &p = doc.pages.at(dp.page_num);
-    fmt::format_to(buf_append,
+    std::format_to(buf_append,
                    R"(<<
   /Type /Page
   /Parent {} 0 R
@@ -513,14 +513,14 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
         write_rectangle(buf_append, "ArtBox", *current_props.artbox);
     }
     if(dp.structparents) {
-        fmt::format_to(buf_append, "  /StructParents {}\n", dp.structparents.value());
+        std::format_to(buf_append, "  /StructParents {}\n", dp.structparents.value());
     }
 
     if(current_props.user_unit) {
-        fmt::format_to(buf_append, "  /UserUnit {:f}\n", *current_props.user_unit);
+        std::format_to(buf_append, "  /UserUnit {:f}\n", *current_props.user_unit);
     }
 
-    fmt::format_to(buf_append,
+    std::format_to(buf_append,
                    R"(  /Contents {} 0 R
   /Resources {} 0 R
 )",
@@ -530,10 +530,10 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     if(!dp.used_form_widgets.empty() || !dp.used_annotations.empty()) {
         buf += "  /Annots [\n";
         for(const auto &a : dp.used_form_widgets) {
-            fmt::format_to(buf_append, "    {} 0 R\n", doc.form_widgets.at(a.id));
+            std::format_to(buf_append, "    {} 0 R\n", doc.form_widgets.at(a.id));
         }
         for(const auto &a : dp.used_annotations) {
-            fmt::format_to(buf_append, "    {} 0 R\n", doc.annotations.at(a.id));
+            std::format_to(buf_append, "    {} 0 R\n", doc.annotations.at(a.id));
         }
         buf += "  ]\n";
     }
@@ -543,7 +543,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     }
 
     if(dp.subnav_root) {
-        fmt::format_to(buf_append, "  /PresSteps {} 0 R\n", dp.subnav_root.value());
+        std::format_to(buf_append, "  /PresSteps {} 0 R\n", dp.subnav_root.value());
     }
     buf += ">>\n";
 
@@ -557,7 +557,7 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
         std::abort();
     }
 
-    std::string dict = fmt::format(R"(<<
+    std::string dict = std::format(R"(<<
   /Type /Annot
   /Subtype /Widget
   /Rect [ {:f} {:f} {:f} {:f} ]
@@ -592,7 +592,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     // It is ok for an annotation not to be used.
 
     assert(annotation.a.rect);
-    std::string dict = fmt::format(R"(<<
+    std::string dict = std::format(R"(<<
   /Type /Annot
   /Rect [ {:f} {:f} {:f} {:f} ]
   /F {}
@@ -604,23 +604,23 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
                                    (int)annotation.a.flags);
     auto app = std::back_inserter(dict);
     if(loc != doc.annotation_use.end()) {
-        fmt::format_to(app, "  /P {} 0 R\n", loc->second);
+        std::format_to(app, "  /P {} 0 R\n", loc->second);
     }
     if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  /Subtype /Text
   /Contents {}
 )",
                        utf8_to_pdfutf16be(ta->content));
     } else if(auto faa = std::get_if<FileAttachmentAnnotation>(&annotation.a.sub)) {
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  /Subtype /FileAttachment
   /FS {} 0 R
 )",
                        doc.embedded_files[faa->fileid.id].filespec_obj);
     } else if(auto ua = std::get_if<UriAnnotation>(&annotation.a.sub)) {
         auto uri_as_str = pdfstring_quote(ua->uri.sv());
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  /Subtype /Link
   /Contents {}
   /A <<
@@ -633,7 +633,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
         int32_t media_filespec = doc.embedded_files.at(sa->mediafile.id).filespec_obj;
         if(!sa->times) {
-            fmt::format_to(app,
+            std::format_to(app,
                            R"(  /Subtype /Screen
   /A <<
     /Type /Action
@@ -660,7 +660,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             // NOTE! This should work but does not. Acrobat reader will error
             // out if there are any entries in the MH dictionary, regardless whether they
             // are time or frame dictionaries.
-            fmt::format_to(app,
+            std::format_to(app,
                            R"(  /Subtype /Screen
   /A <<
     /Type /Action
@@ -695,7 +695,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
                            sa->times->endtime);
         }
     } else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  /Subtype /PrinterMark
   /AP << /N {} 0 R >>
 )",
@@ -733,23 +733,23 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
 )";
     auto app = std::back_inserter(dict);
     if(auto bi = std::get_if<CapyPDF_StructureType>(&si.stype)) {
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(  /S /{}
 )",
                        structure_type_names.at(*bi));
     } else if(auto ri = std::get_if<CapyPDF_RoleId>(&si.stype)) {
         const auto &role = *ri;
-        fmt::format_to(app, "  /S {}\n", bytes2pdfstringliteral(doc.rolemap.at(role.id).name));
+        std::format_to(app, "  /S {}\n", bytes2pdfstringliteral(doc.rolemap.at(role.id).name));
     } else {
         fprintf(stderr, "UNREACHABLE.\n");
         std::abort();
     }
-    fmt::format_to(app, "  /P {} 0 R\n", parent_object);
+    std::format_to(app, "  /P {} 0 R\n", parent_object);
 
     if(!children.empty()) {
         dict += "  /K [\n";
         for(const auto &c : children) {
-            fmt::format_to(app, "    {} 0 R\n", doc.structure_items.at(c.id).obj_id);
+            std::format_to(app, "    {} 0 R\n", doc.structure_items.at(c.id).obj_id);
         }
         dict += "  ]\n";
     } else {
@@ -758,23 +758,23 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
         const auto it = doc.structure_use.find(dsi.sid);
         if(it != doc.structure_use.end()) {
             const auto &[page_num, mcid_num] = it->second;
-            fmt::format_to(app, "  /Pg {} 0 R\n", doc.pages.at(page_num).page_obj_num);
-            fmt::format_to(app, "  /K {}\n", mcid_num);
+            std::format_to(app, "  /Pg {} 0 R\n", doc.pages.at(page_num).page_obj_num);
+            std::format_to(app, "  /K {}\n", mcid_num);
         }
     }
 
     // Extra elements.
     if(!si.extra.T.empty()) {
-        fmt::format_to(app, "  /T {}\n", utf8_to_pdfutf16be(si.extra.T));
+        std::format_to(app, "  /T {}\n", utf8_to_pdfutf16be(si.extra.T));
     }
     if(!si.extra.Lang.empty()) {
-        fmt::format_to(app, "  /Lang {}\n", pdfstring_quote(si.extra.Lang.sv()));
+        std::format_to(app, "  /Lang {}\n", pdfstring_quote(si.extra.Lang.sv()));
     }
     if(!si.extra.Alt.empty()) {
-        fmt::format_to(app, "  /Alt {}\n", utf8_to_pdfutf16be(si.extra.Alt));
+        std::format_to(app, "  /Alt {}\n", utf8_to_pdfutf16be(si.extra.Alt));
     }
     if(!si.extra.ActualText.empty()) {
-        fmt::format_to(app, "  /ActualText {}\n", utf8_to_pdfutf16be(si.extra.ActualText));
+        std::format_to(app, "  /ActualText {}\n", utf8_to_pdfutf16be(si.extra.ActualText));
     }
     dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));

@@ -11,7 +11,7 @@
 #include <bit>
 #include <filesystem>
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 #include <ft2build.h>
 #include <variant>
 #include FT_FREETYPE_H
@@ -206,11 +206,11 @@ int32_t num_channels_for(const CapyPDF_ImageColorspace cs) {
 
 void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) {
     if(auto *rgb = std::get_if<DeviceRGBColor>(&c)) {
-        fmt::format_to(app, "{} {} {}", rgb->r.v(), rgb->g.v(), rgb->b.v());
+        std::format_to(app, "{} {} {}", rgb->r.v(), rgb->g.v(), rgb->b.v());
     } else if(auto *gray = std::get_if<DeviceGrayColor>(&c)) {
-        fmt::format_to(app, "{}", gray->v.v());
+        std::format_to(app, "{}", gray->v.v());
     } else if(auto *cmyk = std::get_if<DeviceCMYKColor>(&c)) {
-        fmt::format_to(app, "{} {} {} {}", cmyk->c.v(), cmyk->m.v(), cmyk->y.v(), cmyk->k.v());
+        std::format_to(app, "{} {} {} {}", cmyk->c.v(), cmyk->m.v(), cmyk->y.v(), cmyk->k.v());
     } else {
         fprintf(stderr, "Colorspace not supported yet.\n");
         std::abort();
@@ -278,7 +278,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
 }
 
 int32_t PdfDocument::create_page_group() {
-    std::string buf = fmt::format(R"(<<
+    std::string buf = std::format(R"(<<
   /S /Transparency
   /CS {}
 >>
@@ -317,7 +317,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         commands_num = add_object(
             DeflatePDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
     } else {
-        fmt::format_to(std::back_inserter(unclosed_object_dict),
+        std::format_to(std::back_inserter(unclosed_object_dict),
                        "  /Length {}\n>>\n",
                        command_stream.length());
         commands_num =
@@ -374,19 +374,19 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
 )"};
         auto rootapp = std::back_inserter(rootbuf);
         for(const auto &i : subnav) {
-            fmt::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+            std::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
         }
         rootbuf += "    ]\n  >>\n";
-        fmt::format_to(rootapp, "  /Next {} 0 R\n", root_obj + 1);
+        std::format_to(rootapp, "  /Next {} 0 R\n", root_obj + 1);
         rootbuf += R"(  /PA <<
     /S /SetOCGState
     /State [ /ON
 )";
         for(const auto &i : subnav) {
-            fmt::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+            std::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
         }
         rootbuf += "    ]\n  >>\n";
-        fmt::format_to(rootapp, "  /Prev {} 0 R\n>>\n", root_obj + 1 + subnav.size());
+        std::format_to(rootapp, "  /Prev {} 0 R\n>>\n", root_obj + 1 + subnav.size());
 
         add_object(FullPDFObject{std::move(rootbuf), {}});
     }
@@ -399,7 +399,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
 )";
         auto app = std::back_inserter(buf);
         buf += "  /NA  <<\n";
-        fmt::format_to(app,
+        std::format_to(app,
                        R"(    /S /SetOCGState
     /State [ /ON {} 0 R ]
 )",
@@ -413,21 +413,21 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
         }
 
         buf += "  >>\n";
-        fmt::format_to(app, "  /Next {} 0 R\n", first_obj + i + 1);
+        std::format_to(app, "  /Next {} 0 R\n", first_obj + i + 1);
         if(i > 0) {
-            fmt::format_to(app,
+            std::format_to(app,
                            R"(  /PA <<
     /S /SetOCGState
     /State [ /OFF {} 0 R ]
   >>
 )",
                            ocg_object_number(subnav[i - 1].id));
-            fmt::format_to(app, "  /Prev {} 0 R\n", first_obj + i - 1);
+            std::format_to(app, "  /Prev {} 0 R\n", first_obj + i - 1);
         }
         buf += ">>\n";
         add_object(FullPDFObject{std::move(buf), {}});
     }
-    add_object(FullPDFObject{fmt::format(R"(<<
+    add_object(FullPDFObject{std::format(R"(<<
   /Type /NavNode
   /PA <<
     /S /SetOCGState
@@ -450,7 +450,7 @@ int32_t PdfDocument::add_object(ObjectType object) {
 
 rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &name,
                                                           const DeviceCMYKColor &fallback) {
-    std::string stream = fmt::format(R"({{ dup {} mul
+    std::string stream = std::format(R"({{ dup {} mul
 exch {} exch dup {} mul
 exch {} mul
 }}
@@ -459,7 +459,7 @@ exch {} mul
                                      fallback.m.v(),
                                      fallback.y.v(),
                                      fallback.k.v());
-    std::string buf = fmt::format(R"(<<
+    std::string buf = std::format(R"(<<
   /FunctionType 4
   /Domain [ 0.0 1.0 ]
   /Range [ 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 ]
@@ -470,7 +470,7 @@ exch {} mul
                                   stream);
     auto fn_num = add_object(FullPDFObject{buf, std::move(stream)});
     buf.clear();
-    fmt::format_to(std::back_inserter(buf),
+    std::format_to(std::back_inserter(buf),
                    R"([
   /Separation
     /{}
@@ -485,7 +485,7 @@ exch {} mul
 }
 
 rvoe<CapyPDF_LabColorSpaceId> PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"([ /Lab
   <<
     /WhitePoint [ {:f} {:f} {:f} ]
@@ -547,7 +547,7 @@ void PdfDocument::pad_subset_fonts() {
 
 rvoe<int32_t> PdfDocument::create_name_dict() {
     assert(!embedded_files.empty());
-    std::string buf = fmt::format(R"(<<
+    std::string buf = std::format(R"(<<
 /EmbeddedFiles <<
   /Limits [ (embobj{:05}) (embojb{:05}) ]
   /Names [
@@ -556,7 +556,7 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
                                   embedded_files.size() - 1);
     auto app = std::back_inserter(buf);
     for(size_t i = 0; i < embedded_files.size(); ++i) {
-        fmt::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
+        std::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
     }
     buf += "  ]\n>>\n";
     return add_object(FullPDFObject{std::move(buf), {}});
@@ -567,9 +567,9 @@ rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
     auto app = std::back_inserter(buf);
     for(size_t i = 0; i < structure_parent_tree_items.size(); ++i) {
         const auto &entry = structure_parent_tree_items[i];
-        fmt::format_to(app, "  {} [\n", i);
+        std::format_to(app, "  {} [\n", i);
         for(const auto &sitem : entry) {
-            fmt::format_to(app, "    {} 0 R\n", structure_items.at(sitem.id).obj_id);
+            std::format_to(app, "    {} 0 R\n", structure_items.at(sitem.id).obj_id);
         }
         buf += "  ]\n";
     }
@@ -600,19 +600,19 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 
     if(!embedded_files.empty()) {
         ERC(names, create_name_dict());
-        name = fmt::format("  /Names {} 0 R\n", names);
+        name = std::format("  /Names {} 0 R\n", names);
     }
     if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
-        outline = fmt::format("  /Outlines {} 0 R\n", outlines);
+        outline = std::format("  /Outlines {} 0 R\n", outlines);
     }
     if(!structure_items.empty()) {
         ERC(treeid, create_structure_parent_tree());
         structure_parent_tree_object = treeid;
         create_structure_root_dict();
-        structure = fmt::format("  /StructTreeRoot {} 0 R\n", *structure_root_object);
+        structure = std::format("  /StructTreeRoot {} 0 R\n", *structure_root_object);
     }
-    fmt::format_to(app,
+    std::format_to(app,
                    R"(<<
   /Type /Catalog
   /Pages {} 0 R
@@ -628,20 +628,20 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         buf += structure;
     }
     if(!opts.lang.empty()) {
-        fmt::format_to(app, "  /Lang ({})\n", opts.lang.c_str());
+        std::format_to(app, "  /Lang ({})\n", opts.lang.c_str());
     }
     if(opts.is_tagged) {
-        fmt::format_to(app, "  /MarkInfo << /Marked true >>\n");
+        std::format_to(app, "  /MarkInfo << /Marked true >>\n");
     }
     if(output_intent_object) {
-        fmt::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
+        std::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
     }
     if(!form_use.empty()) {
         buf += R"(  /AcroForm <<
     /Fields [
 )";
         for(const auto &i : form_widgets) {
-            fmt::format_to(app, "      {} 0 R\n", i);
+            std::format_to(app, "      {} 0 R\n", i);
         }
         buf += "      ]\n  >>\n";
         buf += "  /NeedAppearances true\n";
@@ -651,7 +651,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     /OCGs [
 )";
         for(const auto &o : ocg_items) {
-            fmt::format_to(app, "      {} 0 R\n", o);
+            std::format_to(app, "      {} 0 R\n", o);
         }
         buf += "    ]\n";
         buf += "    /D << /BaseState /ON >>\n";
@@ -666,7 +666,7 @@ void PdfDocument::create_output_intent() {
     std::string buf;
     assert(output_profile);
     assert(opts.xtype);
-    buf = fmt::format(R"(<<
+    buf = std::format(R"(<<
   /Type /OutputIntent
   /S {}
   /OutputConditionIdentifier {}
@@ -687,7 +687,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         auto titlestr = utf8_to_pdfutf16be(cur_obj.title);
         auto parent_id = outlines.parent.at(cur_id);
         const auto &siblings = outlines.children.at(parent_id);
-        std::string oitem = fmt::format(R"(<<
+        std::string oitem = std::format(R"(<<
   /Title {}
   /Dest [ {} 0 R /XYZ null null null]
 )",
@@ -700,32 +700,32 @@ rvoe<int32_t> PdfDocument::create_outlines() {
             if(loc != siblings.begin()) {
                 auto prevloc = loc;
                 --prevloc;
-                fmt::format_to(app, "  /Prev {} 0 R\n", first_obj_num + *prevloc);
+                std::format_to(app, "  /Prev {} 0 R\n", first_obj_num + *prevloc);
             }
             auto nextloc = loc;
             nextloc++;
             if(nextloc != siblings.end()) {
-                fmt::format_to(app, "  /Next {} 0 R\n", first_obj_num + *nextloc);
+                std::format_to(app, "  /Next {} 0 R\n", first_obj_num + *nextloc);
             }
         }
         auto childs = outlines.children.find(cur_id);
         if(childs != outlines.children.end()) {
             const auto &children = childs->second;
-            fmt::format_to(app, "  /First {} 0 R\n", first_obj_num + children.front());
-            fmt::format_to(app, "  /Last {} 0 R\n", first_obj_num + children.back());
-            fmt::format_to(app, "  /Count {}\n", -(int32_t)children.size());
+            std::format_to(app, "  /First {} 0 R\n", first_obj_num + children.front());
+            std::format_to(app, "  /Last {} 0 R\n", first_obj_num + children.back());
+            std::format_to(app, "  /Count {}\n", -(int32_t)children.size());
         }
         /*
         if(node_counts[cur_id] > 0) {
-            fmt::format_to(app, "  /Count {}\n", -node_counts[cur_id]);
+            std::format_to(app, "  /Count {}\n", -node_counts[cur_id]);
         }*/
-        fmt::format_to(app,
+        std::format_to(app,
                        "  /Parent {} 0 R\n>>",
                        parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
         add_object(FullPDFObject{std::move(oitem), {}});
     }
     const auto &top_level = outlines.children.at(-1);
-    std::string buf = fmt::format(R"(<<
+    std::string buf = std::format(R"(<<
   /Type /Outlines
   /First {} 0 R
   /Last {} 0 R
@@ -759,7 +759,7 @@ void PdfDocument::create_structure_root_dict() {
     }
     assert(rootobj);
     // /ParentTree
-    fmt::format_to(app,
+    std::format_to(app,
                    R"(<<
   /Type /StructTreeRoot
   /K [ {} 0 R ]
@@ -772,7 +772,7 @@ void PdfDocument::create_structure_root_dict() {
     if(!rolemap.empty()) {
         buf += "  /RoleMap <<\n";
         for(const auto &i : rolemap) {
-            fmt::format_to(app,
+            std::format_to(app,
                            "    {} /{}\n",
                            bytes2pdfstringliteral(i.name),
                            structure_type_names.at(i.builtin));
@@ -835,14 +835,14 @@ CapyPDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents
         return CapyPDF_IccColorSpaceId{-1};
     }
     std::string buf;
-    fmt::format_to(std::back_inserter(buf),
+    std::format_to(std::back_inserter(buf),
                    R"(<<
   /N {}
 )",
                    num_channels);
     auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
     auto obj_id =
-        add_object(FullPDFObject{fmt::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
+        add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
     return CapyPDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
@@ -893,7 +893,7 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
         return it->second;
     }
     std::string font_dict;
-    fmt::format_to(std::back_inserter(font_dict),
+    std::format_to(std::back_inserter(font_dict),
                    R"(<<
   /Type /Font
   /Subtype /Type1
@@ -989,7 +989,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     std::string buf;
     auto app = std::back_inserter(buf);
     ERC(compressed, flate_compress(uncompressed_bytes));
-    fmt::format_to(app,
+    std::format_to(app,
                    R"(<<
   /Type /XObject
   /Subtype /Image
@@ -1016,17 +1016,17 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
         buf += "  /ImageMask true\n";
     } else {
         if(auto cs = std::get_if<CapyPDF_ImageColorspace>(&colorspace)) {
-            fmt::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
+            std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
             const auto icc_obj = icc_profiles.at(icc->id).object_num;
-            fmt::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
+            std::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");
             std::abort();
         }
     }
     if(smask_id) {
-        fmt::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
+        std::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
     }
     buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
@@ -1037,7 +1037,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
 rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg,
                                              CapyPDF_Image_Interpolation interpolate) {
     std::string buf;
-    fmt::format_to(std::back_inserter(buf),
+    std::format_to(std::back_inserter(buf),
                    R"(<<
   /Type /XObject
   /Subtype /Image
@@ -1073,50 +1073,50 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
 )"};
     auto resource_appender = std::back_inserter(buf);
     if(state.LW) {
-        fmt::format_to(resource_appender, "  /LW {:f}\n", *state.LW);
+        std::format_to(resource_appender, "  /LW {:f}\n", *state.LW);
     }
     if(state.LC) {
-        fmt::format_to(resource_appender, "  /LC {}\n", (int)*state.LC);
+        std::format_to(resource_appender, "  /LC {}\n", (int)*state.LC);
     }
     if(state.LJ) {
-        fmt::format_to(resource_appender, "  /LJ {}\n", (int)*state.LJ);
+        std::format_to(resource_appender, "  /LJ {}\n", (int)*state.LJ);
     }
     if(state.ML) {
-        fmt::format_to(resource_appender, "  /ML {:f}\n", *state.ML);
+        std::format_to(resource_appender, "  /ML {:f}\n", *state.ML);
     }
     if(state.RI) {
-        fmt::format_to(
+        std::format_to(
             resource_appender, "  /RenderingIntent /{}\n", rendering_intent_names.at(*state.RI));
     }
     if(state.OP) {
-        fmt::format_to(resource_appender, "  /OP {}\n", *state.OP ? "true" : "false");
+        std::format_to(resource_appender, "  /OP {}\n", *state.OP ? "true" : "false");
     }
     if(state.op) {
-        fmt::format_to(resource_appender, "  /op {}\n", *state.op ? "true" : "false");
+        std::format_to(resource_appender, "  /op {}\n", *state.op ? "true" : "false");
     }
     if(state.OPM) {
-        fmt::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
+        std::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
     }
     if(state.FL) {
-        fmt::format_to(resource_appender, "  /FL {:f}\n", *state.FL);
+        std::format_to(resource_appender, "  /FL {:f}\n", *state.FL);
     }
     if(state.SM) {
-        fmt::format_to(resource_appender, "  /SM {:f}\n", *state.SM);
+        std::format_to(resource_appender, "  /SM {:f}\n", *state.SM);
     }
     if(state.BM) {
-        fmt::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
+        std::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
     }
     if(state.CA) {
-        fmt::format_to(resource_appender, "  /CA {:f}\n", state.CA->v());
+        std::format_to(resource_appender, "  /CA {:f}\n", state.CA->v());
     }
     if(state.ca) {
-        fmt::format_to(resource_appender, "  /ca {:f}\n", state.ca->v());
+        std::format_to(resource_appender, "  /ca {:f}\n", state.ca->v());
     }
     if(state.AIS) {
-        fmt::format_to(resource_appender, "  /AIS {}\n", *state.AIS ? "true" : "false");
+        std::format_to(resource_appender, "  /AIS {}\n", *state.AIS ? "true" : "false");
     }
     if(state.TK) {
-        fmt::format_to(resource_appender, "  /TK {}\n", *state.TK ? "true" : "false");
+        std::format_to(resource_appender, "  /TK {}\n", *state.TK ? "true" : "false");
     }
     buf += ">>\n";
     add_object(FullPDFObject{std::move(buf), {}});
@@ -1128,7 +1128,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     if(func.C0.index() != func.C1.index()) {
         RETERR(ColorspaceMismatch);
     }
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"(<<
   /FunctionType {}
   /N {}
@@ -1139,7 +1139,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
 
     buf += "  /Domain [ ";
     for(const auto d : func.domain) {
-        fmt::format_to(resource_appender, "{} ", d);
+        std::format_to(resource_appender, "{} ", d);
     }
     buf += "]\n";
     buf += "  /C0 [ ";
@@ -1155,7 +1155,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
     const int shadingtype = 2;
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"(<<
   /ShadingType {}
   /ColorSpace {}
@@ -1179,7 +1179,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType3 &shade) {
     const int shadingtype = 3;
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"(<<
   /ShadingType {}
   /ColorSpace {}
@@ -1206,7 +1206,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType3 &shade) {
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
     const int shadingtype = 4;
     ERC(serialized, serialize_shade4(shade));
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"(<<
   /ShadingType {}
   /ColorSpace {}
@@ -1249,7 +1249,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
     const int shadingtype = 6;
     ERC(serialized, serialize_shade6(shade));
-    std::string buf = fmt::format(
+    std::string buf = std::format(
         R"(<<
   /ShadingType {}
   /ColorSpace {}
@@ -1302,7 +1302,7 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {
     }
     auto resources = ctx.build_resource_dict();
     auto commands = ctx.get_command_stream();
-    auto pattern_dict = fmt::format(R"(<<
+    auto pattern_dict = std::format(R"(<<
   /Type /Pattern
   /PatternType 1
   /PaintType 1
@@ -1352,13 +1352,13 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
 
 rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
-    std::string dict = fmt::format(R"(<<
+    std::string dict = std::format(R"(<<
   /Type /EmbeddedFile
   /Length {}
 >>)",
                                    contents.size());
     auto fileobj_id = add_object(FullPDFObject{std::move(dict), std::move(contents)});
-    dict = fmt::format(R"(<<
+    dict = std::format(R"(<<
   /Type /Filespec
   /F {}
   /EF << /F {} 0 R >>
@@ -1411,7 +1411,7 @@ PdfDocument::add_structure_item(const CapyPDF_RoleId role,
 
 rvoe<CapyPDF_OptionalContentGroupId>
 PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
-    auto id = add_object(FullPDFObject{fmt::format(R"(<<
+    auto id = add_object(FullPDFObject{std::format(R"(<<
   /Type /OCG
   /Name {}
 >>

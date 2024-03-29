@@ -13,7 +13,6 @@ soversion = 0
 
 header_install_subdir = 'capypdf-@0@'.format(soversion)
 
-fmt_dep = dependency('fmt')
 png_dep = dependency('libpng')
 zlib_dep = dependency('zlib')
 lcms_dep = dependency('lcms2')

@@ -10,7 +10,6 @@
 #include <cassert>
 #include <stdexcept>
 #include <array>
-#include <fmt/core.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H

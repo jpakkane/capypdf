@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #endif
 
-#include <fmt/core.h>
+#include <format>
 #include <memory>
 #include <random>
 
@@ -179,7 +179,7 @@ std::string utf8_to_pdfutf16be(const u8string &input) {
         for(const auto &u16 : u16buf) {
             const auto *lower_byte = (const unsigned char *)&u16;
             const auto *upper_byte = lower_byte + 1;
-            fmt::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
+            std::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
         }
     }
     encoded += '>';
@@ -306,7 +306,7 @@ std::string create_trailer_id() {
     std::default_random_engine gen(r());
     std::uniform_int_distribution<int> dist(0, 255);
     for(int i = 0; i < num_bytes; ++i) {
-        fmt::format_to(app, "{:02X}", (unsigned char)dist(gen));
+        std::format_to(app, "{:02X}", (unsigned char)dist(gen));
     }
     msg.push_back('>');
     return msg;
@@ -315,29 +315,29 @@ std::string create_trailer_id() {
 void serialize_trans(std::back_insert_iterator<std::string> buf_append,
                      const Transition &t,
                      std::string_view indent) {
-    fmt::format_to(buf_append, "{}/Trans <<\n", indent);
+    std::format_to(buf_append, "{}/Trans <<\n", indent);
     if(t.type) {
-        fmt::format_to(buf_append, "{}  /S {}\n", indent, transition_names.at((int32_t)*t.type));
+        std::format_to(buf_append, "{}  /S {}\n", indent, transition_names.at((int32_t)*t.type));
     }
     if(t.duration) {
-        fmt::format_to(buf_append, "{}  /D {:f}\n", indent, *t.duration);
+        std::format_to(buf_append, "{}  /D {:f}\n", indent, *t.duration);
     }
     if(t.Dm) {
-        fmt::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm ? "/H" : "/V");
+        std::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm ? "/H" : "/V");
     }
     if(t.Di) {
-        fmt::format_to(buf_append, "{}  /Di {}\n", indent, *t.Di);
+        std::format_to(buf_append, "{}  /Di {}\n", indent, *t.Di);
     }
     if(t.M) {
-        fmt::format_to(buf_append, "{}  /M {}\n", indent, *t.M ? "/I" : "/O");
+        std::format_to(buf_append, "{}  /M {}\n", indent, *t.M ? "/I" : "/O");
     }
     if(t.SS) {
-        fmt::format_to(buf_append, "{}  /SS {:f}\n", indent, *t.SS);
+        std::format_to(buf_append, "{}  /SS {:f}\n", indent, *t.SS);
     }
     if(t.B) {
-        fmt::format_to(buf_append, "{}  /B {}\n", indent, *t.B ? "true" : "false");
+        std::format_to(buf_append, "{}  /B {}\n", indent, *t.B ? "true" : "false");
     }
-    fmt::format_to(buf_append, "{}>>\n", indent);
+    std::format_to(buf_append, "{}>>\n", indent);
 }
 
 } // namespace capypdf
