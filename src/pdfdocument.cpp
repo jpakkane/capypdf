@@ -196,9 +196,9 @@ int32_t num_channels_for(const CapyPDF_ImageColorspace cs) {
     switch(cs) {
     case CAPY_IMAGE_CS_RGB:
         return 3;
-    case CAPY_DEVICE_CS_GRAY:
+    case CAPY_IMAGE_CS_GRAY:
         return 1;
-    case CAPY_DEVICE_CS_CMYK:
+    case CAPY_IMAGE_CS_CMYK:
         return 4;
     }
     std::abort();
@@ -1344,7 +1344,7 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     CHECK_INDEXNESS_V(onstate.id, form_xobjects);
     CHECK_INDEXNESS_V(offstate.id, form_xobjects);
     DelayedCheckboxWidgetAnnotation formobj{
-        (int32_t)form_widgets.size(), loc, onstate, offstate, std::string{partial_name}};
+        {(int32_t)form_widgets.size()}, loc, onstate, offstate, std::string{partial_name}};
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
@@ -1376,7 +1376,7 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
         RETERR(AnnotationMissingRect);
     }
     auto annot_id = (int32_t)annotations.size();
-    auto obj_id = add_object(DelayedAnnotation{annot_id, a});
+    auto obj_id = add_object(DelayedAnnotation{{annot_id}, a});
     annotations.push_back((int32_t)obj_id);
     return CapyPDF_AnnotationId{annot_id};
 }
@@ -1391,7 +1391,7 @@ PdfDocument::add_structure_item(const CapyPDF_StructureType stype,
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(
-        StructItem{obj_id, stype, parent, std::move(extra.value_or(StructItemExtraData()))});
+        StructItem{obj_id, stype, parent, extra.value_or(StructItemExtraData())});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
@@ -1405,7 +1405,7 @@ PdfDocument::add_structure_item(const CapyPDF_RoleId role,
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(
-        StructItem{obj_id, role, parent, std::move(extra.value_or(StructItemExtraData()))});
+        StructItem{obj_id, role, parent, extra.value_or(StructItemExtraData())});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
