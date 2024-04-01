@@ -3,7 +3,9 @@
 
 #include <capypdf.h>
 #include <stdio.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 int main() {
     CapyPDF_EC rc;

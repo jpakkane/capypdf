@@ -90,7 +90,7 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, dou
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
     }
-    T cval = std::numeric_limits<T>::max() * v;
+    T cval = (T)(std::numeric_limits<T>::max() * v);
     cval = std::byteswap(cval);
     const char *ptr = (const char *)(&cval);
     buf.append(ptr, ptr + sizeof(T));
@@ -1440,7 +1440,7 @@ PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroup
 std::optional<double>
 PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
     FT_Face face = fonts.at(fid.id).fontdata.face.get();
-    FT_Set_Char_Size(face, 0, pointsize * 64, 300, 300);
+    FT_Set_Char_Size(face, 0, (FT_F26Dot6)(pointsize * 64), 300, 300);
     if(FT_Load_Char(face, codepoint, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP) != 0) {
         return {};
     }
