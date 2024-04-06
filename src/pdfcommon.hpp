@@ -482,4 +482,15 @@ struct ImagePDFProperties {
     bool as_mask = false;
 };
 
+struct XYZDestination {
+    std::optional<double> x;
+    std::optional<double> y;
+    std::optional<double> z;
+};
+
+struct Destination {
+    int32_t page;
+    XYZDestination loc; // FIXME, should be a variant of location types (including monostate).
+};
+
 } // namespace capypdf

@@ -182,7 +182,7 @@ struct PdfGenerationData {
 
 struct Outline {
     u8string title;
-    PageId dest;
+    Destination dest;
     std::optional<CapyPDF_OutlineId> parent;
 };
 
@@ -372,7 +372,7 @@ public:
 
     // Outlines
     rvoe<CapyPDF_OutlineId>
-    add_outline(const u8string &title_utf8, PageId dest, std::optional<CapyPDF_OutlineId> parent);
+    add_outline(const u8string &title_utf8, const Destination &dest, std::optional<CapyPDF_OutlineId> parent);
 
     // Forms
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,

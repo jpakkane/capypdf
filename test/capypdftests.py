@@ -835,16 +835,23 @@ class TestPDFCreation(unittest.TestCase):
         opt = capypdf.Options()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
+            # Destinations point to a page that does not exist when they
+            # are created but does exist when the PDF is generated.
+            d = capypdf.Destination()
+            d.set_page(0)
+            d.set_xyz(10, 20, 1.0)
+            t1 = gen.add_outline('First toplevel', d)
+            d.set_xyz(None, None, None)
+            t2 = gen.add_outline('Second toplevel', d)
+            t3 = gen.add_outline('Third toplevel', d)
+            t1c1 = gen.add_outline('Top1, child1', d, t1)
+            t1c2 = gen.add_outline('Top1, child2', d, t1)
+            gen.add_outline('Top1, child2, child1', d, t1c2)
+            gen.add_outline('Fourth toplevel', d)
+
             with gen.page_draw_context() as ctx:
                 ctx.cmd_re(50, 50, 100, 100)
                 ctx.cmd_f()
-            t1 = gen.add_outline('First toplevel', 0)
-            t2 = gen.add_outline('Second toplevel', 0)
-            t3 = gen.add_outline('Third toplevel', 0)
-            t1c1 = gen.add_outline('Top1, child1', 0, t1)
-            t1c2 = gen.add_outline('Top1, child2', 0, t1)
-            gen.add_outline('Top1, child2, child1', 0, t1c2)
-            gen.add_outline('Fourth toplevel', 0)
         # FIXME, validate that the outline tree is correct.
 
     @validate_image('python_separation', 200, 200)

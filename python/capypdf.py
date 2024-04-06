@@ -267,7 +267,7 @@ cfunc_types = (
 ('capy_generator_write', [ctypes.c_void_p]),
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_create_separation_simple', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
@@ -441,6 +441,12 @@ cfunc_types = (
 ('capy_image_pdf_properties_set_mask', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_image_pdf_properties_set_interpolate', [ctypes.c_void_p, enum_type]),
 ('capy_image_pdf_properties_destroy', [ctypes.c_void_p]),
+
+('capy_destination_new', [ctypes.c_void_p]),
+('capy_destination_set_page', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_destination_set_xyz', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_destination_destroy', [ctypes.c_void_p]),
+
 
 )
 
@@ -1025,7 +1031,9 @@ class Generator:
         check_error(libfile.capy_generator_add_graphics_state(self, gs, ctypes.pointer(gsid)))
         return gsid
 
-    def add_outline(self, text, page_num, parent=None):
+    def add_outline(self, text, dest, parent=None):
+        if not isinstance(dest, Destination):
+            raise CapyPDFException('Destination must be a destination object.')
         if isinstance(parent, OutlineId):
             parentptr = ctypes.pointer(parent)
         elif parent is None:
@@ -1033,7 +1041,7 @@ class Generator:
         else:
             raise CapyPDFException('Parent must be outline or None')
         oid = OutlineId()
-        check_error(libfile.capy_generator_add_outline(self, text.encode('UTF-8'), page_num, parentptr, ctypes.pointer(oid)))
+        check_error(libfile.capy_generator_add_outline(self, text.encode('UTF-8'), dest, parentptr, ctypes.pointer(oid)))
         return oid
 
     def add_optional_content_group(self, ocg):
@@ -1458,6 +1466,9 @@ class ImagePdfProperties:
         check_error(libfile.capy_image_pdf_properties_new(ctypes.pointer(ed)))
         self._as_parameter_ = ed
 
+    def __del__(self):
+        check_error(libfile.capy_image_pdf_properties_destroy(self))
+
     def set_mask(self, boolval):
         intval = 1 if boolval else 0
         check_error(libfile.capy_image_pdf_properties_set_mask(self, intval))
@@ -1466,3 +1477,28 @@ class ImagePdfProperties:
         if not isinstance(ival, ImageInterpolation):
             raise CapyPDFException('Argument must be image interpolation enum.')
         check_error(libfile.capy_image_lpdf_properties_set_interpolate(self, ival.value))
+
+class Destination:
+    def __init__(self):
+        d = ctypes.c_void_p()
+        check_error(libfile.capy_destination_new(ctypes.pointer(d)))
+        self._as_parameter_ = d
+
+    def __del__(self):
+        check_error(libfile.capy_destination_destroy(self))
+
+    def set_page(self, page_num):
+        check_error(libfile.capy_destination_set_page(self, page_num))
+
+    def set_xyz(self, x=None, y=None, z=None):
+        xptr = self.double_to_cptr(x)
+        yptr = self.double_to_cptr(y)
+        zptr = self.double_to_cptr(z)
+        check_error(libfile.capy_destination_set_xyz(self, xptr, yptr, zptr))
+
+    def double_to_cptr(self, value):
+        if value is None:
+            return None
+        d = ctypes.c_double(value)
+        cptr = ctypes.pointer(d)
+        return cptr

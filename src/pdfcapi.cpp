@@ -524,23 +524,24 @@ CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT {
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      const char *utf8_text,
-                                                     int32_t page_number,
-                                                     CapyPDF_OutlineId *parent,
+                                                     const CapyPDF_Destination *dest,
+                                                     const CapyPDF_OutlineId *parent,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *d = reinterpret_cast<const Destination *>(dest);
+
     auto u8t = u8string::from_cstr(utf8_text);
     if(!u8t) {
         return conv_err(u8t);
     }
-    if(page_number < 0 || page_number >= g->num_pages()) {
-        return conv_err(ErrorCode::IndexOutOfBounds);
+    if(d->page < 0) {
+        return conv_err(ErrorCode::InvalidPageNumber);
     }
-    auto page_id = PageId{page_number};
     std::optional<CapyPDF_OutlineId> pobj;
     if(parent) {
         pobj = *parent;
     }
-    auto rc = g->add_outline(u8t.value(), page_id, pobj);
+    auto rc = g->add_outline(u8t.value(), *d, pobj);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -1590,6 +1591,43 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_interpolate(
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProperties *par)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ImagePDFProperties *>(par);
+    RETNOERR;
+}
+
+// Destination
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Destination *>(new Destination());
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page(CapyPDF_Destination *dest,
+                                                    int32_t physical_page_number) CAPYPDF_NOEXCEPT {
+    auto *d = reinterpret_cast<Destination *>(dest);
+    d->page = physical_page_number;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
+                                                   double *x,
+                                                   double *y,
+                                                   double *z) CAPYPDF_NOEXCEPT {
+    auto *d = reinterpret_cast<Destination *>(dest);
+    d->loc = XYZDestination{};
+    if(x) {
+        d->loc.x = *x;
+    }
+    if(y) {
+        d->loc.y = *y;
+    }
+    if(z) {
+        d->loc.z = *z;
+    }
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<Destination *>(dest);
     RETNOERR;
 }
 

@@ -679,6 +679,14 @@ void PdfDocument::create_output_intent() {
     output_intent_object = add_object(FullPDFObject{buf, {}});
 }
 
+template<typename T1, typename T2> static void append_value_or_null(T1 &app, const T2 &val) {
+    if(val) {
+        std::format_to(app, "{:f} ", val.value());
+    } else {
+        std::format_to(app, "{} ", "null");
+    }
+}
+
 rvoe<int32_t> PdfDocument::create_outlines() {
     int32_t first_obj_num = (int32_t)document_objects.size();
     int32_t catalog_obj_num = first_obj_num + (int32_t)outlines.items.size();
@@ -687,13 +695,21 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         auto titlestr = utf8_to_pdfutf16be(cur_obj.title);
         auto parent_id = outlines.parent.at(cur_id);
         const auto &siblings = outlines.children.at(parent_id);
+        const auto physical_page = cur_obj.dest.page;
+        if(physical_page < 0 || physical_page >= (int32_t)pages.size()) {
+            RETERR(InvalidPageNumber);
+        }
+        const auto page_object_number = pages.at(physical_page).page_obj_num;
         std::string oitem = std::format(R"(<<
   /Title {}
-  /Dest [ {} 0 R /XYZ null null null]
-)",
+  /Dest [ {} 0 R /XYZ )",
                                         titlestr,
-                                        pages.at(cur_obj.dest.id).page_obj_num);
+                                        page_object_number);
         auto app = std::back_inserter(oitem);
+        append_value_or_null(app, cur_obj.dest.loc.x);
+        append_value_or_null(app, cur_obj.dest.loc.y);
+        append_value_or_null(app, cur_obj.dest.loc.z);
+        oitem += "]\n";
         if(siblings.size() > 1) {
             auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
             assert(loc != siblings.end());
@@ -1327,7 +1343,7 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {
 }
 
 rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const u8string &title_utf8,
-                                                 PageId dest,
+                                                 const Destination &dest,
                                                  std::optional<CapyPDF_OutlineId> parent) {
     const auto cur_id = (int32_t)outlines.items.size();
     const auto par_id = parent.value_or(CapyPDF_OutlineId{-1}).id;

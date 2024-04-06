@@ -260,6 +260,7 @@ typedef struct _capyPDF_Type6Shading CapyPDF_Type6Shading;
 typedef struct _capyPDF_Annotation CapyPDF_Annotation;
 typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
 typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
+typedef struct _capyPDF_Destination CapyPDF_Destination;
 
 typedef int32_t CapyPDF_EC;
 
@@ -477,12 +478,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 
-// FIXME: this must be changed to support PDF links that point to
-// specific coordinates on a page.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      const char *utf8_text,
-                                                     int32_t page_number,
-                                                     CapyPDF_OutlineId *parent,
+                                                     const CapyPDF_Destination *dest,
+                                                     const CapyPDF_OutlineId *parent,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
@@ -832,6 +831,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_conversion_intent(
     CapyPDF_ImagePdfProperties *par, CapyPDF_Rendering_Intent ri) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProperties *par)
     CAPYPDF_NOEXCEPT;
+
+// Destinations.
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page(CapyPDF_Destination *dest,
+                                                    int32_t physical_page_number) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
+                                                   double *x,
+                                                   double *y,
+                                                   double *z) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
 
 // Error
 
