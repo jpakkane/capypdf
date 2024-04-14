@@ -523,25 +523,12 @@ CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT {
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
-                                                     const char *utf8_text,
-                                                     const CapyPDF_Destination *dest,
-                                                     const CapyPDF_OutlineId *parent,
+                                                     const CapyPDF_Outline *outline,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *d = reinterpret_cast<const Destination *>(dest);
+    auto *o = reinterpret_cast<const Outline *>(outline);
 
-    auto u8t = u8string::from_cstr(utf8_text);
-    if(!u8t) {
-        return conv_err(u8t);
-    }
-    if(d->page < 0) {
-        return conv_err(ErrorCode::InvalidPageNumber);
-    }
-    std::optional<CapyPDF_OutlineId> pobj;
-    if(parent) {
-        pobj = *parent;
-    }
-    auto rc = g->add_outline(u8t.value(), *d, pobj);
+    auto rc = g->add_outline(*o);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -1604,6 +1591,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CA
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page(CapyPDF_Destination *dest,
                                                     int32_t physical_page_number) CAPYPDF_NOEXCEPT {
     auto *d = reinterpret_cast<Destination *>(dest);
+    if(physical_page_number < 0) {
+        return conv_err(ErrorCode::InvalidPageNumber);
+    }
     d->page = physical_page_number;
     RETNOERR;
 }
@@ -1628,6 +1618,58 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Destination *>(dest);
+    RETNOERR;
+}
+
+// Outline
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Outline *>(new Outline{});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
+                                                 const char *title) CAPYPDF_NOEXCEPT {
+    auto *o = reinterpret_cast<Outline *>(outline);
+    auto u8str = u8string::from_cstr(title);
+    if(!u8str) {
+        return conv_err(u8str);
+    }
+    o->title = std::move(u8str.value());
+    RETNOERR;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
+    CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
+    auto *o = reinterpret_cast<Outline *>(outline);
+    o->dest = *reinterpret_cast<const Destination *>(dest);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_rgb(CapyPDF_Outline *outline,
+                                               double r,
+                                               double g,
+                                               double b) CAPYPDF_NOEXCEPT {
+    auto *o = reinterpret_cast<Outline *>(outline);
+    o->color = DeviceRGBColor{r, g, b};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_f(CapyPDF_Outline *outline,
+                                             uint32_t F) CAPYPDF_NOEXCEPT {
+    auto *o = reinterpret_cast<Outline *>(outline);
+    o->F = F;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
+                                                  CapyPDF_OutlineId parent) CAPYPDF_NOEXCEPT {
+    auto *o = reinterpret_cast<Outline *>(outline);
+    o->parent = parent;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<Outline *>(outline);
     RETNOERR;
 }
 

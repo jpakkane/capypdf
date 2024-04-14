@@ -695,21 +695,24 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         auto titlestr = utf8_to_pdfutf16be(cur_obj.title);
         auto parent_id = outlines.parent.at(cur_id);
         const auto &siblings = outlines.children.at(parent_id);
-        const auto physical_page = cur_obj.dest.page;
-        if(physical_page < 0 || physical_page >= (int32_t)pages.size()) {
-            RETERR(InvalidPageNumber);
-        }
-        const auto page_object_number = pages.at(physical_page).page_obj_num;
         std::string oitem = std::format(R"(<<
   /Title {}
-  /Dest [ {} 0 R /XYZ )",
-                                        titlestr,
-                                        page_object_number);
+)",
+                                        titlestr);
         auto app = std::back_inserter(oitem);
-        append_value_or_null(app, cur_obj.dest.loc.x);
-        append_value_or_null(app, cur_obj.dest.loc.y);
-        append_value_or_null(app, cur_obj.dest.loc.z);
-        oitem += "]\n";
+        if(cur_obj.dest) {
+            const auto &dest = cur_obj.dest.value();
+            const auto physical_page = dest.page;
+            if(physical_page < 0 || physical_page >= (int32_t)pages.size()) {
+                RETERR(InvalidPageNumber);
+            }
+            const auto page_object_number = pages.at(physical_page).page_obj_num;
+            std::format_to(app, "  /Dest [ {} 0 R /XYZ ", page_object_number);
+            append_value_or_null(app, dest.loc.x);
+            append_value_or_null(app, dest.loc.y);
+            append_value_or_null(app, dest.loc.z);
+            oitem += "]\n";
+        }
         if(siblings.size() > 1) {
             auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
             assert(loc != siblings.end());
@@ -736,8 +739,19 @@ rvoe<int32_t> PdfDocument::create_outlines() {
             std::format_to(app, "  /Count {}\n", -node_counts[cur_id]);
         }*/
         std::format_to(app,
-                       "  /Parent {} 0 R\n>>",
+                       "  /Parent {} 0 R\n",
                        parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
+        if(cur_obj.F != 0) {
+            std::format_to(app, "  /F {}\n", cur_obj.F);
+        }
+        if(cur_obj.color) {
+            std::format_to(app,
+                           "  /C [ {:f} {:f} {:f} ]\n",
+                           cur_obj.color.value().r.v(),
+                           cur_obj.color.value().g.v(),
+                           cur_obj.color.value().b.v());
+        }
+        oitem += ">>\n";
         add_object(FullPDFObject{std::move(oitem), {}});
     }
     const auto &top_level = outlines.children.at(-1);
@@ -1342,14 +1356,15 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {
         add_object(FullPDFObject{std::move(pattern_dict), std::string(commands)})};
 }
 
-rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const u8string &title_utf8,
-                                                 const Destination &dest,
-                                                 std::optional<CapyPDF_OutlineId> parent) {
+rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
+    if(o.title.empty()) {
+        RETERR(EmptyTitle);
+    }
     const auto cur_id = (int32_t)outlines.items.size();
-    const auto par_id = parent.value_or(CapyPDF_OutlineId{-1}).id;
+    const auto par_id = o.parent.value_or(CapyPDF_OutlineId{-1}).id;
     outlines.parent[cur_id] = par_id;
     outlines.children[par_id].push_back(cur_id);
-    outlines.items.emplace_back(Outline{title_utf8, dest, parent});
+    outlines.items.emplace_back(o);
     return CapyPDF_OutlineId{cur_id};
 }
 

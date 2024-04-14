@@ -73,6 +73,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Unspecified color profile error.",
 "Image is not in format required by output settings.",
 "Page reference points to a non-existing page.",
+"Title is empty.",
 };
 
 // clang-format on

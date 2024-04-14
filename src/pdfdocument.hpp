@@ -182,13 +182,10 @@ struct PdfGenerationData {
 
 struct Outline {
     u8string title;
-    Destination dest;
+    std::optional<Destination> dest;
+    std::optional<DeviceRGBColor> color;
+    uint32_t F = 0;
     std::optional<CapyPDF_OutlineId> parent;
-};
-
-struct OutlineLimits {
-    int32_t first;
-    int32_t last;
 };
 
 class PdfGen;
@@ -371,8 +368,7 @@ public:
     rvoe<CapyPDF_PatternId> add_pattern(PdfDrawContext &ctx);
 
     // Outlines
-    rvoe<CapyPDF_OutlineId>
-    add_outline(const u8string &title_utf8, const Destination &dest, std::optional<CapyPDF_OutlineId> parent);
+    rvoe<CapyPDF_OutlineId> add_outline(const Outline &o);
 
     // Forms
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,

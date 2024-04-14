@@ -261,6 +261,7 @@ typedef struct _capyPDF_Annotation CapyPDF_Annotation;
 typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
 typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
 typedef struct _capyPDF_Destination CapyPDF_Destination;
+typedef struct _capyPDF_Outline CapyPDF_Outline;
 
 typedef int32_t CapyPDF_EC;
 
@@ -479,9 +480,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
-                                                     const char *utf8_text,
-                                                     const CapyPDF_Destination *dest,
-                                                     const CapyPDF_OutlineId *parent,
+                                                     const CapyPDF_Outline *outline,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT;
 
 // Probably not final API.
@@ -841,6 +840,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
                                                    double *y,
                                                    double *z) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
+
+// Outline
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
+                                                 const char *title) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
+    CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_rgb(CapyPDF_Outline *outline,
+                                               double r,
+                                               double g,
+                                               double b) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_f(CapyPDF_Outline *outline, uint32_t F) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
+                                                  CapyPDF_OutlineId parent) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT;
 
 // Error
 

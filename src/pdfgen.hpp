@@ -132,11 +132,7 @@ public:
         return pdoc.add_transparency_group(ctx, ex);
     }
 
-    rvoe<CapyPDF_OutlineId> add_outline(const u8string &title_utf8,
-                                        const Destination &dest,
-                                        std::optional<CapyPDF_OutlineId> parent) {
-        return pdoc.add_outline(title_utf8, dest, parent);
-    }
+    rvoe<CapyPDF_OutlineId> add_outline(const Outline &o) { return pdoc.add_outline(o); }
 
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
                                                      std::optional<CapyPDF_StructureItemId> parent,
