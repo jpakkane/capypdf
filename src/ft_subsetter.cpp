@@ -387,7 +387,7 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view bu
         RETERR(MalformedFontFile);
     }
     uint32_t version;
-    safe_memcpy(&version, buf, e->offset);
+    ERCV(safe_memcpy(&version, buf, e->offset));
     byte_swap_inplace(version);
     if(version != 1 << 16) {
         RETERR(UnsupportedFormat);
@@ -456,7 +456,7 @@ rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf)
     if(sizeof(TTHhea) != e->length) {
         RETERR(MalformedFontFile);
     }
-    safe_memcpy(&hhea, buf, e->offset);
+    ERCV(safe_memcpy(&hhea, buf, e->offset));
     hhea.swap_endian();
     if(hhea.version != 1 << 16) {
         RETERR(MalformedFontFile);
@@ -482,7 +482,7 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
     for(uint16_t i = 0; i < num_hmetrics; ++i) {
         TTLongHorMetric hm;
         const auto data_offset = e->offset + i * sizeof(TTLongHorMetric);
-        safe_memcpy(&hm, buf, data_offset);
+        ERCV(safe_memcpy(&hm, buf, data_offset));
         hm.swap_endian();
         hmtx.longhor.push_back(hm);
     }
@@ -493,7 +493,7 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
         if(data_offset < 0) {
             RETERR(IndexIsNegative);
         }
-        safe_memcpy(&lsb, buf, data_offset);
+        ERCV(safe_memcpy(&lsb, buf, data_offset));
         byte_swap_inplace(lsb);
         hmtx.left_side_bearings.push_back(lsb);
     }
