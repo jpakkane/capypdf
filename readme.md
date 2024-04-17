@@ -39,7 +39,20 @@ happens, we aim to provide the following:
   guarantee.
 - The Python API shall be stable as well
 
+## PDF validity
+
+The library shall always generate PDFs that are syntactically valid.
+Any deviation is a bug that should be reported.
+
+The output is _not_ guaranteed to be semantically valid. PDF has
+certain requirements for valid documents that can not be checked in
+a plain PDF generation library. This work needs to be done by the
+generating application. CapyPDF does have some semantic checks, such
+as not permitting RGB images in PDF/X3 documents, but they are
+implemented on a "best effort" basis.
+
 ## Status
 
-The basic functionality is there but it's not even close to feature
-complete.
+The basic functionality is there and the library can be used to
+generate fairly complex documents. The APIs are not stable yet,
+however they are not expected to change much any more.
