@@ -5,8 +5,6 @@
 #include <string_view>
 #include <utils.hpp>
 #include <expected>
-// https://github.com/mm2/Little-CMS/pull/403
-#define CMS_NO_REGISTER_KEYWORD
 #include <lcms2.h>
 #include <cassert>
 #include <stdexcept>
