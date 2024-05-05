@@ -237,6 +237,48 @@ typedef enum {
     CAPY_STRUCTURE_TYPE_NUM_ITEMS
 } CapyPDF_StructureType;
 
+// Note that some of these flags share the same bit values.
+// That is what the specification says.
+typedef enum {
+    CAPY_FFIELD_NONE = 0,
+    CAPY_FFIELD_READONLY = (1 << 0),
+    CAPY_FFIELD_REQUIRED = (1 << 1),
+    CAPY_FFIELD_NOEXPORT = (1 << 2),
+    CAPY_FFIELD_MULTILINE = (1 << 12),
+    CAPY_FFIELD_PASSWORD = (1 << 13),
+    CAPY_FFIELD_NOTOGGLETOOFF = (1 << 14),
+    CAPY_FFIELD_RADIO = (1 << 15),
+    CAPY_FFIELD_PUSHBUTTON = (1 << 16),
+    CAPY_FFIELD_COMBO = (1 << 17),
+    CAPY_FFIELD_EDIT = (1 << 18),
+    CAPY_FFIELD_SORT = (1 << 19),
+    CAPY_FFIELD_FILESELECT = (1 << 20),
+    CAPY_FFIELD_MULTISELECT = (1 << 21),
+    CAPY_FFIELD_DONOTSPELLCHECK = (1 << 22),
+    CAPY_FFIELD_DONOTSCROLL = (1 << 23),
+    CAPY_FFIELD_COMB = (1 << 24),
+    CAPY_FFIELD_RICHTEXT = (1 << 25),
+    CAPY_FFIELD_RADIOSINUNUSON = (1 << 25),
+    CAPY_FFIELD_COMMITONSELCHANGE = (1 << 26),
+} CapyPDF_FormFieldFlags;
+
+typedef enum {
+    CAPY_FORM_ACTION_NONE = 0,
+    CAPY_FORM_ACTION_INCLUEEXCLUDE = (1 << 0),
+    CAPY_FORM_ACTION_INCLUDENOVALUEFIELDS = (1 << 1),
+    CAPY_FORM_ACTION_EXPORTFORMAT = (1 << 2),
+    CAPY_FORM_ACTION_GETMETHOD = (1 << 3),
+    CAPY_FORM_ACTION_SUBMITCOORDINATES = (1 << 4),
+    CAPY_FORM_ACTION_XFDF = (1 << 5),
+    CAPY_FORM_ACTION_INCLUDEAPPENDSAVES = (1 << 6),
+    CAPY_FORM_ACTION_INCLUDEANNOTATIONS = (1 << 7),
+    CAPY_FORM_ACTION_SUBMITPDF = (1 << 8),
+    CAPY_FORM_ACTION_CANONICALFORMAT = (1 << 9),
+    CAPY_FORM_ACTION_EXCLNONUSERANNOTS = (1 << 10),
+    CAPY_FORM_ACTION_EXCLFKEY = (1 << 11),
+    CAPY_FORM_ACTION_EMBEDFORM = (1 << 12),
+} CapyPDF_FormSubmitActionFlags;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.

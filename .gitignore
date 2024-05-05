@@ -9,4 +9,5 @@
 .pydevproject
 /build*
 *.user
+*.user.*
 __pycache__
