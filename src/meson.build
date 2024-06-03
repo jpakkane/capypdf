@@ -67,4 +67,9 @@ else
         dependencies: [zlib_dep, gtk_dep])
     endif
 
+    if hb_dep.found()
+      executable('hbtest',
+        'hbtest.cpp',
+        dependencies: [capypdf_internal_dep, hb_dep])
+    endif
 endif
