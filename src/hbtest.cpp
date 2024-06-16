@@ -26,10 +26,18 @@
 using namespace capypdf;
 
 // const char sampletext[] = "This is sample text. AV To.";
-const char sampletext[] = "VA To MM.";
-// const char fontfile[] = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
-const char fontfile[] = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
+const char sampletext[] = "Affi.";
+const char fontfile[] = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
+//const char fontfile[] = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
 const double ptsize = 12;
+
+size_t  get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *sampletext){
+    if(i + 1 < glyph_count) {
+        return glyph_info[i+1].cluster;
+    }
+    return strlen(sampletext);
+}
+
 
 void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     FT_Library ft;
@@ -62,7 +70,7 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
     double cursor_x = 10;
     double cursor_y = 100;
-    assert(strlen(sampletext) == glyph_count);
+    //    assert(strlen(sampletext) == glyph_count);
 
     KernSequence full_line;
     for(unsigned int i = 0; i < glyph_count; i++) {
@@ -72,6 +80,8 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
         hb_position_t x_advance = glyph_pos[i].x_advance;
         hb_position_t y_advance = glyph_pos[i].y_advance;
         KernSequence ks;
+        std::string original_text(sampletext + glyph_info[i].cluster,
+                                  sampletext + get_endpoint(glyph_info, glyph_count, i, sampletext));
         // FIXME: max inefficient. Creates a text object per glyph.
         PdfText txt(&ctx);
         CHCK(txt.cmd_Tf(pdffont, ptsize));
@@ -79,13 +89,12 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
         ks.push_back(uint32_t{(unsigned char)sampletext[i]});
         txt.cmd_TJ(ks);
         auto ft_glyphid = FT_Get_Char_Index(ftface, sampletext[i]);
-        assert(ft_glyphid == glyphid);
+        //assert(ft_glyphid == glyphid);
         fte = FT_Load_Glyph(ftface, glyphid, 0);
         assert(fte == 0);
         const auto hb_advance_in_font_units = x_advance / hbscale * ftface->units_per_EM;
-        printf("%c(%u) %u %d %.2f\n",
-               sampletext[i],
-               uint32_t{(unsigned char)sampletext[i]},
+        printf("%s %u %d %.2f\n",
+               original_text.c_str(),
                glyphid,
                x_offset,
                hb_advance_in_font_units);
