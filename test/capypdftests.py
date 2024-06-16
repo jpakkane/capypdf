@@ -253,6 +253,28 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_TJ(ks)
                 ctx.render_text_obj(t)
 
+    @validate_image('python_shaping', 200, 200)
+    def test_shaping(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                t = ctx.text_new()
+                t.cmd_Tf(font, 48)
+                t.cmd_Td(10, 100)
+                ts = capypdf.TextSequence()
+                ts.append_glyph(ord('A'))
+                ts.append_actualtext_start('ffi')
+                #ts.append_raw_glyph(2132, 0Xfb03)
+                ts.append_glyph(0xFB03)
+                ts.append_actualtext_end()
+                ts.append_glyph(ord(('x')))
+                t.cmd_TJ(ts)
+                ctx.render_text_obj(t)
+
     @validate_image('python_lab', 200, 200)
     def test_lab(self, ofilename, w, h):
         from math import sin, cos

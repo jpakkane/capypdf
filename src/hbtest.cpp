@@ -139,7 +139,7 @@ void hardcoded() {
     ts.append_unicode('A');
     ctx.translate(10, 100);
     CHCK(ts.append_actualtext_start(u8string::from_cstr("ffi").value()));
-    //ts.append_raw_glyph(2132, 0xFB03);
+    // ts.append_raw_glyph(2132, 0xFB03);
     ts.append_unicode(0xFB03);
     CHCK(ts.append_actualtext_end());
     ts.append_unicode('.');

@@ -660,14 +660,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
 
 // Text
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr)
-    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_glyph(CapyPDF_TextSequence *tseq,
-                                                             uint32_t point) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tyseq,
-                                                               double kern) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq)
+                                                          uint32_t point) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
+                                                            double kern) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(
+    CapyPDF_TextSequence *tseq, const char *actual_text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_end(CapyPDF_TextSequence *tseq)
     CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq) CAPYPDF_NOEXCEPT;
 
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,

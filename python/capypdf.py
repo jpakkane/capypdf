@@ -334,6 +334,8 @@ cfunc_types = (
 ('capy_text_sequence_new', [ctypes.c_void_p]),
 ('capy_text_sequence_append_glyph', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_text_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_double]),
+('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_sequence_append_actualtext_end', [ctypes.c_void_p]),
 ('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
@@ -1078,6 +1080,12 @@ class TextSequence:
 
     def append_kerning(self, kern):
         check_error(libfile.capy_text_sequence_append_kerning(self, kern))
+
+    def append_actualtext_start(self, txt):
+        check_error(libfile.capy_text_sequence_append_actualtext_start(self, txt.encode('UTF-8')))
+
+    def append_actualtext_end(self):
+        check_error(libfile.capy_text_sequence_append_actualtext_end(self))
 
 
 class Text:
