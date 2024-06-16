@@ -34,6 +34,21 @@ const char fontfile[] = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
 // const char fontfile[] = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
 const double ptsize = 12;
 
+// HB does not provide a way to know what were the Unicode codepoints for the
+// ligatures it chose. So we need to do this "best effort" reverse mapping.
+
+uint32_t compute_codepoint(FT_Face face, const uint32_t glyph_id) {
+    uint32_t agindex = 0;
+    auto codepoint = FT_Get_First_Char(face, &agindex);
+    while(agindex != 0) {
+        if(agindex == glyph_id) {
+            return codepoint;
+        }
+        codepoint = FT_Get_Next_Char(face, codepoint, &agindex);
+    }
+    return -1;
+}
+
 size_t
 get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *sampletext) {
     if(i + 1 < glyph_count) {
@@ -87,25 +102,27 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
         std::string original_text(sampletext + glyph_info[i].cluster,
                                   sampletext +
                                       get_endpoint(glyph_info, glyph_count, i, sampletext));
-        // FIXME: max inefficient. Creates a text object per glyph.
-        PdfText txt(&ctx);
-        CHCK(txt.cmd_Tf(pdffont, ptsize));
-        txt.cmd_Td(cursor_x, cursor_y);
-        // auto ft_glyphid = FT_Get_Char_Index(ftface, sampletext[i]);
-        // assert(ft_glyphid == glyphid);
         fte = FT_Load_Glyph(ftface, glyphid, 0);
+        const auto computed_cp = compute_codepoint(ftface, glyphid);
         assert(fte == 0);
         const auto hb_advance_in_font_units = x_advance / hbscale * ftface->units_per_EM;
-        printf(
-            "%s %u %d %.2f\n", original_text.c_str(), glyphid, x_offset, hb_advance_in_font_units);
-        printf("  %f\n",
+        printf("%-5s %5u %5u %5d %8.2f\n",
+               original_text.c_str(),
+               computed_cp,
+               glyphid,
+               x_offset,
+               hb_advance_in_font_units);
+        printf("  %40.2f\n",
                ftface->glyph->advance.x - hb_advance_in_font_units); // / ftface->units_per_EM);
         cursor_x += x_advance / num_steps;
         cursor_y += y_advance / num_steps;
-        CHCK(ctx.render_text(txt));
         const int32_t kerning_delta = int32_t(
             (ftface->glyph->advance.x - hb_advance_in_font_units) / ftface->units_per_EM * 1000);
-        full_line.append_raw_glyph(glyphid, 0);
+        if(computed_cp < 128) {
+            full_line.append_unicode(computed_cp);
+        } else {
+            full_line.append_raw_glyph(glyphid, computed_cp);
+        }
         if(kerning_delta != 0) {
             full_line.append_kerning(kerning_delta);
         }
@@ -166,6 +183,6 @@ void whole_shebang() {
 
 int main(int, char **) {
     hardcoded();
-    // whole_shebang();
+    whole_shebang();
     return 0;
 }
