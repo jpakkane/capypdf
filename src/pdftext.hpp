@@ -69,6 +69,7 @@ public:
         if(!is_actualtext()) {
             RETERR(DrawStateEndMismatch);
         }
+        e.emplace_back(ActualTextEnd{});
         in_actualtext = false;
         return NoReturnValue{};
     }

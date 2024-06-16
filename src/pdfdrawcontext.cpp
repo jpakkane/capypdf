@@ -811,6 +811,12 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             current_font = current_subset_glyph.ss.fid;
             current_subset = current_subset_glyph.ss.subset_id;
             std::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
+
+        } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
+            auto u16 = utf8_to_pdfutf16be(actualtext->text);
+            std::format_to(app, "] TJ\n{}/Span << /ActualText {} >> BDC\n{}[", ind, u16, ind);
+        } else if(std::holds_alternative<ActualTextEnd>(e)) {
+            std::format_to(app, "] TJ\n{}EMC\n{}[", ind, ind);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();

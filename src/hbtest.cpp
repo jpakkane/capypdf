@@ -124,7 +124,32 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     hb_blob_destroy(blob);
 }
 
-int main(int, char **) {
+void hardcoded() {
+    PdfGenerationData opts;
+    opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
+    opts.lang = asciistring::from_cstr("en-US").value();
+    GenPopper genpop("shapedtext.pdf", opts);
+    PdfGen &gen = *genpop.g;
+
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
+
+    auto pdffont = gen.load_font(fontfile).value();
+    TextSequence ts;
+    ts.append_unicode('A');
+    ctx.translate(10, 100);
+    CHCK(ts.append_actualtext_start(u8string::from_cstr("ffi").value()));
+    //ts.append_raw_glyph(2132, 0xFB03);
+    ts.append_unicode(0xFB03);
+    CHCK(ts.append_actualtext_end());
+    ts.append_unicode('.');
+    PdfText txt(&ctx);
+    CHCK(txt.cmd_Tf(pdffont, ptsize));
+    CHCK(txt.cmd_TJ(ts));
+    CHCK(ctx.render_text(txt));
+}
+
+void whole_shebang() {
     PdfGenerationData opts;
     opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
     opts.lang = asciistring::from_cstr("en-US").value();
@@ -137,5 +162,10 @@ int main(int, char **) {
     auto pdffont = gen.load_font(fontfile).value();
     ctx.render_text(capypdf::u8string::from_cstr(sampletext).value(), pdffont, ptsize, 10, 110);
     do_harfbuzz(gen, ctx, pdffont);
+}
+
+int main(int, char **) {
+    hardcoded();
+    // whole_shebang();
     return 0;
 }
