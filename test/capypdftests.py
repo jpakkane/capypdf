@@ -240,7 +240,7 @@ class TestPDFCreation(unittest.TestCase):
             font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
-                ks = capypdf.KerningSequence()
+                ks = capypdf.TextSequence()
                 t.cmd_Tf(font, 24.0)
                 t.cmd_Td(10.0, 120.0)
                 ks.append_glyph(ord('A'))

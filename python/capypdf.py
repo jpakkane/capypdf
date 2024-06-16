@@ -331,10 +331,10 @@ cfunc_types = (
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 
-('capy_kerning_sequence_new', [ctypes.c_void_p]),
-('capy_kerning_sequence_append_glyph', [ctypes.c_void_p, ctypes.c_uint32]),
-('capy_kerning_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_double]),
-('capy_kerning_sequence_destroy', [ctypes.c_void_p]),
+('capy_text_sequence_new', [ctypes.c_void_p]),
+('capy_text_sequence_append_glyph', [ctypes.c_void_p, ctypes.c_uint32]),
+('capy_text_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_double]),
+('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
 ('capy_text_cmd_BDC_builtin', [ctypes.c_void_p, StructureItemId]),
@@ -1064,20 +1064,20 @@ class Generator:
         return roid
 
 
-class KerningSequence:
+class TextSequence:
     def __init__(self):
         opt = ctypes.c_void_p()
-        check_error(libfile.capy_kerning_sequence_new(ctypes.pointer(opt)))
+        check_error(libfile.capy_text_sequence_new(ctypes.pointer(opt)))
         self._as_parameter_ = opt
 
     def __del__(self):
-        check_error(libfile.capy_kerning_sequence_destroy(self))
+        check_error(libfile.capy_text_sequence_destroy(self))
 
     def append_glyph(self, glyph):
-        check_error(libfile.capy_kerning_sequence_append_glyph(self, glyph))
+        check_error(libfile.capy_text_sequence_append_glyph(self, glyph))
 
     def append_kerning(self, kern):
-        check_error(libfile.capy_kerning_sequence_append_kerning(self, kern))
+        check_error(libfile.capy_text_sequence_append_kerning(self, kern))
 
 
 class Text:
@@ -1137,7 +1137,7 @@ class Text:
         check_error(libfile.capy_text_cmd_TL(self, leading))
 
     def cmd_TJ(self, seq):
-        if not isinstance(seq, KerningSequence):
+        if not isinstance(seq, TextSequence):
             raise CapyPDFException('Argument must be a kerning sequence.')
         check_error(libfile.capy_text_cmd_TJ(self, seq))
 

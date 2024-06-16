@@ -907,28 +907,28 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
 
 // Text
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_new(CapyPDF_KerningSequence **out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr)
     CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_KerningSequence *>(new TextSequence());
+    *out_ptr = reinterpret_cast<CapyPDF_TextSequence *>(new TextSequence());
     RETNOERR;
 }
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_glyph(CapyPDF_KerningSequence *kseq,
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_glyph(CapyPDF_TextSequence *tseq,
                                                              uint32_t point) CAPYPDF_NOEXCEPT {
-    auto *ks = reinterpret_cast<TextSequence *>(kseq);
-    auto rc = ks->append_unicode(point);
+    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto rc = ts->append_unicode(point);
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_kerning(CapyPDF_KerningSequence *kseq,
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
                                                                double kern) CAPYPDF_NOEXCEPT {
-    auto *ks = reinterpret_cast<TextSequence *>(kseq);
-    auto rc = ks->append_kerning(kern);
+    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto rc = ts->append_kerning(kern);
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_destroy(CapyPDF_KerningSequence *kseq)
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq)
     CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<TextSequence *>(kseq);
+    delete reinterpret_cast<TextSequence *>(tseq);
     RETNOERR;
 }
 
@@ -987,7 +987,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
-                                           CapyPDF_KerningSequence *kseq) CAPYPDF_NOEXCEPT {
+                                           CapyPDF_TextSequence *kseq) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
     auto *ks = reinterpret_cast<TextSequence *>(kseq);
     auto rc = t->cmd_TJ(*ks);

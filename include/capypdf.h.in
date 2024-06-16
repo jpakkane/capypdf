@@ -290,7 +290,7 @@ typedef struct _capyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
 typedef struct _capyPDF_Options CapyPDF_Options;
 typedef struct _capyPDF_PageProperties CapyPDF_PageProperties;
 typedef struct _capyPDF_Text CapyPDF_Text;
-typedef struct _capyPDF_KerningSequence CapyPDF_KerningSequence;
+typedef struct _capyPDF_TextSequence CapyPDF_TextSequence;
 typedef struct _capyPDF_Transition CapyPDF_Transition;
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_RasterImageBuilder CapyPDF_RasterImageBuilder;
@@ -660,13 +660,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
 
 // Text
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_new(CapyPDF_KerningSequence **out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_glyph(CapyPDF_KerningSequence *kseq,
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_glyph(CapyPDF_TextSequence *tseq,
                                                              uint32_t point) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_append_kerning(CapyPDF_KerningSequence *kseq,
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tyseq,
                                                                double kern) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_kerning_sequence_destroy(CapyPDF_KerningSequence *kseq)
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq)
     CAPYPDF_NOEXCEPT;
 
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
@@ -685,7 +685,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
                                            CapyPDF_FontId font,
                                            double pointsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
-                                           CapyPDF_KerningSequence *kseq) CAPYPDF_NOEXCEPT;
+                                           CapyPDF_TextSequence *kseq) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
                                            double a,
