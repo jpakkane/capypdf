@@ -216,7 +216,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_Bstar()
 
     @validate_image('python_textobj', 200, 200)
-    def test_text(self, ofilename, w, h):
+    def test_textobj(self, ofilename, w, h):
         opts = capypdf.Options()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)

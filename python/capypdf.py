@@ -540,26 +540,22 @@ class Options:
     def set_title(self, title):
         if not isinstance(title, str):
             raise CapyPDFException('Title must be an Unicode string.')
-        bytes = title.encode('UTF-8')
-        check_error(libfile.capy_options_set_title(self, bytes))
+        check_error(libfile.capy_options_set_title(self, title.encode('UTF-8')))
 
     def set_author(self, author):
         if not isinstance(author, str):
             raise CapyPDFException('Author must be an Unicode string.')
-        bytes = author.encode('UTF-8')
-        check_error(libfile.capy_options_set_author(self, bytes))
+        check_error(libfile.capy_options_set_author(self, author.encode('UTF-8')))
 
     def set_creator(self, creator):
         if not isinstance(creator, str):
             raise CapyPDFException('Creator must be an Unicode string.')
-        bytes = creator.encode('UTF-8')
-        check_error(libfile.capy_options_set_creator(self, bytes))
+        check_error(libfile.capy_options_set_creator(self, creator.encode('UTF-8')))
 
     def set_language(self, lang):
         if not isinstance(lang, str):
             raise CapyPDFException('Creator must be an Unicode string.')
-        bytes = creator.encode('ASCII')
-        check_error(libfile.capy_options_set_language(self, bytes))
+        check_error(libfile.capy_options_set_language(self, lang.encode('ASCII')))
 
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
