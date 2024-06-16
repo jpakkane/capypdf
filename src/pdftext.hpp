@@ -15,8 +15,77 @@ namespace capypdf {
 
 class PdfDrawContext;
 
-typedef std::variant<uint32_t, double> CharItem;
-typedef std::vector<CharItem> KernSequence;
+struct KerningValue {
+    int32_t v; // In PDF font space units, which is by definition is 1/1000 pt.
+};
+
+struct UnicodeCharacter {
+    uint32_t codepoint;
+};
+
+struct GlyphItem {
+    uint32_t font_id;
+    uint32_t unicode_codepoint;
+};
+
+struct ActualTextStart {
+    u8string text;
+};
+
+struct ActualTextEnd {};
+
+typedef std::variant<KerningValue, UnicodeCharacter, GlyphItem, ActualTextStart, ActualTextEnd>
+    TextAtom;
+typedef std::vector<TextAtom> TextEvents;
+
+class TextSequence {
+
+public:
+    rvoe<NoReturnValue> append_kerning(int32_t k) {
+        e.emplace_back(KerningValue{k});
+        return NoReturnValue{};
+    }
+
+    rvoe<NoReturnValue> append_unicode(uint32_t codepoint) {
+        e.emplace_back(UnicodeCharacter{codepoint});
+        return NoReturnValue{};
+    }
+
+    rvoe<NoReturnValue> append_raw_glyph(uint32_t font_id, uint32_t unicode_codepoint) {
+        e.emplace_back(GlyphItem{font_id, unicode_codepoint});
+        return NoReturnValue{};
+    }
+
+    rvoe<NoReturnValue> append_actualtext_start(const u8string &at) {
+        if(is_actualtext()) {
+            RETERR(DrawStateEndMismatch);
+        }
+        e.emplace_back(ActualTextStart{at});
+        in_actualtext = true;
+        return NoReturnValue{};
+    }
+
+    rvoe<NoReturnValue> append_actualtext_end() {
+        if(!is_actualtext()) {
+            RETERR(DrawStateEndMismatch);
+        }
+        in_actualtext = false;
+        return NoReturnValue{};
+    }
+
+    TextEvents &&steal_guts() { return std::move(e); }
+
+    bool is_actualtext() const { return in_actualtext; }
+
+    void clear() {
+        e.clear();
+        in_actualtext = false;
+    }
+
+private:
+    TextEvents e;
+    bool in_actualtext = false;
+};
 
 struct TStar_arg {};
 
@@ -42,7 +111,7 @@ struct Text_arg {
 };
 
 struct TJ_arg {
-    KernSequence elements;
+    TextEvents elements;
 };
 
 struct TL_arg {
@@ -148,8 +217,12 @@ public:
 
     // cmd_Tj missing. It might not be needed at all.
 
-    rvoe<NoReturnValue> cmd_TJ(KernSequence chars) {
-        events.emplace_back(TJ_arg{std::move(chars)});
+    rvoe<NoReturnValue> cmd_TJ(TextSequence &seq) {
+        if(seq.is_actualtext()) {
+            RETERR(DrawStateEndMismatch);
+        }
+        events.emplace_back(TJ_arg{seq.steal_guts()});
+        seq.clear();
         RETOK;
     }
 

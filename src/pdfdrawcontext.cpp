@@ -773,7 +773,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(
     return render_text(t);
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<CharItem> &charseq,
+rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &charseq,
                                                            std::string &serialisation,
                                                            CapyPDF_FontId &current_font,
                                                            int32_t &current_subset,
@@ -781,15 +781,14 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     bool is_first = true;
     for(const auto &e : charseq) {
-        if(auto dbl = std::get_if<double>(&e)) {
+        if(auto kval = std::get_if<KerningValue>(&e)) {
             if(is_first) {
                 serialisation += ind;
                 serialisation += "[ ";
             }
-            std::format_to(app, "{:f} ", *dbl);
-        } else {
-            assert(std::holds_alternative<uint32_t>(e));
-            const auto codepoint = std::get<uint32_t>(e);
+            std::format_to(app, "{} ", kval->v);
+        } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
+            const auto codepoint = uglyph->codepoint;
             ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint));
             used_subset_fonts.insert(current_subset_glyph.ss);
             if(current_subset_glyph.ss.subset_id != current_subset) {
@@ -812,6 +811,9 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
             current_font = current_subset_glyph.ss.fid;
             current_subset = current_subset_glyph.ss.subset_id;
             std::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
+        } else {
+            fprintf(stderr, "Not implemented yet.\n");
+            std::abort();
         }
         is_first = false;
     }
@@ -820,7 +822,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const std::vector<Cha
 }
 
 rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
-                                                         std::vector<CharItem> &charseq,
+                                                         TextEvents &charseq,
                                                          CapyPDF_FontId fid) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     if(text.empty()) {
@@ -849,10 +851,10 @@ rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
                 // The value might be a integer, fraction or something else.
                 // None of the fonts I tested had kerning that Freetype recognized,
                 // so don't know if this actually works.
-                charseq.emplace_back((double)kerning.x);
+                charseq.emplace_back(KerningValue{(int32_t)kerning.x});
             }
         }
-        charseq.emplace_back(codepoint);
+        charseq.emplace_back(UnicodeCharacter{codepoint});
         previous_codepoint = codepoint;
     }
     RETOK;
@@ -899,7 +901,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
-            std::vector<CharItem> charseq;
+            TextEvents charseq;
             ERCV(utf8_to_kerned_chars(tj.text, charseq, current_font));
             ERCV(serialize_charsequence(
                 charseq, serialisation, current_font, current_subset, current_pointsize));

@@ -239,13 +239,13 @@ public:
     rvoe<NoReturnValue> set_custom_page_properties(const PageProperties &new_props);
 
 private:
-    rvoe<NoReturnValue> serialize_charsequence(const std::vector<CharItem> &charseq,
+    rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,
                                                std::string &serialisation,
                                                CapyPDF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
     rvoe<NoReturnValue>
-    utf8_to_kerned_chars(const u8string &text, std::vector<CharItem> &charseq, CapyPDF_FontId fid);
+    utf8_to_kerned_chars(const u8string &text, TextEvents &charseq, CapyPDF_FontId fid);
 
     rvoe<NoReturnValue> indent(DrawStateType dtype) {
         if(dtype == DrawStateType::MarkedContent) {

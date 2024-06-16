@@ -25,19 +25,22 @@
 
 using namespace capypdf;
 
+// The FFI ligature has Unicode codepoint U+FB03 (64259)
+// In Noto Serif it has glyph id 2132
+
 // const char sampletext[] = "This is sample text. AV To.";
 const char sampletext[] = "Affi.";
 const char fontfile[] = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
-//const char fontfile[] = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
+// const char fontfile[] = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf";
 const double ptsize = 12;
 
-size_t  get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *sampletext){
+size_t
+get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *sampletext) {
     if(i + 1 < glyph_count) {
-        return glyph_info[i+1].cluster;
+        return glyph_info[i + 1].cluster;
     }
     return strlen(sampletext);
 }
-
 
 void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     FT_Library ft;
@@ -72,40 +75,40 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     double cursor_y = 100;
     //    assert(strlen(sampletext) == glyph_count);
 
-    KernSequence full_line;
+    TextSequence full_line;
     for(unsigned int i = 0; i < glyph_count; i++) {
-        hb_codepoint_t glyphid = glyph_info[i].codepoint;
-        hb_position_t x_offset = glyph_pos[i].x_offset;
-        // hb_position_t y_offset = glyph_pos[i].y_offset;
-        hb_position_t x_advance = glyph_pos[i].x_advance;
-        hb_position_t y_advance = glyph_pos[i].y_advance;
-        KernSequence ks;
+        const hb_glyph_info_t *current = glyph_info + i;
+        const hb_glyph_position_t *curpos = glyph_pos + i;
+        hb_codepoint_t glyphid = current->codepoint;
+        hb_position_t x_offset = curpos->x_offset;
+        // hb_position_t y_offset = curpos->y_offset;
+        hb_position_t x_advance = curpos->x_advance;
+        hb_position_t y_advance = curpos->y_advance;
         std::string original_text(sampletext + glyph_info[i].cluster,
-                                  sampletext + get_endpoint(glyph_info, glyph_count, i, sampletext));
+                                  sampletext +
+                                      get_endpoint(glyph_info, glyph_count, i, sampletext));
         // FIXME: max inefficient. Creates a text object per glyph.
         PdfText txt(&ctx);
         CHCK(txt.cmd_Tf(pdffont, ptsize));
         txt.cmd_Td(cursor_x, cursor_y);
-        ks.push_back(uint32_t{(unsigned char)sampletext[i]});
-        txt.cmd_TJ(ks);
-        auto ft_glyphid = FT_Get_Char_Index(ftface, sampletext[i]);
-        //assert(ft_glyphid == glyphid);
+        // auto ft_glyphid = FT_Get_Char_Index(ftface, sampletext[i]);
+        // assert(ft_glyphid == glyphid);
         fte = FT_Load_Glyph(ftface, glyphid, 0);
         assert(fte == 0);
         const auto hb_advance_in_font_units = x_advance / hbscale * ftface->units_per_EM;
-        printf("%s %u %d %.2f\n",
-               original_text.c_str(),
-               glyphid,
-               x_offset,
-               hb_advance_in_font_units);
+        printf(
+            "%s %u %d %.2f\n", original_text.c_str(), glyphid, x_offset, hb_advance_in_font_units);
         printf("  %f\n",
                ftface->glyph->advance.x - hb_advance_in_font_units); // / ftface->units_per_EM);
         cursor_x += x_advance / num_steps;
         cursor_y += y_advance / num_steps;
         CHCK(ctx.render_text(txt));
-        full_line.push_back(uint32_t{(unsigned char)sampletext[i]});
-        full_line.push_back((ftface->glyph->advance.x - hb_advance_in_font_units) /
-                            ftface->units_per_EM * 1000);
+        const int32_t kerning_delta = int32_t(
+            (ftface->glyph->advance.x - hb_advance_in_font_units) / ftface->units_per_EM * 1000);
+        full_line.append_raw_glyph(glyphid, 0);
+        if(kerning_delta != 0) {
+            full_line.append_kerning(kerning_delta);
+        }
     }
     {
         auto p = ctx.push_gstate();

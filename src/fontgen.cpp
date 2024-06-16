@@ -99,25 +99,25 @@ int main(int argc, char **argv) {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 700);
-        std::vector<CharItem> kerned_text;
+        TextSequence kerned_text;
 
-        kerned_text.emplace_back(uint32_t('A'));
-        kerned_text.emplace_back(-100.0);
-        kerned_text.emplace_back(uint32_t('V'));
+        kerned_text.append_unicode(uint32_t('A'));
+        kerned_text.append_kerning(-100.0);
+        kerned_text.append_unicode(uint32_t('V'));
 
-        kerned_text.emplace_back(uint32_t(' '));
+        kerned_text.append_unicode(uint32_t(' '));
 
-        kerned_text.emplace_back(uint32_t('A'));
-        kerned_text.emplace_back(uint32_t('V'));
+        kerned_text.append_unicode(uint32_t('A'));
+        kerned_text.append_unicode(uint32_t('V'));
 
-        kerned_text.emplace_back(uint32_t(' '));
+        kerned_text.append_unicode(uint32_t(' '));
 
-        kerned_text.emplace_back(uint32_t('A'));
-        kerned_text.emplace_back(100.0);
-        kerned_text.emplace_back(uint32_t('V'));
+        kerned_text.append_unicode(uint32_t('A'));
+        kerned_text.append_kerning(100.0);
+        kerned_text.append_unicode(uint32_t('V'));
 
         text.cmd_TL(14);
-        text.cmd_TJ(std::move(kerned_text));
+        text.cmd_TJ(kerned_text);
         text.cmd_Tstar();
         text.render_text(
             u8string::from_cstr(
