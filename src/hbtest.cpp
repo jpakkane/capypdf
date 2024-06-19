@@ -38,7 +38,7 @@ const double ptsize = 12;
 // ligatures it chose. So we need to do this "best effort" reverse mapping.
 
 uint32_t compute_codepoint(FT_Face face, const uint32_t glyph_id) {
-    uint32_t agindex = 0;
+    uint32_t agindex = -1;
     auto codepoint = FT_Get_First_Char(face, &agindex);
     while(agindex != 0) {
         if(agindex == glyph_id) {
@@ -82,7 +82,18 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     hb_font_t *font = hb_font_create(face);
     hb_font_set_scale(font, hbscale, hbscale);
 
-    hb_shape(font, buf, nullptr, 0);
+    const bool use_smallcaps = false;
+    if(use_smallcaps) {
+        hb_feature_t userfeatures[1];
+        userfeatures[0].tag = HB_TAG('s', 'm', 'c', 'p');
+        userfeatures[0].value = 1;
+        userfeatures[0].start = HB_FEATURE_GLOBAL_START;
+        userfeatures[0].end = HB_FEATURE_GLOBAL_END;
+
+        hb_shape(font, buf, userfeatures, 1);
+    } else {
+        hb_shape(font, buf, nullptr, 0);
+    }
     unsigned int glyph_count;
     hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
