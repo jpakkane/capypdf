@@ -341,7 +341,7 @@ public:
 
     // Fonts
     rvoe<CapyPDF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
-    rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid, uint32_t glyph);
+    rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid, uint32_t codepoint);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
 

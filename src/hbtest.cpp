@@ -82,7 +82,7 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     hb_font_t *font = hb_font_create(face);
     hb_font_set_scale(font, hbscale, hbscale);
 
-    const bool use_smallcaps = false;
+    const bool use_smallcaps = true;
     if(use_smallcaps) {
         hb_feature_t userfeatures[1];
         userfeatures[0].tag = HB_TAG('s', 'm', 'c', 'p');
@@ -147,14 +147,10 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
         CHCK(ctx.render_text(txt));
     }
     hb_buffer_destroy(buf);
-    hb_font_destroy(font);
-    hb_face_destroy(face);
-    hb_blob_destroy(blob);
 }
 
 void hardcoded() {
     PdfGenerationData opts;
-    opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
     opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("shapedtext.pdf", opts);
     PdfGen &gen = *genpop.g;
@@ -177,6 +173,35 @@ void hardcoded() {
     CHCK(ctx.render_text(txt));
 }
 
+void hardcoded2() {
+    PdfGenerationData opts;
+    opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
+    opts.lang = asciistring::from_cstr("en-US").value();
+    GenPopper genpop("shapedtext.pdf", opts);
+    PdfGen &gen = *genpop.g;
+
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
+
+    auto pdffont = gen.load_font(fontfile).value();
+    TextSequence ts;
+    CHCK(ts.append_raw_glyph(54, 'S'));
+    CHCK(ts.append_raw_glyph(2200, 'm'));
+    CHCK(ts.append_raw_glyph(2136, 'a'));
+    CHCK(ts.append_raw_glyph(2194, 'l'));
+    CHCK(ts.append_raw_glyph(2194, 'l'));
+    CHCK(ts.append_raw_glyph(3, ' '));
+    CHCK(ts.append_raw_glyph(38, 'C'));
+    CHCK(ts.append_raw_glyph(2136, 'a'));
+    CHCK(ts.append_raw_glyph(2219, 'p'));
+    CHCK(ts.append_raw_glyph(2226, 's'));
+    PdfText txt(&ctx);
+    ctx.translate(10, 100);
+    CHCK(txt.cmd_Tf(pdffont, ptsize));
+    CHCK(txt.cmd_TJ(ts));
+    CHCK(ctx.render_text(txt));
+}
+
 void whole_shebang() {
     PdfGenerationData opts;
     opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
@@ -194,6 +219,7 @@ void whole_shebang() {
 
 int main(int, char **) {
     hardcoded();
+    hardcoded2();
     whole_shebang();
     return 0;
 }

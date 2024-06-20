@@ -65,32 +65,32 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t glyph) {
     return unchecked_insert_glyph_to_last_subset(glyph);
 }
 
-rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t glyph) {
+rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t codepoint) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
-    if(glyph == SPACE) {
+    if(codepoint == SPACE) {
         // In the PDF document model the space character is special.
         // Every subset font _must_ have the space character in
         // location 32.
         if(subsets.back().glyphs.size() == SPACE) {
-            const auto space_index = FT_Get_Char_Index(face, glyph);
-            subsets.back().glyphs.push_back(RegularGlyph{glyph});
+            const auto space_index = FT_Get_Char_Index(face, codepoint);
+            subsets.back().glyphs.push_back(RegularGlyph{codepoint});
             subsets.back().font_index_mapping[space_index] =
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
         return FontSubsetInfo{int32_t(subsets.size() - 1), SPACE};
     }
-    const auto font_index = FT_Get_Char_Index(face, glyph);
+    const auto glyph_index = FT_Get_Char_Index(face, codepoint);
     if(subsets.back().glyphs.size() == SPACE) {
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
         subsets.back().glyphs.emplace_back(RegularGlyph{32});
-        subsets.back().font_index_mapping[font_index] = SPACE;
+        subsets.back().font_index_mapping[glyph_index] = SPACE;
     }
-    ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(font_index)));
+    ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(glyph_index)));
     if(iscomp) {
-        ERC(subglyphs, get_all_subglyphs(font_index, ttfile));
+        ERC(subglyphs, get_all_subglyphs(glyph_index, ttfile));
         if(subglyphs.size() + subsets.back().glyphs.size() >= max_glyphs) {
             fprintf(stderr, "Composite glyph overflow not yet implemented.");
             std::abort();
@@ -105,11 +105,11 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32
             subsets.back().font_index_mapping[new_glyph] =
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
-        subsets.back().glyphs.push_back(RegularGlyph{glyph});
-        subsets.back().font_index_mapping[font_index] = (uint32_t)subsets.back().glyphs.size() - 1;
+        subsets.back().glyphs.push_back(RegularGlyph{codepoint});
+        subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     } else {
-        subsets.back().glyphs.push_back(RegularGlyph{glyph});
-        subsets.back().font_index_mapping[font_index] = (uint32_t)subsets.back().glyphs.size() - 1;
+        subsets.back().glyphs.push_back(RegularGlyph{codepoint});
+        subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     }
     return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().glyphs.size() - 1)};
 }
