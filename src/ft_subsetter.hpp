@@ -112,10 +112,11 @@ struct SimpleGlyph {
 
 struct RegularGlyph {
     uint32_t unicode_codepoint;
+    uint32_t glyph_index;
 };
 
 struct CompositeGlyph {
-    uint32_t font_index;
+    uint32_t glyph_index;
 };
 
 typedef std::variant<RegularGlyph, CompositeGlyph> TTGlyphs;

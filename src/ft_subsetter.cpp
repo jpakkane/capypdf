@@ -995,10 +995,10 @@ uint32_t font_id_for_glyph(FT_Face face, const capypdf::TTGlyphs &g) {
         if(rg.unicode_codepoint == 0) {
             return 0;
         } else {
-            return FT_Get_Char_Index(face, rg.unicode_codepoint);
+            return rg.glyph_index;
         }
     } else if(std::holds_alternative<capypdf::CompositeGlyph>(g)) {
-        return std::get<capypdf::CompositeGlyph>(g).font_index;
+        return std::get<capypdf::CompositeGlyph>(g).glyph_index;
     } else {
         std::abort();
     }

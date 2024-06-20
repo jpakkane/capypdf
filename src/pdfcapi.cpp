@@ -911,10 +911,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr)
     *out_ptr = reinterpret_cast<CapyPDF_TextSequence *>(new TextSequence());
     RETNOERR;
 }
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_glyph(CapyPDF_TextSequence *tseq,
-                                                          uint32_t point) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequence *tseq,
+                                                              uint32_t codepoint) CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
-    auto rc = ts->append_unicode(point);
+    auto rc = ts->append_unicode(codepoint);
     return conv_err(rc);
 }
 
@@ -941,6 +941,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_end(CapyPDF_TextS
     CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
     auto rc = ts->append_actualtext_end();
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequence *tseq,
+                                                              uint32_t glyph_id,
+                                                              uint32_t codepoint) CAPYPDF_NOEXCEPT {
+    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto rc = ts->append_raw_glyph(glyph_id, codepoint);
     return conv_err(rc);
 }
 

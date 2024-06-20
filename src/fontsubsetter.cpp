@@ -79,7 +79,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
         // Every subset font _must_ have the space character in
         // location 32.
         if(subsets.back().glyphs.size() == SPACE) {
-            subsets.back().glyphs.push_back(RegularGlyph{codepoint});
+            subsets.back().glyphs.push_back(RegularGlyph{codepoint, glyph_index});
             subsets.back().font_index_mapping[glyph_index] =
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
@@ -88,7 +88,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
     if(subsets.back().glyphs.size() == SPACE) {
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
-        subsets.back().glyphs.emplace_back(RegularGlyph{SPACE});
+        subsets.back().glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
         subsets.back().font_index_mapping[glyph_index] = SPACE;
     }
     ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(glyph_index)));
@@ -108,12 +108,9 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
             subsets.back().font_index_mapping[new_glyph] =
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
-        subsets.back().glyphs.push_back(RegularGlyph{codepoint});
-        subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
-    } else {
-        subsets.back().glyphs.push_back(RegularGlyph{codepoint});
-        subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     }
+    subsets.back().glyphs.push_back(RegularGlyph{codepoint, glyph_index});
+    subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
     return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().glyphs.size() - 1)};
 }
 

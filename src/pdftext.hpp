@@ -24,7 +24,7 @@ struct UnicodeCharacter {
 };
 
 struct GlyphItem {
-    uint32_t font_id;
+    uint32_t glyph_id;
     uint32_t unicode_codepoint;
 };
 
@@ -51,8 +51,8 @@ public:
         return NoReturnValue{};
     }
 
-    rvoe<NoReturnValue> append_raw_glyph(uint32_t font_id, uint32_t unicode_codepoint) {
-        e.emplace_back(GlyphItem{font_id, unicode_codepoint});
+    rvoe<NoReturnValue> append_raw_glyph(uint32_t glyph_id, uint32_t unicode_codepoint) {
+        e.emplace_back(GlyphItem{glyph_id, unicode_codepoint});
         return NoReturnValue{};
     }
 

@@ -332,10 +332,11 @@ cfunc_types = (
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 
 ('capy_text_sequence_new', [ctypes.c_void_p]),
-('capy_text_sequence_append_glyph', [ctypes.c_void_p, ctypes.c_uint32]),
+('capy_text_sequence_append_codepoint', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_text_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_text_sequence_append_actualtext_end', [ctypes.c_void_p]),
+('capy_text_sequence_append_raw_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
 ('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
@@ -648,7 +649,7 @@ class DrawContextBase:
     def cmd_G(self, gray):
         check_error(libfile.capy_dc_cmd_G(self, gray))
 
-    def cmd_g(self):
+    def cmd_g(self, gray):
         check_error(libfile.capy_dc_cmd_g(self, gray))
 
     def cmd_gs(self, gsid):
@@ -1071,8 +1072,10 @@ class TextSequence:
     def __del__(self):
         check_error(libfile.capy_text_sequence_destroy(self))
 
-    def append_glyph(self, glyph):
-        check_error(libfile.capy_text_sequence_append_glyph(self, glyph))
+    def append_codepoint(self, codepoint):
+        if not isinstance(codepoint, int):
+            codepoint = ord(codepoint)
+        check_error(libfile.capy_text_sequence_append_codepoint(self, codepoint))
 
     def append_kerning(self, kern):
         check_error(libfile.capy_text_sequence_append_kerning(self, kern))
@@ -1083,6 +1086,10 @@ class TextSequence:
     def append_actualtext_end(self):
         check_error(libfile.capy_text_sequence_append_actualtext_end(self))
 
+    def append_raw_glyph(self, glyph_id, codepoint):
+        if not isinstance(codepoint, int):
+            codepoint = ord(codepoint)
+        check_error(libfile.capy_text_sequence_append_raw_glyph(self, glyph_id, codepoint))
 
 class Text:
     def __init__(self, dc):

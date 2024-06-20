@@ -177,7 +177,7 @@ void hardcoded2() {
     PdfGenerationData opts;
     opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
     opts.lang = asciistring::from_cstr("en-US").value();
-    GenPopper genpop("shapedtext.pdf", opts);
+    GenPopper genpop("hbsmallcaps.pdf", opts);
     PdfGen &gen = *genpop.g;
 
     auto ctxguard = gen.guarded_page_context();

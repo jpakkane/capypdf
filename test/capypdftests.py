@@ -243,13 +243,13 @@ class TestPDFCreation(unittest.TestCase):
                 ks = capypdf.TextSequence()
                 t.cmd_Tf(font, 24.0)
                 t.cmd_Td(10.0, 120.0)
-                ks.append_glyph(ord('A'))
-                ks.append_glyph(ord('V'))
+                ks.append_codepoint(ord('A'))
+                ks.append_codepoint(ord('V'))
                 t.cmd_TJ(ks)
                 t.cmd_Td(0, -40)
-                ks.append_glyph(ord('A'))
+                ks.append_codepoint('A')
                 ks.append_kerning(200)
-                ks.append_glyph(ord('V'))
+                ks.append_codepoint('V')
                 t.cmd_TJ(ks)
                 ctx.render_text_obj(t)
 
@@ -266,12 +266,40 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_Tf(font, 48)
                 t.cmd_Td(10, 100)
                 ts = capypdf.TextSequence()
-                ts.append_glyph(ord('A'))
+                ts.append_codepoint(ord('A'))
                 ts.append_actualtext_start('ffi')
-                #ts.append_raw_glyph(2132, 0Xfb03)
-                ts.append_glyph(0xFB03)
+                ts.append_codepoint(0xFB03)
                 ts.append_actualtext_end()
-                ts.append_glyph(ord(('x')))
+                ts.append_codepoint(ord(('x')))
+                t.cmd_TJ(ts)
+                ctx.render_text_obj(t)
+
+    @validate_image('python_smallcaps', 200, 200)
+    def test_smallcaps(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            seq = ((54, 'S'),
+                   (2200, 'm'),
+                   (2136, 'a'),
+                   (2194, 'l'),
+                   (2194, 'l'),
+                   (3, ' '),
+                   (38, 'C'),
+                   (2156, 'a'),
+                   (2219, 'p'),
+                   (2226, 's'))
+
+            with g.page_draw_context() as ctx:
+                t = ctx.text_new()
+                t.cmd_Tf(font, 24)
+                t.cmd_Td(10, 100)
+                ts = capypdf.TextSequence()
+                for gid, codepoint in seq:
+                    ts.append_raw_glyph(gid, codepoint)
                 t.cmd_TJ(ts)
                 ctx.render_text_obj(t)
 

@@ -780,16 +780,9 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                                                            double &current_pointsize) {
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
     bool is_first = true;
-    for(const auto &e : charseq) {
-        if(auto kval = std::get_if<KerningValue>(&e)) {
-            if(is_first) {
-                serialisation += ind;
-                serialisation += "[ ";
-            }
-            std::format_to(app, "{} ", kval->v);
-        } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
-            const auto codepoint = uglyph->codepoint;
-            ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
+    auto appender_lambda =
+        [this, &serialisation, &is_first, &app, &current_font, &current_subset, &current_pointsize](
+            const SubsetGlyph &current_subset_glyph) {
             used_subset_fonts.insert(current_subset_glyph.ss);
             if(current_subset_glyph.ss.subset_id != current_subset) {
                 if(!is_first) {
@@ -811,12 +804,28 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             current_font = current_subset_glyph.ss.fid;
             current_subset = current_subset_glyph.ss.subset_id;
             std::format_to(app, "<{:02x}> ", current_subset_glyph.glyph_id);
-
+        };
+    for(const auto &e : charseq) {
+        if(auto kval = std::get_if<KerningValue>(&e)) {
+            if(is_first) {
+                serialisation += ind;
+                serialisation += "[ ";
+            }
+            std::format_to(app, "{} ", kval->v);
+        } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
+            const auto codepoint = uglyph->codepoint;
+            ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
+            appender_lambda(current_subset_glyph);
         } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
             auto u16 = utf8_to_pdfutf16be(actualtext->text);
             std::format_to(app, "] TJ\n{}/Span << /ActualText {} >> BDC\n{}[", ind, u16, ind);
         } else if(std::holds_alternative<ActualTextEnd>(e)) {
             std::format_to(app, "] TJ\n{}EMC\n{}[", ind, ind);
+        } else if(auto glyphitem = std::get_if<GlyphItem>(&e)) {
+            ERC(current_subset_glyph,
+                doc->get_subset_glyph(
+                    current_font, glyphitem->unicode_codepoint, glyphitem->glyph_id));
+            appender_lambda(current_subset_glyph);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();

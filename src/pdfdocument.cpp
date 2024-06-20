@@ -946,7 +946,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
                                                 uint32_t codepoint,
                                                 const std::optional<uint32_t> glyph_id) {
     SubsetGlyph fss;
-    if(FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), codepoint) == 0) {
+    if(!glyph_id && (FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), codepoint) == 0)) {
         RETERR(MissingGlyph);
     }
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
