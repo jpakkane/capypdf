@@ -534,13 +534,13 @@ void PdfDocument::pad_subset_fonts() {
                 break;
             }
             const auto cur_glyph_codepoint = '!' + i;
-            subsetter.get_glyph_subset(cur_glyph_codepoint);
+            subsetter.get_glyph_subset(cur_glyph_codepoint, {});
         }
         if(!padding_succeeded) {
             fprintf(stderr, "Font subset padding failed.\n");
             std::abort();
         }
-        subsetter.unchecked_insert_glyph_to_last_subset(' ');
+        subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
         assert(subsetter.get_subset(subset_id).size() == SPACE + 1);
     }
 }
@@ -942,12 +942,14 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
-rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid, uint32_t codepoint) {
+rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
+                                                uint32_t codepoint,
+                                                const std::optional<uint32_t> glyph_id) {
     SubsetGlyph fss;
     if(FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), codepoint) == 0) {
         RETERR(MissingGlyph);
     }
-    ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint));
+    ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
     fss.ss.fid = fid;
     fss.ss.subset_id = blub.subset;
     fss.glyph_id = blub.offset;

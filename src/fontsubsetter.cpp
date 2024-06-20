@@ -57,35 +57,38 @@ rvoe<FontSubsetter> FontSubsetter::construct(const std::filesystem::path &fontfi
     return FontSubsetter(std::move(ttfile), face, std::move(subsets));
 }
 
-rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t glyph) {
-    auto trial = find_glyph(glyph);
+rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
+                                                     const std::optional<uint32_t> glyph_id) {
+    // FIXME, look for glyph id.
+    auto trial = find_glyph(codepoint);
     if(trial) {
         return trial.value();
     }
-    return unchecked_insert_glyph_to_last_subset(glyph);
+    return unchecked_insert_glyph_to_last_subset(codepoint, glyph_id);
 }
 
-rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(uint32_t codepoint) {
+rvoe<FontSubsetInfo>
+FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
+                                                     const std::optional<uint32_t> glyph_id) {
     if(subsets.back().glyphs.size() == max_glyphs) {
         subsets.emplace_back(create_startstate());
     }
+    const uint32_t glyph_index = glyph_id ? glyph_id.value() : FT_Get_Char_Index(face, codepoint);
     if(codepoint == SPACE) {
         // In the PDF document model the space character is special.
         // Every subset font _must_ have the space character in
         // location 32.
         if(subsets.back().glyphs.size() == SPACE) {
-            const auto space_index = FT_Get_Char_Index(face, codepoint);
             subsets.back().glyphs.push_back(RegularGlyph{codepoint});
-            subsets.back().font_index_mapping[space_index] =
+            subsets.back().font_index_mapping[glyph_index] =
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
         return FontSubsetInfo{int32_t(subsets.size() - 1), SPACE};
     }
-    const auto glyph_index = FT_Get_Char_Index(face, codepoint);
     if(subsets.back().glyphs.size() == SPACE) {
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
-        subsets.back().glyphs.emplace_back(RegularGlyph{32});
+        subsets.back().glyphs.emplace_back(RegularGlyph{SPACE});
         subsets.back().font_index_mapping[glyph_index] = SPACE;
     }
     ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(glyph_index)));

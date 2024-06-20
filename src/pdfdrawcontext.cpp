@@ -789,7 +789,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             std::format_to(app, "{} ", kval->v);
         } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
             const auto codepoint = uglyph->codepoint;
-            ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint));
+            ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
             used_subset_fonts.insert(current_subset_glyph.ss);
             if(current_subset_glyph.ss.subset_id != current_subset) {
                 if(!is_first) {
@@ -1076,7 +1076,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
                    0,
                    pointsize);
     for(const auto &g : glyphs) {
-        ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint));
+        ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint, {}));
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
         std::format_to(cmd_appender, "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);

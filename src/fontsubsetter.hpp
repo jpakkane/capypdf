@@ -37,8 +37,10 @@ public:
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, std::vector<FontSubsetData> subsets)
         : ttfile{ttfile}, face{face}, subsets{subsets} {}
 
-    rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph);
-    rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(uint32_t glyph);
+    rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph, const std::optional<uint32_t> glyph_id);
+    rvoe<FontSubsetInfo>
+    unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
+                                          const std::optional<uint32_t> glyph_id);
 
     const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
         return subsets.at(subset_number).glyphs;
