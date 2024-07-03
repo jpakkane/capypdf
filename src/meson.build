@@ -34,7 +34,7 @@ capypdf_dep = declare_dependency(include_directories: pubinc,
   link_with: capypdf_lib,
 )
 
-capypdf_internal_dep = declare_dependency(include_directories: pubinc,
+capypdf_internal_dep = declare_dependency(include_directories: [pubinc, '.'],
   objects: capypdf_lib.extract_all_objects(recursive: false),
   dependencies: capydeps,
 )
@@ -59,17 +59,4 @@ else
     executable('loremipsum', 'loremipsum.cpp',
       dependencies: [capypdf_internal_dep]
     )
-
-    if gtk_dep.found()
-      executable('pdfviewer',
-        'pdfviewer.cpp',
-        'pdfparser.cpp',
-        dependencies: [zlib_dep, gtk_dep])
-    endif
-
-    if hb_dep.found()
-      executable('hbtest',
-        'hbtest.cpp',
-        dependencies: [capypdf_internal_dep, hb_dep])
-    endif
 endif

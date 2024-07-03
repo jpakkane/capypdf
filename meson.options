@@ -1,1 +1,2 @@
 option('fuzzing', type: 'boolean', value: false, description: 'Build in fuzzing mode')
+option('devtools', type: 'boolean', value: false, description: 'Build devtools')

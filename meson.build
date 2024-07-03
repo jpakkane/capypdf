@@ -19,13 +19,14 @@ lcms_dep = dependency('lcms2')
 jpeg_dep = dependency('libjpeg')
 freetype_dep = dependency('freetype2')
 tiff_dep = dependency('libtiff-4')
-gtk_dep = dependency('gtk4', required: false)
-hb_dep = dependency('harfbuzz', required: false)
 
 pubinc = include_directories('include')
 
 subdir('include')
 subdir('src')
+if get_option('devtools')
+  subdir('devtools')
+endif
 subdir('python')
 subdir('test')
 
