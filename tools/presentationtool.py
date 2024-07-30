@@ -191,7 +191,7 @@ class Demopresentation:
                     if i%2 == 0:
                         r = 1.0-r
                     color.set_rgb(r, 0, 0)
-                    text.nonstroke_color(color)
+                    text.set_nonstroke(color)
                     cur = ''
                 i += 1
             text.cmd_Tstar()
