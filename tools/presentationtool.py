@@ -19,9 +19,18 @@ def cm2pt(pts):
     return pts*28.346;
 
 TRANS2ENUM = {
+    'split': capypdf.TransitionType.Split,
+    'blinds': capypdf.TransitionType.Blinds,
+    'box': capypdf.TransitionType.Box,
+    'wipe': capypdf.TransitionType.Wipe,
     'dissolve': capypdf.TransitionType.Dissolve,
+    'glitter': capypdf.TransitionType.Glitter,
+    'r': capypdf.TransitionType.R,
+    'fly': capypdf.TransitionType.Fly,
     'push': capypdf.TransitionType.Push,
+    'cover': capypdf.TransitionType.Cover,
     'uncover': capypdf.TransitionType.Uncover,
+    'fade': capypdf.TransitionType.Fade,
 }
 
 
