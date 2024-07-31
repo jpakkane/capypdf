@@ -59,6 +59,14 @@ class TransitionType(Enum):
     Uncover = 10
     Fade = 11
 
+class TransitionDimension:
+    H = 0,
+    V = 1
+
+class TransitionMotion:
+    I = 0,
+    O = 1
+
 class PageBox(Enum):
     Media = 0
     Crop = 1
@@ -366,7 +374,14 @@ cfunc_types = (
 ('capy_color_set_pattern', [ctypes.c_void_p, PatternId]),
 ('capy_color_set_lab', [ctypes.c_void_p, LabColorSpaceId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 
-('capy_transition_new', [ctypes.c_void_p, enum_type, ctypes.c_double]),
+('capy_transition_new', [ctypes.c_void_p]),
+('capy_transition_set_S', [ctypes.c_void_p, enum_type]),
+('capy_transition_set_D', [ctypes.c_void_p, ctypes.c_double]),
+('capy_transition_set_Dm', [ctypes.c_void_p, enum_type]),
+('capy_transition_set_M', [ctypes.c_void_p, enum_type]),
+('capy_transition_set_Di', [ctypes.c_void_p, ctypes.c_uint32]),
+('capy_transition_set_SS', [ctypes.c_void_p, ctypes.c_double]),
+('capy_transition_set_B', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_transition_destroy', [ctypes.c_void_p]),
 
 ('capy_graphics_state_new', [ctypes.c_void_p]),
@@ -1202,13 +1217,35 @@ class Color:
         check_error(libfile.capy_color_set_lab(self, lab_id, l, a, b))
 
 class Transition:
-    def __init__(self, ttype, duration):
+    def __init__(self):
         self._as_parameter_ = None
         opt = ctypes.c_void_p()
-        if not isinstance(ttype, TransitionType):
-            raise CapyPDFException('Argument is not a transition type.')
-        check_error(libfile.capy_transition_new(ctypes.pointer(opt), ttype.value, duration))
+        check_error(libfile.capy_transition_new(ctypes.pointer(opt)))
         self._as_parameter_ = opt
+
+    def set_S(self, S):
+        if not isinstance(S, TransitionType):
+            raise CapyPDFException('Argument is not a transition type.')
+        check_error(libfile.capy_transition_set_S(self, S.value))
+
+    def set_D(self, d):
+        check_error(libfile.capy_transition_set_D(self, d))
+
+    def set_Dn(self, dm):
+        check_error(libfile.capy_transition_set_Dm(self, Dm.value))
+
+    def set_M(self, m):
+        check_error(libfile.capy_transition_set_M(self, M.value))
+
+    def set_Di(self, Di):
+        check_error(libfile.capy_transition_set_Di(self, Di))
+
+    def set_SS(self, ss):
+        check_error(libfile.capy_transition_set_SS(self, ss))
+
+    def set_B(self, B):
+        check_error(libfile.capy_transition_set_S(self, int(B)))
+
 
     def __del__(self):
         check_error(libfile.capy_transition_destroy(self))

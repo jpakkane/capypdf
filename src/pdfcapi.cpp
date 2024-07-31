@@ -1122,13 +1122,59 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_lab(CapyPDF_Color *color,
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr,
-                                              CapyPDF_Transition_Type type,
-                                              double duration) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr) CAPYPDF_NOEXCEPT {
     auto pt = new Transition{};
-    pt->type = type;
-    pt->duration = duration;
     *out_ptr = reinterpret_cast<CapyPDF_Transition *>(pt);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_S(CapyPDF_Transition *tr,
+                                                CapyPDF_Transition_Type type) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->type = type;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_D(CapyPDF_Transition *tr,
+                                                double duration) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->duration = duration;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Dm(CapyPDF_Transition *tr,
+                                                 CapyPDF_Transtion_Dimension dim) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->Di = dim;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_M(CapyPDF_Transition *tr,
+                                                CapyPDF_Transtion_Motion m) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->M = m;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Di(CapyPDF_Transition *tr,
+                                                 uint32_t direction) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->Di = direction;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_SS(CapyPDF_Transition *tr,
+                                                 double scale) CAPYPDF_NOEXCEPT {
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->SS = scale;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_B(CapyPDF_Transition *tr,
+                                                int32_t is_opaque) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(is_opaque);
+    auto pt = reinterpret_cast<Transition *>(tr);
+    pt->B = is_opaque;
     RETNOERR;
 }
 

@@ -92,7 +92,9 @@ class Demopresentation:
             return
         ttype = TRANS2ENUM[tdict['type']]
         duration = tdict['duration']
-        tr = capypdf.Transition(ttype, duration)
+        tr = capypdf.Transition()
+        tr.set_S(ttype)
+        tr.set_D(duration)
         ctx.set_page_transition(tr)
 
     def draw_master(self, ctx):
@@ -132,8 +134,9 @@ class Demopresentation:
 
     def render_bullet_page(self, ctx, p):
         subtr = p['subtransition']
-        bullettr = capypdf.Transition(TRANS2ENUM[subtr['type']],
-                                      subtr['duration'])
+        bullettr = capypdf.Transition()
+        bullettr.set_S(TRANS2ENUM[subtr['type']])
+        bullettr.set_D(subtr['duration'])
         text_w = self.pdfgen.text_width(p['heading'],
                                         self.boldbasefont,
                                         self.headingsize)

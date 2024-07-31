@@ -390,7 +390,9 @@ class TestPDFCreation(unittest.TestCase):
             with g.page_draw_context() as ctx:
                 pass
             with g.page_draw_context() as ctx:
-                tr = capypdf.Transition(capypdf.TransitionType.Blinds, 1.0)
+                tr = capypdf.Transition()
+                tr.set_S(capypdf.TransitionType.Blinds)
+                tr.set_D(1.0)
                 ctx.set_page_transition(tr)
                 ctx.cmd_rg(0.5, 0.5, 0.5)
                 ctx.cmd_re(0, 0, 160, 90)
