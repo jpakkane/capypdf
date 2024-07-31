@@ -1,0 +1,62 @@
+{
+    "fonts": {
+        "regular": "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+        "bold": "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
+        "symbol": "/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf",
+        "code": "/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf"
+    },
+    "fontsizes": {
+        "title": 44,
+        "heading": 44,
+        "text": 32,
+        "code": 20,
+        "symbol": 28,
+        "footer": 12
+    },
+    "metadata": {
+        "title": "Document title",
+        "author": "Documen author",
+        "url": "https://github.com/jpakkane/capypdf",
+        "pagesize": [793, 453]
+    },
+    "pages": [
+        {
+            "type": "title",
+            "title": "CapyPDF output demonstration",
+            "author": "Sample Author",
+            "email": "none@example.com"
+        },
+        {
+            "type": "bullet",
+            "pagetransition": {
+                "type": "push",
+                "duration": 1.0
+            },
+            "subtransition": {
+                "type": "dissolve",
+                "duration": 1.0
+            },
+            "heading": "Animated bullet points",
+            "bulletchar": "🞂",
+            "bullets": [
+                "These appear one by one",
+                "Navigate with left and right arrow",
+                "Only Acrobat Reader in presenter mode works correctly",
+                "Others show all bullets immediately"
+            ]
+        },
+        {
+            "type": "code",
+            "heading": "Sample code",
+            "pagetransition": {
+                "type": "uncover",
+                "duration": 1.0
+            },
+            "code": [
+                "def advance_highlighting():",
+                "    code_color += compute_increment()",
+                "    return code_color"
+            ]
+        }
+    ]
+}
