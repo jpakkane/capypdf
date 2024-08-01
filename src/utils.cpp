@@ -323,13 +323,13 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
         std::format_to(buf_append, "{}  /D {:f}\n", indent, *t.duration);
     }
     if(t.Dm) {
-        std::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm ? "/H" : "/V");
+        std::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm == CAPY_TR_DIM_H ? "/H" : "/V");
     }
     if(t.Di) {
         std::format_to(buf_append, "{}  /Di {}\n", indent, *t.Di);
     }
     if(t.M) {
-        std::format_to(buf_append, "{}  /M {}\n", indent, *t.M ? "/I" : "/O");
+        std::format_to(buf_append, "{}  /M {}\n", indent, *t.M == CAPY_TR_M_I ? "/I" : "/O");
     }
     if(t.SS) {
         std::format_to(buf_append, "{}  /SS {:f}\n", indent, *t.SS);
