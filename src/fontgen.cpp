@@ -37,7 +37,7 @@ void center_test() {
     ctx.render_text(text, f3, pt, 100 - w / 2, 80);
 }
 
-int main(int argc, char **argv) {
+int test1(int argc, char **argv) {
     PdfGenerationData opts;
     opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     const char *regularfont;
@@ -220,4 +220,43 @@ int main(int argc, char **argv) {
     }
     */
     return 0;
+}
+
+int test2(int argc, char **argv) {
+    PdfGenerationData opts;
+    opts.output_colorspace = CAPY_DEVICE_CS_RGB;
+    const char *regularfont;
+    if(argc > 1) {
+        regularfont = argv[1];
+    } else {
+        regularfont = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
+    }
+    opts.title = u8string::from_cstr("Ligaturing").value();
+    GenPopper genpop("ligaturetest.pdf", opts);
+    PdfGen &gen = *genpop.g;
+    auto regular_fid = gen.load_font(regularfont).value();
+    auto ctxguard = gen.guarded_page_context();
+    auto &ctx = ctxguard.ctx;
+    {
+        PdfText text(&ctx);
+        TextSequence ts;
+        ts.append_unicode('A');
+        auto ffi = u8string::from_cstr("ffi").value();
+
+        ts.append_ligature_glyph(2132, ffi);
+        ts.append_unicode('x');
+        text.cmd_Tf(regular_fid, 12);
+        text.cmd_Td(20, 300);
+        text.cmd_TJ(ts);
+        ctx.render_text(text);
+    }
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    if(false) {
+        return test1(argc, argv);
+    } else {
+        return test2(argc, argv);
+    }
 }

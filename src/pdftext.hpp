@@ -28,13 +28,23 @@ struct GlyphItem {
     uint32_t unicode_codepoint;
 };
 
+struct GlyphTextItem {
+    uint32_t glyph_id;
+    u8string source_text;
+};
+
 struct ActualTextStart {
     u8string text;
 };
 
 struct ActualTextEnd {};
 
-typedef std::variant<KerningValue, UnicodeCharacter, GlyphItem, ActualTextStart, ActualTextEnd>
+typedef std::variant<KerningValue,
+                     UnicodeCharacter,
+                     GlyphItem,
+                     GlyphTextItem,
+                     ActualTextStart,
+                     ActualTextEnd>
     TextAtom;
 typedef std::vector<TextAtom> TextEvents;
 
@@ -53,6 +63,11 @@ public:
 
     rvoe<NoReturnValue> append_raw_glyph(uint32_t glyph_id, uint32_t unicode_codepoint) {
         e.emplace_back(GlyphItem{glyph_id, unicode_codepoint});
+        return NoReturnValue{};
+    }
+
+    rvoe<NoReturnValue> append_ligature_glyph(uint32_t glyph_id, u8string text) {
+        e.emplace_back(GlyphTextItem{glyph_id, std::move(text)});
         return NoReturnValue{};
     }
 

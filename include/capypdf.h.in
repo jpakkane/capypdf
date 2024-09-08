@@ -676,6 +676,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_end(CapyPDF_TextS
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequence *tseq,
                                                               uint32_t glyph_id,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(
+    CapyPDF_TextSequence *tseq, uint32_t glyph_id, const char *original_text) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq) CAPYPDF_NOEXCEPT;
 
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.

@@ -948,7 +948,24 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequen
                                                               uint32_t glyph_id,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    if(glyph_id == 0) {
+        return conv_err(ErrorCode::MissingGlyph);
+    }
     auto rc = ts->append_raw_glyph(glyph_id, codepoint);
+    return conv_err(rc);
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(
+    CapyPDF_TextSequence *tseq, uint32_t glyph_id, const char *original_text) CAPYPDF_NOEXCEPT {
+    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    if(glyph_id == 0) {
+        return conv_err(ErrorCode::MissingGlyph);
+    }
+    auto txt = u8string::from_cstr(original_text);
+    if(!txt) {
+        return conv_err(txt);
+    }
+    auto rc = ts->append_ligature_glyph(glyph_id, std::move(txt.value()));
     return conv_err(rc);
 }
 

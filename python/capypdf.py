@@ -345,6 +345,7 @@ cfunc_types = (
 ('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_text_sequence_append_actualtext_end', [ctypes.c_void_p]),
 ('capy_text_sequence_append_raw_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
+('capy_text_sequence_append_ligature_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_char_p]),
 ('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
@@ -1105,6 +1106,11 @@ class TextSequence:
         if not isinstance(codepoint, int):
             codepoint = ord(codepoint)
         check_error(libfile.capy_text_sequence_append_raw_glyph(self, glyph_id, codepoint))
+
+    def append_ligature_glyph(self, glyph_id, txt):
+        u8txt = txt.encode('UTF-8')
+        check_error(libfile.capy_text_sequence_append_ligature_glyph(self, glyph_id, u8txt))
+
 
 class Text:
     def __init__(self, dc):

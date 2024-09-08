@@ -115,11 +115,21 @@ struct RegularGlyph {
     uint32_t glyph_index;
 };
 
+// A glyph that represents a unit of more than one Unicode point.
+// As an example the source text "ffi" might map to a custom
+// ligature glyph 0xFB03 in some fonts.
+// We need to store this info in the cmap table so that
+// text extraction and copypaste work.
+struct LigatureGlyph {
+    u8string text;
+    uint32_t glyph_index;
+};
+
 struct CompositeGlyph {
     uint32_t glyph_index;
 };
 
-typedef std::variant<RegularGlyph, CompositeGlyph> TTGlyphs;
+typedef std::variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
 
 /* Mandatory TTF tables according to The Internet.
  *

@@ -945,11 +945,21 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
 rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
                                                 uint32_t codepoint,
                                                 const std::optional<uint32_t> glyph_id) {
-    SubsetGlyph fss;
     if(!glyph_id && (FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), codepoint) == 0)) {
         RETERR(MissingGlyph);
     }
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
+    SubsetGlyph fss;
+    fss.ss.fid = fid;
+    fss.ss.subset_id = blub.subset;
+    fss.glyph_id = blub.offset;
+    return fss;
+}
+
+rvoe<SubsetGlyph>
+PdfDocument::get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t glyph_id) {
+    ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(text, glyph_id));
+    SubsetGlyph fss;
     fss.ss.fid = fid;
     fss.ss.subset_id = blub.subset;
     fss.glyph_id = blub.offset;

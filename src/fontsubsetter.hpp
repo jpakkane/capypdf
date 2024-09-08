@@ -38,9 +38,12 @@ public:
         : ttfile{ttfile}, face{face}, subsets{subsets} {}
 
     rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph, const std::optional<uint32_t> glyph_id);
+    rvoe<FontSubsetInfo> get_glyph_subset(const u8string &text, const uint32_t glyph_id);
     rvoe<FontSubsetInfo>
     unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
                                           const std::optional<uint32_t> glyph_id);
+    rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const u8string &text,
+                                                               uint32_t glyph_id);
 
     const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
         return subsets.at(subset_number).glyphs;
@@ -57,9 +60,12 @@ public:
     generate_subset(FT_Face face, const TrueTypeFontFile &source, int32_t subset_number) const;
 
 private:
+    rvoe<NoReturnValue> handle_subglyphs(uint32_t glyph_index);
+
     TrueTypeFontFile ttfile;
     FT_Face face;
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
+    std::optional<FontSubsetInfo> find_glyph(const u8string &text) const;
 
     std::vector<FontSubsetData> subsets;
 };

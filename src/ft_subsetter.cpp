@@ -999,6 +999,8 @@ uint32_t font_id_for_glyph(FT_Face face, const capypdf::TTGlyphs &g) {
         }
     } else if(std::holds_alternative<capypdf::CompositeGlyph>(g)) {
         return std::get<capypdf::CompositeGlyph>(g).glyph_index;
+    } else if(std::holds_alternative<capypdf::LigatureGlyph>(g)) {
+        return std::get<capypdf::LigatureGlyph>(g).glyph_index;
     } else {
         std::abort();
     }

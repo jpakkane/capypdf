@@ -162,6 +162,8 @@ public:
     u8string &operator=(u8string &&o) = default;
     u8string &operator=(const u8string &o) = default;
 
+    bool operator==(const u8string &other) const = default;
+
 private:
     explicit u8string(const char *prevalidated_utf8) : buf(prevalidated_utf8) {}
     std::string buf;

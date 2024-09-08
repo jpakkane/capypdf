@@ -274,6 +274,26 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_TJ(ts)
                 ctx.render_text_obj(t)
 
+    @validate_image('python_shaping2', 200, 200)
+    def test_shaping2(self, ofilename, w, h):
+        opts = capypdf.Options()
+        props = capypdf.PageProperties()
+        props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opts.set_default_page_properties(props)
+        with capypdf.Generator(ofilename, opts) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                t = ctx.text_new()
+                t.cmd_Tf(font, 48)
+                t.cmd_Td(10, 100)
+                ts = capypdf.TextSequence()
+                ts.append_codepoint(ord('A'))
+                ts.append_ligature_glyph(2132, 'ffi') # Should have CMAP entry with multiple source characters. Not actually checked ATM.
+                ts.append_codepoint(ord(('x')))
+                t.cmd_TJ(ts)
+                ctx.render_text_obj(t)
+
+
     @validate_image('python_smallcaps', 200, 200)
     def test_smallcaps(self, ofilename, w, h):
         opts = capypdf.Options()

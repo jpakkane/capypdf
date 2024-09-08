@@ -79,11 +79,17 @@ endcodespacerange
     auto appender = std::back_inserter(buf);
     for(size_t i = 1; i < glyphs.size(); ++i) {
         const auto &g = glyphs[i];
-        uint32_t unicode_codepoint = 0;
-        if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
-            unicode_codepoint = std::get<capypdf::RegularGlyph>(g).unicode_codepoint;
+        if(std::holds_alternative<LigatureGlyph>(g)) {
+            const auto &lg = std::get<LigatureGlyph>(g);
+            const auto u16repr = utf8_to_pdfutf16be(lg.text, false);
+            std::format_to(appender, "<{:02X}> <{}>\n", i, u16repr);
+        } else {
+            uint32_t unicode_codepoint = 0;
+            if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
+                unicode_codepoint = std::get<capypdf::RegularGlyph>(g).unicode_codepoint;
+            }
+            std::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
         }
-        std::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
     }
     buf += R"(endbfchar
 endcmap
@@ -99,7 +105,7 @@ rvoe<std::string> build_subset_width_array(FT_Face face,
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
-    for(const auto glyph : glyphs) {
+    for(const auto &glyph : glyphs) {
         const auto glyph_id = capypdf::font_id_for_glyph(face, glyph);
         FT_Pos horiadvance = 0;
         if(glyph_id != 0) {

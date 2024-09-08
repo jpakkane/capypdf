@@ -168,8 +168,8 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-std::string utf8_to_pdfutf16be(const u8string &input) {
-    std::string encoded = "<FEFF"; // PDF 2.0 spec, 7.9.2.2.1
+std::string utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
+    std::string encoded = add_adornments ? "<FEFF" : ""; // PDF 2.0 spec, 7.9.2.2.1
 
     auto bi = std::back_inserter(encoded);
     std::vector<uint16_t> u16buf;
@@ -182,7 +182,9 @@ std::string utf8_to_pdfutf16be(const u8string &input) {
             std::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
         }
     }
-    encoded += '>';
+    if(add_adornments) {
+        encoded += '>';
+    }
     return encoded;
 }
 

@@ -826,6 +826,11 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 doc->get_subset_glyph(
                     current_font, glyphitem->unicode_codepoint, glyphitem->glyph_id));
             appender_lambda(current_subset_glyph);
+        } else if(auto glyphtextitem = std::get_if<GlyphTextItem>(&e)) {
+            ERC(current_subset_glyph,
+                doc->get_subset_glyph(
+                    current_font, glyphtextitem->source_text, glyphtextitem->glyph_id));
+            appender_lambda(current_subset_glyph);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();
