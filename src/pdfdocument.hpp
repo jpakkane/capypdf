@@ -440,7 +440,8 @@ private:
                                            ImageColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
-                                           std::string_view uncompressed_bytes);
+                                           std::string_view original_bytes,
+                                           CapyPDF_Compression compression);
 
     rvoe<NoReturnValue> generate_info_object();
     int32_t create_page_group();

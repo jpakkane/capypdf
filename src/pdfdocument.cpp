@@ -989,7 +989,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
                             image.md.cs,
                             std::optional<int32_t>{},
                             params,
-                            image.pixels);
+                            image.pixels,
+                            image.md.compression);
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFProperties &params) {
@@ -1012,13 +1013,20 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
                              CAPY_IMAGE_CS_GRAY,
                              {},
                              params,
-                             image.alpha));
+                             image.alpha,
+                             image.md.compression));
         smask_id = image_info.at(imobj.id).obj;
     }
     if(!image.icc_profile.empty()) {
         auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
-        return add_image_object(
-            image.md.w, image.md.h, image.md.pixel_depth, icc_id, smask_id, params, image.pixels);
+        return add_image_object(image.md.w,
+                                image.md.h,
+                                image.md.pixel_depth,
+                                icc_id,
+                                smask_id,
+                                params,
+                                image.pixels,
+                                image.md.compression);
     } else {
         return add_image_object(image.md.w,
                                 image.md.h,
@@ -1026,7 +1034,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
                                 image.md.cs,
                                 smask_id,
                                 params,
-                                image.pixels);
+                                image.pixels,
+                                image.md.compression);
     }
 }
 
@@ -1036,10 +1045,24 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                                                     ImageColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
-                                                    std::string_view uncompressed_bytes) {
+                                                    std::string_view original_bytes,
+                                                    CapyPDF_Compression compression) {
     std::string buf;
+    std::string compression_buffer;
+    std::string_view compressed_bytes;
+    switch(compression) {
+    case CAPY_COMPRESSION_NONE: {
+        ERC(trial_compressed, flate_compress(original_bytes));
+        compression_buffer = std::move(trial_compressed);
+        compressed_bytes = compression_buffer;
+        break;
+    }
+    case CAPY_COMPRESSION_DEFLATE:
+        compressed_bytes = original_bytes;
+        break;
+    }
+
     auto app = std::back_inserter(buf);
-    ERC(compressed, flate_compress(uncompressed_bytes));
     std::format_to(app,
                    R"(<<
   /Type /XObject
@@ -1053,7 +1076,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
                    w,
                    h,
                    bits_per_component,
-                   compressed.size());
+                   compressed_bytes.size());
 
     // Auto means don't specify the interpolation
     if(params.interp == CAPY_INTERPOLATION_PIXELATED) {
@@ -1080,7 +1103,13 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
         std::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
     }
     buf += ">>\n";
-    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(compressed)});
+    int32_t im_id;
+    if(compression == CAPY_COMPRESSION_NONE) {
+        im_id = add_object(FullPDFObject{std::move(buf), std::move(compression_buffer)});
+    } else {
+        // FIXME. Makes a copy. Fix to grab original data instead.
+        im_id = add_object(FullPDFObject{std::move(buf), std::string{original_bytes}});
+    }
     image_info.emplace_back(ImageInfo{{w, h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }

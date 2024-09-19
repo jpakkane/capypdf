@@ -106,6 +106,10 @@ class ImageInterpolation(Enum):
     Pixelated = 1
     Smooth = 2
 
+class Compression(Enum):
+    Not = 0
+    Deflate = 1
+
 class AnnotationFlag(IntFlag):
     Invisible = auto()
     Hidden = auto()
@@ -398,6 +402,7 @@ cfunc_types = (
 ('capy_raster_image_builder_new', [ctypes.c_void_p]),
 ('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
 ('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_raster_image_builder_set_compression', [ctypes.c_void_p, enum_type]),
 ('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_raster_image_get_colorspace', [ctypes.c_void_p, ctypes.POINTER(enum_type)]),
 ('capy_raster_image_has_profile', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32)]),
@@ -1299,6 +1304,12 @@ class RasterImageBuilder:
         if not isinstance(pixels, bytes):
             raise CapyPDFException('Pixel data must be in bytes.')
         check_error(libfile.capy_raster_image_builder_set_pixel_data(self, pixels, len(pixels)))
+
+    def set_compression(self, compression):
+        if not isinstance(compression, Compression):
+            raise CapyPDFException('Compression argument must be enum value.')
+        check_error(libfile.capy_raster_image_builder_set_compression(self, compression.value))
+
 
     def build(self):
         opt = ctypes.c_void_p()

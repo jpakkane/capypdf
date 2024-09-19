@@ -418,8 +418,34 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_re(0, 0, 160, 90)
                 ctx.cmd_f()
 
+    def build_rasterdata(self, maxval):
+        ba = bytearray()
+        ba.append(maxval//2)
+        ba.append(0)
+        ba.append(0)
+        ba.append(maxval)
+        ba.append(0)
+        ba.append(0)
+
+        ba.append(0)
+        ba.append(maxval//2)
+        ba.append(0)
+        ba.append(0)
+        ba.append(maxval)
+        ba.append(0)
+
+        ba.append(0)
+        ba.append(0)
+        ba.append(maxval//2)
+        ba.append(0)
+        ba.append(0)
+        ba.append(maxval)
+
+        return ba
+
     @validate_image('python_rasterimage', 200, 200)
     def test_raster_image(self, ofilename, w, h):
+        import zlib
         opts = capypdf.Options()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
@@ -427,36 +453,26 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opts) as g:
             ib = capypdf.RasterImageBuilder()
             ib.set_size(2, 3)
-            ba = bytearray()
-            ba.append(127)
-            ba.append(0)
-            ba.append(0)
-            ba.append(255)
-            ba.append(0)
-            ba.append(0)
-
-            ba.append(0)
-            ba.append(127)
-            ba.append(0)
-            ba.append(0)
-            ba.append(255)
-            ba.append(0)
-
-            ba.append(0)
-            ba.append(0)
-            ba.append(127)
-            ba.append(0)
-            ba.append(0)
-            ba.append(255)
+            ba = self.build_rasterdata(255)
 
             ib.set_pixel_data(bytes(ba))
             image = ib.build()
             ipar = capypdf.ImagePdfProperties()
             iid = g.add_image(image, ipar)
+            ib.set_size(2, 3)
+            ib.set_pixel_data(zlib.compress(bytes(self.build_rasterdata(127)), 9))
+            ib.set_compression(capypdf.Compression.Deflate)
+            comprimage = ib.build()
+            ciid = g.add_image(comprimage, ipar)
             with g.page_draw_context() as ctx:
-                ctx.translate(10, 10);
-                ctx.scale(20, 30);
-                ctx.draw_image(iid)
+                with ctx.push_gstate():
+                    ctx.translate(10, 10)
+                    ctx.scale(20, 30)
+                    ctx.draw_image(iid)
+                with ctx.push_gstate():
+                    ctx.translate(40, 40)
+                    ctx.scale(20, 30)
+                    ctx.draw_image(ciid)
 
     @validate_image('python_linestyles', 200, 200)
     def test_line_styles(self, ofilename, w, h):

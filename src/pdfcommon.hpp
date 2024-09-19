@@ -462,6 +462,7 @@ struct RasterImageMetadata {
     int32_t pixel_depth = 8;
     int32_t alpha_depth = 0;
     CapyPDF_ImageColorspace cs = CAPY_IMAGE_CS_RGB;
+    CapyPDF_Compression compression = CAPY_COMPRESSION_NONE;
 };
 
 struct RasterImage {
@@ -469,8 +470,6 @@ struct RasterImage {
     std::string pixels;
     std::string alpha;
     std::string icc_profile;
-    // CapyPDF_Compression pixel_compression;
-    // CapyPDF_Compression alpha_compression;
 };
 
 struct jpg_image {
