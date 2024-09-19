@@ -484,15 +484,23 @@ struct ImagePDFProperties {
     bool as_mask = false;
 };
 
-struct XYZDestination {
+struct DestinationXYZ {
     std::optional<double> x;
     std::optional<double> y;
     std::optional<double> z;
 };
 
+struct DestinationFit {};
+
+struct DestinationFitR {
+    double left, bottom, top, right;
+};
+
+typedef std::variant<DestinationXYZ, DestinationFit, DestinationFitR> DestinationType;
+
 struct Destination {
     int32_t page;
-    XYZDestination loc; // FIXME, should be a variant of location types (including monostate).
+    DestinationType loc;
 };
 
 } // namespace capypdf

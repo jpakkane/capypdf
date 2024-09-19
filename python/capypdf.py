@@ -462,8 +462,8 @@ cfunc_types = (
 ('capy_image_pdf_properties_destroy', [ctypes.c_void_p]),
 
 ('capy_destination_new', [ctypes.c_void_p]),
-('capy_destination_set_page', [ctypes.c_void_p, ctypes.c_int32]),
-('capy_destination_set_xyz', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_destination_set_page_fit', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_destination_set_page_xyz', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_destination_destroy', [ctypes.c_void_p]),
 
 ('capy_outline_new', [ctypes.c_void_p]),
@@ -1542,14 +1542,14 @@ class Destination:
     def __del__(self):
         check_error(libfile.capy_destination_destroy(self))
 
-    def set_page(self, page_num):
-        check_error(libfile.capy_destination_set_page(self, page_num))
+    def set_page_fit(self, page_num):
+        check_error(libfile.capy_destination_set_page_fit(self, page_num))
 
-    def set_xyz(self, x=None, y=None, z=None):
+    def set_page_xyz(self, page_number, x=None, y=None, z=None):
         xptr = self.double_to_cptr(x)
         yptr = self.double_to_cptr(y)
         zptr = self.double_to_cptr(z)
-        check_error(libfile.capy_destination_set_xyz(self, xptr, yptr, zptr))
+        check_error(libfile.capy_destination_set_page_xyz(self, page_number, xptr, yptr, zptr))
 
     def double_to_cptr(self, value):
         if value is None:

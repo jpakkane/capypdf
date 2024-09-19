@@ -898,12 +898,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProp
 
 // Destinations.
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page(CapyPDF_Destination *dest,
-                                                    int32_t physical_page_number) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
-                                                   double *x,
-                                                   double *y,
-                                                   double *z) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_fit(
+    CapyPDF_Destination *dest, int32_t physical_page_number) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_xyz(CapyPDF_Destination *dest,
+                                                        int32_t physical_page_number,
+                                                        double *x,
+                                                        double *y,
+                                                        double *z) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
 
 // Outline

@@ -707,10 +707,19 @@ rvoe<int32_t> PdfDocument::create_outlines() {
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = pages.at(physical_page).page_obj_num;
-            std::format_to(app, "  /Dest [ {} 0 R /XYZ ", page_object_number);
-            append_value_or_null(app, dest.loc.x);
-            append_value_or_null(app, dest.loc.y);
-            append_value_or_null(app, dest.loc.z);
+            std::format_to(app, "  /Dest [ {} 0 R ", page_object_number);
+            if(auto xyz = std::get_if<DestinationXYZ>(&dest.loc)) {
+                std::format_to(app, "/XYZ ");
+                append_value_or_null(app, xyz->x);
+                append_value_or_null(app, xyz->y);
+                append_value_or_null(app, xyz->z);
+            } else if(std::holds_alternative<DestinationFit>(dest.loc)) {
+                std::format_to(app, "/Fit ");
+            } else if(auto r = std::get_if<DestinationFitR>(&dest.loc)) {
+                std::format_to(app, "/FitR {} {} {} {} ", r->left, r->bottom, r->right, r->top);
+            } else {
+                std::abort();
+            }
             oitem += "]\n";
         }
         if(siblings.size() > 1) {

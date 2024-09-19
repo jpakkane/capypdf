@@ -1675,31 +1675,38 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CA
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page(CapyPDF_Destination *dest,
-                                                    int32_t physical_page_number) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_fit(
+    CapyPDF_Destination *dest, int32_t physical_page_number) CAPYPDF_NOEXCEPT {
     auto *d = reinterpret_cast<Destination *>(dest);
     if(physical_page_number < 0) {
         return conv_err(ErrorCode::InvalidPageNumber);
     }
     d->page = physical_page_number;
+    d->loc = DestinationFit{};
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_xyz(CapyPDF_Destination *dest,
-                                                   double *x,
-                                                   double *y,
-                                                   double *z) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_xyz(CapyPDF_Destination *dest,
+                                                        int32_t physical_page_number,
+                                                        double *x,
+                                                        double *y,
+                                                        double *z) CAPYPDF_NOEXCEPT {
     auto *d = reinterpret_cast<Destination *>(dest);
-    d->loc = XYZDestination{};
+    if(physical_page_number < 0) {
+        return conv_err(ErrorCode::InvalidPageNumber);
+    }
+    d->page = physical_page_number;
+    auto dxyz = DestinationXYZ{};
     if(x) {
-        d->loc.x = *x;
+        dxyz.x = *x;
     }
     if(y) {
-        d->loc.y = *y;
+        dxyz.y = *y;
     }
     if(z) {
-        d->loc.z = *z;
+        dxyz.z = *z;
     }
+    d->loc = dxyz;
     RETNOERR;
 }
 

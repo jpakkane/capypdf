@@ -910,8 +910,7 @@ class TestPDFCreation(unittest.TestCase):
             # Destinations point to a page that does not exist when they
             # are created but does exist when the PDF is generated.
             d = capypdf.Destination()
-            d.set_page(0)
-            d.set_xyz(10, 20, 1.0)
+            d.set_page_xyz(0, 10, 20, 1.0)
             o = capypdf.Outline()
             o.set_title('First toplevel')
             o.set_destination(d)
