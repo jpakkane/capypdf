@@ -441,7 +441,7 @@ class TestPDFCreation(unittest.TestCase):
         ba.append(0)
         ba.append(maxval)
 
-        return ba
+        return bytes(ba)
 
     @validate_image('python_rasterimage', 200, 200)
     def test_raster_image(self, ofilename, w, h):
@@ -455,12 +455,12 @@ class TestPDFCreation(unittest.TestCase):
             ib.set_size(2, 3)
             ba = self.build_rasterdata(255)
 
-            ib.set_pixel_data(bytes(ba))
+            ib.set_pixel_data(ba)
             image = ib.build()
             ipar = capypdf.ImagePdfProperties()
             iid = g.add_image(image, ipar)
             ib.set_size(2, 3)
-            ib.set_pixel_data(zlib.compress(bytes(self.build_rasterdata(127)), 9))
+            ib.set_pixel_data(zlib.compress(self.build_rasterdata(127), 9))
             ib.set_compression(capypdf.Compression.Deflate)
             comprimage = ib.build()
             ciid = g.add_image(comprimage, ipar)
