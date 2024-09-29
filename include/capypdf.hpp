@@ -24,29 +24,6 @@ public:
     PdfException(const char *msg) : std::runtime_error(msg) {}
 };
 
-// Why these and not a function pointer? Because then the unique_ptr
-// would need to store a pointer to the function itself.
-struct OptionDeleter {
-    void operator()(CapyPDF_Options *opt) {
-        auto rc = capy_options_destroy(opt); // Can't really do anything if this fails.
-        (void)rc;
-    }
-};
-
-struct GenDeleter {
-    void operator()(CapyPDF_Generator *gen) {
-        auto rc = capy_generator_destroy(gen);
-        (void)rc;
-    }
-};
-
-struct DCDeleter {
-    void operator()(CapyPDF_DrawContext *dc) {
-        auto rc = capy_dc_destroy(dc);
-        (void)rc;
-    }
-};
-
 class PdfOptions {
 public:
     PdfOptions() {
@@ -59,6 +36,16 @@ public:
     const CapyPDF_Options *get() const { return d.get(); }
 
 private:
+    // Why a struct and not a function pointer? Because then the unique_ptr
+    // would need to store a pointer to the function itself because it
+    // needs to work with all functions that satisfy the prototype.
+    struct OptionDeleter {
+        void operator()(CapyPDF_Options *opt) {
+            auto rc = capy_options_destroy(opt); // Can't really do anything if this fails.
+            (void)rc;
+        }
+    };
+
     std::unique_ptr<CapyPDF_Options, OptionDeleter> d;
 };
 static_assert(sizeof(PdfOptions) == sizeof(void *));
@@ -71,13 +58,20 @@ public:
     void cmd_re(double x, double y, double w, double h) {
         CAPY_CPP_CHECK(capy_dc_cmd_re(d.get(), x, y, w, h));
     }
-    void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(d.get(), r, b, b)); }
+    void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(d.get(), r, g, b)); }
 
     CapyPDF_DrawContext *get() { return d.get(); }
     const CapyPDF_DrawContext *get() const { return d.get(); }
 
 private:
     DrawContext(CapyPDF_DrawContext *dc) : d{dc} {}
+
+    struct DCDeleter {
+        void operator()(CapyPDF_DrawContext *dc) {
+            auto rc = capy_dc_destroy(dc);
+            (void)rc;
+        }
+    };
 
     std::unique_ptr<CapyPDF_DrawContext, DCDeleter> d;
 };
@@ -104,6 +98,13 @@ public:
     const CapyPDF_Generator *get() const { return d.get(); }
 
 private:
+    struct GenDeleter {
+        void operator()(CapyPDF_Generator *gen) {
+            auto rc = capy_generator_destroy(gen);
+            (void)rc;
+        }
+    };
+
     std::unique_ptr<CapyPDF_Generator, GenDeleter> d;
 };
 
