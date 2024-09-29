@@ -18,7 +18,7 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -1600,4 +1600,4 @@ rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
     return NoReturnValue{};
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

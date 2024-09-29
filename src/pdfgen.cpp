@@ -15,7 +15,7 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 
-namespace capypdf {
+namespace capypdf::internal {
 
 DrawContextPopper::~DrawContextPopper() {
     switch(ctx.draw_context_type()) {
@@ -194,4 +194,4 @@ PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsiz
     return w;
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

@@ -52,7 +52,7 @@ DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
 DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
-namespace capypdf {
+namespace capypdf::internal {
 
 extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
 
@@ -502,4 +502,4 @@ struct Destination {
     DestinationType loc;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

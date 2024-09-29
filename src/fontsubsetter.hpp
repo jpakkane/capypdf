@@ -16,7 +16,7 @@
 
 typedef struct FT_FaceRec_ *FT_Face;
 
-namespace capypdf {
+namespace capypdf::internal {
 
 static const std::size_t max_glyphs = 255;
 
@@ -70,4 +70,4 @@ private:
     std::vector<FontSubsetData> subsets;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

@@ -23,7 +23,7 @@
         }                                                                                          \
     }
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 // The FFI ligature has Unicode codepoint U+FB03 (64259)
 // In Noto Serif it has glyph id 2132
@@ -213,7 +213,7 @@ void whole_shebang() {
     auto &ctx = ctxguard.ctx;
 
     auto pdffont = gen.load_font(fontfile).value();
-    ctx.render_text(capypdf::u8string::from_cstr(sampletext).value(), pdffont, ptsize, 10, 110);
+    ctx.render_text(u8string::from_cstr(sampletext).value(), pdffont, ptsize, 10, 110);
     do_harfbuzz(gen, ctx, pdffont);
 }
 

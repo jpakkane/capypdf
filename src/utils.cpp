@@ -16,7 +16,7 @@
 #include <memory>
 #include <random>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -342,4 +342,4 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
     std::format_to(buf_append, "{}>>\n", indent);
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

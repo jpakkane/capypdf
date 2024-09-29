@@ -12,7 +12,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 template<class... Ts> struct overloaded : Ts... {
     using Ts::operator()...;
@@ -50,4 +50,4 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
                      const Transition &t,
                      std::string_view indent);
 
-} // namespace capypdf
+} // namespace capypdf::internal

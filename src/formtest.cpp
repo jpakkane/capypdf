@@ -4,7 +4,7 @@
 #include <pdfgen.hpp>
 #include <cmath>
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 int draw_simple_form() {
     PdfGenerationData opts;

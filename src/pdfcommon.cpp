@@ -5,7 +5,7 @@
 #include <utils.hpp>
 #include <cassert>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -126,4 +126,4 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

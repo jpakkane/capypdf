@@ -18,7 +18,7 @@
 #include <unistd.h>
 #endif
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -53,12 +53,12 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-void write_rectangle(auto &appender, const char *boxname, const capypdf::PdfRectangle &box) {
+void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &box) {
     std::format_to(
         appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
 }
 
-std::string create_subset_cmap(const std::vector<capypdf::TTGlyphs> &glyphs) {
+std::string create_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
     std::string buf = std::format(R"(/CIDInit/ProcSet findresource begin
 12 dict begin
 begincmap
@@ -85,8 +85,8 @@ endcodespacerange
             std::format_to(appender, "<{:02X}> <{}>\n", i, u16repr);
         } else {
             uint32_t unicode_codepoint = 0;
-            if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
-                unicode_codepoint = std::get<capypdf::RegularGlyph>(g).unicode_codepoint;
+            if(std::holds_alternative<RegularGlyph>(g)) {
+                unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
             }
             std::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
         }
@@ -100,13 +100,12 @@ end
     return buf;
 }
 
-rvoe<std::string> build_subset_width_array(FT_Face face,
-                                           const std::vector<capypdf::TTGlyphs> &glyphs) {
+rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
     for(const auto &glyph : glyphs) {
-        const auto glyph_id = capypdf::font_id_for_glyph(face, glyph);
+        const auto glyph_id = font_id_for_glyph(face, glyph);
         FT_Pos horiadvance = 0;
         if(glyph_id != 0) {
             auto error = FT_Load_Glyph(face, glyph_id, load_flags);
@@ -787,4 +786,4 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     return NoReturnValue{};
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

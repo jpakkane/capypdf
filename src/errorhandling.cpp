@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 // clang-format off
 
@@ -91,4 +91,4 @@ const char *error_text(ErrorCode ec) noexcept {
     std::abort();
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

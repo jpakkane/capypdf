@@ -13,7 +13,7 @@
 #include <vector>
 #include <memory>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -410,4 +410,4 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     RETERR(UnsupportedFormat);
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

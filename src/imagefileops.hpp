@@ -12,10 +12,10 @@
 #include <expected>
 #include <filesystem>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname);
 
 rvoe<jpg_image> load_jpg(const std::filesystem::path &fname);
 
-} // namespace capypdf
+} // namespace capypdf::internal

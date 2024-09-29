@@ -15,7 +15,7 @@
 #include <variant>
 #include <expected>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 namespace {
 
@@ -70,10 +70,11 @@ get_substring(std::string_view sv, const size_t offset, const int64_t substr_siz
 }
 
 template<typename T>
-rvoe<capypdf::NoReturnValue> safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
+rvoe<capypdf::internal::NoReturnValue>
+safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
     ERC(validated_area, get_substring(source, offset, sizeof(T)));
     memcpy(obj, validated_area.data(), sizeof(T));
-    return capypdf::NoReturnValue{};
+    return capypdf::internal::NoReturnValue{};
 }
 
 template<typename T> rvoe<T> extract(std::string_view bf, const size_t offset) {
@@ -953,7 +954,7 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
     return subglyphs;
 }
 
-rvoe<capypdf::NoReturnValue>
+rvoe<NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
@@ -989,21 +990,21 @@ reassign_composite_glyph_numbers(std::string &buf,
     return NoReturnValue{};
 }
 
-uint32_t font_id_for_glyph(FT_Face face, const capypdf::TTGlyphs &g) {
-    if(std::holds_alternative<capypdf::RegularGlyph>(g)) {
-        auto &rg = std::get<capypdf::RegularGlyph>(g);
+uint32_t font_id_for_glyph(FT_Face face, const TTGlyphs &g) {
+    if(std::holds_alternative<RegularGlyph>(g)) {
+        auto &rg = std::get<RegularGlyph>(g);
         if(rg.unicode_codepoint == 0) {
             return 0;
         } else {
             return rg.glyph_index;
         }
-    } else if(std::holds_alternative<capypdf::CompositeGlyph>(g)) {
-        return std::get<capypdf::CompositeGlyph>(g).glyph_index;
-    } else if(std::holds_alternative<capypdf::LigatureGlyph>(g)) {
-        return std::get<capypdf::LigatureGlyph>(g).glyph_index;
+    } else if(std::holds_alternative<CompositeGlyph>(g)) {
+        return std::get<CompositeGlyph>(g).glyph_index;
+    } else if(std::holds_alternative<LigatureGlyph>(g)) {
+        return std::get<LigatureGlyph>(g).glyph_index;
     } else {
         std::abort();
     }
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

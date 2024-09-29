@@ -14,7 +14,7 @@
 #include <cassert>
 #include <memory>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
@@ -1190,4 +1190,4 @@ rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {
     return (int32_t)used_structures.size() - 1;
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

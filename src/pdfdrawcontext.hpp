@@ -15,8 +15,8 @@
 #include <optional>
 #include <span>
 
-template<> struct std::hash<capypdf::FontSubset> {
-    size_t operator()(capypdf::FontSubset const &s) const noexcept {
+template<> struct std::hash<capypdf::internal::FontSubset> {
+    size_t operator()(capypdf::internal::FontSubset const &s) const noexcept {
         const size_t x = (size_t)s.fid.id;
         const size_t y = s.subset_id;
         if constexpr(sizeof(size_t) == 8) {
@@ -27,7 +27,7 @@ template<> struct std::hash<capypdf::FontSubset> {
     }
 };
 
-namespace capypdf {
+namespace capypdf::internal {
 
 class PdfDrawContext;
 
@@ -312,4 +312,4 @@ private:
     std::string ind;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

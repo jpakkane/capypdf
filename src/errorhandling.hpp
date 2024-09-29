@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <expected>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 enum class ErrorCode : int32_t {
     NoError,
@@ -91,7 +91,7 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
 
 struct NoReturnValue {};
 
-} // namespace capypdf
+} // namespace capypdf::internal
 
 #define CHECK_BOOLEAN(b)                                                                           \
     if(b < 0 || b > 1) {                                                                           \

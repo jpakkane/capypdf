@@ -73,7 +73,7 @@ void print_lcms_errors(cmsContext ContextID, cmsUInt32Number ErrorCode, const ch
 
 } // namespace
 
-namespace capypdf {
+namespace capypdf::internal {
 
 LcmsHolder::~LcmsHolder() { deallocate(); }
 
@@ -283,4 +283,4 @@ rvoe<int> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
     return num_channels;
 }
 
-} // namespace capypdf
+} // namespace capypdf::internal

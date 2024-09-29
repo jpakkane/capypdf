@@ -13,7 +13,7 @@
 #include <optional>
 #include <filesystem>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 class PdfGen;
 
@@ -193,4 +193,4 @@ struct GenPopper {
     }
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

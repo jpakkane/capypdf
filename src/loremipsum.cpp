@@ -110,18 +110,19 @@ const std::vector<std::string> column2{
     "Purus in massa tempor nec feugiat nisl pretium",
 };
 
-const capypdf::u8string title = capypdf::u8string::from_cstr("Title McTitleface").value();
-const capypdf::u8string author = capypdf::u8string::from_cstr("Author McAuthorface").value();
-const capypdf::u8string email =
-    capypdf::u8string::from_cstr("author@servermcserverface.com").value();
+const auto title = capypdf::internal::u8string::from_cstr("Title McTitleface").value();
+const auto author = capypdf::internal::u8string::from_cstr("Author McAuthorface").value();
+const auto email = capypdf::internal::u8string::from_cstr("author@servermcserverface.com").value();
 
 double cm2pt(double cm) { return cm * 28.346; }
 // double pt2cm(double pt) { return pt / 28.346; }
 
 int num_spaces(const std::string_view s) { return std::count(s.begin(), s.end(), ' '); }
 
-double
-text_width(const std::string_view s, capypdf::PdfGen &gen, CapyPDF_FontId fid, double pointsize) {
+double text_width(const std::string_view s,
+                  capypdf::internal::PdfGen &gen,
+                  CapyPDF_FontId fid,
+                  double pointsize) {
     double total_w = 0;
     for(const char c : s) {
         // ASCII FTW!
@@ -135,7 +136,7 @@ const double midx = cm2pt(21.0 / 2);
 
 } // namespace
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 void render_column(const std::vector<std::string> &text_lines,
                    PdfGen &gen,
@@ -219,8 +220,8 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    CHCK(ctx.cmd_BDC(capypdf::asciistring::from_cstr("Artifact").value(), {}, attrib_par));
-    CHCK(ctx.render_text(capypdf::u8string::from_cstr("1").value(),
+    CHCK(ctx.cmd_BDC(asciistring::from_cstr("Artifact").value(), {}, attrib_par));
+    CHCK(ctx.render_text(u8string::from_cstr("1").value(),
                          textfont,
                          textsize,
                          midx - text_width("1", gen, textfont, textsize) / 2,

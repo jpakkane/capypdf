@@ -14,7 +14,7 @@
         return (CapyPDF_EC)ErrorCode::ArgIsNull;                                                   \
     }
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 namespace {
 
@@ -878,7 +878,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
                                            CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_NULL(dc);
     *out_ptr = reinterpret_cast<CapyPDF_Text *>(
-        new capypdf::PdfText(reinterpret_cast<PdfDrawContext *>(dc)));
+        new capypdf::internal::PdfText(reinterpret_cast<PdfDrawContext *>(dc)));
     RETNOERR;
 }
 
@@ -1074,29 +1074,30 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_destroy(CapyPDF_Text *text) CAPYPDF_NOEXCEPT
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_new(CapyPDF_Color **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Color *>(new capypdf::Color(DeviceRGBColor{0, 0, 0}));
+    *out_ptr =
+        reinterpret_cast<CapyPDF_Color *>(new capypdf::internal::Color(DeviceRGBColor{0, 0, 0}));
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_destroy(CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<capypdf::Color *>(color);
+    delete reinterpret_cast<capypdf::internal::Color *>(color);
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_rgb(CapyPDF_Color *c, double r, double g, double b)
     CAPYPDF_NOEXCEPT {
-    *reinterpret_cast<capypdf::Color *>(c) = DeviceRGBColor{r, g, b};
+    *reinterpret_cast<capypdf::internal::Color *>(c) = DeviceRGBColor{r, g, b};
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPDF_NOEXCEPT {
-    *reinterpret_cast<capypdf::Color *>(c) = DeviceGrayColor{v};
+    *reinterpret_cast<capypdf::internal::Color *>(c) = DeviceGrayColor{v};
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_color_set_cmyk(CapyPDF_Color *color, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
-    *reinterpret_cast<capypdf::Color *>(color) = DeviceCMYKColor{c, m, y, k};
+    *reinterpret_cast<capypdf::internal::Color *>(color) = DeviceCMYKColor{c, m, y, k};
     RETNOERR;
 }
 
@@ -1107,7 +1108,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_icc(CapyPDF_Color *color,
     ICCColor icc;
     icc.id = icc_id;
     icc.values.assign(values, values + num_values);
-    *reinterpret_cast<capypdf::Color *>(color) = std::move(icc);
+    *reinterpret_cast<capypdf::internal::Color *>(color) = std::move(icc);
     RETNOERR;
 }
 

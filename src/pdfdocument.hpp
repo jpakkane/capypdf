@@ -27,7 +27,7 @@ typedef int FT_Error;
 
 FT_Error guarded_face_close(FT_Face face);
 
-namespace capypdf {
+namespace capypdf::internal {
 
 struct TtfFont {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
@@ -484,4 +484,4 @@ private:
     bool write_attempted = false;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

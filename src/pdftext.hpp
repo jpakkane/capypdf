@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 class PdfDrawContext;
 
@@ -290,4 +290,4 @@ private:
     std::vector<TextEvent> events;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

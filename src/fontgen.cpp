@@ -5,7 +5,7 @@
 #include <pdftext.hpp>
 #include <cmath>
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 void center_test() {
     u8string text = u8string::from_cstr("Centered text!").value();

@@ -5,7 +5,7 @@
 
 #include <pdfdocument.hpp>
 
-namespace capypdf {
+namespace capypdf::internal {
 
 class PdfWriter {
 public:
@@ -54,4 +54,4 @@ private:
     FILE *ofile = nullptr;
 };
 
-} // namespace capypdf
+} // namespace capypdf::internal

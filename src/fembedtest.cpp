@@ -4,7 +4,7 @@
 #include <pdfgen.hpp>
 #include <cmath>
 
-using namespace capypdf;
+using namespace capypdf::internal;
 
 void file_embed() {
     PdfGenerationData opts;
