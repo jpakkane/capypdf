@@ -178,6 +178,49 @@ private:
     std::unique_ptr<CapyPDF_DrawContext, DCDeleter> d;
 };
 
+class RasterImage {
+    friend class Generator;
+    friend class RasterImageBuilder;
+
+public:
+    CapyPDF_RasterImage *get() { return d.get(); }
+    const CapyPDF_RasterImage *get() const { return d.get(); }
+
+private:
+    RasterImage(CapyPDF_RasterImage *ri) { d.reset(ri); }
+
+    struct RIDeleter {
+        void operator()(CapyPDF_RasterImage *ri) {
+            auto rc = capy_raster_image_destroy(ri);
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_RasterImage, RIDeleter> d;
+};
+
+class RasterImageBuilder {
+public:
+    RasterImageBuilder() {
+        CapyPDF_RasterImageBuilder *rib;
+        CAPY_CPP_CHECK(capy_raster_image_builder_new(&rib));
+        d.reset(rib);
+    }
+
+    CapyPDF_RasterImageBuilder *get() { return d.get(); }
+    const CapyPDF_RasterImageBuilder *get() const { return d.get(); }
+
+private:
+    struct RIBDeleter {
+        void operator()(CapyPDF_RasterImageBuilder *rib) {
+            auto rc = capy_raster_image_builder_destroy(rib);
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_RasterImageBuilder, RIBDeleter> d;
+};
+
 class Generator {
 public:
     Generator(const char *filename, const PdfOptions &opt) {
@@ -192,7 +235,19 @@ public:
         return DrawContext(dc);
     }
 
-    void add_page(DrawContext &dc) { CAPY_CPP_CHECK(capy_generator_add_page(d.get(), dc.get())) }
+    void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(d.get(), dc.get()))}
+
+    CapyPDF_FontId load_font(const char *fname) {
+        CapyPDF_FontId fid;
+        CAPY_CPP_CHECK(capy_generator_load_font(d.get(), fname, &fid));
+        return fid;
+    }
+
+    RasterImage load_image(const char *fname) {
+        CapyPDF_RasterImage *im;
+        CAPY_CPP_CHECK(capy_generator_load_image(d.get(), fname, &im));
+        return RasterImage(im);
+    }
 
     void write() { CAPY_CPP_CHECK(capy_generator_write(d.get())); }
 
