@@ -50,6 +50,108 @@ private:
 };
 static_assert(sizeof(PdfOptions) == sizeof(void *));
 
+class PageProperties {
+public:
+    PageProperties() {
+        CapyPDF_PageProperties *prop;
+        CAPY_CPP_CHECK(capy_page_properties_new(&prop));
+        d.reset(prop);
+    }
+
+    void set_pagebox(CapyPDF_Page_Box boxtype, double x1, double y1, double x2, double y2) {
+        CAPY_CPP_CHECK(capy_page_properties_set_pagebox(d.get(), boxtype, x1, y1, x2, y2));
+    }
+
+    CapyPDF_PageProperties *get() { return d.get(); }
+    const CapyPDF_PageProperties *get() const { return d.get(); }
+
+private:
+    struct PropsDeleter {
+        void operator()(CapyPDF_PageProperties *opt) {
+            auto rc = capy_page_properties_destroy(opt); // Can't really do anything if this fails.
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_PageProperties, PropsDeleter> d;
+};
+
+class TextSequence {
+public:
+    TextSequence() {
+        CapyPDF_TextSequence *ts;
+        CAPY_CPP_CHECK(capy_text_sequence_new(&ts));
+        d.reset(ts);
+    }
+
+    void append_codepoint(uint32_t codepoint) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_codepoint(d.get(), codepoint));
+    }
+
+    CapyPDF_TextSequence *get() { return d.get(); }
+    const CapyPDF_TextSequence *get() const { return d.get(); }
+
+private:
+    struct TextSeqDeleter {
+        void operator()(CapyPDF_TextSequence *ts) {
+            auto rc = capy_text_sequence_destroy(ts);
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_TextSequence, TextSeqDeleter> d;
+};
+
+class Color {
+public:
+    Color() {
+        CapyPDF_Color *c;
+        CAPY_CPP_CHECK(capy_color_new(&c));
+        d.reset(c);
+    }
+
+    void set_rgb(double r, double g, double b) {
+        CAPY_CPP_CHECK(capy_color_set_rgb(d.get(), r, g, b));
+    }
+
+    CapyPDF_Color *get() { return d.get(); }
+    const CapyPDF_Color *get() const { return d.get(); }
+
+private:
+    struct ColorDeleter {
+        void operator()(CapyPDF_Color *c) {
+            auto rc = capy_color_destroy(c);
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_Color, ColorDeleter> d;
+};
+
+class GraphicsState {
+public:
+    GraphicsState() {
+        CapyPDF_GraphicsState *gs;
+        CAPY_CPP_CHECK(capy_graphics_state_new(&gs));
+        d.reset(gs);
+    }
+
+    void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(d.get(), value)); }
+
+    CapyPDF_GraphicsState *get() { return d.get(); }
+    const CapyPDF_GraphicsState *get() const { return d.get(); }
+
+private:
+    struct GSDeleter {
+        void operator()(CapyPDF_GraphicsState *gs) {
+            auto rc = capy_graphics_state_destroy(gs);
+            (void)rc;
+        }
+    };
+
+    std::unique_ptr<CapyPDF_GraphicsState, GSDeleter> d;
+};
+
 class DrawContext {
     friend class Generator;
 
