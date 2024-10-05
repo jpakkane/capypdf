@@ -239,18 +239,18 @@ class RoleId(ctypes.Structure):
 
 cfunc_types = (
 
-('capy_options_new', [ctypes.c_void_p]),
-('capy_options_destroy', [ctypes.c_void_p]),
-('capy_options_set_colorspace', [ctypes.c_void_p, enum_type]),
-('capy_options_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
-('capy_options_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_options_set_pdfx', [ctypes.c_void_p, enum_type]),
-('capy_options_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_options_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_doc_md_new', [ctypes.c_void_p]),
+('capy_doc_md_destroy', [ctypes.c_void_p]),
+('capy_doc_md_set_colorspace', [ctypes.c_void_p, enum_type]),
+('capy_doc_md_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
+('capy_doc_md_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_doc_md_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_doc_md_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_doc_md_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_doc_md_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_doc_md_set_pdfx', [ctypes.c_void_p, enum_type]),
+('capy_doc_md_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_doc_md_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
 
 ('capy_page_properties_new', [ctypes.c_void_p]),
 ('capy_page_properties_destroy', [ctypes.c_void_p]),
@@ -545,59 +545,59 @@ def to_array(ctype, array):
         raise CapyPDFException('Array value argument must be an list or tuple.')
     return (ctype * len(array))(*array), len(array)
 
-class Options:
+class DocumentMetadata:
     def __init__(self):
         opt = ctypes.c_void_p()
-        check_error(libfile.capy_options_new(ctypes.pointer(opt)))
+        check_error(libfile.capy_doc_md_new(ctypes.pointer(opt)))
         self._as_parameter_ = opt
 
     def __del__(self):
-        check_error(libfile.capy_options_destroy(self))
+        check_error(libfile.capy_doc_md_destroy(self))
 
     def set_colorspace(self, cs):
         if not isinstance(cs, DeviceColorspace):
             raise CapyPDFException('Argument not a device colorspace object.')
-        check_error(libfile.capy_options_set_colorspace(self, cs.value))
+        check_error(libfile.capy_doc_md_set_colorspace(self, cs.value))
 
     def set_title(self, title):
         if not isinstance(title, str):
             raise CapyPDFException('Title must be an Unicode string.')
-        check_error(libfile.capy_options_set_title(self, title.encode('UTF-8')))
+        check_error(libfile.capy_doc_md_set_title(self, title.encode('UTF-8')))
 
     def set_author(self, author):
         if not isinstance(author, str):
             raise CapyPDFException('Author must be an Unicode string.')
-        check_error(libfile.capy_options_set_author(self, author.encode('UTF-8')))
+        check_error(libfile.capy_doc_md_set_author(self, author.encode('UTF-8')))
 
     def set_creator(self, creator):
         if not isinstance(creator, str):
             raise CapyPDFException('Creator must be an Unicode string.')
-        check_error(libfile.capy_options_set_creator(self, creator.encode('UTF-8')))
+        check_error(libfile.capy_doc_md_set_creator(self, creator.encode('UTF-8')))
 
     def set_language(self, lang):
         if not isinstance(lang, str):
             raise CapyPDFException('Creator must be an Unicode string.')
-        check_error(libfile.capy_options_set_language(self, lang.encode('ASCII')))
+        check_error(libfile.capy_doc_md_set_language(self, lang.encode('ASCII')))
 
     def set_device_profile(self, colorspace, path):
-        check_error(libfile.capy_options_set_device_profile(self, colorspace.value, to_bytepath(path)))
+        check_error(libfile.capy_doc_md_set_device_profile(self, colorspace.value, to_bytepath(path)))
 
     def set_output_intent(self, identifier):
-        check_error(libfile.capy_options_set_output_intent(self, identifier.encode('utf-8')))
+        check_error(libfile.capy_doc_md_set_output_intent(self, identifier.encode('utf-8')))
 
     def set_pdfx(self, xtype):
         if not isinstance(xtype, PdfXType):
             raise CapyPDFException('Argument must be an PDF/X type.')
-        check_error(libfile.capy_options_set_pdfx(self, xtype.value))
+        check_error(libfile.capy_doc_md_set_pdfx(self, xtype.value))
 
     def set_default_page_properties(self, props):
         if not isinstance(props, PageProperties):
             raise CapyPDFException('Argument is not a PageProperties object.')
-        check_error(libfile.capy_options_set_default_page_properties(self, props))
+        check_error(libfile.capy_doc_md_set_default_page_properties(self, props))
 
     def set_tagged(self, is_tagged):
         tagint = 1 if is_tagged else 0
-        check_error(libfile.capy_options_set_tagged(self, tagint))
+        check_error(libfile.capy_doc_md_set_tagged(self, tagint))
 
 
 class PageProperties:
@@ -887,7 +887,7 @@ class Generator:
     def __init__(self, filename, options=None):
         file_name_bytes = to_bytepath(filename)
         if options is None:
-            options = Options()
+            options = DocumentMetadata()
         gptr = ctypes.c_void_p()
         check_error(libfile.capy_generator_new(file_name_bytes, options, ctypes.pointer(gptr)))
         self._as_parameter_ = gptr

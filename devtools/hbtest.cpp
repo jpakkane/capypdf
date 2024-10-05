@@ -150,7 +150,7 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
 }
 
 void hardcoded() {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("shapedtext.pdf", opts);
     PdfGen &gen = *genpop.g;
@@ -174,7 +174,7 @@ void hardcoded() {
 }
 
 void hardcoded2() {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
     opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("hbsmallcaps.pdf", opts);
@@ -203,7 +203,7 @@ void hardcoded2() {
 }
 
 void whole_shebang() {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.default_page_properties.mediabox = PdfRectangle(0, 0, 200, 200);
     opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("harfbuzz.pdf", opts);

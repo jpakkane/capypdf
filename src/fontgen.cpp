@@ -10,7 +10,7 @@ using namespace capypdf::internal;
 void center_test() {
     u8string text = u8string::from_cstr("Centered text!").value();
     const double pt = 12;
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.output_colorspace = CAPY_DEVICE_CS_GRAY;
     opts.default_page_properties.mediabox->x2 = 200;
     opts.default_page_properties.mediabox->y2 = 200;
@@ -38,7 +38,7 @@ void center_test() {
 }
 
 int test1(int argc, char **argv) {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     const char *regularfont;
     const char *italicfont;
@@ -223,7 +223,7 @@ int test1(int argc, char **argv) {
 }
 
 int test2(int argc, char **argv) {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     const char *regularfont;
     if(argc > 1) {

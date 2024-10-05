@@ -29,8 +29,8 @@ public:
     T *get() { return d.get(); }
     const T *get() const { return d.get(); }
 
-    operator T*() { return d.get(); }
-    operator const T*() const { return d.get(); }
+    operator T *() { return d.get(); }
+    operator const T *() const { return d.get(); }
 
 protected:
     std::unique_ptr<T, TDeleter> d;
@@ -40,17 +40,17 @@ protected:
 // would need to store a pointer to the function itself because it
 // needs to work with all functions that satisfy the prototype.
 struct OptionDeleter {
-    void operator()(CapyPDF_Options *opt) {
-        auto rc = capy_options_destroy(opt); // Can't really do anything if this fails.
+    void operator()(CapyPDF_DocumentMetadata *opt) {
+        auto rc = capy_doc_md_destroy(opt); // Can't really do anything if this fails.
         (void)rc;
     }
 };
 
-class PdfOptions : public CapyC<CapyPDF_Options, OptionDeleter> {
+class PdfOptions : public CapyC<CapyPDF_DocumentMetadata, OptionDeleter> {
 public:
     PdfOptions() {
-        CapyPDF_Options *opt;
-        CAPY_CPP_CHECK(capy_options_new(&opt));
+        CapyPDF_DocumentMetadata *opt;
+        CAPY_CPP_CHECK(capy_doc_md_new(&opt));
         d.reset(opt);
     }
 };

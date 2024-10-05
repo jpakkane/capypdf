@@ -7,7 +7,7 @@
 using namespace capypdf::internal;
 
 int draw_simple_form() {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Form XObject test").value();
@@ -109,7 +109,7 @@ void draw_circles(PdfDrawContext &ctx, CapyPDF_GraphicsStateId gsid) {
 
 int draw_group_doc() {
     // PDF 2.0 spec page 409.
-    PdfGenerationData opts;
+    DocumentMetadata opts;
 
     opts.default_page_properties.mediabox->x2 = 200;
     opts.default_page_properties.mediabox->y2 = 200;
@@ -152,7 +152,7 @@ int draw_group_doc() {
 
 int draw_transp_doc() {
     // PDF 2.0 spec page 409.
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     const char *icc_out =
         "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
 

@@ -164,8 +164,8 @@ struct IccInfo {
     int32_t num_channels;
 };
 
-struct PdfGenerationData {
-    PdfGenerationData() { default_page_properties.mediabox = PdfRectangle::a4(); }
+struct DocumentMetadata {
+    DocumentMetadata() { default_page_properties.mediabox = PdfRectangle::a4(); }
 
     PageProperties default_page_properties;
     u8string title;
@@ -311,7 +311,7 @@ typedef std::variant<CapyPDF_ImageColorspace, CapyPDF_IccColorSpaceId> ImageColo
 
 class PdfDocument {
 public:
-    static rvoe<PdfDocument> construct(const PdfGenerationData &d, PdfColorConverter cm);
+    static rvoe<PdfDocument> construct(const DocumentMetadata &d, PdfColorConverter cm);
 
     PdfDocument(PdfDocument &&o) = default;
 
@@ -408,7 +408,7 @@ public:
     rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_StructureType builtin_type);
 
 private:
-    PdfDocument(const PdfGenerationData &d, PdfColorConverter cm);
+    PdfDocument(const DocumentMetadata &d, PdfColorConverter cm);
     rvoe<NoReturnValue> init();
 
     int32_t add_object(ObjectType object);
@@ -450,7 +450,7 @@ private:
 
     rvoe<NoReturnValue> validate_format(const RasterImage &ri) const;
 
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     PdfColorConverter cm;
     std::vector<ObjectType> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.

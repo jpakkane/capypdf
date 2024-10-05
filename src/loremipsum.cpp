@@ -244,7 +244,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
 }
 
 int main() {
-    PdfGenerationData opts;
+    DocumentMetadata opts;
     opts.is_tagged = true;
     opts.lang = asciistring::from_cstr("en-US").value();
     GenPopper genpop("loremipsum.pdf", opts);

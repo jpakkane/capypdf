@@ -108,7 +108,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_text', 400, 400)
     def test_text(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -142,7 +142,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_image', 200, 200)
     def test_images(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -176,7 +176,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_path', 200, 200)
     def test_path(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -217,7 +217,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_textobj', 200, 200)
     def test_textobj(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -232,7 +232,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_kerning', 200, 200)
     def test_kerning(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -255,7 +255,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_shaping', 200, 200)
     def test_shaping(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -276,7 +276,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_shaping2', 200, 200)
     def test_shaping2(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -296,7 +296,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_smallcaps', 200, 200)
     def test_smallcaps(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -326,7 +326,7 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_lab', 200, 200)
     def test_lab(self, ofilename, w, h):
         from math import sin, cos
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -358,7 +358,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_gstate', 200, 200)
     def test_gstate(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -383,7 +383,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_icccolor', 200, 200)
     def test_icc(self, ofilename, w, h):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -402,7 +402,7 @@ class TestPDFCreation(unittest.TestCase):
 
     @cleanup('transitions.pdf')
     def test_transitions(self, ofilename):
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, 160, 90)
         opts.set_default_page_properties(props)
@@ -446,7 +446,7 @@ class TestPDFCreation(unittest.TestCase):
     @validate_image('python_rasterimage', 200, 200)
     def test_raster_image(self, ofilename, w, h):
         import zlib
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opts.set_default_page_properties(props)
@@ -478,7 +478,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_line_styles(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             with gen.page_draw_context() as ctx:
@@ -641,7 +641,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_shading_rgb(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             c1 = capypdf.Color()
@@ -719,7 +719,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_shading_gray(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.DeviceColorspace.Gray)
         with capypdf.Generator(ofilename, opt) as gen:
@@ -798,7 +798,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_shading_cmyk(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
         opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
@@ -880,7 +880,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_imagemask(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             artfile = image_dir / 'comic-lines.png'
@@ -920,7 +920,7 @@ class TestPDFCreation(unittest.TestCase):
         h = 200
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             # Destinations point to a page that does not exist when they
@@ -966,7 +966,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_separation(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
         opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
@@ -989,7 +989,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_blendmodes(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         params = capypdf.ImagePdfProperties()
         with capypdf.Generator(ofilename, opt) as gen:
@@ -1017,7 +1017,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_colorpattern(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             font = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
@@ -1056,7 +1056,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_annotate(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             ta = capypdf.Annotation.new_text_annotation('This is a text ännotation.')
@@ -1077,7 +1077,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_tagged(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_tagged(True)
         with capypdf.Generator(ofilename, opt) as gen:
@@ -1118,7 +1118,7 @@ class TestPDFCreation(unittest.TestCase):
     def test_customroles(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_tagged(True)
         with capypdf.Generator(ofilename, opt) as gen:
@@ -1155,7 +1155,7 @@ class TestPDFCreation(unittest.TestCase):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         prop.set_pagebox(capypdf.PageBox.Trim, bleed_size, bleed_size, w - 2*bleed_size, h - 2*bleed_size)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
             vctx = capypdf.FormXObjectDrawContext(gen, 1, cropmark_size)
@@ -1204,7 +1204,7 @@ class TestPDFCreation(unittest.TestCase):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         prop.set_pagebox(capypdf.PageBox.Trim, 1, 1, 198, 198)
-        opt = capypdf.Options()
+        opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         opt.set_colorspace(capypdf.DeviceColorspace.CMYK)
         opt.set_output_intent('Uncoated Fogra 29')

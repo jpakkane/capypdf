@@ -26,47 +26,48 @@ template<typename T> CapyPDF_EC conv_err(const rvoe<T> &rc) {
 
 } // namespace
 
-CapyPDF_EC capy_options_new(CapyPDF_Options **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Options *>(new PdfGenerationData());
+CapyPDF_EC capy_doc_md_new(CapyPDF_DocumentMetadata **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_DocumentMetadata *>(new DocumentMetadata());
     RETNOERR;
 }
 
-CapyPDF_EC capy_options_destroy(CapyPDF_Options *opt) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<PdfGenerationData *>(opt);
+CapyPDF_EC capy_doc_md_destroy(CapyPDF_DocumentMetadata *opt) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<DocumentMetadata *>(opt);
     RETNOERR;
 }
 
-CapyPDF_EC capy_options_set_title(CapyPDF_Options *opt, const char *utf8_title) CAPYPDF_NOEXCEPT {
+CapyPDF_EC capy_doc_md_set_title(CapyPDF_DocumentMetadata *opt,
+                                 const char *utf8_title) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_title);
     if(rc) {
-        reinterpret_cast<PdfGenerationData *>(opt)->title = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(opt)->title = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_author(CapyPDF_Options *opt,
-                                                  const char *utf8_author) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_author(CapyPDF_DocumentMetadata *opt,
+                                                 const char *utf8_author) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_author);
     if(rc) {
-        reinterpret_cast<PdfGenerationData *>(opt)->author = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(opt)->author = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_creator(CapyPDF_Options *opt,
-                                                   const char *utf8_creator) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_creator(CapyPDF_DocumentMetadata *opt,
+                                                  const char *utf8_creator) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_creator);
     if(rc) {
-        reinterpret_cast<PdfGenerationData *>(opt)->creator = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(opt)->creator = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_language(CapyPDF_Options *opt,
-                                                    const char *lang) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_language(CapyPDF_DocumentMetadata *opt,
+                                                   const char *lang) CAPYPDF_NOEXCEPT {
     auto rc = asciistring::from_cstr(lang);
     if(rc) {
-        reinterpret_cast<PdfGenerationData *>(opt)->lang = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(opt)->lang = std::move(rc.value());
     }
     return conv_err(rc);
 }
@@ -113,9 +114,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
-    CapyPDF_Options *opt, CapyPDF_DeviceColorspace cs, const char *profile_path) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_device_profile(CapyPDF_DocumentMetadata *opt,
+                                                         CapyPDF_DeviceColorspace cs,
+                                                         const char *profile_path)
+    CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
         opts->prof.rgb_profile_file = profile_path;
@@ -130,30 +133,30 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_device_profile(
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC
-capy_options_set_colorspace(CapyPDF_Options *opt, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_colorspace(CapyPDF_DocumentMetadata *opt,
+                                                     CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     opts->output_colorspace = cs;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_output_intent(CapyPDF_Options *opt,
-                                                         const char *identifier) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata *opt,
+                                                        const char *identifier) CAPYPDF_NOEXCEPT {
     CHECK_NULL(identifier);
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     opts->intent_condition_identifier = identifier;
     RETNOERR;
 }
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_pdfx(CapyPDF_Options *opt,
-                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *opt,
+                                               CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     opts->xtype = xtype;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_default_page_properties(
-    CapyPDF_Options *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_default_page_properties(
+    CapyPDF_DocumentMetadata *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     auto props = reinterpret_cast<const PageProperties *>(prop);
     if(!props->mediabox) {
         return conv_err(ErrorCode::MissingMediabox);
@@ -162,21 +165,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_default_page_properties(
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_options_set_tagged(CapyPDF_Options *opt,
-                                                  int32_t is_tagged) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_tagged(CapyPDF_DocumentMetadata *opt,
+                                                 int32_t is_tagged) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(is_tagged);
-    auto opts = reinterpret_cast<PdfGenerationData *>(opt);
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
     opts->is_tagged = is_tagged;
     RETNOERR;
 }
 
 CapyPDF_EC capy_generator_new(const char *filename,
-                              const CapyPDF_Options *options,
+                              const CapyPDF_DocumentMetadata *options,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_NULL(filename);
     CHECK_NULL(options);
     CHECK_NULL(out_ptr);
-    auto opts = reinterpret_cast<const PdfGenerationData *>(options);
+    auto opts = reinterpret_cast<const DocumentMetadata *>(options);
     auto rc = PdfGen::construct(filename, *opts);
     if(rc) {
         *out_ptr = reinterpret_cast<CapyPDF_Generator *>(rc.value().release());

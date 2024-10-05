@@ -38,7 +38,7 @@ DrawContextPopper::~DrawContextPopper() {
 }
 
 rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const std::filesystem::path &ofname,
-                                                const PdfGenerationData &d) {
+                                                const DocumentMetadata &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {

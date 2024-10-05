@@ -226,13 +226,13 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
-rvoe<PdfDocument> PdfDocument::construct(const PdfGenerationData &d, PdfColorConverter cm) {
+rvoe<PdfDocument> PdfDocument::construct(const DocumentMetadata &d, PdfColorConverter cm) {
     PdfDocument newdoc(d, std::move(cm));
     ERCV(newdoc.init());
     return std::move(newdoc);
 }
 
-PdfDocument::PdfDocument(const PdfGenerationData &d, PdfColorConverter cm)
+PdfDocument::PdfDocument(const DocumentMetadata &d, PdfColorConverter cm)
     : opts{d}, cm{std::move(cm)} {}
 
 rvoe<NoReturnValue> PdfDocument::init() {
