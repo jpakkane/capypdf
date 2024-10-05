@@ -353,7 +353,7 @@ public:
                                      CapyPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image, const ImagePDFProperties &params);
     rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImagePDFProperties &params);
-    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, CapyPDF_Image_Interpolation interpolate);
+    rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, const ImagePDFProperties &props);
 
     // Graphics states
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);

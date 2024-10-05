@@ -1114,8 +1114,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg,
-                                             CapyPDF_Image_Interpolation interpolate) {
+rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProperties &props) {
     std::string buf;
     std::format_to(std::back_inserter(buf),
                    R"(<<
@@ -1134,11 +1133,12 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg,
                    jpg.file_contents.length());
 
     // Auto means don't specify the interpolation
-    if(interpolate == CAPY_INTERPOLATION_PIXELATED) {
+    if(props.interp == CAPY_INTERPOLATION_PIXELATED) {
         buf += "  /Interpolate false\n";
-    } else if(interpolate == CAPY_INTERPOLATION_SMOOTH) {
+    } else if(props.interp == CAPY_INTERPOLATION_SMOOTH) {
         buf += "  /Interpolate true\n";
     }
+    // FIXME, add other properties too?
 
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});

@@ -81,9 +81,9 @@ rvoe<RasterImage> PdfGen::convert_image_to_cs(RasterImage image,
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,
-                                        CapyPDF_Image_Interpolation interpolate) {
+                                        const ImagePDFProperties &props) {
     ERC(jpg, load_jpg(fname));
-    return pdoc.embed_jpg(std::move(jpg), interpolate);
+    return pdoc.embed_jpg(std::move(jpg), props);
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {

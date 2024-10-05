@@ -148,7 +148,7 @@ class TestPDFCreation(unittest.TestCase):
         opts.set_default_page_properties(props)
         with capypdf.Generator(ofilename, opts) as g:
             params = capypdf.ImagePdfProperties()
-            bg_img = g.embed_jpg(image_dir / 'simple.jpg')
+            bg_img = g.embed_jpg(image_dir / 'simple.jpg', params)
             mono_img_ri = g.load_image(image_dir / '1bit_noalpha.png')
             mono_img = g.add_image(mono_img_ri, params)
             gray_img_ri = g.load_image(image_dir / 'gray_alpha.png')

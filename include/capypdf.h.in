@@ -434,7 +434,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
                                                    const char *fname,
-                                                   CapyPDF_Image_Interpolation interpolate,
+                                                   CapyPDF_ImagePdfProperties *props,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 // FIXME, specify whether to compress the file or not.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(

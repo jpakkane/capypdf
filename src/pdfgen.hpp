@@ -45,9 +45,8 @@ public:
     rvoe<NoReturnValue> write();
 
     rvoe<RasterImage> load_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_ImageId>
-    embed_jpg(const std::filesystem::path &fname,
-              CapyPDF_Image_Interpolation interpolate = CAPY_INTERPOLATION_AUTO);
+    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname,
+                                    const ImagePDFProperties &props);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
         return pdoc.embed_file(fname);
     }

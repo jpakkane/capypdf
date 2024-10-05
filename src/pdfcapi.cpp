@@ -220,10 +220,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
                                                    const char *fname,
-                                                   CapyPDF_Image_Interpolation interpolate,
+                                                   CapyPDF_ImagePdfProperties *props,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->embed_jpg(fname, interpolate);
+    auto *p = reinterpret_cast<ImagePDFProperties *>(props);
+    auto rc = g->embed_jpg(fname, *p);
     if(rc) {
         *out_ptr = rc.value();
     }
