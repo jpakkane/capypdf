@@ -47,15 +47,15 @@ struct OptionDeleter {
     }
 };
 
-class PdfOptions : public CapyC<CapyPDF_DocumentMetadata, OptionDeleter> {
+class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata, OptionDeleter> {
 public:
-    PdfOptions() {
-        CapyPDF_DocumentMetadata *opt;
-        CAPY_CPP_CHECK(capy_doc_md_new(&opt));
-        d.reset(opt);
+    DocumentMetadata() {
+        CapyPDF_DocumentMetadata *md;
+        CAPY_CPP_CHECK(capy_doc_md_new(&md));
+        d.reset(md);
     }
 };
-static_assert(sizeof(PdfOptions) == sizeof(void *));
+static_assert(sizeof(DocumentMetadata) == sizeof(void *));
 
 struct PropsDeleter {
     void operator()(CapyPDF_PageProperties *opt) {
@@ -197,9 +197,9 @@ struct GenDeleter {
 
 class Generator : public CapyC<CapyPDF_Generator, GenDeleter> {
 public:
-    Generator(const char *filename, const PdfOptions &opt) {
+    Generator(const char *filename, const DocumentMetadata &md) {
         CapyPDF_Generator *gen;
-        CAPY_CPP_CHECK(capy_generator_new(filename, opt, &gen));
+        CAPY_CPP_CHECK(capy_generator_new(filename, md, &gen));
         d.reset(gen);
     }
 

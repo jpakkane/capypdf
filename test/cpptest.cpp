@@ -17,8 +17,8 @@ int main() {
         return 1;
     }
 
-    capypdf::PdfOptions opt;
-    capypdf::Generator gen(fname, opt);
+    capypdf::DocumentMetadata md;
+    capypdf::Generator gen(fname, md);
     capypdf::DrawContext dc = gen.new_page_context();
     dc.cmd_rg(1.0, 0.1, 0.5);
     dc.cmd_re(100, 100, 200, 200);
