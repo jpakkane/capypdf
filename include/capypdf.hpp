@@ -8,6 +8,7 @@
 
 #include <capypdf.h>
 #include <memory>
+#include <stdexcept>
 
 #define CAPY_CPP_CHECK(funccall)                                                                   \
     {                                                                                              \
