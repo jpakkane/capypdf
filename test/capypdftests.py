@@ -6,7 +6,10 @@
 
 import unittest
 import os, sys, pathlib, shutil, subprocess
-import PIL.Image, PIL.ImageChops
+try:
+    import PIL.Image, PIL.ImageChops
+except ModuleNotFoundError:
+    sys.exit('PIL not found, test suite can not be run.')
 
 if shutil.which('gs') is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
