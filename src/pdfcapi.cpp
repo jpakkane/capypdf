@@ -923,7 +923,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequen
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
-                                                            double kern) CAPYPDF_NOEXCEPT {
+                                                            int32_t kern) CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
     auto rc = ts->append_kerning(kern);
     return conv_err(rc);
