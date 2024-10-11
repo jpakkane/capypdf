@@ -59,7 +59,7 @@ public:
                                           CapyPDF_Rendering_Intent ri) const;
     rvoe<CapyPDF_ImageId> add_image(RasterImage ri, const ImagePDFProperties &params);
 
-    ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.image_info.at(img_id.id).s; }
+    ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.get(img_id).s; }
 
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
                                                  const DeviceCMYKColor &fallback) {

@@ -130,7 +130,7 @@ std::string PdfDrawContext::build_resource_dict() {
             std::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
         }
         for(const auto &i : used_subset_fonts) {
-            const auto &bob = doc->font_objects.at(i.fid.id);
+            const auto &bob = doc->get(i.fid);
             std::format_to(resource_appender,
                            "    /SFont{}-{} {} 0 R\n",
                            bob.font_obj,
@@ -791,7 +791,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 std::format_to(app,
                                "{}/SFont{}-{} {} Tf\n{}[ ",
                                ind,
-                               doc->font_objects.at(current_subset_glyph.ss.fid.id).font_obj,
+                               doc->get(current_subset_glyph.ss.fid).font_obj,
                                current_subset_glyph.ss.subset_id,
                                current_pointsize,
                                ind);
@@ -848,7 +848,7 @@ rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
     if(text.empty()) {
         RETOK;
     }
-    FT_Face face = doc->fonts.at(doc->font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
+    FT_Face face = doc->fonts.at(doc->get(fid).font_index_tmp).fontdata.face.get();
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }
@@ -1042,7 +1042,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
 void PdfDrawContext::render_raw_glyph(
     uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y) {
-    auto &font_data = doc->font_objects.at(fid.id);
+    auto &font_data = doc->get(fid);
     // used_fonts.insert(font_data.font_obj);
 
     const auto font_glyph_id = doc->glyph_for_codepoint(
@@ -1075,7 +1075,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     if(glyphs.empty()) {
         RETOK;
     }
-    auto &font_data = doc->font_objects.at(fid.id);
+    auto &font_data = doc->get(fid);
     // FIXME, do per character.
     // const auto &bob =
     //    doc->font_objects.at(doc->get_subset_glyph(fid,

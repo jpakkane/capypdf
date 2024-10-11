@@ -622,7 +622,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
                        R"(  /Subtype /FileAttachment
   /FS {} 0 R
 )",
-                       doc.embedded_files[faa->fileid.id].filespec_obj);
+                       doc.get(faa->fileid).filespec_obj);
     } else if(auto ua = std::get_if<UriAnnotation>(&annotation.a.sub)) {
         auto uri_as_str = pdfstring_quote(ua->uri.sv());
         std::format_to(app,
@@ -636,7 +636,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
                        uri_as_str,
                        uri_as_str);
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
-        int32_t media_filespec = doc.embedded_files.at(sa->mediafile.id).filespec_obj;
+        int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {
             std::format_to(app,
                            R"(  /Subtype /Screen

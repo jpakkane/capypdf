@@ -165,7 +165,7 @@ PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsiz
         return 0;
     }
     double w = 0;
-    FT_Face face = pdoc.fonts.at(pdoc.font_objects.at(fid.id).font_index_tmp).fontdata.face.get();
+    FT_Face face = pdoc.fonts.at(pdoc.get(fid).font_index_tmp).fontdata.face.get();
     if(!face) {
         RETERR(BuiltinFontNotSupported);
     }

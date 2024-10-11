@@ -415,8 +415,8 @@ private:
 
     int32_t create_subnavigation(const std::vector<SubPageNavigation> &subnav);
 
-    int32_t image_object_number(CapyPDF_ImageId iid) { return image_info.at(iid.id).obj; }
-    int32_t font_object_number(CapyPDF_FontId fid) { return font_objects.at(fid.id).font_obj; }
+    int32_t image_object_number(CapyPDF_ImageId iid) { return get(iid).obj; }
+    int32_t font_object_number(CapyPDF_FontId fid) { return get(fid).font_obj; }
     int32_t separation_object_number(CapyPDF_SeparationId sid) {
         return separation_objects.at(sid.id);
     }
@@ -453,6 +453,14 @@ private:
     // Typed getters for less typing.
     IccInfo &get(CapyPDF_IccColorSpaceId id) { return icc_profiles.at(id.id); }
     const IccInfo &get(CapyPDF_IccColorSpaceId id) const { return icc_profiles.at(id.id); }
+    EmbeddedFileObject &get(CapyPDF_EmbeddedFileId id) { return embedded_files.at(id.id); }
+    const EmbeddedFileObject &get(CapyPDF_EmbeddedFileId id) const {
+        return embedded_files.at(id.id);
+    }
+    ImageInfo &get(CapyPDF_ImageId id) { return image_info.at(id.id); }
+    const ImageInfo &get(CapyPDF_ImageId id) const { return image_info.at(id.id); }
+    FontInfo &get(CapyPDF_FontId id) { return font_objects.at(id.id); }
+    const FontInfo &get(CapyPDF_FontId id) const { return font_objects.at(id.id); }
 
     DocumentMetadata opts;
     PdfColorConverter cm;

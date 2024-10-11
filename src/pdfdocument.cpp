@@ -1015,7 +1015,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
                              params,
                              image.alpha,
                              image.md.compression));
-        smask_id = image_info.at(imobj.id).obj;
+        smask_id = get(imobj).obj;
     }
     if(!image.icc_profile.empty()) {
         auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
