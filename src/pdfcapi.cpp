@@ -4,7 +4,7 @@
 #include <capypdf.h>
 #include <cstring>
 #include <pdfgen.hpp>
-#include <pdfdrawcontext.hpp>
+#include <drawcontext.hpp>
 #include <errorhandling.hpp>
 
 #define RETNOERR return (CapyPDF_EC)ErrorCode::NoError

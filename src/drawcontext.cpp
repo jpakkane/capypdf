@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
-#include <pdfdrawcontext.hpp>
+#include <drawcontext.hpp>
 #include <pdfgen.hpp>
 #include <ft2build.h>
 #include <string_view>

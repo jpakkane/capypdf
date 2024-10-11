@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <pdfdocument.hpp>
+#include <document.hpp>
 
 namespace capypdf::internal {
 

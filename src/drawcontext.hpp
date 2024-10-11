@@ -7,7 +7,7 @@
 #include <pdftext.hpp>
 #include <errorhandling.hpp>
 #include <pdfcolorconverter.hpp>
-#include <pdfdocument.hpp>
+#include <document.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>

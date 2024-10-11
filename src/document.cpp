@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
-#include <pdfdocument.hpp>
+#include <document.hpp>
 #include <utils.hpp>
-#include <pdfdrawcontext.hpp>
+#include <drawcontext.hpp>
 
 #include <cassert>
 #include <array>
