@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
-#include <pdfgen.hpp>
+#include <generator.hpp>
 #include <cmath>
 
 using namespace capypdf::internal;

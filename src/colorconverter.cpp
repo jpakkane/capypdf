@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
-#include <pdfcolorconverter.hpp>
+#include <colorconverter.hpp>
 #include <string_view>
 #include <utils.hpp>
 #include <expected>

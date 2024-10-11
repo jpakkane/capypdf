@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
-#include <pdfgen.hpp>
+#include <generator.hpp>
 #include <pdfwriter.hpp>
 #include <imagefileops.hpp>
 #include <utils.hpp>

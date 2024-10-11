@@ -2,7 +2,7 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <drawcontext.hpp>
-#include <pdfgen.hpp>
+#include <generator.hpp>
 #include <ft2build.h>
 #include <string_view>
 #include FT_FREETYPE_H

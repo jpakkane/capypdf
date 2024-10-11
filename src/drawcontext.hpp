@@ -6,7 +6,7 @@
 #include <pdfcommon.hpp>
 #include <pdftext.hpp>
 #include <errorhandling.hpp>
-#include <pdfcolorconverter.hpp>
+#include <colorconverter.hpp>
 #include <document.hpp>
 #include <string>
 #include <string_view>

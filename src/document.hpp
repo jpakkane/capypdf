@@ -7,7 +7,7 @@
 #include <optional>
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
-#include <pdfcolorconverter.hpp>
+#include <colorconverter.hpp>
 
 #include <string_view>
 #include <vector>

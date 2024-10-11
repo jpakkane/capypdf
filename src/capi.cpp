@@ -3,7 +3,7 @@
 
 #include <capypdf.h>
 #include <cstring>
-#include <pdfgen.hpp>
+#include <generator.hpp>
 #include <drawcontext.hpp>
 #include <errorhandling.hpp>
 
