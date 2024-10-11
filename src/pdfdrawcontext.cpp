@@ -679,7 +679,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool str
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const ICCColor &icc, bool stroke) {
     CHECK_INDEXNESS(icc.id.id, doc->icc_profiles);
-    const auto &icc_info = doc->icc_profiles.at(icc.id.id);
+    const auto &icc_info = doc->get(icc.id);
     if(icc_info.num_channels != (int32_t)icc.values.size()) {
         RETERR(IncorrectColorChannelCount);
     }

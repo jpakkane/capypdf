@@ -675,7 +675,7 @@ void PdfDocument::create_output_intent() {
 )",
                       "/GTS_PDFX",
                       pdfstring_quote(opts.intent_condition_identifier),
-                      icc_profiles.at(output_profile->id).stream_num);
+                      get(*output_profile).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, {}});
 }
 
@@ -1092,7 +1092,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
         if(auto cs = std::get_if<CapyPDF_ImageColorspace>(&colorspace)) {
             std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
-            const auto icc_obj = icc_profiles.at(icc->id).object_num;
+            const auto icc_obj = get(*icc).object_num;
             std::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");

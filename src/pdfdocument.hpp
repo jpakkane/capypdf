@@ -450,6 +450,10 @@ private:
 
     rvoe<NoReturnValue> validate_format(const RasterImage &ri) const;
 
+    // Typed getters for less typing.
+    IccInfo &get(CapyPDF_IccColorSpaceId id) { return icc_profiles.at(id.id); }
+    const IccInfo &get(CapyPDF_IccColorSpaceId id) const { return icc_profiles.at(id.id); }
+
     DocumentMetadata opts;
     PdfColorConverter cm;
     std::vector<ObjectType> document_objects;
