@@ -25,7 +25,35 @@ public:
     PdfException(const char *msg) : std::runtime_error(msg) {}
 };
 
-template<typename T, typename TDeleter> class CapyC {
+struct CapyCTypeDeleter {
+    template<typename T> void operator()(T *cobj) {
+        int32_t rc;
+        if constexpr(std::is_same_v<T, CapyPDF_DocumentMetadata>) {
+            rc = capy_doc_md_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_PageProperties>) {
+            rc = capy_page_properties_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_TextSequence>) {
+            rc = capy_text_sequence_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Color>) {
+            rc = capy_color_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_GraphicsState>) {
+            rc = capy_graphics_state_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_DrawContext>) {
+            rc = capy_dc_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_RasterImage>) {
+            rc = capy_raster_image_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_RasterImageBuilder>) {
+            rc = capy_raster_image_builder_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
+            rc = capy_generator_destroy(cobj);
+        } else {
+            static_assert(std::is_same_v<T, CapyPDF_DocumentMetadata>, "Unknown C object type.");
+        }
+        (void)rc; // Not much we can do about this because destructors should not fail or throw.
+    }
+};
+
+template<typename T> class CapyC {
 public:
     T *get() { return d.get(); }
     const T *get() const { return d.get(); }
@@ -34,20 +62,14 @@ public:
     operator const T *() const { return d.get(); }
 
 protected:
-    std::unique_ptr<T, TDeleter> d;
+    std::unique_ptr<T, CapyCTypeDeleter> d;
 };
 
 // Why a struct and not a function pointer? Because then the unique_ptr
 // would need to store a pointer to the function itself because it
 // needs to work with all functions that satisfy the prototype.
-struct OptionDeleter {
-    void operator()(CapyPDF_DocumentMetadata *opt) {
-        auto rc = capy_doc_md_destroy(opt); // Can't really do anything if this fails.
-        (void)rc;
-    }
-};
 
-class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata, OptionDeleter> {
+class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata> {
 public:
     DocumentMetadata() {
         CapyPDF_DocumentMetadata *md;
@@ -57,14 +79,7 @@ public:
 };
 static_assert(sizeof(DocumentMetadata) == sizeof(void *));
 
-struct PropsDeleter {
-    void operator()(CapyPDF_PageProperties *opt) {
-        auto rc = capy_page_properties_destroy(opt); // Can't really do anything if this fails.
-        (void)rc;
-    }
-};
-
-class PageProperties : public CapyC<CapyPDF_PageProperties, PropsDeleter> {
+class PageProperties : public CapyC<CapyPDF_PageProperties> {
 public:
     PageProperties() {
         CapyPDF_PageProperties *prop;
@@ -84,7 +99,7 @@ struct TextSeqDeleter {
     }
 };
 
-class TextSequence : public CapyC<CapyPDF_TextSequence, TextSeqDeleter> {
+class TextSequence : public CapyC<CapyPDF_TextSequence> {
 public:
     TextSequence() {
         CapyPDF_TextSequence *ts;
@@ -97,14 +112,7 @@ public:
     }
 };
 
-struct ColorDeleter {
-    void operator()(CapyPDF_Color *c) {
-        auto rc = capy_color_destroy(c);
-        (void)rc;
-    }
-};
-
-class Color : public CapyC<CapyPDF_Color, ColorDeleter> {
+class Color : public CapyC<CapyPDF_Color> {
 public:
     Color() {
         CapyPDF_Color *c;
@@ -117,14 +125,7 @@ public:
     }
 };
 
-struct GSDeleter {
-    void operator()(CapyPDF_GraphicsState *gs) {
-        auto rc = capy_graphics_state_destroy(gs);
-        (void)rc;
-    }
-};
-
-class GraphicsState : public CapyC<CapyPDF_GraphicsState, GSDeleter> {
+class GraphicsState : public CapyC<CapyPDF_GraphicsState> {
 public:
     GraphicsState() {
         CapyPDF_GraphicsState *gs;
@@ -135,14 +136,7 @@ public:
     void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(*this, value)); }
 };
 
-struct DCDeleter {
-    void operator()(CapyPDF_DrawContext *dc) {
-        auto rc = capy_dc_destroy(dc);
-        (void)rc;
-    }
-};
-
-class DrawContext : public CapyC<CapyPDF_DrawContext, DCDeleter> {
+class DrawContext : public CapyC<CapyPDF_DrawContext> {
     friend class Generator;
 
 public:
@@ -156,14 +150,7 @@ private:
     DrawContext(CapyPDF_DrawContext *dc) { d.reset(dc); }
 };
 
-struct RIDeleter {
-    void operator()(CapyPDF_RasterImage *ri) {
-        auto rc = capy_raster_image_destroy(ri);
-        (void)rc;
-    }
-};
-
-class RasterImage : public CapyC<CapyPDF_RasterImage, RIDeleter> {
+class RasterImage : public CapyC<CapyPDF_RasterImage> {
     friend class Generator;
     friend class RasterImageBuilder;
 
@@ -172,14 +159,7 @@ private:
     RasterImage(CapyPDF_RasterImage *ri) { d.reset(ri); }
 };
 
-struct RIBDeleter {
-    void operator()(CapyPDF_RasterImageBuilder *rib) {
-        auto rc = capy_raster_image_builder_destroy(rib);
-        (void)rc;
-    }
-};
-
-class RasterImageBuilder : public CapyC<CapyPDF_RasterImageBuilder, RIBDeleter> {
+class RasterImageBuilder : public CapyC<CapyPDF_RasterImageBuilder> {
 public:
     RasterImageBuilder() {
         CapyPDF_RasterImageBuilder *rib;
@@ -188,14 +168,7 @@ public:
     }
 };
 
-struct GenDeleter {
-    void operator()(CapyPDF_Generator *gen) {
-        auto rc = capy_generator_destroy(gen);
-        (void)rc;
-    }
-};
-
-class Generator : public CapyC<CapyPDF_Generator, GenDeleter> {
+class Generator : public CapyC<CapyPDF_Generator> {
 public:
     Generator(const char *filename, const DocumentMetadata &md) {
         CapyPDF_Generator *gen;
