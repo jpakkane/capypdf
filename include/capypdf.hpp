@@ -65,10 +65,6 @@ protected:
     std::unique_ptr<T, CapyCTypeDeleter> d;
 };
 
-// Why a struct and not a function pointer? Because then the unique_ptr
-// would need to store a pointer to the function itself because it
-// needs to work with all functions that satisfy the prototype.
-
 class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata> {
 public:
     DocumentMetadata() {
@@ -89,13 +85,6 @@ public:
 
     void set_pagebox(CapyPDF_Page_Box boxtype, double x1, double y1, double x2, double y2) {
         CAPY_CPP_CHECK(capy_page_properties_set_pagebox(*this, boxtype, x1, y1, x2, y2));
-    }
-};
-
-struct TextSeqDeleter {
-    void operator()(CapyPDF_TextSequence *ts) {
-        auto rc = capy_text_sequence_destroy(ts);
-        (void)rc;
     }
 };
 
@@ -147,7 +136,7 @@ public:
     void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(*this, r, g, b)); }
 
 private:
-    DrawContext(CapyPDF_DrawContext *dc) { d.reset(dc); }
+    explicit DrawContext(CapyPDF_DrawContext *dc) { d.reset(dc); }
 };
 
 class RasterImage : public CapyC<CapyPDF_RasterImage> {
