@@ -55,14 +55,14 @@ struct CapyCTypeDeleter {
 
 template<typename T> class CapyC {
 public:
-    T *get() { return d.get(); }
-    const T *get() const { return d.get(); }
+    T *get() { return _d.get(); }
+    const T *get() const { return _d.get(); }
 
-    operator T *() { return d.get(); }
-    operator const T *() const { return d.get(); }
+    operator T*() { return _d.get(); }
+    operator const T*() const { return _d.get(); }
 
 protected:
-    std::unique_ptr<T, CapyCTypeDeleter> d;
+    std::unique_ptr<T, CapyCTypeDeleter> _d;
 };
 
 class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata> {
@@ -70,7 +70,7 @@ public:
     DocumentMetadata() {
         CapyPDF_DocumentMetadata *md;
         CAPY_CPP_CHECK(capy_doc_md_new(&md));
-        d.reset(md);
+        _d.reset(md);
     }
 };
 static_assert(sizeof(DocumentMetadata) == sizeof(void *));
@@ -80,7 +80,7 @@ public:
     PageProperties() {
         CapyPDF_PageProperties *prop;
         CAPY_CPP_CHECK(capy_page_properties_new(&prop));
-        d.reset(prop);
+        _d.reset(prop);
     }
 
     void set_pagebox(CapyPDF_Page_Box boxtype, double x1, double y1, double x2, double y2) {
@@ -93,7 +93,7 @@ public:
     TextSequence() {
         CapyPDF_TextSequence *ts;
         CAPY_CPP_CHECK(capy_text_sequence_new(&ts));
-        d.reset(ts);
+        _d.reset(ts);
     }
 
     void append_codepoint(uint32_t codepoint) {
@@ -106,7 +106,7 @@ public:
     Color() {
         CapyPDF_Color *c;
         CAPY_CPP_CHECK(capy_color_new(&c));
-        d.reset(c);
+        _d.reset(c);
     }
 
     void set_rgb(double r, double g, double b) {
@@ -119,7 +119,7 @@ public:
     GraphicsState() {
         CapyPDF_GraphicsState *gs;
         CAPY_CPP_CHECK(capy_graphics_state_new(&gs));
-        d.reset(gs);
+        _d.reset(gs);
     }
 
     void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(*this, value)); }
@@ -129,14 +129,18 @@ class DrawContext : public CapyC<CapyPDF_DrawContext> {
     friend class Generator;
 
 public:
+    void cmd_cm(double a, double b, double c, double d, double e, double f) { CAPY_CPP_CHECK(capy_dc_cmd_cm(*this, a, b, c, d, e, f)); }
     void cmd_f() { CAPY_CPP_CHECK(capy_dc_cmd_f(*this)); }
     void cmd_re(double x, double y, double w, double h) {
         CAPY_CPP_CHECK(capy_dc_cmd_re(*this, x, y, w, h));
     }
     void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(*this, r, g, b)); }
 
+    void set_custom_page_properties(PageProperties const &props) {
+        CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));
+    }
 private:
-    explicit DrawContext(CapyPDF_DrawContext *dc) { d.reset(dc); }
+    explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
 };
 
 class RasterImage : public CapyC<CapyPDF_RasterImage> {
@@ -145,7 +149,7 @@ class RasterImage : public CapyC<CapyPDF_RasterImage> {
 
 public:
 private:
-    RasterImage(CapyPDF_RasterImage *ri) { d.reset(ri); }
+    RasterImage(CapyPDF_RasterImage *ri) { _d.reset(ri); }
 };
 
 class RasterImageBuilder : public CapyC<CapyPDF_RasterImageBuilder> {
@@ -153,7 +157,7 @@ public:
     RasterImageBuilder() {
         CapyPDF_RasterImageBuilder *rib;
         CAPY_CPP_CHECK(capy_raster_image_builder_new(&rib));
-        d.reset(rib);
+        _d.reset(rib);
     }
 };
 
@@ -162,7 +166,7 @@ public:
     Generator(const char *filename, const DocumentMetadata &md) {
         CapyPDF_Generator *gen;
         CAPY_CPP_CHECK(capy_generator_new(filename, md, &gen));
-        d.reset(gen);
+        _d.reset(gen);
     }
 
     DrawContext new_page_context() {
