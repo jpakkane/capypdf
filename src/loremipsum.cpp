@@ -243,7 +243,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
     CHCK(ctx.cmd_EMC());
 }
 
-int main() {
+int create_doc() {
     DocumentMetadata opts;
     opts.is_tagged = true;
     opts.lang = asciistring::from_cstr("en-US").value();
@@ -258,4 +258,12 @@ int main() {
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);
     return 0;
+}
+
+int main() {
+    try {
+        return create_doc();
+    } catch(const std::exception &e) {
+        fprintf(stderr, "Failed: %s\n", e.what());
+    }
 }
