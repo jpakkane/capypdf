@@ -181,6 +181,22 @@ class StructureType(Enum):
 
     Artifact = 46
 
+class PageLayout(Enum):
+    SinglePage = 0
+    OneColumn = 1
+    TwoColumnLeft = 2
+    TwoColumnRight = 3
+    TwoPageLeft = 4
+    TwoPageRight = 5
+
+class PageMode(Enum):
+    UseNone = 0
+    Outlines = 1
+    Thumbs = 2
+    FullScreen = 3
+    OC = 4
+    Attachments = 5
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
