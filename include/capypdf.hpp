@@ -112,6 +112,13 @@ public:
     void set_rgb(double r, double g, double b) {
         CAPY_CPP_CHECK(capy_color_set_rgb(*this, r, g, b));
     }
+    void set_cmyk(double c, double m, double y, double k) {
+        CAPY_CPP_CHECK(capy_color_set_cmyk(*this, c, m, y, k));
+    }
+    void set_icc(CapyPDF_IccColorSpaceId icc_id, double *values, int32_t num_values)
+    {
+        CAPY_CPP_CHECK(capy_color_set_icc(*this, icc_id, values, num_values));
+    }
 };
 
 class GraphicsState : public CapyC<CapyPDF_GraphicsState> {
@@ -122,19 +129,50 @@ public:
         _d.reset(gs);
     }
 
+    void set_BM(CapyPDF_Blend_Mode value) { CAPY_CPP_CHECK(capy_graphics_state_set_BM(*this, value)); }
     void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(*this, value)); }
+    void set_ca(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_ca(*this, value)); }
 };
 
 class DrawContext : public CapyC<CapyPDF_DrawContext> {
     friend class Generator;
 
 public:
+    void cmd_b() { CAPY_CPP_CHECK(capy_dc_cmd_b(*this)); }
+    void cmd_B() { CAPY_CPP_CHECK(capy_dc_cmd_B(*this)); }
+    void cmd_bstar() { CAPY_CPP_CHECK(capy_dc_cmd_bstar(*this)); }
+    void cmd_Bstar() { CAPY_CPP_CHECK(capy_dc_cmd_Bstar(*this)); }
+
+    void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) { CAPY_CPP_CHECK(capy_dc_cmd_c(*this, x1, y1, x2, y2, x3, y3)); }
     void cmd_cm(double a, double b, double c, double d, double e, double f) { CAPY_CPP_CHECK(capy_dc_cmd_cm(*this, a, b, c, d, e, f)); }
     void cmd_f() { CAPY_CPP_CHECK(capy_dc_cmd_f(*this)); }
+    void cmd_fstar() { CAPY_CPP_CHECK(capy_dc_cmd_fstar(*this)); }
+
+    void cmd_h() { CAPY_CPP_CHECK(capy_dc_cmd_h(*this)); }
+    void cmd_m(double x, double y) { CAPY_CPP_CHECK(capy_dc_cmd_m(*this, x, y)); }
+    void cmd_l(double x, double y) { CAPY_CPP_CHECK(capy_dc_cmd_l(*this, x, y)); }
+
+    void cmd_q() { CAPY_CPP_CHECK(capy_dc_cmd_q(*this)); }
+    void cmd_Q() { CAPY_CPP_CHECK(capy_dc_cmd_Q(*this)); }
+
     void cmd_re(double x, double y, double w, double h) {
         CAPY_CPP_CHECK(capy_dc_cmd_re(*this, x, y, w, h));
     }
     void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(*this, r, g, b)); }
+
+    void set_nonstroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_nonstroke(*this, color)); }
+    void set_stroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_stroke(*this, color)); }
+    void cmd_w(double value) { CAPY_CPP_CHECK(capy_dc_cmd_w(*this, value)); }
+    void cmd_M(double value) { CAPY_CPP_CHECK(capy_dc_cmd_M(*this, value)); }
+    void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_dc_cmd_j(*this, value)); }
+    void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_dc_cmd_J(*this, value)); }
+    void cmd_d(double *values, int32_t num_values, double offset) { CAPY_CPP_CHECK(capy_dc_cmd_d(*this, values, num_values, offset)); }
+    void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_dc_cmd_gs(*this, gsid)); }
+
+    void cmd_s() { CAPY_CPP_CHECK(capy_dc_cmd_s(*this)); }
+    void cmd_S() { CAPY_CPP_CHECK(capy_dc_cmd_S(*this)); }
+    void cmd_W() { CAPY_CPP_CHECK(capy_dc_cmd_W(*this)); }
+    void cmd_Wstar() { CAPY_CPP_CHECK(capy_dc_cmd_Wstar(*this)); }
 
     void set_custom_page_properties(PageProperties const &props) {
         CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));
@@ -181,6 +219,12 @@ public:
         CapyPDF_FontId fid;
         CAPY_CPP_CHECK(capy_generator_load_font(*this, fname, &fid));
         return fid;
+    }
+
+    CapyPDF_IccColorSpaceId load_icc_profile(const char *fname) {
+        CapyPDF_IccColorSpaceId cpid;
+        CAPY_CPP_CHECK(capy_generator_load_icc_profile(*this, fname, &cpid));
+        return cpid;
     }
 
     RasterImage load_image(const char *fname) {
