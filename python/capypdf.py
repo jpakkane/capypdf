@@ -497,33 +497,42 @@ cfunc_types = (
 
 )
 
-if sys.platform == 'win32':
-    libfile_name = 'capypdf-0.dll'
-elif sys.platform == 'darwin':
-    libfile_name = 'libcapypdf.0.dylib'
-else:
-    libfile_name = 'libcapypdf.so'
-libfile = None
+def locate_shared_lib():
+    if sys.platform == 'win32':
+        libfile_name = 'capypdf-0.dll'
+    elif sys.platform == 'darwin':
+        libfile_name = 'libcapypdf.0.dylib'
+    else:
+        libfile_name = 'libcapypdf.so'
+    libfile = None
 
-if 'CAPYPDF_SO_OVERRIDE' in os.environ:
-    libfile = ctypes.cdll.LoadLibrary(os.path.join(os.environ['CAPYPDF_SO_OVERRIDE'], libfile_name))
+    if 'CAPYPDF_SO_OVERRIDE' in os.environ:
+        libfile = ctypes.cdll.LoadLibrary(os.path.join(os.environ['CAPYPDF_SO_OVERRIDE'], libfile_name))
 
-if libfile is None:
-    try:
-        libfile = ctypes.cdll.LoadLibrary(libfile_name)
-    except (FileNotFoundError, OSError):
-        pass
+    if libfile is None:
+        try:
+            libfile = ctypes.cdll.LoadLibrary(libfile_name)
+        except (FileNotFoundError, OSError):
+            pass
 
-if libfile is None:
-    # Most likely a wheel installation with embedded libs.
-    from glob import glob
-    if 'site-packages' in __file__:
-        sdir = os.path.split(__file__)[0]
-        # Match libcapypdf.so.0.5.0 and similar names too
-        globber = os.path.join(sdir, '.*capypdf*', libfile_name + "*")
-        matches = glob(globber)
-        if len(matches) == 1:
-            libfile = ctypes.cdll.LoadLibrary(matches[0])
+    if libfile is None:
+        from glob import glob
+        if 'site-packages' in __file__:
+            # Most likely a wheel installation with embedded libs.
+            sdir = os.path.split(__file__)[0]
+            # Match libcapypdf.so.0.5.0 and similar names too
+            globber = os.path.join(sdir, '.*capypdf*', libfile_name + "*")
+            matches = glob(globber)
+            if len(matches) == 1:
+                libfile = ctypes.cdll.LoadLibrary(matches[0])
+        else:
+            # FIXME, system installation without the -dev package
+            # so that the file name is `libcapypdf.so.0.22.0
+            # or similar
+            pass
+    return libfile
+
+libfile = locate_shared_lib()
 
 if libfile is None:
     raise CapyPDFException('Could not locate shared library.')
