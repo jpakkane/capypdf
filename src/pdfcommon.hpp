@@ -430,9 +430,9 @@ extern const std::array<const char *, 4> rendering_intent_names;
 struct Transition {
     std::optional<CapyPDF_Transition_Type> type;
     std::optional<double> duration;
-    std::optional<CapyPDF_Transtion_Dimension> Dm; // true is horizontal
-    std::optional<CapyPDF_Transtion_Motion> M;     // true is inward
-    std::optional<int32_t> Di;                     // FIXME, turn into an enum and add none
+    std::optional<CapyPDF_Transition_Dimension> Dm; // true is horizontal
+    std::optional<CapyPDF_Transition_Motion> M;     // true is inward
+    std::optional<int32_t> Di;                      // FIXME, turn into an enum and add none
     std::optional<double> SS;
     std::optional<bool> B;
 };

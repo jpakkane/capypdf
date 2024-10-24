@@ -1164,15 +1164,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_D(CapyPDF_Transition *tr,
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Dm(CapyPDF_Transition *tr,
-                                                 CapyPDF_Transtion_Dimension dim) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_transition_set_Dm(CapyPDF_Transition *tr, CapyPDF_Transition_Dimension dim) CAPYPDF_NOEXCEPT {
     auto pt = reinterpret_cast<Transition *>(tr);
     pt->Di = dim;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_M(CapyPDF_Transition *tr,
-                                                CapyPDF_Transtion_Motion m) CAPYPDF_NOEXCEPT {
+                                                CapyPDF_Transition_Motion m) CAPYPDF_NOEXCEPT {
     auto pt = reinterpret_cast<Transition *>(tr);
     pt->M = m;
     RETNOERR;

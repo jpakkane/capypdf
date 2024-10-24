@@ -129,9 +129,9 @@ typedef enum {
     CAPY_TR_FADE,
 } CapyPDF_Transition_Type;
 
-typedef enum { CAPY_TR_DIM_H, CAPY_TR_DIM_V } CapyPDF_Transtion_Dimension;
+typedef enum { CAPY_TR_DIM_H, CAPY_TR_DIM_V } CapyPDF_Transition_Dimension;
 
-typedef enum { CAPY_TR_M_I, CAPY_TR_M_O } CapyPDF_Transtion_Motion;
+typedef enum { CAPY_TR_M_I, CAPY_TR_M_O } CapyPDF_Transition_Motion;
 
 typedef enum {
     CAPY_BOX_MEDIA,
@@ -761,9 +761,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_S(CapyPDF_Transition *tr,
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_D(CapyPDF_Transition *tr,
                                                 double duration) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Dm(CapyPDF_Transition *tr,
-                                                 CapyPDF_Transtion_Dimension dim) CAPYPDF_NOEXCEPT;
+                                                 CapyPDF_Transition_Dimension dim) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_M(CapyPDF_Transition *tr,
-                                                CapyPDF_Transtion_Motion m) CAPYPDF_NOEXCEPT;
+                                                CapyPDF_Transition_Motion m) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Di(CapyPDF_Transition *tr,
                                                  uint32_t direction) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_SS(CapyPDF_Transition *tr,
