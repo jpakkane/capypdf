@@ -1202,6 +1202,45 @@ class TestPDFCreation(unittest.TestCase):
 
                 # The other corners would go here, but I'm lazy.
 
+    @validate_image('python_transparency_groups', 200, 200)
+    def test_transparency_groups(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.DocumentMetadata()
+        opt.set_default_page_properties(prop)
+
+        with capypdf.Generator(ofilename, opt) as gen:
+
+            # Test transparency painting within transparency group
+            gstate = capypdf.GraphicsState()
+            gstate.set_CA(0.5)
+            gstate.set_ca(0.9)
+            gsid = gen.add_graphics_state(gstate)
+
+            # This is the actual transparency for the whole group
+            pstate = capypdf.GraphicsState()
+            pstate.set_ca(0.5)
+            psid = gen.add_graphics_state(pstate)
+
+
+            with gen.page_draw_context() as page:
+                ctx = capypdf.TransparencyGroupDrawContext(gen, -100, -100, 100, 100)
+
+                # Transformation tests to locality of the transparency group's drawing context
+                ctx.cmd_cm(1, 0, 0, 1, -100, -100)
+                ctx.cmd_gs(gsid)
+                ctx.cmd_w(5)
+                ctx.cmd_rg(0, 0, 0)
+                ctx.cmd_RG(1, 0, 0)
+                ctx.cmd_re(15, 15, 175, 175)
+                ctx.cmd_b() # paint both
+                tid = gen.add_transparency_group(ctx)
+                del ctx
+
+                page.cmd_cm(1, 0, 0, 1, 100, 100)
+                page.cmd_gs(psid)
+                page.cmd_Do(tid)
+
     @validate_image('python_pdfx3', 200, 200)
     def test_pdfx3(self, ofilename, w, h):
         prop = capypdf.PageProperties()

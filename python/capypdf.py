@@ -246,6 +246,9 @@ class EmbeddedFileId(ctypes.Structure):
 class FormXObjectId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class TransparencyGroupId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 class StructureItemId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
@@ -276,6 +279,7 @@ cfunc_types = (
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_form_xobject', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -314,6 +318,7 @@ cfunc_types = (
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_d', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int32, ctypes.c_double]),
+('capy_dc_cmd_Do', [ctypes.c_void_p, TransparencyGroupId]),
 ('capy_dc_cmd_EMC', [ctypes.c_void_p]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
@@ -358,6 +363,8 @@ cfunc_types = (
 
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('capy_transparency_group_extra_new', [ctypes.c_void_p]),
 
 ('capy_text_sequence_new', [ctypes.c_void_p]),
 ('capy_text_sequence_append_codepoint', [ctypes.c_void_p, ctypes.c_uint32]),
@@ -683,6 +690,11 @@ class DrawContextBase:
     def cmd_d(self, array, phase):
         check_error(libfile.capy_dc_cmd_d(self, *to_array(ctypes.c_double, array), phase))
 
+    def cmd_Do(self, tgid):
+        if not isinstance(tgid, TransparencyGroupId):
+            raise CapyPDFException('Argument must be a transparency group id.')
+        check_error(libfile.capy_dc_cmd_Do(self, tgid))
+
     def cmd_EMC(self):
         check_error(libfile.capy_dc_cmd_EMC(self))
 
@@ -882,6 +894,17 @@ class FormXObjectDrawContext(DrawContextBase):
         check_error(libfile.capy_form_xobject_new(generator, w, h, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
 
+class TransparencyGroupDrawContext(DrawContextBase):
+
+    def __init__(self, generator, left, bottom, right, top):
+        super().__init__(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.capy_transparency_group_new(generator, left, bottom, right, top, ctypes.pointer(dcptr)))
+        self._as_parameter_ = dcptr
+        # Extra options include directly
+        self._optptr = ctypes.c_void_p()
+        check_error(libfile.capy_transparency_group_extra_new(ctypes.pointer(self._optptr)))
+
 
 class StateContextManager:
     def __init__(self, ctx):
@@ -943,6 +966,11 @@ class Generator:
         fxid = FormXObjectId()
         check_error(libfile.capy_generator_add_form_xobject(self, fxo_ctx, ctypes.pointer(fxid)))
         return fxid
+
+    def add_transparency_group(self, tg_ctx):
+        tgid = TransparencyGroupId()
+        check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, tg_ctx._optptr, ctypes.pointer(tgid)))
+        return tgid
 
     def add_color_pattern(self, pattern_ctx):
         pid = PatternId()

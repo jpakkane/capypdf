@@ -44,6 +44,8 @@ struct CapyCTypeDeleter {
             rc = capy_raster_image_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_RasterImageBuilder>) {
             rc = capy_raster_image_builder_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_TransparencyGroupExtra>) {
+            rc = capy_transparency_group_extra_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
         } else {
@@ -176,6 +178,7 @@ public:
     void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_dc_cmd_j(*this, value)); }
     void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_dc_cmd_J(*this, value)); }
     void cmd_d(double *values, int32_t num_values, double offset) { CAPY_CPP_CHECK(capy_dc_cmd_d(*this, values, num_values, offset)); }
+    void cmd_Do(CapyPDF_TransparencyGroupId tgid) { CAPY_CPP_CHECK(capy_dc_cmd_Do(*this, tgid)); }
     void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_dc_cmd_gs(*this, gsid)); }
 
     void cmd_s() { CAPY_CPP_CHECK(capy_dc_cmd_s(*this)); }
@@ -205,6 +208,15 @@ public:
         CapyPDF_RasterImageBuilder *rib;
         CAPY_CPP_CHECK(capy_raster_image_builder_new(&rib));
         _d.reset(rib);
+    }
+};
+
+class TransparencyGroupExtra : public CapyC<CapyPDF_TransparencyGroupExtra> {
+public:
+    TransparencyGroupExtra() {
+        CapyPDF_TransparencyGroupExtra *tge;
+        CAPY_CPP_CHECK(capy_transparency_group_extra_new(&tge));
+        _d.reset(tge);
     }
 };
 
@@ -246,6 +258,12 @@ public:
         CapyPDF_GraphicsStateId gsid;
         CAPY_CPP_CHECK(capy_generator_add_graphics_state(*this, gstate, &gsid));
         return gsid;
+    }
+
+    CapyPDF_TransparencyGroupId add_transparency_group(DrawContext &dc, TransparencyGroupExtra &opt) {
+        CapyPDF_TransparencyGroupId tgid;
+        CAPY_CPP_CHECK(capy_generator_add_transparency_group(*this, dc, opt, &tgid));
+        return tgid;
     }
 
     void write() { CAPY_CPP_CHECK(capy_generator_write(*this)); }
