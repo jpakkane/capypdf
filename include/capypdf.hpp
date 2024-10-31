@@ -130,8 +130,12 @@ public:
     }
 
     void set_BM(CapyPDF_Blend_Mode value) { CAPY_CPP_CHECK(capy_graphics_state_set_BM(*this, value)); }
-    void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(*this, value)); }
     void set_ca(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_ca(*this, value)); }
+    void set_CA(double value) { CAPY_CPP_CHECK(capy_graphics_state_set_CA(*this, value)); }
+    void set_op(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_op(*this, value)); }
+    void set_OP(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OP(*this, value)); }
+    void set_OPM(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OPM(*this, value)); }
+    void set_TK(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_TK(*this, value)); }
 };
 
 class DrawContext : public CapyC<CapyPDF_DrawContext> {
@@ -148,7 +152,11 @@ public:
     void cmd_f() { CAPY_CPP_CHECK(capy_dc_cmd_f(*this)); }
     void cmd_fstar() { CAPY_CPP_CHECK(capy_dc_cmd_fstar(*this)); }
 
+    void cmd_g(double g) { CAPY_CPP_CHECK(capy_dc_cmd_g(*this, g)); }
+    void cmd_G(double g) { CAPY_CPP_CHECK(capy_dc_cmd_G(*this, g)); }
     void cmd_h() { CAPY_CPP_CHECK(capy_dc_cmd_h(*this)); }
+    void cmd_k(double c, double m, double y, double k) { CAPY_CPP_CHECK(capy_dc_cmd_k(*this, c, m, y, k)); }
+    void cmd_K(double c, double m, double y, double k) { CAPY_CPP_CHECK(capy_dc_cmd_K(*this, c, m, y, k)); }
     void cmd_m(double x, double y) { CAPY_CPP_CHECK(capy_dc_cmd_m(*this, x, y)); }
     void cmd_l(double x, double y) { CAPY_CPP_CHECK(capy_dc_cmd_l(*this, x, y)); }
 
@@ -159,6 +167,7 @@ public:
         CAPY_CPP_CHECK(capy_dc_cmd_re(*this, x, y, w, h));
     }
     void cmd_rg(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_rg(*this, r, g, b)); }
+    void cmd_RG(double r, double g, double b) { CAPY_CPP_CHECK(capy_dc_cmd_RG(*this, r, g, b)); }
 
     void set_nonstroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_nonstroke(*this, color)); }
     void set_stroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_stroke(*this, color)); }
@@ -231,6 +240,12 @@ public:
         CapyPDF_RasterImage *im;
         CAPY_CPP_CHECK(capy_generator_load_image(*this, fname, &im));
         return RasterImage(im);
+    }
+
+    CapyPDF_GraphicsStateId add_graphics_state(GraphicsState const &gstate) {
+        CapyPDF_GraphicsStateId gsid;
+        CAPY_CPP_CHECK(capy_generator_add_graphics_state(*this, gstate, &gsid));
+        return gsid;
     }
 
     void write() { CAPY_CPP_CHECK(capy_generator_write(*this)); }
