@@ -314,6 +314,7 @@ typedef struct _capyPDF_PageProperties CapyPDF_PageProperties;
 typedef struct _capyPDF_Text CapyPDF_Text;
 typedef struct _capyPDF_TextSequence CapyPDF_TextSequence;
 typedef struct _capyPDF_Transition CapyPDF_Transition;
+typedef struct _capyPDF_TransparencyGroupExtra CapyPDF_TransparencyGroupExtra;
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_RasterImageBuilder CapyPDF_RasterImageBuilder;
 typedef struct _capyPDF_Type2Function CapyPDF_Type2Function;
@@ -448,6 +449,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_transparency_group(CapyPDF_Generator *gen,
+                                                                CapyPDF_DrawContext *ctx,
+                                                                const CapyPDF_TransparencyGroupExtra *opt,
+                                                                CapyPDF_TransparencyGroupId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
@@ -587,6 +593,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
                                         double *dash_array,
                                         int32_t array_size,
                                         double phase) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do(CapyPDF_DrawContext *ctx,
+                                        CapyPDF_TransparencyGroupId tgid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_f(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_fstar(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
@@ -673,6 +681,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 double w,
                                                 double h,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
+
+// Transparency Groups.
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(CapyPDF_Generator *gen,
+                                                      double l,
+                                                      double b,
+                                                      double r,
+                                                      double t,
+                                                      CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 
 // Color Pattern
 
@@ -795,6 +812,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *sta
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
+    CAPYPDF_NOEXCEPT;
+
+// Transparency group
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_extra_new(CapyPDF_TransparencyGroupExtra **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_extra_destroy(CapyPDF_TransparencyGroupExtra *opt)
     CAPYPDF_NOEXCEPT;
 
 // Raster images

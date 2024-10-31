@@ -210,6 +210,22 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_transparency_group(CapyPDF_Generator *gen,
+                                                                CapyPDF_DrawContext *ctx,
+                                                                const CapyPDF_TransparencyGroupExtra *opt,
+                                                                CapyPDF_TransparencyGroupId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto *ex = reinterpret_cast<TransparencyGroupExtra const *>(opt);
+
+    auto rc = g->add_transparency_group(*dc, ex);
+    if (rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *gen, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -633,6 +649,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
     return conv_err(dc->cmd_d(dash_array, array_size, phase));
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do(CapyPDF_DrawContext *ctx,
+                                        CapyPDF_TransparencyGroupId tgid) CAPYPDF_NOEXCEPT {
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_Do(tgid));
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(dc->cmd_EMC());
@@ -899,6 +921,18 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
     *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_form_xobject(w, h));
     RETNOERR;
 }
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(CapyPDF_Generator *gen,
+                                                      double l,
+                                                      double b,
+                                                      double r,
+                                                      double t,
+                                                      CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_transparency_group(l, b, r, t));
+    RETNOERR;
+}
+
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
                                                          CapyPDF_DrawContext **out_ptr,
@@ -1287,6 +1321,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<GraphicsState *>(state);
+    RETNOERR;
+}
+
+// Transparency Groups.
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_extra_new(CapyPDF_TransparencyGroupExtra **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_TransparencyGroupExtra *>(new TransparencyGroupExtra());
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_extra_destroy(CapyPDF_TransparencyGroupExtra *ex)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<TransparencyGroupExtra *>(ex);
     RETNOERR;
 }
 

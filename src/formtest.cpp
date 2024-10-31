@@ -125,16 +125,16 @@ int draw_group_doc() {
     // "non-stroke".
     auto gsid = gen.add_graphics_state(gs).value();
     {
-        auto groupctx = gen.new_transparency_group(100, 100);
-        groupctx.cmd_w(10);
-        groupctx.cmd_rg(0.9, 0.1, 0.1);
-        groupctx.cmd_RG(0.1, 0.9, 0.2);
-        groupctx.cmd_re(0, 0, 100, 100);
-        groupctx.cmd_b();
+        std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(0, 0, 100, 100)};
+        groupctx->cmd_w(10);
+        groupctx->cmd_rg(0.9, 0.1, 0.1);
+        groupctx->cmd_RG(0.1, 0.9, 0.2);
+        groupctx->cmd_re(0, 0, 100, 100);
+        groupctx->cmd_b();
         TransparencyGroupExtra ex;
         //        ex.I = false;
         //        ex.K = true;
-        tgid = gen.add_transparency_group(groupctx, &ex).value();
+        tgid = gen.add_transparency_group(*groupctx, &ex).value();
     }
     {
         auto ctxguard = gen.guarded_page_context();
@@ -194,45 +194,45 @@ int draw_transp_doc() {
             ctx.render_pdfdoc_text_builtin("Knockout", CAPY_FONT_HELVETICA, 8, 100, 5);
             ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
             {
-                auto groupctx = gen.new_transparency_group(80, 80);
-                draw_circles(groupctx, gsid);
+                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
                 ex.K = true;
-                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
+                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 20);
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(80, 80);
-                draw_circles(groupctx, gsid);
+                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
                 ex.K = true;
-                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
+                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 110);
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(80, 80);
-                draw_circles(groupctx, gsid);
+                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
                 ex.K = false;
-                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
+                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 20);
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(80, 80);
-                draw_circles(groupctx, gsid);
+                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
                 ex.K = false;
-                auto tgid = gen.add_transparency_group(groupctx, &ex).value();
+                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 110);
                 ctx.cmd_Do(tgid);

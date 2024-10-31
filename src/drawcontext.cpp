@@ -20,7 +20,11 @@ GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
 PdfDrawContext::PdfDrawContext(
     PdfDocument *doc, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h)
-    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), w{w}, h{h} {}
+    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), right{w}, top{h} {}
+
+PdfDrawContext::PdfDrawContext(
+    PdfDocument *doc, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double l, double b, double r, double t)
+    : doc(doc), cm(cm), context_type{dtype}, cmd_appender(commands), left{l}, bottom{b}, right{r}, top{t} {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
@@ -36,10 +40,10 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
   /Length {}
 >>
 )",
-            0.0,
-            0.0,
-            w,
-            h,
+            left,
+            bottom,
+            right,
+            top,
             resource_dict,
             commands.size());
         return SerializedXObject{std::move(dict), commands};
@@ -49,7 +53,7 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) 
   /Subtype /Form
 )";
         auto app = std::back_inserter(dict);
-        std::format_to(app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", 0.0, 0.0, w, h);
+        std::format_to(app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", left, bottom, right, top);
         dict += R"(  /Group <<
     /S /Transparency
 )";

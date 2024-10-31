@@ -116,8 +116,8 @@ public:
         return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
     }
 
-    PdfDrawContext new_transparency_group(double w, double h) {
-        return PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, w, h);
+    PdfDrawContext *new_transparency_group(double l, double b, double r, double t) {
+        return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, l, b, r, t);
     }
 
     PdfDrawContext new_color_pattern_builder(double w, double h);
