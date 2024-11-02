@@ -77,6 +77,7 @@ enum class ErrorCode : int32_t {
 
     ImageFormatNotPermitted,
     InvalidPageNumber,
+    NonSequentialPageNumber,
     EmptyTitle,
     WrongDCForTransp,
     WrongDCForMatrix,

@@ -25,6 +25,14 @@ const std::array<const char *, 3> colorspace_names{
     "/DeviceCMYK",
 };
 
+const std::array<const char, 5> page_label_types{
+    'D', // Decimal
+    'R', // Roman Upper
+    'r', // Roman Lower
+    'A', // Letter Upper
+    'a', // Letter Lower
+};
+
 namespace {
 
 constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreSzNTczkc9d"?>
@@ -368,6 +376,19 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     RETOK;
 }
 
+rvoe<NoReturnValue>
+PdfDocument::add_page_labeling(uint32_t start_page,
+                               std::optional<CapyPDF_Page_Label_Number_Style> style,
+                               std::optional<u8string> prefix,
+                               std::optional<uint32_t> start_num) {
+    if(!page_labels.empty() && page_labels.back().start_page < start_page) {
+        RETERR(NonSequentialPageNumber);
+    }
+    page_labels.emplace_back(start_page, style, std::move(prefix), start_num);
+    return NoReturnValue{};
+}
+
+// Form XObjects
 void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
     const auto xobj_num = add_object(FullPDFObject{std::move(xobj_dict), std::move(xobj_stream)});
 
@@ -620,6 +641,30 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
   /Pages {} 0 R
 )",
                    pages_object);
+
+    if(!page_labels.empty()) {
+        buf += R"(  /PageLabels
+    << /Nums [
+)";
+        for(const auto &page_label : page_labels) {
+            std::format_to(app, R"(      {} <<)", page_label.start_page);
+            if(page_label.style) {
+                std::format_to(app, "        /S {}\n", page_label_types.at(*page_label.style));
+            }
+            if(page_label.prefix) {
+                std::format_to(
+                    app, "        /P {}\n", utf8_to_pdfutf16be(*page_label.prefix).c_str());
+            }
+            if(page_label.start_num) {
+                std::format_to(app, "        /St {}\n", *page_label.start_num);
+            }
+            buf += R"(>>
+)";
+        }
+        buf += R"(    ]
+  >>
+)";
+    }
     if(!outline.empty()) {
         buf += outline;
     }
