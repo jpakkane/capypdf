@@ -70,6 +70,8 @@ struct PageProperties {
 
     std::optional<double> user_unit;
 
+    std::optional<TransparencyGroupProperties> transparency_props;
+
     PageProperties merge_with(const PageProperties &o) const {
         PageProperties result = *this;
         if(o.mediabox) {
@@ -90,6 +92,10 @@ struct PageProperties {
 
         if(o.user_unit) {
             result.user_unit = o.user_unit;
+        }
+
+        if(o.transparency_props) {
+            result.transparency_props = o.transparency_props;
         }
 
         return result;
@@ -385,7 +391,7 @@ public:
     // Annotations.
     rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
 
-    // Structure items
+    // Structure itemsconst std::array<const char *, 3> colorspace_names
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
                                                      std::optional<CapyPDF_StructureItemId> parent,
                                                      std::optional<StructItemExtraData> extra);
@@ -397,8 +403,7 @@ public:
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);
 
     // Transparency groups
-    rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
-                                                             const TransparencyGroupProperties *ex);
+    rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx);
 
     std::optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;
@@ -444,7 +449,6 @@ private:
                                            CapyPDF_Compression compression);
 
     rvoe<NoReturnValue> generate_info_object();
-    int32_t create_page_group();
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
 
@@ -492,7 +496,6 @@ private:
     std::optional<int32_t> structure_root_object;
     std::optional<int32_t> structure_parent_tree_object;
     int32_t pages_object;
-    int32_t page_group_object;
     bool write_attempted = false;
 };
 

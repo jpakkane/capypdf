@@ -77,6 +77,23 @@ public:
 };
 static_assert(sizeof(DocumentMetadata) == sizeof(void *));
 
+class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
+public:
+    TransparencyGroupProperties() {
+        CapyPDF_TransparencyGroupProperties *tge;
+        CAPY_CPP_CHECK(capy_transparency_group_properties_new(&tge));
+        _d.reset(tge);
+    }
+
+    void set_CS(CapyPDF_DeviceColorspace cs) {
+        CAPY_CPP_CHECK(capy_transparency_group_properties_set_CS(*this, cs));
+    }
+
+    void set_I(bool I) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_I(*this, I)); }
+
+    void set_K(bool K) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_K(*this, K)); }
+};
+
 class PageProperties : public CapyC<CapyPDF_PageProperties> {
 public:
     PageProperties() {
@@ -87,6 +104,10 @@ public:
 
     void set_pagebox(CapyPDF_Page_Box boxtype, double x1, double y1, double x2, double y2) {
         CAPY_CPP_CHECK(capy_page_properties_set_pagebox(*this, boxtype, x1, y1, x2, y2));
+    }
+
+    void set_transparency_group_properties(TransparencyGroupProperties &trprop) {
+        CAPY_CPP_CHECK(capy_page_properties_set_transparency_group_properties(*this, trprop));
     }
 };
 
@@ -201,6 +222,10 @@ public:
         CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));
     }
 
+    void set_transparency_group_properties(TransparencyGroupProperties &trprop) {
+        CAPY_CPP_CHECK(capy_dc_set_transparency_group_properties(*this, trprop));
+    }
+
 private:
     explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
 };
@@ -221,23 +246,6 @@ public:
         CAPY_CPP_CHECK(capy_raster_image_builder_new(&rib));
         _d.reset(rib);
     }
-};
-
-class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
-public:
-    TransparencyGroupProperties() {
-        CapyPDF_TransparencyGroupProperties *tge;
-        CAPY_CPP_CHECK(capy_transparency_group_properties_new(&tge));
-        _d.reset(tge);
-    }
-
-    void set_CS(CapyPDF_DeviceColorspace cs) {
-        CAPY_CPP_CHECK(capy_transparency_group_properties_set_CS(*this, cs));
-    }
-
-    void set_I(bool I) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_I(*this, I)); }
-
-    void set_K(bool K) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_K(*this, K)); }
 };
 
 class Generator : public CapyC<CapyPDF_Generator> {
@@ -280,10 +288,9 @@ public:
         return gsid;
     }
 
-    CapyPDF_TransparencyGroupId add_transparency_group(DrawContext &dc,
-                                                       TransparencyGroupProperties &opt) {
+    CapyPDF_TransparencyGroupId add_transparency_group(DrawContext &dct) {
         CapyPDF_TransparencyGroupId tgid;
-        CAPY_CPP_CHECK(capy_generator_add_transparency_group(*this, dc, opt, &tgid));
+        CAPY_CPP_CHECK(capy_generator_add_transparency_group(*this, dct, &tgid));
         return tgid;
     }
 

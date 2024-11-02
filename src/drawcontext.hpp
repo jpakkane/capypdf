@@ -76,7 +76,7 @@ public:
                    CapyPDF_Draw_Context_Type dtype,
                    const PdfRectangle &area);
     ~PdfDrawContext();
-    DCSerialization serialize(const TransparencyGroupProperties *trinfo = nullptr);
+    DCSerialization serialize();
 
     PdfDrawContext() = delete;
     PdfDrawContext(const PdfDrawContext &) = delete;
@@ -241,6 +241,8 @@ public:
     const PageProperties &get_custom_props() const { return custom_props; }
 
     rvoe<NoReturnValue> set_custom_page_properties(const PageProperties &new_props);
+
+    rvoe<NoReturnValue> set_transparency_properties(const TransparencyGroupProperties &props);
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,

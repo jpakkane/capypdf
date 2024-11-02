@@ -279,7 +279,7 @@ cfunc_types = (
 ('capy_generator_new', [ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_form_xobject', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -359,6 +359,7 @@ cfunc_types = (
 ('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_text_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_annotate', [ctypes.c_void_p, AnnotationId]),
+('capy_dc_set_transparency_group_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
@@ -648,6 +649,10 @@ class PageProperties:
     def set_pagebox(self, boxtype, x1, y1, x2, y2):
         check_error(libfile.capy_page_properties_set_pagebox(self, boxtype.value, x1, y1, x2, y2))
 
+    def set_transparency_group_properties(self, trgroup):
+        if not isinstance(trgroup, TransparencyGroupProperties):
+            raise CapyPDFException('Argument must be transparency group proprerty object.')
+        check_error(libfile.capy_page_properties_set_transparency_group_properties(self, trgroup))
 
 class DrawContextBase:
 
@@ -844,6 +849,11 @@ class DrawContextBase:
     def rotate(self, angle):
         self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
 
+    def set_transparency_group_properties(self, props):
+        if not isinstance(props, TransparencyGroupProperties):
+            raise CapyPDFException('Argument must be a transparency group property object.')
+        check_error(libfile.capy_dc_set_transparency_group_properties(self, props))
+
 class DrawContext(DrawContextBase):
 
     def __init__(self, generator):
@@ -898,14 +908,14 @@ class FormXObjectDrawContext(DrawContextBase):
         check_error(libfile.capy_form_xobject_new(generator, w, h, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
 
-class TransparencyGroupParameters():
+class TransparencyGroupProperties():
     def __init__(self):
         cptr = ctypes.c_void_p()
         check_error(libfile.capy_transparency_group_properties_new(ctypes.pointer(cptr)))
         self._as_parameter_ = cptr
 
     def __del__(self):
-        check_error(libfile.capy_transparency_group_parameters_destroy(self))
+        check_error(libfile.capy_transparency_group_properties_destroy(self))
 
     def set_CS(self, cspace):
         check_error(libfile.capy_transparency_group_properties_set_CS(self, cspace.value))
@@ -986,9 +996,9 @@ class Generator:
         check_error(libfile.capy_generator_add_form_xobject(self, fxo_ctx, ctypes.pointer(fxid)))
         return fxid
 
-    def add_transparency_group(self, tg_ctx, params):
+    def add_transparency_group(self, tg_ctx):
         tgid = TransparencyGroupId()
-        check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, params, ctypes.pointer(tgid)))
+        check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, ctypes.pointer(tgid)))
         return tgid
 
     def add_color_pattern(self, pattern_ctx):

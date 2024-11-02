@@ -30,7 +30,7 @@ PdfDrawContext::PdfDrawContext(PdfDocument *doc,
 
 PdfDrawContext::~PdfDrawContext() {}
 
-DCSerialization PdfDrawContext::serialize(const TransparencyGroupProperties *trinfo) {
+DCSerialization PdfDrawContext::serialize() {
     auto resource_dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
         std::string dict = std::format(
@@ -57,20 +57,12 @@ DCSerialization PdfDrawContext::serialize(const TransparencyGroupProperties *tri
         auto app = std::back_inserter(dict);
         std::format_to(
             app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", bbox.x1, bbox.y1, bbox.x2, bbox.y2);
-        dict += R"(  /Group <<
-    /S /Transparency
-)";
-        if(trinfo) {
-            if(trinfo->I) {
-                std::format_to(app, "    /I {}\n", *trinfo->I ? "true" : "false");
-            }
-            if(trinfo->K) {
-                std::format_to(app, "    /K {}\n", *trinfo->K ? "true" : "false");
-            }
+        if(custom_props.transparency_props) {
+            dict += "  /Group ";
+            custom_props.transparency_props->serialize(app, "  ");
         }
         std::format_to(app,
-                       R"(  >>
-  /Resources {}
+                       R"(  /Resources {}
   /Length {}
 >>
 )",
@@ -1185,6 +1177,18 @@ rvoe<NoReturnValue> PdfDrawContext::set_custom_page_properties(const PagePropert
     }
     custom_props = new_props;
     return NoReturnValue{};
+}
+
+rvoe<NoReturnValue>
+PdfDrawContext::set_transparency_properties(const TransparencyGroupProperties &props) {
+    if(!(context_type == CAPY_DC_PAGE || context_type == CAPY_DC_TRANSPARENCY_GROUP)) {
+        RETERR(WrongDCForTransp);
+    }
+    // This is not the greatest solution, but store the value in
+    // page properties even for a transparency group as we already have it.
+    // Having two variables for the same thing would be more confusing.
+    custom_props.transparency_props = props;
+    return NoReturnValue();
 }
 
 rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {

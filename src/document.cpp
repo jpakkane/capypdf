@@ -7,7 +7,6 @@
 
 #include <cassert>
 #include <array>
-#include <map>
 #include <bit>
 #include <filesystem>
 #include <algorithm>
@@ -19,6 +18,12 @@
 #include FT_OPENTYPE_VALIDATE_H
 
 namespace capypdf::internal {
+
+const std::array<const char *, 3> colorspace_names{
+    "/DeviceRGB",
+    "/DeviceGray",
+    "/DeviceCMYK",
+};
 
 namespace {
 
@@ -78,12 +83,6 @@ const std::array<const char *, 16> blend_mode_names{
     "Saturation",
     "Color",
     "Luminosity",
-};
-
-const std::array<const char *, 3> colorspace_names{
-    "/DeviceRGB",
-    "/DeviceGray",
-    "/DeviceCMYK",
 };
 
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
@@ -262,7 +261,6 @@ rvoe<NoReturnValue> PdfDocument::init() {
         output_profile = store_icc_profile(cm.get_cmyk(), 4);
         break;
     }
-    page_group_object = create_page_group();
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
     if(opts.xtype) {
@@ -275,16 +273,6 @@ rvoe<NoReturnValue> PdfDocument::init() {
         create_output_intent();
     }
     return NoReturnValue{};
-}
-
-int32_t PdfDocument::create_page_group() {
-    std::string buf = std::format(R"(<<
-  /S /Transparency
-  /CS {}
->>
-)",
-                                  colorspace_names.at((int)opts.output_colorspace));
-    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
@@ -1503,15 +1491,14 @@ PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
     return CapyPDF_OptionalContentGroupId{(int32_t)ocg_items.size() - 1};
 }
 
-rvoe<CapyPDF_TransparencyGroupId>
-PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroupProperties *ex) {
+rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != CAPY_DC_TRANSPARENCY_GROUP) {
         RETERR(InvalidDrawContextType);
     }
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto sc_var = ctx.serialize(ex);
+    auto sc_var = ctx.serialize();
     auto &d = std::get<SerializedXObject>(sc_var);
     auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
     transparency_groups.push_back(objid);

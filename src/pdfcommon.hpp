@@ -55,6 +55,8 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 namespace capypdf::internal {
 
 extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
+extern const std::array<const char *, 3> colorspace_names;
+extern const std::array<const char *, 4> rendering_intent_names;
 
 // Does not check if the given buffer is valid UTF-8.
 // If it is not, UB ensues.
@@ -425,8 +427,6 @@ struct FontSubset {
     bool operator!=(const FontSubset &other) const { return !(*this == other); }
 };
 
-extern const std::array<const char *, 4> rendering_intent_names;
-
 struct Transition {
     std::optional<CapyPDF_Transition_Type> type;
     std::optional<double> duration;
@@ -449,6 +449,8 @@ struct TransparencyGroupProperties {
     std::optional<CapyPDF_DeviceColorspace> CS;
     std::optional<bool> I;
     std::optional<bool> K;
+
+    void serialize(std::back_insert_iterator<std::string> &app, const char *indent) const;
 };
 
 struct SubPageNavigation {
