@@ -218,6 +218,19 @@ public:
         CAPY_CPP_CHECK(capy_transparency_group_properties_new(&tge));
         _d.reset(tge);
     }
+
+    void set_CS(CapyPDF_DeviceColorspace cs) {
+        CAPY_CPP_CHECK(capy_transparency_group_properties_set_CS(*this, cs));
+    }
+
+    void set_I(bool I) {
+        CAPY_CPP_CHECK(capy_transparency_group_properties_set_I(*this, I));
+    }
+
+    void set_K(bool K) {
+        CAPY_CPP_CHECK(capy_transparency_group_properties_set_K(*this, K));
+    }
+
 };
 
 class Generator : public CapyC<CapyPDF_Generator> {

@@ -1330,6 +1330,29 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_CS(
+    CapyPDF_TransparencyGroupProperties *props, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
+    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    p->CS = cs;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_I(
+    CapyPDF_TransparencyGroupProperties *props, int32_t I) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(I);
+    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    p->I = I;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
+    CapyPDF_TransparencyGroupProperties *props, int32_t K) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(K);
+    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    p->K = K;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
     CapyPDF_TransparencyGroupProperties *ex) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<TransparencyGroupProperties *>(ex);

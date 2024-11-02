@@ -815,6 +815,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
     CapyPDF_TransparencyGroupProperties **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_CS(
+    CapyPDF_TransparencyGroupProperties *props, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_I(
+    CapyPDF_TransparencyGroupProperties *props, int32_t I) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
+    CapyPDF_TransparencyGroupProperties *props, int32_t K) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
     CapyPDF_TransparencyGroupProperties *opt) CAPYPDF_NOEXCEPT;
 

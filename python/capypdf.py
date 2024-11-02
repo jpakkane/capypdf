@@ -365,6 +365,9 @@ cfunc_types = (
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_properties_new', [ctypes.c_void_p]),
+('capy_transparency_group_properties_set_CS', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_transparency_group_properties_set_K', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_transparency_group_properties_set_I', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_transparency_group_properties_destroy', [ctypes.c_void_p]),
 
 ('capy_text_sequence_new', [ctypes.c_void_p]),
@@ -903,6 +906,16 @@ class TransparencyGroupParameters():
 
     def __del__(self):
         check_error(libfile.capy_transparency_group_parameters_destroy(self))
+
+    def set_CS(self, cspace):
+        check_error(libfile.capy_transparency_group_properties_set_CS(self, cspace.value))
+
+    def set_I(self, I):
+        check_error(libfile.capy_transparency_group_properties_set_I(self, int(I)))
+
+    def set_K(self, cspace):
+        check_error(libfile.capy_transparency_group_properties_set_K(self, int(K)))
+
 
 class TransparencyGroupDrawContext(DrawContextBase):
 

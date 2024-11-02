@@ -444,8 +444,9 @@ struct OptionalContentGroup {
 };
 
 struct TransparencyGroupProperties {
-    // Additional values in transparency group dictionary.
-    // std::string cs?
+    // This should eventually be a variant of some sort,
+    // because the mixing colorspace can be an ICC one.
+    std::optional<CapyPDF_DeviceColorspace> CS;
     std::optional<bool> I;
     std::optional<bool> K;
 };
