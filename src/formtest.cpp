@@ -196,7 +196,7 @@ int draw_transp_doc() {
             ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                auto groupctx = gen.new_transparency_group(bbox);
+                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
@@ -208,7 +208,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                auto groupctx = gen.new_transparency_group(bbox);
+                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
@@ -220,7 +220,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                auto groupctx = gen.new_transparency_group(bbox);
+                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
@@ -232,7 +232,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                auto groupctx = gen.new_transparency_group(bbox);
+                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
