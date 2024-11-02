@@ -8,6 +8,7 @@
 
 #include <capypdf.h>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string_view>
 
@@ -571,6 +572,17 @@ public:
         CapyPDF_DrawContext *dc;
         CAPY_CPP_CHECK(capy_tiling_pattern_context_new(*this, &dc, l, b, r, t));
         return DrawContext(dc);
+    }
+
+    void add_page_labeling(uint32_t start_page,
+                           std::optional<CapyPDF_Page_Label_Number_Style> style,
+                           std::optional<std::string> prefix,
+                           std::optional<uint32_t> page_num) {
+        CAPY_CPP_CHECK(capy_generator_add_page_labeling(*this,
+                                                        start_page,
+                                                        style ? &*style : nullptr,
+                                                        prefix ? prefix->c_str() : nullptr,
+                                                        page_num ? &(*page_num) : nullptr));
     }
 
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}

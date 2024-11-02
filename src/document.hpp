@@ -41,6 +41,13 @@ struct PageOffsets {
     int32_t page_obj_num;
 };
 
+struct PageLabel {
+    uint32_t start_page;
+    std::optional<CapyPDF_Page_Label_Number_Style> style;
+    std::optional<u8string> prefix;
+    std::optional<uint32_t> start_num;
+};
+
 struct ImageSize {
     uint32_t w;
     uint32_t h;
@@ -347,6 +354,11 @@ public:
                                  const std::optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);
 
+    rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
+                                          std::optional<CapyPDF_Page_Label_Number_Style> style,
+                                          std::optional<u8string> prefix,
+                                          std::optional<uint32_t> start_num);
+
     // Form XObjects
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
@@ -492,6 +504,7 @@ private:
     PdfColorConverter cm;
     std::vector<ObjectType> document_objects;
     std::vector<PageOffsets> pages; // Refers to object num.
+    std::vector<PageLabel> page_labels;
     std::vector<ImageInfo> image_info;
     std::unordered_map<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
     std::vector<FontInfo> font_objects;
