@@ -132,7 +132,7 @@ int draw_group_doc() {
         groupctx->cmd_RG(0.1, 0.9, 0.2);
         groupctx->cmd_re(0, 0, 100, 100);
         groupctx->cmd_b();
-        TransparencyGroupExtra ex;
+        TransparencyGroupProperties ex;
         //        ex.I = false;
         //        ex.K = true;
         tgid = gen.add_transparency_group(*groupctx, &ex).value();
@@ -198,7 +198,7 @@ int draw_transp_doc() {
                 PdfRectangle bbox{0, 0, 80, 80};
                 std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
-                TransparencyGroupExtra ex;
+                TransparencyGroupProperties ex;
                 ex.I = false;
                 ex.K = true;
                 auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
@@ -210,7 +210,7 @@ int draw_transp_doc() {
                 PdfRectangle bbox{0, 0, 80, 80};
                 std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
-                TransparencyGroupExtra ex;
+                TransparencyGroupProperties ex;
                 ex.I = true;
                 ex.K = true;
                 auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
@@ -222,7 +222,7 @@ int draw_transp_doc() {
                 PdfRectangle bbox{0, 0, 80, 80};
                 std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
-                TransparencyGroupExtra ex;
+                TransparencyGroupProperties ex;
                 ex.I = false;
                 ex.K = false;
                 auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
@@ -234,7 +234,7 @@ int draw_transp_doc() {
                 PdfRectangle bbox{0, 0, 80, 80};
                 std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
-                TransparencyGroupExtra ex;
+                TransparencyGroupProperties ex;
                 ex.I = true;
                 ex.K = false;
                 auto tgid = gen.add_transparency_group(*groupctx, &ex).value();

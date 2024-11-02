@@ -443,7 +443,7 @@ struct OptionalContentGroup {
     //  Usage usage;
 };
 
-struct TransparencyGroupExtra {
+struct TransparencyGroupProperties {
     // Additional values in transparency group dictionary.
     // std::string cs?
     std::optional<bool> I;

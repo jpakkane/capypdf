@@ -213,11 +213,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
-                                      const CapyPDF_TransparencyGroupExtra *opt,
+                                      const CapyPDF_TransparencyGroupProperties *opt,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto *ex = reinterpret_cast<TransparencyGroupExtra const *>(opt);
+    auto *ex = reinterpret_cast<TransparencyGroupProperties const *>(opt);
 
     auto rc = g->add_transparency_group(*dc, ex);
     if(rc) {
@@ -1323,15 +1323,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *sta
 
 // Transparency Groups.
 
-CAPYPDF_PUBLIC CapyPDF_EC
-capy_transparency_group_extra_new(CapyPDF_TransparencyGroupExtra **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_TransparencyGroupExtra *>(new TransparencyGroupExtra());
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
+    CapyPDF_TransparencyGroupProperties **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr =
+        reinterpret_cast<CapyPDF_TransparencyGroupProperties *>(new TransparencyGroupProperties());
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_extra_destroy(CapyPDF_TransparencyGroupExtra *ex)
-    CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<TransparencyGroupExtra *>(ex);
+CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
+    CapyPDF_TransparencyGroupProperties *ex) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<TransparencyGroupProperties *>(ex);
     RETNOERR;
 }
 

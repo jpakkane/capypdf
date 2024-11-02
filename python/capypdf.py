@@ -364,7 +364,8 @@ cfunc_types = (
 ('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
-('capy_transparency_group_extra_new', [ctypes.c_void_p]),
+('capy_transparency_group_properties_new', [ctypes.c_void_p]),
+('capy_transparency_group_properties_destroy', [ctypes.c_void_p]),
 
 ('capy_text_sequence_new', [ctypes.c_void_p]),
 ('capy_text_sequence_append_codepoint', [ctypes.c_void_p, ctypes.c_uint32]),
@@ -894,6 +895,15 @@ class FormXObjectDrawContext(DrawContextBase):
         check_error(libfile.capy_form_xobject_new(generator, w, h, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
 
+class TransparencyGroupParameters():
+    def __init__(self):
+        cptr = ctypes.c_void_p()
+        check_error(libfile.capy_transparency_group_properties_new(ctypes.pointer(cptr)))
+        self._as_parameter_ = cptr
+
+    def __del__(self):
+        check_error(libfile.capy_transparency_group_parameters_destroy(self))
+
 class TransparencyGroupDrawContext(DrawContextBase):
 
     def __init__(self, generator, left, bottom, right, top):
@@ -901,10 +911,6 @@ class TransparencyGroupDrawContext(DrawContextBase):
         dcptr = ctypes.c_void_p()
         check_error(libfile.capy_transparency_group_new(generator, left, bottom, right, top, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
-        # Extra options include directly
-        self._optptr = ctypes.c_void_p()
-        check_error(libfile.capy_transparency_group_extra_new(ctypes.pointer(self._optptr)))
-
 
 class StateContextManager:
     def __init__(self, ctx):
@@ -967,9 +973,9 @@ class Generator:
         check_error(libfile.capy_generator_add_form_xobject(self, fxo_ctx, ctypes.pointer(fxid)))
         return fxid
 
-    def add_transparency_group(self, tg_ctx):
+    def add_transparency_group(self, tg_ctx, params):
         tgid = TransparencyGroupId()
-        check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, tg_ctx._optptr, ctypes.pointer(tgid)))
+        check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, params, ctypes.pointer(tgid)))
         return tgid
 
     def add_color_pattern(self, pattern_ctx):

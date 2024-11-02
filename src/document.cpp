@@ -1504,7 +1504,7 @@ PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
 }
 
 rvoe<CapyPDF_TransparencyGroupId>
-PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroupExtra *ex) {
+PdfDocument::add_transparency_group(PdfDrawContext &ctx, const TransparencyGroupProperties *ex) {
     if(ctx.draw_context_type() != CAPY_DC_TRANSPARENCY_GROUP) {
         RETERR(InvalidDrawContextType);
     }

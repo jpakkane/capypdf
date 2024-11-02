@@ -30,7 +30,7 @@ PdfDrawContext::PdfDrawContext(PdfDocument *doc,
 
 PdfDrawContext::~PdfDrawContext() {}
 
-DCSerialization PdfDrawContext::serialize(const TransparencyGroupExtra *trinfo) {
+DCSerialization PdfDrawContext::serialize(const TransparencyGroupProperties *trinfo) {
     auto resource_dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
         std::string dict = std::format(

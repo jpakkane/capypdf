@@ -398,7 +398,7 @@ public:
 
     // Transparency groups
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
-                                                             const TransparencyGroupExtra *ex);
+                                                             const TransparencyGroupProperties *ex);
 
     std::optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;

@@ -1222,9 +1222,9 @@ class TestPDFCreation(unittest.TestCase):
             pstate.set_ca(0.5)
             psid = gen.add_graphics_state(pstate)
 
-
             with gen.page_draw_context() as page:
                 ctx = capypdf.TransparencyGroupDrawContext(gen, -100, -100, 100, 100)
+                tr_params = capypdf.TransparencyGroupParameters()
 
                 # Transformation tests to locality of the transparency group's drawing context
                 ctx.cmd_cm(1, 0, 0, 1, -100, -100)
@@ -1234,7 +1234,7 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_RG(1, 0, 0)
                 ctx.cmd_re(15, 15, 175, 175)
                 ctx.cmd_b() # paint both
-                tid = gen.add_transparency_group(ctx)
+                tid = gen.add_transparency_group(ctx, tr_params)
                 del ctx
 
                 page.cmd_cm(1, 0, 0, 1, 100, 100)
