@@ -496,12 +496,17 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
                    R"(<<
   /Type /Page
   /Parent {} 0 R
-  /Group {} 0 R
   /LastModified {}
 )",
                    doc.pages_object,
-                   doc.page_group_object,
                    current_date_string());
+    if(dp.custom_props.transparency_props) {
+        buf += "  /Group ";
+        dp.custom_props.transparency_props->serialize(buf_append, "  ");
+    } else if(doc.opts.default_page_properties.transparency_props) {
+        buf += "  /Group ";
+        doc.opts.default_page_properties.transparency_props->serialize(buf_append, "  ");
+    }
     PageProperties current_props = doc.opts.default_page_properties.merge_with(dp.custom_props);
     write_rectangle(buf_append, "MediaBox", *current_props.mediabox);
 

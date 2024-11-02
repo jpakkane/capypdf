@@ -114,6 +114,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties(
+    CapyPDF_PageProperties *pageprop,
+    CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT {
+    auto *page = reinterpret_cast<PageProperties *>(pageprop);
+    auto *tr = reinterpret_cast<TransparencyGroupProperties *>(trprop);
+    page->transparency_props = *tr;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_device_profile(CapyPDF_DocumentMetadata *opt,
                                                          CapyPDF_DeviceColorspace cs,
                                                          const char *profile_path)
@@ -213,13 +222,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
-                                      const CapyPDF_TransparencyGroupProperties *opt,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto *ex = reinterpret_cast<TransparencyGroupProperties const *>(opt);
 
-    auto rc = g->add_transparency_group(*dc, ex);
+    auto rc = g->add_transparency_group(*dc);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -885,6 +892,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *ctx,
     return conv_err(dc->annotate(aid));
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_transparency_group_properties(
+    CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT {
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto *tr = reinterpret_cast<TransparencyGroupProperties *>(trprop);
+    return conv_err(dc->set_transparency_properties(*tr));
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
@@ -1354,8 +1368,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
-    CapyPDF_TransparencyGroupProperties *ex) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<TransparencyGroupProperties *>(ex);
+    CapyPDF_TransparencyGroupProperties *props) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<TransparencyGroupProperties *>(props);
     RETNOERR;
 }
 

@@ -438,6 +438,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
                                                            double y1,
                                                            double x2,
                                                            double y2) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties(
+    CapyPDF_PageProperties *pageprop, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT;
 
 // Generator
 
@@ -453,7 +455,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
-                                      const CapyPDF_TransparencyGroupProperties *opt,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
@@ -672,6 +673,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
     CapyPDF_DrawContext *ctx, const CapyPDF_PageProperties *custom_properties);
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *ctx,
                                            CapyPDF_AnnotationId aid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_transparency_group_properties(
+    CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
@@ -822,7 +825,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_I(
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
     CapyPDF_TransparencyGroupProperties *props, int32_t K) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
-    CapyPDF_TransparencyGroupProperties *opt) CAPYPDF_NOEXCEPT;
+    CapyPDF_TransparencyGroupProperties *props) CAPYPDF_NOEXCEPT;
 
 // Raster images
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)

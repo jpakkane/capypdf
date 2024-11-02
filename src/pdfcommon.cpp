@@ -84,6 +84,21 @@ const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_typ
     // clang-format on
 };
 
+void TransparencyGroupProperties::serialize(std::back_insert_iterator<std::string> &app,
+                                            const char *indent) const {
+    std::format_to(app, "<<\n{}  /Type /Group\n{}  /S /Transparency\n", indent, indent);
+    if(CS) {
+        std::format_to(app, "{}  /CS {}\n", indent, colorspace_names.at((int)CS.value()));
+    }
+    if(I) {
+        std::format_to(app, "{}  /I {}\n", indent, I.value() ? "true" : "false");
+    }
+    if(K) {
+        std::format_to(app, "{}  /K {}\n", indent, K.value() ? "true" : "false");
+    }
+    std::format_to(app, "{}>>\n", indent);
+}
+
 rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
     if(!is_ascii(cstr)) {
         RETERR(NotASCII);

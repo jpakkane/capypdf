@@ -74,6 +74,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Image is not in format required by output settings.",
 "Page reference points to a non-existing page.",
 "Title is empty.",
+"Transparency properties can only be set on pages and transparency groups.",
 };
 
 // clang-format on

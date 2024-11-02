@@ -132,10 +132,7 @@ int draw_group_doc() {
         groupctx->cmd_RG(0.1, 0.9, 0.2);
         groupctx->cmd_re(0, 0, 100, 100);
         groupctx->cmd_b();
-        TransparencyGroupProperties ex;
-        //        ex.I = false;
-        //        ex.K = true;
-        tgid = gen.add_transparency_group(*groupctx, &ex).value();
+        tgid = gen.add_transparency_group(*groupctx).value();
     }
     {
         auto ctxguard = gen.guarded_page_context();
@@ -201,7 +198,8 @@ int draw_transp_doc() {
                 TransparencyGroupProperties ex;
                 ex.I = false;
                 ex.K = true;
-                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
+                groupctx->set_transparency_properties(ex);
+                auto tgid = gen.add_transparency_group(*groupctx).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 20);
                 ctx.cmd_Do(tgid);
@@ -213,7 +211,8 @@ int draw_transp_doc() {
                 TransparencyGroupProperties ex;
                 ex.I = true;
                 ex.K = true;
-                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
+                groupctx->set_transparency_properties(ex);
+                auto tgid = gen.add_transparency_group(*groupctx).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 80, 110);
                 ctx.cmd_Do(tgid);
@@ -225,7 +224,8 @@ int draw_transp_doc() {
                 TransparencyGroupProperties ex;
                 ex.I = false;
                 ex.K = false;
-                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
+                groupctx->set_transparency_properties(ex);
+                auto tgid = gen.add_transparency_group(*groupctx).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 20);
                 ctx.cmd_Do(tgid);
@@ -237,7 +237,8 @@ int draw_transp_doc() {
                 TransparencyGroupProperties ex;
                 ex.I = true;
                 ex.K = false;
-                auto tgid = gen.add_transparency_group(*groupctx, &ex).value();
+                groupctx->set_transparency_properties(ex);
+                auto tgid = gen.add_transparency_group(*groupctx).value();
                 auto rc = ctx.push_gstate();
                 draw_gradient(ctx, shadeid, 180, 110);
                 ctx.cmd_Do(tgid);
