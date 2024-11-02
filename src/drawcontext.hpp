@@ -72,7 +72,7 @@ public:
     PdfDrawContext(
         PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h);
     PdfDrawContext(
-        PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double l, double b, double r, double t);
+        PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, const PdfRectangle &area);
     ~PdfDrawContext();
     DCSerialization serialize(const TransparencyGroupExtra *trinfo = nullptr);
 
@@ -212,8 +212,8 @@ public:
     std::string build_resource_dict();
     std::string_view get_command_stream() { return commands; }
 
-    double get_w() const { return right - left; }
-    double get_h() const { return top - bottom; }
+    double get_w() const { return bbox.x2 - bbox.x1; }
+    double get_h() const { return bbox.y2 - bbox.y1; }
 
     int32_t marked_content_depth() const { return marked_depth; }
 
@@ -308,10 +308,7 @@ private:
     // Reminder: If you add stuff here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;
-    double left = 0;
-    double bottom = 0;
-    double right = -1;
-    double top = -1;
+    PdfRectangle bbox;
     int32_t marked_depth = 0;
     std::string ind;
 };

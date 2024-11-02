@@ -125,7 +125,8 @@ int draw_group_doc() {
     // "non-stroke".
     auto gsid = gen.add_graphics_state(gs).value();
     {
-        std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(0, 0, 100, 100)};
+        PdfRectangle bbox{0, 0, 100, 100};
+        std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
         groupctx->cmd_w(10);
         groupctx->cmd_rg(0.9, 0.1, 0.1);
         groupctx->cmd_RG(0.1, 0.9, 0.2);
@@ -194,7 +195,8 @@ int draw_transp_doc() {
             ctx.render_pdfdoc_text_builtin("Knockout", CAPY_FONT_HELVETICA, 8, 100, 5);
             ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
             {
-                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                PdfRectangle bbox{0, 0, 80, 80};
+                auto groupctx = gen.new_transparency_group(bbox);
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
@@ -205,7 +207,8 @@ int draw_transp_doc() {
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                PdfRectangle bbox{0, 0, 80, 80};
+                auto groupctx = gen.new_transparency_group(bbox);
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
@@ -216,7 +219,8 @@ int draw_transp_doc() {
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                PdfRectangle bbox{0, 0, 80, 80};
+                auto groupctx = gen.new_transparency_group(bbox);
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = false;
@@ -227,7 +231,8 @@ int draw_transp_doc() {
                 ctx.cmd_Do(tgid);
             }
             {
-                auto groupctx = gen.new_transparency_group(0, 0, 80, 80);
+                PdfRectangle bbox{0, 0, 80, 80};
+                auto groupctx = gen.new_transparency_group(bbox);
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupExtra ex;
                 ex.I = true;
