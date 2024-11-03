@@ -71,8 +71,10 @@ class PdfDrawContext {
 public:
     PdfDrawContext(
         PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h);
-    PdfDrawContext(
-        PdfDocument *g, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, const PdfRectangle &area);
+    PdfDrawContext(PdfDocument *g,
+                   PdfColorConverter *cm,
+                   CapyPDF_Draw_Context_Type dtype,
+                   const PdfRectangle &area);
     ~PdfDrawContext();
     DCSerialization serialize(const TransparencyGroupProperties *trinfo = nullptr);
 

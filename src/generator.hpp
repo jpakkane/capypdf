@@ -126,8 +126,8 @@ public:
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<CapyPDF_PatternId> add_pattern(PdfDrawContext &cp);
-    rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx,
-                                                             const TransparencyGroupProperties *ex) {
+    rvoe<CapyPDF_TransparencyGroupId>
+    add_transparency_group(PdfDrawContext &ctx, const TransparencyGroupProperties *ex) {
         return pdoc.add_transparency_group(ctx, ex);
     }
 
