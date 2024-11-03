@@ -5,3 +5,5 @@ test('cppwrapper', executable('cpptest', 'cpptest.cpp', override_options: ['cpp_
 test('Python tests', find_program('capypdftests.py'))
 
 test('syntax', find_program('syntaxchecks.py'))
+
+test('format', find_program('formatcheck.py'))

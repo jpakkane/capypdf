@@ -11,7 +11,7 @@ jobs:
     container:
       image: ubuntu:oracular
     steps:
-      - run:  apt-get -y update && apt-get -y upgrade && apt-get -y install git python3 python3-setuptools python3-pillow build-essential pkg-config ghostscript ninja-build libtiff-dev libjpeg-dev libpng-dev zlib1g-dev libfreetype-dev liblcms2-dev fonts-noto-core libharfbuzz-dev
+      - run:  apt-get -y update && apt-get -y upgrade && apt-get -y install git python3 python3-setuptools python3-pillow build-essential pkg-config ghostscript ninja-build libtiff-dev libjpeg-dev libpng-dev zlib1g-dev libfreetype-dev liblcms2-dev fonts-noto-core libharfbuzz-dev clang-format
       - uses: actions/checkout@v4
       - run:  git clone --depth=1 https://github.com/mesonbuild/meson mesoncheckout
       - name: Configure
