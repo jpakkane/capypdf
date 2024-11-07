@@ -247,6 +247,9 @@ int create_doc() {
     DocumentMetadata opts;
     opts.is_tagged = true;
     opts.lang = asciistring::from_cstr("en-US").value();
+    opts.subtype = CAPY_PDFA_2u;
+    opts.prof.rgb_profile_file = "/usr/share/color/icc/ghostscript/srgb.icc";
+    opts.intent_condition_identifier = "sRGB IEC61966-2.1";
     GenPopper genpop("loremipsum.pdf", opts);
     PdfGen &gen = *genpop.g;
 

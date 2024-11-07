@@ -24,20 +24,6 @@ namespace {
 
 const char PDF_header[] = "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n";
 
-const char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/">
- <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-   <pdfaid:part>{}</pdfaid:part>
-   <pdfaid:conformance>{}</pdfaid:conformance>
-  </rdf:Description>
- </rdf:RDF>
-</x:xmpmeta>
-<?xpacket end="w"?>
-)";
-
-const unsigned char rdf_magic[4] = {0xef, 0xbb, 0xbf, 0};
-
 std::string fontname2pdfname(std::string_view original) {
     std::string out;
     out.reserve(original.size());

@@ -154,6 +154,21 @@ typedef enum {
 } CapyPDF_PDFX_Type;
 
 typedef enum {
+    CAPY_PDFA_1a,
+    CAPY_PDFA_1b,
+    CAPY_PDFA_2a,
+    CAPY_PDFA_2b,
+    CAPY_PDFA_2u,
+    CAPY_PDFA_3a,
+    CAPY_PDFA_3b,
+    CAPY_PDFA_3u,
+    CAPY_PDFA_4a,
+    CAPY_PDFA_4b,
+    CAPY_PDFA_4f,
+    CAPY_PDFA_4e,
+} CapyPDF_PDFA_TYPE;
+
+typedef enum {
     CAPY_INTERPOLATION_AUTO,
     CAPY_INTERPOLATION_PIXELATED,
     CAPY_INTERPOLATION_SMOOTH,

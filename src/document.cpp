@@ -27,6 +27,20 @@ const std::array<const char *, 3> colorspace_names{
 
 namespace {
 
+constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
+   <pdfaid:part>{}</pdfaid:part>
+   <pdfaid:conformance>{}</pdfaid:conformance>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>
+)";
+
+const unsigned char rdf_magic[4] = {0xef, 0xbb, 0xbf, 0};
+
 // const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
 const std::array<const char *, 9> pdfx_names{
@@ -40,6 +54,11 @@ const std::array<const char *, 9> pdfx_names{
     "PDF/X-5g",
     "PDF/X-5pg",
 };
+
+const std::array<const char, 12> pdfa_part{
+    '1', '1', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4'};
+const std::array<const char, 12> pdfa_conformance{
+    'a', 'b', 'a', 'b', 'u', 'a', 'b', 'u', 'a', 'b', 'f', 'e'};
 
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
@@ -263,7 +282,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
     }
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
-    if(opts.xtype) {
+    if(!std::holds_alternative<std::monostate>(opts.subtype)) {
         if(!output_profile) {
             RETERR(OutputProfileMissing);
         }
@@ -271,6 +290,9 @@ rvoe<NoReturnValue> PdfDocument::init() {
             RETERR(MissingIntentIdentifier);
         }
         create_output_intent();
+    }
+    if(auto *aptr = std::get_if<CapyPDF_PDFA_TYPE>(&opts.subtype)) {
+        pdfa_md_object = add_pdfa_metadata_object(*aptr);
     }
     return NoReturnValue{};
 }
@@ -645,6 +667,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         buf += "    /D << /BaseState /ON >>\n";
         buf += "  >>\n";
     }
+    if(pdfa_md_object) {
+        std::format_to(app, "  /Metadata {} 0 R\n", *pdfa_md_object);
+    }
     buf += ">>\n";
     add_object(FullPDFObject{buf, {}});
     return NoReturnValue{};
@@ -653,7 +678,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 void PdfDocument::create_output_intent() {
     std::string buf;
     assert(output_profile);
-    assert(opts.xtype);
+    assert(!std::holds_alternative<std::monostate>(opts.subtype));
+    const char *gts =
+        std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype) ? "/GTS_PDFX" : "/GTS_PDFA";
     buf = std::format(R"(<<
   /Type /OutputIntent
   /S {}
@@ -661,7 +688,7 @@ void PdfDocument::create_output_intent() {
   /DestOutputProfile {} 0 R
 >>
 )",
-                      "/GTS_PDFX",
+                      gts,
                       pdfstring_quote(opts.intent_condition_identifier),
                       get(*output_profile).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, {}});
@@ -842,6 +869,19 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
     assert(subset_glyphs.size() == SPACE + 1);
 }
 
+int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_TYPE atype) {
+    auto stream = std::format(
+        pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(atype), pdfa_conformance.at(atype));
+    auto dict = std::format(R"(<<
+  /Type /Metadata
+  /Subtype /XML
+  /Length {}
+>>
+)",
+                            stream.length());
+    return add_object(FullPDFObject{std::move(dict), std::move(stream)});
+}
+
 std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
@@ -904,9 +944,9 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += current_date;
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
-    if(opts.xtype) {
+    if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&opts.subtype)) {
         obj_data.dictionary += "  /GTS_PDFXVersion (";
-        obj_data.dictionary += pdfx_names.at(*opts.xtype);
+        obj_data.dictionary += pdfx_names.at(*xptr);
         obj_data.dictionary += ")\n";
     }
     obj_data.dictionary += ">>\n";
@@ -1578,7 +1618,7 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
 
 rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
     // Check that the image has the correct format.
-    if(opts.xtype) {
+    if(std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype)) {
         if(ri.md.cs == CAPY_IMAGE_CS_RGB) {
             // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
             RETERR(ImageFormatNotPermitted);

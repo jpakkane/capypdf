@@ -159,7 +159,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *opt,
                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->xtype = xtype;
+    opts->subtype = xtype;
     RETNOERR;
 }
 
