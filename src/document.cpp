@@ -58,7 +58,7 @@ const std::array<const char *, 9> pdfx_names{
 const std::array<const char, 12> pdfa_part{
     '1', '1', '2', '2', '2', '3', '3', '3', '4', '4', '4', '4'};
 const std::array<const char, 12> pdfa_conformance{
-    'a', 'b', 'a', 'b', 'u', 'a', 'b', 'u', 'a', 'b', 'f', 'e'};
+    'A', 'B', 'A', 'B', 'U', 'A', 'B', 'U', 'A', 'B', 'F', 'E'};
 
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
