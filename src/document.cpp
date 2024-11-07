@@ -680,7 +680,7 @@ void PdfDocument::create_output_intent() {
     assert(output_profile);
     assert(!std::holds_alternative<std::monostate>(opts.subtype));
     const char *gts =
-        std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype) ? "/GTS_PDFX" : "/GTS_PDFA";
+        std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
     buf = std::format(R"(<<
   /Type /OutputIntent
   /S {}
