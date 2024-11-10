@@ -57,9 +57,6 @@ struct CapyCTypeDeleter {
 
 template<typename T> class CapyC {
 public:
-    T *get() { return _d.get(); }
-    const T *get() const { return _d.get(); }
-
     operator T *() { return _d.get(); }
     operator const T *() const { return _d.get(); }
 
