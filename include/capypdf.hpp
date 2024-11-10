@@ -56,16 +56,17 @@ struct CapyCTypeDeleter {
 };
 
 template<typename T> class CapyC {
-public:
+protected:
     operator T *() { return _d.get(); }
     operator const T *() const { return _d.get(); }
 
-protected:
     std::unique_ptr<T, CapyCTypeDeleter> _d;
 };
 
 class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata> {
 public:
+    friend class Generator;
+
     DocumentMetadata() {
         CapyPDF_DocumentMetadata *md;
         CAPY_CPP_CHECK(capy_doc_md_new(&md));
@@ -76,6 +77,9 @@ static_assert(sizeof(DocumentMetadata) == sizeof(void *));
 
 class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
 public:
+    friend class PageProperties;
+    friend class DrawContext;
+
     TransparencyGroupProperties() {
         CapyPDF_TransparencyGroupProperties *tge;
         CAPY_CPP_CHECK(capy_transparency_group_properties_new(&tge));
@@ -93,6 +97,8 @@ public:
 
 class PageProperties : public CapyC<CapyPDF_PageProperties> {
 public:
+    friend class DrawContext;
+
     PageProperties() {
         CapyPDF_PageProperties *prop;
         CAPY_CPP_CHECK(capy_page_properties_new(&prop));
@@ -123,6 +129,8 @@ public:
 
 class Color : public CapyC<CapyPDF_Color> {
 public:
+    friend class DrawContext;
+
     Color() {
         CapyPDF_Color *c;
         CAPY_CPP_CHECK(capy_color_new(&c));
@@ -142,6 +150,8 @@ public:
 
 class GraphicsState : public CapyC<CapyPDF_GraphicsState> {
 public:
+    friend class Generator;
+
     GraphicsState() {
         CapyPDF_GraphicsState *gs;
         CAPY_CPP_CHECK(capy_graphics_state_new(&gs));
