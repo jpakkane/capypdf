@@ -362,10 +362,9 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
         }
         buf += "stream\n";
         buf += stream_data;
-        if(buf.back() != '\n') {
-            buf += '\n';
-        }
-        buf += "endstream\n";
+        // PDF spec says that there must always be a newline before "endstream".
+        // It is not counted in the /Length key in the object dictionary.
+        buf += "\nendstream\n";
     }
     if(buf.back() != '\n') {
         buf += '\n';
