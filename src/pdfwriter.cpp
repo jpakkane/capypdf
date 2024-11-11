@@ -137,15 +137,15 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     doc.write_attempted = true;
     auto tempfname = ofilename;
     tempfname.replace_extension(".pdf~");
-    FILE *ofile = fopen(tempfname.string().c_str(), "wb");
-    if(!ofile) {
+    FILE *out_file = fopen(tempfname.string().c_str(), "wb");
+    if(!out_file) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(ofile, fclose);
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(out_file, fclose);
 
     try {
-        ERCV(write_to_file(ofile));
+        ERCV(write_to_file(out_file));
     } catch(const std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
         RETERR(DynamicError);
@@ -154,15 +154,15 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         RETERR(DynamicError);
     }
 
-    if(fflush(ofile) != 0) {
+    if(fflush(out_file) != 0) {
         perror(nullptr);
         RETERR(DynamicError);
     }
     if(
 #ifdef _WIN32
-        _commit(fileno(ofile))
+        _commit(fileno(out_file))
 #else
-        fsync(fileno(ofile))
+        fsync(fileno(out_file))
 #endif
         != 0) {
 
@@ -171,7 +171,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     }
     // Close the file manually to verify it worked.
     fcloser.release();
-    if(fclose(ofile) != 0) {
+    if(fclose(out_file) != 0) {
         perror(nullptr);
         RETERR(FileWriteError);
     }
