@@ -142,23 +142,20 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(ofile, fclose);
 
     try {
-
         ERCV(write_to_file(ofile));
     } catch(const std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
-        fclose(ofile);
         RETERR(DynamicError);
     } catch(...) {
         fprintf(stderr, "Unexpected error.\n");
-        fclose(ofile);
         RETERR(DynamicError);
     }
 
     if(fflush(ofile) != 0) {
         perror(nullptr);
-        fclose(ofile);
         RETERR(DynamicError);
     }
     if(
@@ -170,9 +167,10 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         != 0) {
 
         perror(nullptr);
-        fclose(ofile);
         RETERR(FileWriteError);
     }
+    // Close the file manually to verify it worked.
+    fcloser.release();
     if(fclose(ofile) != 0) {
         perror(nullptr);
         RETERR(FileWriteError);
