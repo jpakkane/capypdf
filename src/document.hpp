@@ -181,7 +181,7 @@ struct DocumentMetadata {
     bool is_tagged = false;
     CapyPDF_DeviceColorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
-    std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_TYPE> subtype;
+    std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
     std::string intent_condition_identifier;
     bool compress_streams = false;
 };
@@ -451,7 +451,7 @@ private:
     rvoe<NoReturnValue> generate_info_object();
     void pad_subset_fonts();
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
-    int32_t add_pdfa_metadata_object(CapyPDF_PDFA_TYPE atype);
+    int32_t add_pdfa_metadata_object(CapyPDF_PDFA_Type atype);
 
     rvoe<NoReturnValue> validate_format(const RasterImage &ri) const;
 

@@ -163,6 +163,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *opt,
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfa(CapyPDF_DocumentMetadata *opt,
+                                               CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT {
+    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
+    opts->subtype = atype;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_default_page_properties(
     CapyPDF_DocumentMetadata *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
     auto opts = reinterpret_cast<DocumentMetadata *>(opt);

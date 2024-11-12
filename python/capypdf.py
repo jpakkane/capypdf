@@ -101,6 +101,20 @@ class PdfXType(Enum):
     X5G = 7
     X5PG= 8
 
+class PdfAType(Enum):
+    A1a = 0
+    A1b = 1
+    A2a = 2
+    A2b = 3
+    A2u = 4
+    A3a = 5
+    A3b = 6
+    A3u = 7
+    A4a = 8
+    A4b = 9
+    A4f = 10
+    A4e = 11
+
 class ImageInterpolation(Enum):
     Automatic = 0
     Pixelated = 1
@@ -268,6 +282,7 @@ cfunc_types = (
 ('capy_doc_md_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_doc_md_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_doc_md_set_pdfx', [ctypes.c_void_p, enum_type]),
+('capy_doc_md_set_pdfa', [ctypes.c_void_p, enum_type]),
 ('capy_doc_md_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_doc_md_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
 
@@ -626,6 +641,11 @@ class DocumentMetadata:
         if not isinstance(xtype, PdfXType):
             raise CapyPDFException('Argument must be an PDF/X type.')
         check_error(libfile.capy_doc_md_set_pdfx(self, xtype.value))
+
+    def set_pdfa(self, atype):
+        if not isinstance(atype, PdfAType):
+            raise CapyPDFException('Argument must be an PDF/A type.')
+        check_error(libfile.capy_doc_md_set_pdfa(self, atype.value))
 
     def set_default_page_properties(self, props):
         if not isinstance(props, PageProperties):

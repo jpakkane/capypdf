@@ -166,7 +166,7 @@ typedef enum {
     CAPY_PDFA_4b,
     CAPY_PDFA_4f,
     CAPY_PDFA_4e,
-} CapyPDF_PDFA_TYPE;
+} CapyPDF_PDFA_Type;
 
 typedef enum {
     CAPY_INTERPOLATION_AUTO,
@@ -438,6 +438,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata
                                                         const char *identifier) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *opt,
                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfa(CapyPDF_DocumentMetadata *opt,
+                                               CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_default_page_properties(
     CapyPDF_DocumentMetadata *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_tagged(CapyPDF_DocumentMetadata *opt,

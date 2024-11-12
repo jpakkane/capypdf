@@ -291,7 +291,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
         }
         create_output_intent();
     }
-    if(auto *aptr = std::get_if<CapyPDF_PDFA_TYPE>(&opts.subtype)) {
+    if(auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&opts.subtype)) {
         pdfa_md_object = add_pdfa_metadata_object(*aptr);
     }
     return NoReturnValue{};
@@ -869,7 +869,7 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
     assert(subset_glyphs.size() == SPACE + 1);
 }
 
-int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_TYPE atype) {
+int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_Type atype) {
     auto stream = std::format(
         pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(atype), pdfa_conformance.at(atype));
     auto dict = std::format(R"(<<
