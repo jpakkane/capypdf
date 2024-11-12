@@ -272,6 +272,13 @@ public:
         return DrawContext(dc);
     }
 
+    DrawContext
+    new_transparency_group_context(double left, double bottom, double right, double top) {
+        CapyPDF_DrawContext *dc;
+        CAPY_CPP_CHECK(capy_transparency_group_new(*this, left, bottom, right, top, &dc));
+        return DrawContext(dc);
+    }
+
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}
 
     CapyPDF_FontId load_font(const char *fname) {
