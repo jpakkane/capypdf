@@ -342,4 +342,24 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
     std::format_to(buf_append, "{}>>\n", indent);
 }
 
+void quote_xml_element_data_into(const u8string &content, std::string &result) {
+    auto content_view = content.sv();
+    for(char c : content_view) {
+        switch(c) {
+        case '<':
+            result += "&lt;";
+            break;
+        case '>':
+            result += "&gt;";
+            break;
+        case '&':
+            result += "&quot;";
+            break;
+        default:
+            result += c;
+            break;
+        }
+    }
+}
+
 } // namespace capypdf::internal
