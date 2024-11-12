@@ -31,43 +31,43 @@ CapyPDF_EC capy_doc_md_new(CapyPDF_DocumentMetadata **out_ptr) CAPYPDF_NOEXCEPT 
     RETNOERR;
 }
 
-CapyPDF_EC capy_doc_md_destroy(CapyPDF_DocumentMetadata *opt) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<DocumentMetadata *>(opt);
+CapyPDF_EC capy_doc_md_destroy(CapyPDF_DocumentMetadata *md) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<DocumentMetadata *>(md);
     RETNOERR;
 }
 
-CapyPDF_EC capy_doc_md_set_title(CapyPDF_DocumentMetadata *opt,
+CapyPDF_EC capy_doc_md_set_title(CapyPDF_DocumentMetadata *md,
                                  const char *utf8_title) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_title);
     if(rc) {
-        reinterpret_cast<DocumentMetadata *>(opt)->title = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(md)->title = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_author(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_author(CapyPDF_DocumentMetadata *md,
                                                  const char *utf8_author) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_author);
     if(rc) {
-        reinterpret_cast<DocumentMetadata *>(opt)->author = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(md)->author = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_creator(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_creator(CapyPDF_DocumentMetadata *md,
                                                   const char *utf8_creator) CAPYPDF_NOEXCEPT {
     auto rc = u8string::from_cstr(utf8_creator);
     if(rc) {
-        reinterpret_cast<DocumentMetadata *>(opt)->creator = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(md)->creator = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_language(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_language(CapyPDF_DocumentMetadata *md,
                                                    const char *lang) CAPYPDF_NOEXCEPT {
     auto rc = asciistring::from_cstr(lang);
     if(rc) {
-        reinterpret_cast<DocumentMetadata *>(opt)->lang = std::move(rc.value());
+        reinterpret_cast<DocumentMetadata *>(md)->lang = std::move(rc.value());
     }
     return conv_err(rc);
 }
@@ -123,80 +123,80 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_device_profile(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_device_profile(CapyPDF_DocumentMetadata *md,
                                                          CapyPDF_DeviceColorspace cs,
                                                          const char *profile_path)
     CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
-        opts->prof.rgb_profile_file = profile_path;
+        metadata->prof.rgb_profile_file = profile_path;
         break;
     case CAPY_DEVICE_CS_GRAY:
-        opts->prof.gray_profile_file = profile_path;
+        metadata->prof.gray_profile_file = profile_path;
         break;
     case CAPY_DEVICE_CS_CMYK:
-        opts->prof.cmyk_profile_file = profile_path;
+        metadata->prof.cmyk_profile_file = profile_path;
         break;
     }
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_colorspace(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_colorspace(CapyPDF_DocumentMetadata *md,
                                                      CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->output_colorspace = cs;
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
+    metadata->output_colorspace = cs;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata *md,
                                                         const char *identifier) CAPYPDF_NOEXCEPT {
     CHECK_NULL(identifier);
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->intent_condition_identifier = identifier;
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
+    metadata->intent_condition_identifier = identifier;
     RETNOERR;
 }
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *md,
                                                CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->subtype = xtype;
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
+    metadata->subtype = xtype;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfa(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfa(CapyPDF_DocumentMetadata *md,
                                                CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->subtype = atype;
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
+    metadata->subtype = atype;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_default_page_properties(
-    CapyPDF_DocumentMetadata *opt, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
+    CapyPDF_DocumentMetadata *md, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
     auto props = reinterpret_cast<const PageProperties *>(prop);
     if(!props->mediabox) {
         return conv_err(ErrorCode::MissingMediabox);
     }
-    opts->default_page_properties = *props;
+    metadata->default_page_properties = *props;
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_tagged(CapyPDF_DocumentMetadata *opt,
+CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_tagged(CapyPDF_DocumentMetadata *md,
                                                  int32_t is_tagged) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(is_tagged);
-    auto opts = reinterpret_cast<DocumentMetadata *>(opt);
-    opts->is_tagged = is_tagged;
+    auto metadata = reinterpret_cast<DocumentMetadata *>(md);
+    metadata->is_tagged = is_tagged;
     RETNOERR;
 }
 
 CapyPDF_EC capy_generator_new(const char *filename,
-                              const CapyPDF_DocumentMetadata *options,
+                              const CapyPDF_DocumentMetadata *md,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_NULL(filename);
-    CHECK_NULL(options);
+    CHECK_NULL(md);
     CHECK_NULL(out_ptr);
-    auto opts = reinterpret_cast<const DocumentMetadata *>(options);
-    auto rc = PdfGen::construct(filename, *opts);
+    auto metadata = reinterpret_cast<const DocumentMetadata *>(md);
+    auto rc = PdfGen::construct(filename, *metadata);
     if(rc) {
         *out_ptr = reinterpret_cast<CapyPDF_Generator *>(rc.value().release());
     }
