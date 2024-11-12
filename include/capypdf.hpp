@@ -173,6 +173,7 @@ class DrawContext : public CapyC<CapyPDF_DrawContext> {
     friend class Generator;
 
 public:
+    DrawContext() = delete;
     void cmd_b() { CAPY_CPP_CHECK(capy_dc_cmd_b(*this)); }
     void cmd_B() { CAPY_CPP_CHECK(capy_dc_cmd_B(*this)); }
     void cmd_bstar() { CAPY_CPP_CHECK(capy_dc_cmd_bstar(*this)); }
@@ -242,6 +243,8 @@ class RasterImage : public CapyC<CapyPDF_RasterImage> {
     friend class RasterImageBuilder;
 
 public:
+    RasterImage() = delete;
+
 private:
     RasterImage(CapyPDF_RasterImage *ri) { _d.reset(ri); }
 };
