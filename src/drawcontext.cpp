@@ -329,9 +329,6 @@ PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
-    if(context_type != CAPY_DC_PAGE) {
-        RETERR(InvalidDrawContextType);
-    }
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
     std::format_to(cmd_appender, "{}/FXO{} Do\n", ind, doc->form_xobjects[fxoid.id].xobj_num);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
@@ -339,9 +336,6 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
-    if(context_type != CAPY_DC_PAGE) {
-        RETERR(InvalidDrawContextType);
-    }
     CHECK_INDEXNESS(trid.id, doc->transparency_groups);
     std::format_to(cmd_appender, "{}/TG{} Do\n", ind, doc->transparency_groups[trid.id]);
     used_trgroups.insert(trid);
