@@ -49,6 +49,38 @@ class PrinterTest:
             with ctx.push_gstate():
                 ctx.translate(10, 600)
                 self.draw_richblacks(ctx)
+            with ctx.push_gstate():
+                ctx.translate(50, 500)
+                self.draw_op(ctx)
+
+    def draw_op(self, ctx):
+        with ctx.push_gstate():
+            self.draw_tridot(ctx, 'No overprint')
+        with ctx.push_gstate():
+            gs = capypdf.GraphicsState()
+            gs.set_OP(True)
+            gs.set_OPM(0)
+            gsid = self.pdfgen.add_graphics_state(gs)
+            ctx.translate(150, 0)
+            ctx.cmd_gs(gsid)
+            self.draw_tridot(ctx, 'Overprint mode 0')
+        with ctx.push_gstate():
+            gs = capypdf.GraphicsState()
+            gs.set_OP(True)
+            gs.set_OPM(1)
+            gsid = self.pdfgen.add_graphics_state(gs)
+            ctx.translate(300, 0)
+            ctx.cmd_gs(gsid)
+            self.draw_tridot(ctx, 'Overprint mode 1')
+
+    def draw_tridot(self, ctx, text):
+        self.render_centered(ctx, text, self.basefont, 10, 50, 0)
+        ctx.cmd_k(1.0, 0, 0, 0)
+        self.draw_circle(ctx, 50, 50, 50+10)
+        ctx.cmd_k(0.0, 1.0, 0, 0)
+        self.draw_circle(ctx, 50, 35, 25+10)
+        ctx.cmd_k(0.0, 0.0, 1.0, 0)
+        self.draw_circle(ctx, 50, 65, 25+10)
 
     def draw_unit_circle(self, ctx):
         control = 0.5523 / 2;
@@ -57,13 +89,16 @@ class PrinterTest:
         ctx.cmd_c(0.5, -control, control, -0.5, 0, -0.5);
         ctx.cmd_c(-control, -0.5, -0.5, -control, -0.5, 0);
         ctx.cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
+
+    def draw_and_fill_unit_circle(self, ctx):
+        self.draw_unit_circle(ctx)
         ctx.cmd_f()
 
     def draw_circle(self, ctx, scale, offx, offy):
         with ctx.push_gstate():
             ctx.translate(offx, offy)
             ctx.scale(scale, scale)
-            self.draw_unit_circle(ctx)
+            self.draw_and_fill_unit_circle(ctx)
 
     def draw_grays(self, ctx):
         ctx.cmd_g(0.5)
