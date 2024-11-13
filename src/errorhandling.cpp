@@ -21,6 +21,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Enum out of range.",
 "Negative dash array element.",
 "Flatness value out of bounds.",
+
 "Array has zero length.",
 "Could not open file.",
 "Writing to file failed.",
@@ -31,6 +32,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Incorrect amoung of color channels for this colorspace.",
 "Invalid draw context type for this operation.",
 "Failed to load data from file.",
+
 "Invalid ICC profile data.",
 "Compression failure.",
 "FreeType error.",
@@ -41,6 +43,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Output CMYK profile not defined.",
 "Unsupported file format.",
 "Only monochrome colormap images supported.",
+
 "Malformed font file.",
 "EMC called even though no marked content block is active.",
 "Marked content not closed.",
@@ -51,6 +54,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Input image color profile could not be determined.",
 "Output intent identifier missing.",
 "Draw state end mismatch.",
+
 "OCG not used on this page.",
 "Unsupported TIFF image.",
 "Used object with a drawing context that was not used to create it.",
@@ -61,6 +65,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Missing pixel data.",
 "Color spaces are not of the same type.",
 "Boolean integer value must be 0 or 1.",
+
 "Gradient must start with a full patch.",
 "Object created for one document used with a different document",
 "Argument must be ASCII.",
@@ -71,6 +76,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Rolemap entry is already defined.",
 "There can be only one call to the write function.",
 "Unspecified color profile error.",
+
 "Image is not in format required by output settings.",
 "Page reference points to a non-existing page.",
 "Title is empty.",

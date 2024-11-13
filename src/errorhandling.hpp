@@ -19,6 +19,7 @@ enum class ErrorCode : int32_t {
     BadEnum,
     NegativeDash,
     InvalidFlatness,
+
     ZeroLengthArray,
     CouldNotOpenFile,
     FileWriteError,
@@ -29,6 +30,7 @@ enum class ErrorCode : int32_t {
     IncorrectColorChannelCount,
     InvalidDrawContextType,
     FileReadError,
+
     InvalidICCProfile,
     CompressionFailure,
     FreeTypeError,
@@ -39,6 +41,7 @@ enum class ErrorCode : int32_t {
     NoCmykProfile,
     UnsupportedFormat,
     NonBWColormap,
+
     MalformedFontFile,
     EmcOnEmpty,
     UnclosedMarkedContent,
@@ -49,6 +52,7 @@ enum class ErrorCode : int32_t {
     InputProfileUnknown,
     MissingIntentIdentifier,
     DrawStateEndMismatch,
+
     UnusedOcg,
     UnsupportedTIFF,
     WrongDrawContext,
@@ -59,6 +63,7 @@ enum class ErrorCode : int32_t {
     MissingPixels,
     ColorspaceMismatch,
     BadBoolean,
+
     BadStripStart,
     IncorrectDocumentForObject,
     NotASCII,
@@ -69,6 +74,7 @@ enum class ErrorCode : int32_t {
     RoleAlreadyDefined,
     WritingTwice,
     ProfileProblem,
+
     ImageFormatNotPermitted,
     InvalidPageNumber,
     EmptyTitle,
