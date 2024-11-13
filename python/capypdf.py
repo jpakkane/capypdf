@@ -374,6 +374,7 @@ cfunc_types = (
 ('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_text_new', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_annotate', [ctypes.c_void_p, AnnotationId]),
+('capy_dc_set_group_matrix', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_set_transparency_group_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
@@ -868,6 +869,9 @@ class DrawContextBase:
 
     def rotate(self, angle):
         self.cmd_cm(math.cos(angle), math.sin(angle), -math.sin(angle), math.cos(angle), 0.0, 0.0)
+
+    def set_group_matrix(self, a, b, c, d, e, f):
+        check_error(libfile.capy_dc_set_group_matrix(self, a, b, c, d, e, f));
 
     def set_transparency_group_properties(self, props):
         if not isinstance(props, TransparencyGroupProperties):
