@@ -366,6 +366,7 @@ public:
 
     // Functions
     rvoe<CapyPDF_FunctionId> add_function(const FunctionType2 &func);
+    rvoe<CapyPDF_FunctionId> add_function(const FunctionType3 &func);
 
     // Shading
     rvoe<CapyPDF_ShadingId> add_shading(const ShadingType2 &shade);

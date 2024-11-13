@@ -640,7 +640,7 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.cmd_l(-1.02, 157)
                             ctx.cmd_S()
 
-    @validate_image('python_shading_rgb', 200, 200)
+    @validate_image('python_shading_rgb', 300, 200)
     def test_shading_rgb(self, ofilename, w, h):
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
@@ -662,6 +662,21 @@ class TestPDFCreation(unittest.TestCase):
                                        False,
                                        False)
             sh2id = gen.add_type2_shading(sh2)
+
+            f2o = capypdf.Type2Function([0.0, 1.0], c2, c1, 1.0)
+            f2oid = gen.add_type2_function(f2o)
+            f3 = capypdf.Type3Function([0.0, 1.0], [f2id, f2oid], [0.7], [0.0, 1.0, 0.0, 1.0]);
+            f3id = gen.add_type3_function(f3)
+
+            sh2f3 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
+                                       10.0,
+                                       50.0,
+                                       90.0,
+                                       50.0,
+                                       f3id,
+                                       False,
+                                       False)
+            sh2f3id = gen.add_type2_shading(sh2f3)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.RGB,
                                        [50, 50, 40, 40, 30, 10],
@@ -699,6 +714,12 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_Wstar()
                     ctx.cmd_n()
                     ctx.cmd_sh(sh2id)
+                with ctx.push_gstate():
+                    ctx.translate(200, 0)
+                    ctx.cmd_re(10, 10, 80, 80)
+                    ctx.cmd_Wstar()
+                    ctx.cmd_n()
+                    ctx.cmd_sh(sh2f3id)
                 with ctx.push_gstate():
                     ctx.translate(100, 0)
                     ctx.cmd_re(10, 10, 80, 80)

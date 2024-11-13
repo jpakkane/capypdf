@@ -333,6 +333,7 @@ typedef struct _capyPDF_TransparencyGroupProperties CapyPDF_TransparencyGroupPro
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_RasterImageBuilder CapyPDF_RasterImageBuilder;
 typedef struct _capyPDF_Type2Function CapyPDF_Type2Function;
+typedef struct _capyPDF_Type3Function CapyPDF_Type3Function;
 typedef struct _capyPDF_Type2Shading CapyPDF_Type2Shading;
 typedef struct _capyPDF_Type3Shading CapyPDF_Type3Shading;
 typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
@@ -500,6 +501,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *gen,
                                                             CapyPDF_Type2Function *func,
+                                                            CapyPDF_FunctionId *out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_function(CapyPDF_Generator *gen,
+                                                            CapyPDF_Type3Function *func,
                                                             CapyPDF_FunctionId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(CapyPDF_Generator *gen,
@@ -879,6 +884,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   double n,
                                                   CapyPDF_Type2Function **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *func) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_new(double *domain,
+                                                  int32_t domain_size,
+                                                  CapyPDF_FunctionId *functions,
+                                                  int32_t functions_size,
+                                                  double *bounds,
+                                                  int32_t bounds_size,
+                                                  double *encode,
+                                                  int32_t encode_size,
+                                                  CapyPDF_Type3Function **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_destroy(CapyPDF_Type3Function *func) CAPYPDF_NOEXCEPT;
 
 // Shadings
 CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
