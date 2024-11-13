@@ -16,6 +16,15 @@
 
 namespace capypdf::internal {
 
+namespace {
+
+void write_matrix(std::back_insert_iterator<std::string> &app, const PdfMatrix &gm) {
+    std::format_to(
+        app, "  /Matrix [ {:f} {:f} {:f} {:f} {:f} {:f} ]\n", gm.a, gm.b, gm.c, gm.d, gm.e, gm.f);
+}
+
+} // namespace
+
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
 PdfDrawContext::PdfDrawContext(
@@ -40,7 +49,6 @@ DCSerialization PdfDrawContext::serialize() {
   /BBox [ {:f} {:f} {:f} {:f} ]
   /Resources {}
   /Length {}
->>
 )",
             bbox.x1,
             bbox.y1,
@@ -48,6 +56,11 @@ DCSerialization PdfDrawContext::serialize() {
             bbox.y2,
             resource_dict,
             commands.size());
+        if(group_matrix) {
+            auto app = std::back_inserter(dict);
+            write_matrix(app, group_matrix.value());
+        }
+        dict += ">>\n";
         return SerializedXObject{std::move(dict), commands};
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
         std::string dict = R"(<<
@@ -61,6 +74,9 @@ DCSerialization PdfDrawContext::serialize() {
             dict += "  /Group ";
             custom_props.transparency_props->serialize(app, "  ");
         }
+        if(group_matrix) {
+            write_matrix(app, group_matrix.value());
+        }
         std::format_to(app,
                        R"(  /Resources {}
   /Length {}
@@ -70,6 +86,7 @@ DCSerialization PdfDrawContext::serialize() {
                        commands.size());
         return SerializedXObject{std::move(dict), commands};
     } else {
+        assert(!group_matrix);
         SerializedBasicContext sc;
         sc.resource_dict = std::move(resource_dict);
         sc.unclosed_object_dict = "<<\n";
@@ -97,6 +114,7 @@ void PdfDrawContext::clear() {
     is_finalized = false;
     uses_all_colorspace = false;
     custom_props = PageProperties{};
+    group_matrix.reset();
 }
 
 std::string PdfDrawContext::build_resource_dict() {
@@ -1183,6 +1201,14 @@ PdfDrawContext::set_transparency_properties(const TransparencyGroupProperties &p
     // Having two variables for the same thing would be more confusing.
     custom_props.transparency_props = props;
     return NoReturnValue();
+}
+
+rvoe<NoReturnValue> PdfDrawContext::set_group_matrix(const PdfMatrix &mat) {
+    if(!(context_type == CAPY_DC_TRANSPARENCY_GROUP || context_type == CAPY_DC_FORM_XOBJECT)) {
+        RETERR(WrongDCForMatrix);
+    }
+    group_matrix = mat;
+    return NoReturnValue{};
 }
 
 rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {

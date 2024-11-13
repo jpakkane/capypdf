@@ -234,6 +234,10 @@ public:
         CAPY_CPP_CHECK(capy_dc_set_transparency_group_properties(*this, trprop));
     }
 
+    void set_group_matrix(double a, double b, double c, double d, double e, double f) {
+        CAPY_CPP_CHECK(capy_dc_set_group_matrix(*this, a, b, c, d, e, f));
+    }
+
 private:
     explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
 };

@@ -906,6 +906,18 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_transparency_group_properties(
     return conv_err(dc->set_transparency_properties(*tr));
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_group_matrix(CapyPDF_DrawContext *ctx,
+                                                   double a,
+                                                   double b,
+                                                   double c,
+                                                   double d,
+                                                   double e,
+                                                   double f) CAPYPDF_NOEXCEPT {
+    auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    PdfMatrix m{a, b, c, d, e, f};
+    return conv_err(dc->set_group_matrix(m));
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
                               const CapyPDF_OptionalContentGroupId *ocgarray,
