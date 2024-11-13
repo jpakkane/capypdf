@@ -52,6 +52,32 @@ class PrinterTest:
             with ctx.push_gstate():
                 ctx.translate(50, 500)
                 self.draw_op(ctx)
+            with ctx.push_gstate():
+                ctx.translate(50, 250)
+                self.draw_lab(ctx)
+
+    def draw_lab(self, ctx):
+        import math
+        c = capypdf.Color()
+        labid = self.pdfgen.add_lab_colorspace(0.9505, 1.0, 1.08, -128, 127, -128, 127)
+        boxw = 15
+        boxh = 15
+        gridw = 20
+        gridh = 20
+        num_steps = 20
+        num_rows = 10
+        gridstart = 30
+        for rowid in range(num_rows+1):
+            L = rowid/num_rows*100
+            ctx.cmd_g(0.0)
+            ctx.render_text(f"L={int(L)}", self.basefont, 10, 0, rowid*gridh + 3)
+            for i in range(num_steps):
+                a = 128*math.cos(i/num_steps*2*3.141)
+                b = 128*math.sin(i/num_steps*2*3.141)
+                c.set_lab(labid, L, a, b)
+                ctx.set_nonstroke(c)
+                ctx.cmd_re(gridstart + i*gridw, rowid*gridh, boxw, boxh)
+                ctx.cmd_f()
 
     def draw_op(self, ctx):
         with ctx.push_gstate():
