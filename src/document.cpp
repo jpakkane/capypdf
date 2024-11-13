@@ -1261,6 +1261,47 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     return CapyPDF_FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
 }
 
+rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType3 &func) {
+    const int functiontype = 3;
+    if(!func.functions.size()) {
+        RETERR(EmptyFunctionList);
+    }
+    std::string buf = std::format(
+        R"(<<
+  /FunctionType {}
+)",
+        functiontype);
+    auto resource_appender = std::back_inserter(buf);
+
+    buf += "  /Domain [ ";
+    for(const auto d : func.domain) {
+        std::format_to(resource_appender, "{} ", d);
+    }
+    buf += "]\n";
+
+    buf += "  /Functions [ ";
+    for(const auto f : func.functions) {
+        std::format_to(resource_appender, "{} 0 R ", f.id);
+    }
+    buf += "]\n";
+
+    buf += "  /Bounds [ ";
+    for(const auto b : func.bounds) {
+        std::format_to(resource_appender, "{} ", b);
+    }
+    buf += "]\n";
+
+    buf += "  /Encode [ ";
+    for(const auto e : func.encode) {
+        std::format_to(resource_appender, "{} ", e);
+    }
+    buf += "]\n";
+
+    buf += ">>\n";
+
+    return CapyPDF_FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
+}
+
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
     const int shadingtype = 2;
     std::string buf = std::format(

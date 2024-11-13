@@ -341,6 +341,14 @@ struct FunctionType2 {
     double n;
 };
 
+// Multiple FunctionType2's
+struct FunctionType3 {
+    std::vector<double> domain;
+    std::vector<CapyPDF_FunctionId> functions;
+    std::vector<double> bounds;
+    std::vector<double> encode;
+};
+
 // Linear
 struct ShadingType2 {
     CapyPDF_DeviceColorspace colorspace;
