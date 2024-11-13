@@ -244,6 +244,8 @@ public:
 
     rvoe<NoReturnValue> set_transparency_properties(const TransparencyGroupProperties &props);
 
+    rvoe<NoReturnValue> set_group_matrix(const PdfMatrix &mat);
+
 private:
     rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,
                                                std::string &serialisation,
@@ -313,6 +315,7 @@ private:
     bool is_finalized = false;
     bool uses_all_colorspace = false;
     PdfRectangle bbox;
+    std::optional<PdfMatrix> group_matrix;
     int32_t marked_depth = 0;
     std::string ind;
 };

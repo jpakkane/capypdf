@@ -692,6 +692,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_annotate(CapyPDF_DrawContext *ctx,
                                            CapyPDF_AnnotationId aid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_transparency_group_properties(
     CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_group_matrix(CapyPDF_DrawContext *ctx,
+                                                   double a,
+                                                   double b,
+                                                   double c,
+                                                   double d,
+                                                   double e,
+                                                   double f) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEPT;
 
