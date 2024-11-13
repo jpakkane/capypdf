@@ -44,8 +44,11 @@ class PrinterTest:
         with self.pdfgen.page_draw_context() as ctx:
             self.render_centered(ctx, "CapyPDF printer test page", self.basefont, 20, self.w/2, 800)
             with ctx.push_gstate():
-                ctx.translate(10,700)
+                ctx.translate(10, 700)
                 self.draw_grays(ctx)
+            with ctx.push_gstate():
+                ctx.translate(10, 600)
+                self.draw_richblacks(ctx)
 
     def draw_unit_circle(self, ctx):
         control = 0.5523 / 2;
@@ -74,6 +77,17 @@ class PrinterTest:
         self.draw_gray_and_text(ctx, 50, 80 + 3*deltax, 50, "K gray")
         ctx.cmd_rg(0.5, 0.5, 0.5)
         self.draw_gray_and_text(ctx, 50, 80 + 4*deltax, 50, "RGB gray")
+
+    def draw_richblacks(self, ctx):
+        ctx.cmd_k(0.1, 0, 0, 1.0)
+        deltax = 100
+        self.draw_gray_and_text(ctx, 50, 80, 50, "C rich black")
+        ctx.cmd_k(0.0, 0.1, 0.0, 1.0)
+        self.draw_gray_and_text(ctx, 50, 80 + deltax, 50, "M rich black")
+        ctx.cmd_k(0.0, 0.0, 0.1, 1.0)
+        self.draw_gray_and_text(ctx, 50, 80 + 2*deltax, 50, "Y rich black")
+        ctx.cmd_k(0.1, 0.1, 0.1, 1.0)
+        self.draw_gray_and_text(ctx, 50, 80 + 3*deltax, 50, "All rich black")
 
     def draw_gray_and_text(self, ctx, s, transx, transy, text):
         self.draw_circle(ctx, s, transx, transy)
