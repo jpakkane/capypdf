@@ -1105,7 +1105,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
                                            double e,
                                            double f) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    return conv_err(t->cmd_Tm(a, b, c, d, e, f));
+    return conv_err(t->cmd_Tm(PdfMatrix{a, b, c, d, e, f}));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,

@@ -74,7 +74,7 @@ DCSerialization PdfDrawContext::serialize() {
         sc.resource_dict = std::move(resource_dict);
         sc.unclosed_object_dict = "<<\n";
         sc.command_stream = commands;
-        return sc;
+        return DCSerialization{std::move(sc)};
     }
 }
 
@@ -939,12 +939,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             std::format_to(app,
                            "{}{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
                            ind,
-                           tm.a,
-                           tm.b,
-                           tm.c,
-                           tm.d,
-                           tm.e,
-                           tm.f);
+                           tm.m.a,
+                           tm.m.b,
+                           tm.m.c,
+                           tm.m.d,
+                           tm.m.e,
+                           tm.m.f);
             return NoReturnValue{};
         },
 

@@ -135,7 +135,7 @@ struct TL_arg {
 };
 
 struct Tm_arg {
-    double a, b, c, d, e, f;
+    PdfMatrix m;
 };
 
 struct Tr_arg {
@@ -247,8 +247,8 @@ public:
         RETOK;
     }
 
-    rvoe<NoReturnValue> cmd_Tm(double a, double b, double c, double d, double e, double f) {
-        events.emplace_back(Tm_arg{a, b, c, d, e, f});
+    rvoe<NoReturnValue> cmd_Tm(const PdfMatrix &m) {
+        events.emplace_back(Tm_arg{m});
         RETOK;
     }
 

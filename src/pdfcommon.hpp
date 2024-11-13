@@ -192,6 +192,11 @@ struct PdfRectangle {
     double h() const { return x2 - x1; }
 };
 
+// In PDF only 6 of the 9 values are stored.
+struct PdfMatrix {
+    double a, b, c, d, e, f;
+};
+
 struct Point {
     double x, y;
 };
