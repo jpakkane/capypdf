@@ -325,25 +325,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_function(CapyPDF_Generator *gen,
-                                                            CapyPDF_Type2Function *func,
-                                                            CapyPDF_FunctionId *out_ptr)
-    CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_function(
+    CapyPDF_Generator *gen, CapyPDF_Function *func, CapyPDF_FunctionId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *f = reinterpret_cast<FunctionType2 *>(func);
-    auto rc = g->add_function(*f);
-    if(rc) {
-        *out_ptr = rc.value();
-    }
-    return conv_err(rc);
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_function(CapyPDF_Generator *gen,
-                                                            CapyPDF_Type3Function *func,
-                                                            CapyPDF_FunctionId *out_ptr)
-    CAPYPDF_NOEXCEPT {
-    auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *f = reinterpret_cast<FunctionType3 *>(func);
+    auto *f = reinterpret_cast<PdfFunction *>(func);
     auto rc = g->add_function(*f);
     if(rc) {
         *out_ptr = rc.value();
@@ -1482,19 +1467,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   const CapyPDF_Color *c1,
                                                   const CapyPDF_Color *c2,
                                                   double n,
-                                                  CapyPDF_Type2Function **out_ptr)
-    CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Type2Function *>(
-        new FunctionType2{std::vector<double>(domain, domain + domain_size),
-                          *reinterpret_cast<const Color *>(c1),
-                          *reinterpret_cast<const Color *>(c2),
-                          n});
+                                                  CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Function *>(
+        new PdfFunction{FunctionType2{std::vector<double>(domain, domain + domain_size),
+                                      *reinterpret_cast<const Color *>(c1),
+                                      *reinterpret_cast<const Color *>(c2),
+                                      n}});
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_destroy(CapyPDF_Type2Function *func)
-    CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<FunctionType2 *>(func);
+CAPYPDF_PUBLIC CapyPDF_EC capy_function_destroy(CapyPDF_Function *func) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<PdfFunction *>(func);
     RETNOERR;
 }
 
@@ -1506,19 +1489,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_new(double *domain,
                                                   int32_t bounds_size,
                                                   double *encode,
                                                   int32_t encode_size,
-                                                  CapyPDF_Type3Function **out_ptr)
-    CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Type3Function *>(
-        new FunctionType3{std::vector<double>(domain, domain + domain_size),
-                          std::vector<CapyPDF_FunctionId>(functions, functions + functions_size),
-                          std::vector<double>(bounds, bounds + bounds_size),
-                          std::vector<double>(encode, encode + encode_size)});
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_destroy(CapyPDF_Type3Function *func)
-    CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<FunctionType3 *>(func);
+                                                  CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Function *>(new PdfFunction{
+        FunctionType3{std::vector<double>(domain, domain + domain_size),
+                      std::vector<CapyPDF_FunctionId>(functions, functions + functions_size),
+                      std::vector<double>(bounds, bounds + bounds_size),
+                      std::vector<double>(encode, encode + encode_size)}});
     RETNOERR;
 }
 

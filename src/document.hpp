@@ -313,6 +313,11 @@ struct RolemapEnty {
     CapyPDF_StructureType builtin;
 };
 
+struct FunctionInfo {
+    PdfFunction original;
+    int32_t object_number;
+};
+
 typedef std::variant<CapyPDF_ImageColorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
 class PdfDocument {
@@ -365,8 +370,9 @@ public:
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state);
 
     // Functions
-    rvoe<CapyPDF_FunctionId> add_function(const FunctionType2 &func);
-    rvoe<CapyPDF_FunctionId> add_function(const FunctionType3 &func);
+    rvoe<int32_t> serialize_function(const FunctionType2 &func);
+    rvoe<int32_t> serialize_function(const FunctionType3 &func);
+    rvoe<CapyPDF_FunctionId> add_function(PdfFunction f);
 
     // Shading
     rvoe<CapyPDF_ShadingId> add_shading(const ShadingType2 &shade);
@@ -486,6 +492,7 @@ private:
     std::vector<StructItem> structure_items;
     std::vector<int32_t> ocg_items;
     std::vector<int32_t> transparency_groups;
+    std::vector<FunctionInfo> functions;
     std::vector<RolemapEnty> rolemap;
     // A form widget can be used on one and only one page.
     std::unordered_map<CapyPDF_FormWidgetId, int32_t> form_use;

@@ -349,6 +349,8 @@ struct FunctionType3 {
     std::vector<double> encode;
 };
 
+typedef std::variant<FunctionType2, FunctionType3> PdfFunction;
+
 // Linear
 struct ShadingType2 {
     CapyPDF_DeviceColorspace colorspace;

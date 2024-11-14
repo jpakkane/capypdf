@@ -652,7 +652,7 @@ class TestPDFCreation(unittest.TestCase):
             c2 = capypdf.Color()
             c2.set_rgb(1.0, 0.0, 1.0)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
-            f2id = gen.add_type2_function(f2)
+            f2id = gen.add_function(f2)
             sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
                                        10.0,
                                        50.0,
@@ -664,9 +664,9 @@ class TestPDFCreation(unittest.TestCase):
             sh2id = gen.add_type2_shading(sh2)
 
             f2o = capypdf.Type2Function([0.0, 1.0], c2, c1, 1.0)
-            f2oid = gen.add_type2_function(f2o)
+            f2oid = gen.add_function(f2o)
             f3 = capypdf.Type3Function([0.0, 1.0], [f2id, f2oid], [0.7], [0.0, 1.0, 0.0, 1.0]);
-            f3id = gen.add_type3_function(f3)
+            f3id = gen.add_function(f3)
 
             sh2f3 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
                                        10.0,
@@ -752,7 +752,7 @@ class TestPDFCreation(unittest.TestCase):
             c2 = capypdf.Color()
             c2.set_gray(1.0)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
-            f2id = gen.add_type2_function(f2)
+            f2id = gen.add_function(f2)
             sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.Gray,
                                        10.0,
                                        50.0,
@@ -832,7 +832,7 @@ class TestPDFCreation(unittest.TestCase):
             c2 = capypdf.Color()
             c2.set_cmyk(0, 0.9, 0, 0.9)
             f2 = capypdf.Type2Function([0.0, 1.0], c1, c2, 1.0)
-            f2id = gen.add_type2_function(f2)
+            f2id = gen.add_function(f2)
             sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.CMYK,
                                        10.0,
                                        50.0,

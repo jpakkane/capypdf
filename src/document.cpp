@@ -1231,7 +1231,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     return CapyPDF_GraphicsStateId{id};
 }
 
-rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
+rvoe<int32_t> PdfDocument::serialize_function(const FunctionType2 &func) {
     const int functiontype = 2;
     if(func.C0.index() != func.C1.index()) {
         RETERR(ColorspaceMismatch);
@@ -1258,10 +1258,10 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType2 &func) {
     buf += "]\n";
     buf += ">>\n";
 
-    return CapyPDF_FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
-rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType3 &func) {
+rvoe<int32_t> PdfDocument::serialize_function(const FunctionType3 &func) {
     const int functiontype = 3;
     if(!func.functions.size()) {
         RETERR(EmptyFunctionList);
@@ -1281,7 +1281,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType3 &func) {
 
     buf += "  /Functions [ ";
     for(const auto f : func.functions) {
-        std::format_to(resource_appender, "{} 0 R ", f.id);
+        std::format_to(resource_appender, "{} 0 R ", functions.at(f.id).object_number);
     }
     buf += "]\n";
 
@@ -1299,7 +1299,23 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(const FunctionType3 &func) {
 
     buf += ">>\n";
 
-    return CapyPDF_FunctionId{add_object(FullPDFObject{std::move(buf), {}})};
+    return add_object(FullPDFObject{std::move(buf), {}});
+}
+
+rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
+    int32_t object_number;
+    if(auto *f2 = std::get_if<FunctionType2>(&f)) {
+        ERC(rc, serialize_function(*f2));
+        object_number = rc;
+    } else if(auto *f3 = std::get_if<FunctionType3>(&f)) {
+        ERC(rc, serialize_function(*f3));
+        object_number = rc;
+    } else {
+        fprintf(stderr, "Function type not implemented yet.\n");
+        std::abort();
+    }
+    functions.emplace_back(FunctionInfo{std::move(f), object_number});
+    return CapyPDF_FunctionId{(int32_t)functions.size() - 1};
 }
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
@@ -1319,7 +1335,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
         shade.y0,
         shade.x1,
         shade.y1,
-        shade.function.id,
+        functions.at(shade.function.id).object_number,
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
 
@@ -1345,7 +1361,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType3 &shade) {
         shade.x1,
         shade.y1,
         shade.r1,
-        shade.function.id,
+        functions.at(shade.function.id).object_number,
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
 

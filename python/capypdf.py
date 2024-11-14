@@ -304,8 +304,7 @@ cfunc_types = (
 ('capy_generator_add_lab_colorspace', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type2_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type3_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -459,7 +458,16 @@ cfunc_types = (
 ('capy_optional_content_group_destroy', [ctypes.c_void_p]),
 
 ('capy_type2_function_new', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_void_p]),
-('capy_type2_function_destroy', [ctypes.c_void_p]),
+('capy_type3_function_new', [ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_void_p]),
+('capy_function_destroy', [ctypes.c_void_p]),
 
 ('capy_type2_shading_new', [enum_type,
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
@@ -1079,18 +1087,11 @@ class Generator:
         check_error(libfile.capy_generator_add_image(self, ri, params, ctypes.pointer(iid)))
         return iid
 
-    def add_type2_function(self, type2func):
-        if not isinstance(type2func, Type2Function):
-            raise CapyPDFException('Argument must be a Type2 function.')
+    def add_function(self, pfunc):
+        if not isinstance(pfunc, (Type2Function, Type3Function)):
+            raise CapyPDFException('Argument must be a Function object.')
         fid = FunctionId()
-        check_error(libfile.capy_generator_add_type2_function(self, type2func, ctypes.pointer(fid)))
-        return fid
-
-    def add_type3_function(self, type3func):
-        if not isinstance(type3func, Type3Function):
-            raise CapyPDFException('Argument must be a Type3 function.')
-        fid = FunctionId()
-        check_error(libfile.capy_generator_add_type3_function(self, type3func, ctypes.pointer(fid)))
+        check_error(libfile.capy_generator_add_function(self, pfunc, ctypes.pointer(fid)))
         return fid
 
     def add_type2_shading(self, type2shade):
@@ -1485,7 +1486,7 @@ class Type2Function:
         self._as_parameter_ = t2f
 
     def __del__(self):
-        check_error(libfile.capy_type2_function_destroy(self))
+        check_error(libfile.capy_function_destroy(self))
 
 class Type3Function:
     def __init__(self, domain, functions, bounds, encode):
@@ -1500,7 +1501,7 @@ class Type3Function:
         self._as_parameter_ = t2f
 
     def __del__(self):
-        check_error(libfile.capy_type3_function_destroy(self))
+        check_error(libfile.capy_function_destroy(self))
 
 class Type2Shading:
     def __init__(self, cs, x0, y0, x1, y1, funcid, extend1, extend2):
