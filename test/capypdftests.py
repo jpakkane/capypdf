@@ -661,7 +661,7 @@ class TestPDFCreation(unittest.TestCase):
                                        f2id,
                                        False,
                                        False)
-            sh2id = gen.add_type2_shading(sh2)
+            sh2id = gen.add_shading(sh2)
 
             f2o = capypdf.Type2Function([0.0, 1.0], c2, c1, 1.0)
             f2oid = gen.add_function(f2o)
@@ -676,14 +676,14 @@ class TestPDFCreation(unittest.TestCase):
                                        f3id,
                                        False,
                                        False)
-            sh2f3id = gen.add_type2_shading(sh2f3)
+            sh2f3id = gen.add_shading(sh2f3)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.RGB,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
-            sh3id = gen.add_type3_shading(sh3)
+            sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.RGB, 0, 0, 100, 100)
             c1 = capypdf.Color()
@@ -697,7 +697,7 @@ class TestPDFCreation(unittest.TestCase):
                               90, 10],
                              [c1, c2, c3])
             sh4.extend(2, [90, 90], c2)
-            sh4id = gen.add_type4_shading(sh4)
+            sh4id = gen.add_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.RGB, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
@@ -706,7 +706,7 @@ class TestPDFCreation(unittest.TestCase):
             sh6_colors[2].set_rgb(0, 0, 1)
             sh6_colors[3].set_rgb(1, 0, 1)
             sh6.add_patch(sh6_coords, sh6_colors)
-            sh6id = gen.add_type6_shading(sh6)
+            sh6id = gen.add_shading(sh6)
 
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
@@ -761,14 +761,14 @@ class TestPDFCreation(unittest.TestCase):
                                        f2id,
                                        False,
                                        False)
-            sh2id = gen.add_type2_shading(sh2)
+            sh2id = gen.add_shading(sh2)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.Gray,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
-            sh3id = gen.add_type3_shading(sh3)
+            sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.Gray, 0, 0, 100, 100)
             c1 = capypdf.Color()
@@ -782,7 +782,7 @@ class TestPDFCreation(unittest.TestCase):
                               90, 10],
                              [c1, c2, c3])
             sh4.extend(2, [90, 90], c2)
-            sh4id = gen.add_type4_shading(sh4)
+            sh4id = gen.add_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.Gray, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
@@ -791,7 +791,7 @@ class TestPDFCreation(unittest.TestCase):
             sh6_colors[2].set_gray(0.6)
             sh6_colors[3].set_gray(1)
             sh6.add_patch(sh6_coords, sh6_colors)
-            sh6id = gen.add_type6_shading(sh6)
+            sh6id = gen.add_shading(sh6)
 
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
@@ -841,14 +841,14 @@ class TestPDFCreation(unittest.TestCase):
                                        f2id,
                                        False,
                                        False)
-            sh2id = gen.add_type2_shading(sh2)
+            sh2id = gen.add_shading(sh2)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.CMYK,
                                        [50, 50, 40, 40, 30, 10],
                                        f2id,
                                        False,
                                        True)
-            sh3id = gen.add_type3_shading(sh3)
+            sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.CMYK, 0, 0, 100, 100)
             c1 = capypdf.Color()
@@ -864,7 +864,7 @@ class TestPDFCreation(unittest.TestCase):
                               90, 10],
                              [c1, c2, c3])
             sh4.extend(2, [90, 90], c4)
-            sh4id = gen.add_type4_shading(sh4)
+            sh4id = gen.add_shading(sh4)
 
             sh6 = capypdf.Type6Shading(capypdf.DeviceColorspace.CMYK, 0, 0, 100, 100)
             sh6_colors = [capypdf.Color(), capypdf.Color(), capypdf.Color(), capypdf.Color()]
@@ -873,7 +873,7 @@ class TestPDFCreation(unittest.TestCase):
             sh6_colors[2].set_cmyk(0, 0, 1, 0)
             sh6_colors[3].set_cmyk(0, 0, 0, 1)
             sh6.add_patch(sh6_coords, sh6_colors)
-            sh6id = gen.add_type6_shading(sh6)
+            sh6id = gen.add_shading(sh6)
 
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():

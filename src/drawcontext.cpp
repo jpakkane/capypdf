@@ -176,7 +176,8 @@ std::string PdfDrawContext::build_resource_dict() {
     if(!used_shadings.empty()) {
         resources += "  /Shading <<\n";
         for(const auto &s : used_shadings) {
-            std::format_to(resource_appender, "    /SH{} {} 0 R\n", s, s);
+            std::format_to(
+                resource_appender, "    /SH{} {} 0 R\n", s, doc->shadings.at(s).object_number);
         }
         resources += "  >>\n";
     }

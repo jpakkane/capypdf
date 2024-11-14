@@ -336,51 +336,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_function(
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type2Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading(CapyPDF_Generator *gen,
+                                                     CapyPDF_Shading *shade,
+                                                     CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *sh = reinterpret_cast<ShadingType2 *>(shade);
-    auto rc = g->add_shading(*sh);
-    if(rc) {
-        *out_ptr = rc.value();
-    }
-    return conv_err(rc);
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type3Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT {
-    auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *sh = reinterpret_cast<ShadingType3 *>(shade);
-    auto rc = g->add_shading(*sh);
-    if(rc) {
-        *out_ptr = rc.value();
-    }
-    return conv_err(rc);
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type4Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT {
-    auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
-    auto rc = g->add_shading(*sh);
-    if(rc) {
-        *out_ptr = rc.value();
-    }
-    return conv_err(rc);
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type6Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT {
-    auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
     auto rc = g->add_shading(*sh);
     if(rc) {
         *out_ptr = rc.value();
@@ -1506,16 +1466,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
                                                  int32_t extend2,
-                                                 CapyPDF_Type2Shading **out_ptr) CAPYPDF_NOEXCEPT {
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(extend1);
     CHECK_BOOLEAN(extend2);
-    *out_ptr = reinterpret_cast<CapyPDF_Type2Shading *>(
-        new ShadingType2{cs, x0, y0, x1, y1, func, extend1 != 0, extend2 != 0});
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(
+        new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func, extend1 != 0, extend2 != 0}});
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<ShadingType2 *>(shade);
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<PdfShading *>(shade);
     RETNOERR;
 }
 
@@ -1524,24 +1484,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
                                                  int32_t extend2,
-                                                 CapyPDF_Type3Shading **out_ptr) CAPYPDF_NOEXCEPT {
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(extend1);
     CHECK_BOOLEAN(extend2);
-    *out_ptr = reinterpret_cast<CapyPDF_Type3Shading *>(new ShadingType3{cs,
-                                                                         coords[0],
-                                                                         coords[1],
-                                                                         coords[2],
-                                                                         coords[3],
-                                                                         coords[4],
-                                                                         coords[5],
-                                                                         func,
-                                                                         extend1 != 0,
-                                                                         extend2 != 0});
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<ShadingType3 *>(shade);
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType3{cs,
+                                                                               coords[0],
+                                                                               coords[1],
+                                                                               coords[2],
+                                                                               coords[3],
+                                                                               coords[4],
+                                                                               coords[5],
+                                                                               func,
+                                                                               extend1 != 0,
+                                                                               extend2 != 0}});
     RETNOERR;
 }
 
@@ -1550,14 +1505,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double miny,
                                                  double maxx,
                                                  double maxy,
-                                                 CapyPDF_Type4Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    auto *shobj = new ShadingType4{};
-    shobj->colorspace = cs;
-    shobj->minx = minx;
-    shobj->miny = miny;
-    shobj->maxx = maxx;
-    shobj->maxy = maxy;
-    *out_ptr = reinterpret_cast<CapyPDF_Type4Shading *>(shobj);
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(
+        new PdfShading{ShadingType4{{}, minx, miny, maxx, maxy, cs}});
     RETNOERR;
 }
 
@@ -1569,39 +1519,40 @@ static ShadingPoint conv_shpoint(const double *coords, const Color *color) {
     return sp;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
-                                                          const double *coords,
-                                                          const CapyPDF_Color **color)
-    CAPYPDF_NOEXCEPT {
-    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
+    CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    auto *sh4 = std::get_if<ShadingType4>(sh);
+    if(!sh) {
+        return conv_err(ErrorCode::IncorrectShadingType);
+    }
     auto *cc = reinterpret_cast<const Color **>(color);
     ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
     ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
     ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
-    sh->start_strip(sp1, sp2, sp3);
+    sh4->start_strip(sp1, sp2, sp3);
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
                                                     int32_t flag,
                                                     const double *coords,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
-    auto *sh = reinterpret_cast<ShadingType4 *>(shade);
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    auto *sh4 = std::get_if<ShadingType4>(sh);
+    if(!sh) {
+        return conv_err(ErrorCode::IncorrectShadingType);
+    }
     auto *cc = reinterpret_cast<const Color *>(color);
     if(flag == 1 || flag == 2) {
-        if(sh->elements.empty()) {
+        if(sh4->elements.empty()) {
             conv_err(ErrorCode::BadStripStart);
         }
         ShadingPoint sp = conv_shpoint(coords, cc);
-        sh->extend_strip(sp, flag);
+        sh4->extend_strip(sp, flag);
     } else {
         conv_err(ErrorCode::BadEnum);
     }
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<ShadingType4 *>(shade);
     RETNOERR;
 }
 
@@ -1610,14 +1561,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double miny,
                                                  double maxx,
                                                  double maxy,
-                                                 CapyPDF_Type6Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    auto *shobj = new ShadingType6{};
-    shobj->colorspace = cs;
-    shobj->minx = minx;
-    shobj->miny = miny;
-    shobj->maxx = maxx;
-    shobj->maxy = maxy;
-    *out_ptr = reinterpret_cast<CapyPDF_Type6Shading *>(shobj);
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType6{
+        {},
+        minx,
+        miny,
+        maxx,
+        maxy,
+        cs,
+    }});
     RETNOERR;
 }
 
@@ -1632,39 +1584,40 @@ static void grab_coons_data(T &patch, const double *coords, const Color **colors
     }
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *shade,
-                                                       const double *coords,
-                                                       const CapyPDF_Color **colors)
-    CAPYPDF_NOEXCEPT {
-    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
+    CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    auto *sh6 = std::get_if<ShadingType6>(sh);
+    if(!sh6) {
+        return conv_err(ErrorCode::IncorrectShadingType);
+    }
     auto **cc = reinterpret_cast<const Color **>(colors);
     FullCoonsPatch cp;
     grab_coons_data(cp, coords, cc);
-    sh->elements.emplace_back(std::move(cp));
+    sh6->elements.emplace_back(std::move(cp));
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
                                                     int32_t flag,
                                                     const double *coords,
                                                     const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
-    auto *sh = reinterpret_cast<ShadingType6 *>(shade);
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    auto *sh6 = std::get_if<ShadingType6>(sh);
+    if(!sh6) {
+        return conv_err(ErrorCode::IncorrectShadingType);
+    }
     auto **cc = reinterpret_cast<const Color **>(colors);
     if(flag == 1 || flag == 2 || flag == 3) {
-        if(sh->elements.empty()) {
+        if(sh6->elements.empty()) {
             conv_err(ErrorCode::BadStripStart);
         }
         ContinuationCoonsPatch ccp;
         grab_coons_data(ccp, coords, cc);
-        sh->elements.emplace_back(std::move(ccp));
+        sh6->elements.emplace_back(std::move(ccp));
     } else {
         conv_err(ErrorCode::BadEnum);
     }
-    RETNOERR;
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<ShadingType6 *>(shade);
     RETNOERR;
 }
 

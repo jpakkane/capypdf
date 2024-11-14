@@ -1318,7 +1318,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
     return CapyPDF_FunctionId{(int32_t)functions.size() - 1};
 }
 
-rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
+rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType2 &shade) {
     const int shadingtype = 2;
     std::string buf = std::format(
         R"(<<
@@ -1339,10 +1339,10 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType2 &shade) {
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
 
-    return CapyPDF_ShadingId{add_object(FullPDFObject{std::move(buf), {}})};
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
-rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType3 &shade) {
+rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType3 &shade) {
     const int shadingtype = 3;
     std::string buf = std::format(
         R"(<<
@@ -1365,10 +1365,10 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType3 &shade) {
         shade.extend0 ? "true" : "false",
         shade.extend1 ? "true" : "false");
 
-    return CapyPDF_ShadingId{add_object(FullPDFObject{std::move(buf), {}})};
+    return add_object(FullPDFObject{std::move(buf), {}});
 }
 
-rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
+rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType4 &shade) {
     const int shadingtype = 4;
     ERC(serialized, serialize_shade4(shade));
     std::string buf = std::format(
@@ -1408,10 +1408,10 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType4 &shade) {
         std::abort();
     }
     buf += "  ]\n>>\n";
-    return CapyPDF_ShadingId{add_object(FullPDFObject{std::move(buf), std::move(serialized)})};
+    return add_object(FullPDFObject{std::move(buf), std::move(serialized)});
 }
 
-rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
+rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType6 &shade) {
     const int shadingtype = 6;
     ERC(serialized, serialize_shade6(shade));
     std::string buf = std::format(
@@ -1452,7 +1452,29 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(const ShadingType6 &shade) {
     }
     buf += "  ]\n>>\n";
 
-    return CapyPDF_ShadingId{add_object(FullPDFObject{std::move(buf), std::move(serialized)})};
+    return add_object(FullPDFObject{std::move(buf), std::move(serialized)});
+}
+
+rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
+    int32_t object_number;
+    if(auto *sh2 = std::get_if<ShadingType2>(&sh)) {
+        ERC(rc, serialize_shading(*sh2));
+        object_number = rc;
+    } else if(auto *sh3 = std::get_if<ShadingType3>(&sh)) {
+        ERC(rc, serialize_shading(*sh3));
+        object_number = rc;
+    } else if(auto *sh4 = std::get_if<ShadingType4>(&sh)) {
+        ERC(rc, serialize_shading(*sh4));
+        object_number = rc;
+    } else if(auto *sh6 = std::get_if<ShadingType6>(&sh)) {
+        ERC(rc, serialize_shading(*sh6));
+        object_number = rc;
+    } else {
+        fprintf(stderr, "Shading type not supported yet.\n");
+        std::abort();
+    }
+    shadings.emplace_back(ShadingInfo{std::move(sh), object_number});
+    return CapyPDF_ShadingId{(int32_t)shadings.size() - 1};
 }
 
 rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {

@@ -305,10 +305,7 @@ cfunc_types = (
 ('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type2_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type3_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type4_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_type6_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_structure_item', [ctypes.c_void_p, enum_type, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_custom_structure_item', [ctypes.c_void_p, RoleId, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_write', [ctypes.c_void_p]),
@@ -473,12 +470,11 @@ cfunc_types = (
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
                             FunctionId, ctypes.c_int32, ctypes.c_int32,
                             ctypes.c_void_p]),
-('capy_type2_shading_destroy', [ctypes.c_void_p]),
+('capy_shading_destroy', [ctypes.c_void_p]),
 
 
 ('capy_type3_shading_new', [enum_type, ctypes.POINTER(ctypes.c_double),
                             FunctionId, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p]),
-('capy_type3_shading_destroy', [ctypes.c_void_p]),
 
 ('capy_type4_shading_new', [enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type4_shading_add_triangle', [ctypes.c_void_p,
@@ -488,7 +484,6 @@ cfunc_types = (
                                ctypes.c_int32,
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
-('capy_type4_shading_destroy', [ctypes.c_void_p]),
 
 ('capy_type6_shading_new', [enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type6_shading_add_patch', [ctypes.c_void_p,
@@ -498,7 +493,6 @@ cfunc_types = (
                                ctypes.c_int32,
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
-('capy_type6_shading_destroy', [ctypes.c_void_p]),
 
 ('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
@@ -1094,32 +1088,11 @@ class Generator:
         check_error(libfile.capy_generator_add_function(self, pfunc, ctypes.pointer(fid)))
         return fid
 
-    def add_type2_shading(self, type2shade):
-        if not isinstance(type2shade, Type2Shading):
+    def add_shading(self, type2shade):
+        if not isinstance(type2shade, (Type2Shading, Type3Shading, Type4Shading, Type6Shading)):
             raise CapyPDFException('Argument must be a type 2 shading object.')
         shid = ShadingId()
-        check_error(libfile.capy_generator_add_type2_shading(self, type2shade, ctypes.pointer(shid)))
-        return shid
-
-    def add_type3_shading(self, type3shade):
-        if not isinstance(type3shade, Type3Shading):
-            raise CapyPDFException('Argument must be a type 3 shading object.')
-        shid = ShadingId()
-        check_error(libfile.capy_generator_add_type3_shading(self, type3shade, ctypes.pointer(shid)))
-        return shid
-
-    def add_type4_shading(self, type4shade):
-        if not isinstance(type4shade, Type4Shading):
-            raise CapyPDFException('Argument must be a type 4 shading object.')
-        shid = ShadingId()
-        check_error(libfile.capy_generator_add_type4_shading(self, type4shade, ctypes.pointer(shid)))
-        return shid
-
-    def add_type6_shading(self, type6shade):
-        if not isinstance(type6shade, Type6Shading):
-            raise CapyPDFException('Argument must be a type 4 shading object.')
-        shid = ShadingId()
-        check_error(libfile.capy_generator_add_type6_shading(self, type6shade, ctypes.pointer(shid)))
+        check_error(libfile.capy_generator_add_shading(self, type2shade, ctypes.pointer(shid)))
         return shid
 
     def add_structure_item(self, struct_type, parent=None, extra=None):
@@ -1513,7 +1486,7 @@ class Type2Shading:
         self._as_parameter_ = t2s
 
     def __del__(self):
-        check_error(libfile.capy_type2_shading_destroy(self))
+        check_error(libfile.capy_shading_destroy(self))
 
 class Type3Shading:
     def __init__(self, cs, coords, funcid, extend1, extend2):
@@ -1527,7 +1500,7 @@ class Type3Shading:
         self._as_parameter_ = t3s
 
     def __del__(self):
-        check_error(libfile.capy_type3_shading_destroy(self))
+        check_error(libfile.capy_shading_destroy(self))
 
 
 class Type4Shading:
@@ -1538,7 +1511,7 @@ class Type4Shading:
         self._as_parameter_ = t4s
 
     def __del__(self):
-        check_error(libfile.capy_type4_shading_destroy(self))
+        check_error(libfile.capy_shading_destroy(self))
 
     def add_triangle(self, coords, colors):
         if len(coords) != 6:
@@ -1572,7 +1545,7 @@ class Type6Shading:
         self._as_parameter_ = t6s
 
     def __del__(self):
-        check_error(libfile.capy_type6_shading_destroy(self))
+        check_error(libfile.capy_shading_destroy(self))
 
     def add_patch(self, coords, colors):
         if len(coords) != 24:

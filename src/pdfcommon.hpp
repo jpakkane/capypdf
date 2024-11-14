@@ -421,6 +421,8 @@ struct ShadingType6 {
     CapyPDF_DeviceColorspace colorspace = CAPY_DEVICE_CS_RGB;
 };
 
+typedef std::variant<ShadingType2, ShadingType3, ShadingType4, ShadingType6> PdfShading;
+
 struct TextStateParameters {
     std::optional<double> char_spacing;
     std::optional<double> word_spacing;

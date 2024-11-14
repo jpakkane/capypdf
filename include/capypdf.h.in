@@ -333,10 +333,7 @@ typedef struct _capyPDF_TransparencyGroupProperties CapyPDF_TransparencyGroupPro
 typedef struct _capyPDF_RasterImage CapyPDF_RasterImage;
 typedef struct _capyPDF_RasterImageBuilder CapyPDF_RasterImageBuilder;
 typedef struct _capyPDF_Function CapyPDF_Function;
-typedef struct _capyPDF_Type2Shading CapyPDF_Type2Shading;
-typedef struct _capyPDF_Type3Shading CapyPDF_Type3Shading;
-typedef struct _capyPDF_Type4Shading CapyPDF_Type4Shading;
-typedef struct _capyPDF_Type6Shading CapyPDF_Type6Shading;
+typedef struct _capyPDF_Shading CapyPDF_Shading;
 typedef struct _capyPDF_Annotation CapyPDF_Annotation;
 typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
 typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
@@ -501,22 +498,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_function(CapyPDF_Generator *gen,
                                                       CapyPDF_Function *func,
                                                       CapyPDF_FunctionId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type2_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type2Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type3_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type3Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type4_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type4Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_type6_shading(CapyPDF_Generator *gen,
-                                                           CapyPDF_Type6Shading *shade,
-                                                           CapyPDF_ShadingId *out_ptr)
-    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading(CapyPDF_Generator *gen,
+                                                     CapyPDF_Shading *shade,
+                                                     CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *gen,
                                                             const CapyPDF_GraphicsState *state,
                                                             CapyPDF_GraphicsStateId *out_ptr)
@@ -897,48 +881,41 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
                                                  int32_t extend2,
-                                                 CapyPDF_Type2Shading **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_destroy(CapyPDF_Type2Shading *shade) CAPYPDF_NOEXCEPT;
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  int32_t extend1,
                                                  int32_t extend2,
-                                                 CapyPDF_Type3Shading **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_destroy(CapyPDF_Type3Shading *shade) CAPYPDF_NOEXCEPT;
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
                                                  double maxy,
-                                                 CapyPDF_Type4Shading **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(CapyPDF_Type4Shading *shade,
-                                                          const double *coords,
-                                                          const CapyPDF_Color **colors)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Type4Shading *shade,
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
+    CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
                                                     int32_t flag,
                                                     const double *coords,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_destroy(CapyPDF_Type4Shading *shade) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
                                                  double maxy,
-                                                 CapyPDF_Type6Shading **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(CapyPDF_Type6Shading *shade,
-                                                       const double *coords,
-                                                       const CapyPDF_Color **colors)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Type6Shading *shade,
+                                                 CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
+    CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
                                                     int32_t flag,
                                                     const double *coords,
                                                     const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_destroy(CapyPDF_Type6Shading *shade) CAPYPDF_NOEXCEPT;
 
 // Annotations.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
