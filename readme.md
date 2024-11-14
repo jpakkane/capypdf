@@ -4,27 +4,29 @@
 
 # CapyPDF
 
-This is a library for generating PDF files. It aims to be very low level.
-It does not have its own document model, it merely exposes PDF primitives
+CapyPDF is a low level library for generating PDF files. It does not
+have its own document model, it merely exposes PDF primitives
 directly.
 
 ## Features
 
+- Aims to support all functionality available in PDF (eventually)
+- Reads PNG, JPEG and TIFF files
 - Fully color managed using [LittleCMS 2](https://littlecms.com/)
-- All fonts are embedded as subsets
 - Not implemented in C
 - Provides a plain C API for easy integration into scripting languages
-- Ships with a `ctypes` Python binding
+- Ships with a `ctypes` Python binding and a C++ wrapper header
 - Minimal dependencies
 
 ## Things the library does not do
 
 - Reading PDF files
 - Modifying PDF files
+- Cryptographic operations (i.e. document signing)
 - Supporting any other backend than PDF
 - Parsing any vector data files like SVG
 - Data conversions in general (apart from colorspaces)
-- Supporting PDF versions earlier than 1.7
+- Supporting PDF versions earlier than 1.7 (possibly PDF 2.0)
 
 ## API stability guarantees
 
@@ -33,10 +35,8 @@ However we try not to change things without a good reason. Once 1.0
 happens, we aim to provide the following:
 
 - The plain C interface is both API and ABI stable
-- The internal C++ implementation "API" is not stable in any way
-- Only C symbols are exported so in order to get to the C++ API you
-  have to change build settings. If you do that, there is no stability
-  guarantee.
+- Only C symbols are exported so you alter build settings to get at
+  the internals, there is no stability guarantee
 - The Python API shall be stable as well
 
 ## PDF validity
@@ -49,7 +49,7 @@ certain requirements for valid documents that can not be checked in
 a plain PDF generation library. This work needs to be done by the
 generating application. CapyPDF does have some semantic checks, such
 as not permitting RGB images in PDF/X3 documents, but they are
-implemented on a "best effort" basis.
+implemented on a best effort basis.
 
 ## Status
 
