@@ -60,14 +60,84 @@ class PrinterTest:
             with self.ctx.push_gstate():
                 self.ctx.translate(50, 250)
                 self.draw_lab()
+        del self.ctx
         with self.pdfgen.page_draw_context() as page2:
             self.ctx = page2
             self.render_centered("CapyPDF transparency test", self.basefont, 20, self.w/2, 800)
-            self.ctx.translate(10, 700)
             im = self.pdfgen.load_image('images/object_gradient.png')
             self.trimage = self.pdfgen.add_image(im, capypdf.ImagePdfProperties())
-            self.simple_trimage()
+            with self.ctx.push_gstate():
+                self.ctx.translate(10, 700)
+                self.simple_trimage()
+            with self.ctx.push_gstate():
+                self.ctx.translate(19, 600)
+                self.draw_trgroups()
         del self.ctx
+
+    def draw_trgroups(self):
+        gstate = capypdf.GraphicsState()
+        gstate.set_BM(capypdf.BlendMode.Multiply)
+        gsid = self.pdfgen.add_graphics_state(gstate)
+        with self.ctx.push_gstate():
+            tgid = self.draw_trgroup(gsid, True, True)
+            self.ctx.cmd_k(0.5, 0, 0.5, 0)
+            self.ctx.cmd_re(0, 0, 80, 80)
+            self.ctx.cmd_f()
+            self.ctx.cmd_Do(tgid)
+        with self.ctx.push_gstate():
+            self.ctx.translate(100, 0)
+            self.ctx.cmd_k(0.5, 0, 0.5, 0)
+            self.ctx.cmd_re(0, 0, 80, 80)
+            self.ctx.cmd_f()
+            tgid = self.draw_trgroup(gsid, True, False)
+            self.ctx.cmd_Do(tgid)
+        with self.ctx.push_gstate():
+            self.ctx.translate(0, -100)
+            self.ctx.cmd_k(0.5, 0, 0.5, 0)
+            self.ctx.cmd_re(0, 0, 80, 80)
+            self.ctx.cmd_f()
+            tgid = self.draw_trgroup(gsid, False, True)
+            self.ctx.cmd_Do(tgid)
+        with self.ctx.push_gstate():
+            self.ctx.translate(100, -100)
+            self.ctx.cmd_k(0.5, 0, 0.5, 0)
+            self.ctx.cmd_re(0, 0, 80, 80)
+            self.ctx.cmd_f()
+            tgid = self.draw_trgroup(gsid, False, False)
+            self.ctx.cmd_Do(tgid)
+
+    def draw_trgroup(self, gsid, I, K):
+        groupctx = capypdf.TransparencyGroupDrawContext(self.pdfgen, 0, 0, 80, 80)
+        trprop = capypdf.TransparencyGroupProperties()
+        trprop.set_I(I)
+        trprop.set_K(K)
+        groupctx.set_transparency_group_properties(trprop)
+        groupctx.cmd_gs(gsid)
+        self.draw_qcircles(groupctx)
+        return self.pdfgen.add_transparency_group(groupctx)
+
+    def draw_qcircles(self, groupctx):
+        groupctx.cmd_k(0, 0, 0, 0.15)
+        with groupctx.push_gstate():
+            groupctx.translate(30, 30)
+            groupctx.scale(40, 40)
+            self.draw_unit_circle_to(groupctx)
+            groupctx.cmd_f()
+        with groupctx.push_gstate():
+            groupctx.translate(50, 30)
+            groupctx.scale(40, 40)
+            self.draw_unit_circle_to(groupctx)
+            groupctx.cmd_f()
+        with groupctx.push_gstate():
+            groupctx.translate(30, 50)
+            groupctx.scale(40, 40)
+            self.draw_unit_circle_to(groupctx)
+            groupctx.cmd_f()
+        with groupctx.push_gstate():
+            groupctx.translate(50, 50)
+            groupctx.scale(40, 40)
+            self.draw_unit_circle_to(groupctx)
+            groupctx.cmd_f()
 
     def simple_trimage(self):
         self.ctx.cmd_k(0.1, 0.5, 0, 0)
@@ -133,12 +203,15 @@ class PrinterTest:
         self.draw_circle(50, 65, 25+10)
 
     def draw_unit_circle(self):
+        self.draw_unit_circle_to(self.ctx)
+
+    def draw_unit_circle_to(self, ctx):
         control = 0.5523 / 2;
-        self.ctx.cmd_m(0, 0.5);
-        self.ctx.cmd_c(control, 0.5, 0.5, control, 0.5, 0);
-        self.ctx.cmd_c(0.5, -control, control, -0.5, 0, -0.5);
-        self.ctx.cmd_c(-control, -0.5, -0.5, -control, -0.5, 0);
-        self.ctx.cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
+        ctx.cmd_m(0, 0.5);
+        ctx.cmd_c(control, 0.5, 0.5, control, 0.5, 0);
+        ctx.cmd_c(0.5, -control, control, -0.5, 0, -0.5);
+        ctx.cmd_c(-control, -0.5, -0.5, -control, -0.5, 0);
+        ctx.cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
 
     def draw_and_fill_unit_circle(self):
         self.draw_unit_circle()

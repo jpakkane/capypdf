@@ -881,6 +881,10 @@ class DrawContextBase:
             raise CapyPDFException('Argument must be a transparency group property object.')
         check_error(libfile.capy_dc_set_transparency_group_properties(self, props))
 
+    def push_gstate(self):
+        return StateContextManager(self)
+
+
 class DrawContext(DrawContextBase):
 
     def __init__(self, generator):
@@ -897,9 +901,6 @@ class DrawContext(DrawContextBase):
             self.generator.add_page(self)
         finally:
             self.generator = None # Not very elegant.
-
-    def push_gstate(self):
-        return StateContextManager(self)
 
     def add_simple_navigation(self, ocgs, transition=None):
         arraytype = len(ocgs)*OptionalContentGroupId
@@ -950,7 +951,7 @@ class TransparencyGroupProperties():
     def set_I(self, I):
         check_error(libfile.capy_transparency_group_properties_set_I(self, int(I)))
 
-    def set_K(self, cspace):
+    def set_K(self, K):
         check_error(libfile.capy_transparency_group_properties_set_K(self, int(K)))
 
 
