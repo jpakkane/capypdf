@@ -44,7 +44,7 @@ class PrinterTest:
     def create(self):
         with self.pdfgen.page_draw_context() as page1:
             self.ctx = page1
-            self.render_centered("CapyPDF printer test page", self.basefont, 20, self.w/2, 800)
+            self.render_centered("CapyPDF advanced color test", self.basefont, 20, self.w/2, 800)
             with self.ctx.push_gstate():
                 self.ctx.translate(10, 700)
                 self.draw_grays()
@@ -53,6 +53,9 @@ class PrinterTest:
                 self.draw_richblacks()
             with self.ctx.push_gstate():
                 self.ctx.translate(50, 500)
+                self.ctx.cmd_g(0.9)
+                self.ctx.cmd_re(0, 0, 400, 100)
+                self.ctx.cmd_f()
                 self.draw_op()
             with self.ctx.push_gstate():
                 self.ctx.translate(50, 250)
@@ -103,6 +106,7 @@ class PrinterTest:
             self.draw_tridot('Overprint mode 1')
 
     def draw_tridot(self, text):
+        self.ctx.cmd_g(0.0)
         self.render_centered(text, self.basefont, 10, 50, 0)
         self.ctx.cmd_k(1.0, 0, 0, 0)
         self.draw_circle(50, 50, 50+10)
