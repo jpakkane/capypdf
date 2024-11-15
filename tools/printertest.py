@@ -60,7 +60,24 @@ class PrinterTest:
             with self.ctx.push_gstate():
                 self.ctx.translate(50, 250)
                 self.draw_lab()
+        with self.pdfgen.page_draw_context() as page2:
+            self.ctx = page2
+            self.render_centered("CapyPDF transparency test", self.basefont, 20, self.w/2, 800)
+            self.ctx.translate(10, 700)
+            im = self.pdfgen.load_image('images/object_gradient.png')
+            self.trimage = self.pdfgen.add_image(im, capypdf.ImagePdfProperties())
+            self.simple_trimage()
         del self.ctx
+
+    def simple_trimage(self):
+        self.ctx.cmd_k(0.1, 0.5, 0, 0)
+        self.ctx.cmd_re(40, 0, 170, 90)
+        self.ctx.cmd_f()
+        for i in range(5):
+            with self.ctx.push_gstate():
+                self.ctx.translate(80 + (1.1**i)*i*30, 10)
+                self.ctx.scale(80, 80)
+                self.ctx.draw_image(self.trimage)
 
     def draw_lab(self):
         import math
