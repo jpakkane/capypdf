@@ -13,6 +13,7 @@
 #include <string_view>
 #include <functional>
 #include <variant>
+#include <iterator>
 
 #include <cstdint>
 #include <cmath>
