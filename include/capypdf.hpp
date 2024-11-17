@@ -46,6 +46,10 @@ struct CapyCTypeDeleter {
             rc = capy_raster_image_builder_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_TransparencyGroupProperties>) {
             rc = capy_transparency_group_properties_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Function>) {
+            rc = capy_function_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Shading>) {
+            rc = capy_shading_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
         } else {
@@ -130,6 +134,9 @@ public:
 class Color : public CapyC<CapyPDF_Color> {
 public:
     friend class DrawContext;
+    friend class Type2Function;
+    friend class Type4Shading;
+    friend class Type6Shading;
 
     Color() {
         CapyPDF_Color *c;
@@ -167,6 +174,157 @@ public:
     void set_OP(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OP(*this, value)); }
     void set_OPM(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OPM(*this, value)); }
     void set_TK(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_TK(*this, value)); }
+};
+
+class Type2Function : public CapyC<CapyPDF_Function> {
+public:
+    friend class Generator;
+
+    Type2Function(double *domain, int32_t num_domain, Color &c1, Color &c2, double n = 1.0) {
+        CapyPDF_Function *fn;
+        CAPY_CPP_CHECK(capy_type2_function_new(domain, num_domain, c1, c2, n, &fn))
+        _d.reset(fn);
+    }
+};
+
+class Type3Function : public CapyC<CapyPDF_Function> {
+public:
+    friend class Generator;
+
+    Type3Function(double *domain,
+                  int32_t num_domain,
+                  CapyPDF_FunctionId *functions,
+                  int32_t num_functions,
+                  double *bounds,
+                  int32_t num_bounds,
+                  double *encode,
+                  int32_t num_encode) {
+        CapyPDF_Function *fn;
+        CAPY_CPP_CHECK(capy_type3_function_new(domain,
+                                               num_domain,
+                                               functions,
+                                               num_functions,
+                                               bounds,
+                                               num_bounds,
+                                               encode,
+                                               num_encode,
+                                               &fn))
+        _d.reset(fn);
+    }
+};
+
+class Type2Shading : public CapyC<CapyPDF_Shading> {
+public:
+    friend class Generator;
+
+    Type2Shading(CapyPDF_DeviceColorspace cs,
+                 double x0,
+                 double y0,
+                 double x1,
+                 double y1,
+                 CapyPDF_FunctionId func,
+                 int32_t extend1,
+                 int32_t extend2) {
+        CapyPDF_Shading *sd;
+        CAPY_CPP_CHECK(capy_type2_shading_new(cs, x0, y0, x1, y1, func, extend1, extend2, &sd));
+        _d.reset(sd);
+    }
+};
+
+class Type3Shading : public CapyC<CapyPDF_Shading> {
+public:
+    friend class Generator;
+
+    Type3Shading(CapyPDF_DeviceColorspace cs,
+                 double *coords,
+                 uint32_t num_coords,
+                 CapyPDF_FunctionId func,
+                 uint32_t extend1,
+                 uint32_t extend2) {
+        if(num_coords != 6) {
+            throw PdfException("Coords array must hold exactly 6 doubles");
+        }
+        CapyPDF_Shading *sd;
+        CAPY_CPP_CHECK(capy_type3_shading_new(cs, coords, func, extend1, extend2, &sd));
+        _d.reset(sd);
+    }
+};
+
+class Type4Shading : public CapyC<CapyPDF_Shading> {
+public:
+    friend class Generator;
+
+    Type4Shading(CapyPDF_DeviceColorspace cs, double minx, double miny, double maxx, double maxy) {
+        CapyPDF_Shading *sd;
+        CAPY_CPP_CHECK(capy_type4_shading_new(cs, minx, miny, maxx, maxy, &sd));
+        _d.reset(sd);
+    }
+    void add_triangle(double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
+        if(num_coords != 6) {
+            throw PdfException("Coords must have exactly 6 doubles.");
+        }
+        if(num_colors != 3) {
+            throw PdfException("Triangle patch must have exactly 3 colors");
+        }
+        CapyPDF_Color *c_colors[3];
+        for(uint32_t i = 0; i < 3; i++) {
+            c_colors[i] = colors[i];
+        }
+        CAPY_CPP_CHECK(
+            capy_type4_shading_add_triangle(*this, coords, (const CapyPDF_Color **)c_colors));
+    }
+    void extend(uint32_t flag, double *coords, uint32_t num_coords, Color &color) {
+        if(flag != 1 and flag != 2) {
+            throw PdfException("Bad flag value");
+        }
+        if(num_coords != 2) {
+            throw PdfException("Coords must have exactly 2 doubles");
+        }
+        CAPY_CPP_CHECK(capy_type4_shading_extend(*this, flag, coords, color));
+    }
+};
+
+class Type6Shading : public CapyC<CapyPDF_Shading> {
+public:
+    friend class Generator;
+
+    Type6Shading(CapyPDF_DeviceColorspace cs, double minx, double miny, double maxx, double maxy) {
+        CapyPDF_Shading *sd;
+        CAPY_CPP_CHECK(capy_type6_shading_new(cs, minx, miny, maxx, maxy, &sd));
+        _d.reset(sd);
+    }
+    void add_patch(double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
+        if(num_coords != 24) {
+            throw PdfException("Coords must have exactly 24 doubles.");
+        }
+        if(num_colors != 4) {
+            throw PdfException("Shading patch must have exactly 4 colors");
+        }
+        CapyPDF_Color *c_colors[4];
+        for(uint32_t i = 0; i < 4; i++) {
+            c_colors[i] = colors[i];
+        }
+        CAPY_CPP_CHECK(
+            capy_type6_shading_add_patch(*this, coords, (const CapyPDF_Color **)c_colors));
+    }
+    void
+    extend(uint32_t flag, double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
+        if(flag != 1 and flag != 2) {
+            throw PdfException("Bad flag value");
+        }
+        if(num_coords != 16) {
+            throw PdfException("Coords must have exactly 2 doubles");
+        }
+        if(num_colors != 2) {
+            throw PdfException("Shading extension must have exactly 2 colors");
+        }
+        CapyPDF_Color *c_colors[2];
+        for(uint32_t i = 0; i < 2; i++) {
+            c_colors[i] = colors[i];
+        }
+        CAPY_CPP_CHECK(
+            capy_type6_shading_extend(*this, flag, coords, (const CapyPDF_Color **)c_colors));
+    }
 };
 
 class DrawContext : public CapyC<CapyPDF_DrawContext> {
@@ -295,6 +453,42 @@ public:
         CapyPDF_IccColorSpaceId cpid;
         CAPY_CPP_CHECK(capy_generator_load_icc_profile(*this, fname, &cpid));
         return cpid;
+    }
+
+    CapyPDF_FunctionId add_function(Type2Function &fn) {
+        CapyPDF_FunctionId fid;
+        CAPY_CPP_CHECK(capy_generator_add_function(*this, fn, &fid));
+        return fid;
+    }
+
+    CapyPDF_FunctionId add_function(Type3Function &fn) {
+        CapyPDF_FunctionId fid;
+        CAPY_CPP_CHECK(capy_generator_add_function(*this, fn, &fid));
+        return fid;
+    }
+
+    CapyPDF_ShadingId add_shading(Type2Shading &sh) {
+        CapyPDF_ShadingId sid;
+        CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
+        return sid;
+    }
+
+    CapyPDF_ShadingId add_shading(Type3Shading &sh) {
+        CapyPDF_ShadingId sid;
+        CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
+        return sid;
+    }
+
+    CapyPDF_ShadingId add_shading(Type4Shading &sh) {
+        CapyPDF_ShadingId sid;
+        CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
+        return sid;
+    }
+
+    CapyPDF_ShadingId add_shading(Type6Shading &sh) {
+        CapyPDF_ShadingId sid;
+        CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
+        return sid;
     }
 
     RasterImage load_image(const char *fname) {
