@@ -29,7 +29,7 @@ rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
     const auto &cur_glyph = ttfile.glyphs.at(glyph_id);
     ERC(iscomp, is_composite_glyph(cur_glyph));
     if(!iscomp) {
-        return NoReturnValue{};
+        RETOK;
     }
     ERC(subglyphs, composite_subglyphs(cur_glyph));
     for(const auto &g : subglyphs) {
@@ -37,7 +37,7 @@ rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
             ERCV(add_subglyphs(new_subglyphs, g, ttfile));
         }
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
@@ -131,7 +131,7 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
                 (uint32_t)subsets.back().glyphs.size() - 1;
         }
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const u8string &text,

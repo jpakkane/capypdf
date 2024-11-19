@@ -265,7 +265,7 @@ private:
         }
         dstate_stack.push_back(dtype);
         ind += "  ";
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> dedent(DrawStateType dtype) {
@@ -281,7 +281,7 @@ private:
         dstate_stack.pop_back();
         ind.pop_back();
         ind.pop_back();
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<int32_t> add_bcd_structure(CapyPDF_StructureItemId sid);

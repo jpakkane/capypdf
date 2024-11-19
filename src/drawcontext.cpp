@@ -850,7 +850,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
         is_first = false;
     }
     serialisation += "] TJ\n";
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
@@ -907,29 +907,29 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         [&](const TStar_arg &) -> rvoe<NoReturnValue> {
             serialisation += ind;
             serialisation += "T*\n";
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tc_arg &tc) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{} Tc\n", ind, tc.val);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Td_arg &td) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} {:f} Td\n", ind, td.tx, td.ty);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const TD_arg &tD) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} {:f} TD\n", ind, tD.tx, tD.ty);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
             current_font = tf.font;
             current_subset = -1;
             current_pointsize = tf.pointsize;
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
@@ -937,7 +937,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             ERCV(utf8_to_kerned_chars(tj.text, charseq, current_font));
             ERCV(serialize_charsequence(
                 charseq, serialisation, current_font, current_subset, current_pointsize));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const TJ_arg &tJ) -> rvoe<NoReturnValue> {
@@ -946,12 +946,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             if(!rc) {
                 return std::unexpected(rc.error());
             }
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const TL_arg &tL) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} TL\n", ind, tL.leading);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
@@ -964,27 +964,27 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                            tm.m.d,
                            tm.m.e,
                            tm.m.f);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tr_arg &tr) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{} Tr\n", ind, (int)tr.rmode);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Ts_arg &ts) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} Ts\n", ind, ts.rise);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tw_arg &tw) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} Tw\n", ind, tw.width);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Tz_arg &tz) -> rvoe<NoReturnValue> {
             std::format_to(app, "{}{:f} Tz\n", ind, tz.scaling);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
@@ -1004,13 +1004,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 std::abort();
             }
             ERCV(indent(DrawStateType::MarkedContent));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Emc_arg &) -> rvoe<NoReturnValue> {
             ERCV(dedent(DrawStateType::MarkedContent));
             std::format_to(app, "{}EMC\n", ind);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
@@ -1024,7 +1024,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
             }
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
@@ -1038,7 +1038,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
-            return NoReturnValue{};
+            RETOK;
         },
     };
 
@@ -1161,7 +1161,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
         RETERR(InvalidDrawContextType);
     }
     transition = tr;
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue>
@@ -1181,7 +1181,7 @@ PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGro
     for(const auto &sn : navs) {
         sub_navigations.emplace_back(SubPageNavigation{sn, tr});
     }
-    return NoReturnValue();
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_custom_page_properties(const PageProperties &new_props) {
@@ -1189,7 +1189,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_custom_page_properties(const PagePropert
         RETERR(InvalidDrawContextType);
     }
     custom_props = new_props;
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue>
@@ -1201,7 +1201,7 @@ PdfDrawContext::set_transparency_properties(const TransparencyGroupProperties &p
     // page properties even for a transparency group as we already have it.
     // Having two variables for the same thing would be more confusing.
     custom_props.transparency_props = props;
-    return NoReturnValue();
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_group_matrix(const PdfMatrix &mat) {
@@ -1209,7 +1209,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_group_matrix(const PdfMatrix &mat) {
         RETERR(WrongDCForMatrix);
     }
     group_matrix = mat;
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {

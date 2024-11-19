@@ -987,7 +987,7 @@ reassign_composite_glyph_numbers(std::string &buf,
         byte_swap_inplace(glyph_index);
         memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);
-    return NoReturnValue{};
+    RETOK;
 }
 
 uint32_t font_id_for_glyph(FT_Face face, const TTGlyphs &g) {

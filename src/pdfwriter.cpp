@@ -183,7 +183,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         fprintf(stderr, "%s\n", ec.category().message(ec.value()).c_str());
         RETERR(FileWriteError);
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_to_file(FILE *output_file) {
@@ -207,7 +207,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
     const int64_t xref_offset = ftell(ofile);
     ERCV(write_cross_reference_table(object_offsets));
     ERCV(write_trailer(xref_offset));
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_bytes(const char *buf, size_t buf_size) {
@@ -215,7 +215,7 @@ rvoe<NoReturnValue> PdfWriter::write_bytes(const char *buf, size_t buf_size) {
         perror(nullptr);
         RETERR(FileWriteError);
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_header() {
@@ -225,11 +225,11 @@ rvoe<NoReturnValue> PdfWriter::write_header() {
 rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
     size_t i = 0;
     auto visitor = overloaded{
-        [](DummyIndexZero &) -> rvoe<NoReturnValue> { return NoReturnValue{}; },
+        [](DummyIndexZero &) -> rvoe<NoReturnValue> { RETOK; },
 
         [&](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
             ERCV(write_finished_object(i, pobj.dictionary, pobj.stream));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
@@ -238,12 +238,12 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
                                            pobj.unclosed_dictionary,
                                            compressed.size());
             ERCV(write_finished_object(i, dict, compressed));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
             ERCV(write_subset_font_data(i, ssfont));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
@@ -251,12 +251,12 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
                                          doc.fonts.at(ssfontd.fid.id).fontdata,
                                          ssfontd.subfont_data_obj,
                                          ssfontd.subset_num);
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
             ERCV(write_subset_cmap(i, doc.fonts.at(sscmap.fid.id), sscmap.subset_id));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
@@ -265,32 +265,32 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
                                    0,
                                    ssfont.subfont_descriptor_obj,
                                    ssfont.subfont_cmap_obj));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedPages &) -> rvoe<NoReturnValue> {
             ERCV(write_pages_root());
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedPage &dp) -> rvoe<NoReturnValue> {
             ERCV(write_delayed_page(dp));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedCheckboxWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
             ERCV(write_checkbox_widget(i, checkbox));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
             ERCV(write_annotation(i, anno));
-            return NoReturnValue{};
+            RETOK;
         },
 
         [&](const DelayedStructItem &si) -> rvoe<NoReturnValue> {
             ERCV(write_delayed_structure_item(i, si));
-            return NoReturnValue{};
+            RETOK;
         },
     };
 
@@ -401,7 +401,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
                               font_descriptor_obj,
                               tounicode_obj);
     ERCV(write_finished_object(object_num, objbuf, ""));
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
@@ -421,7 +421,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
                                       compressed_bytes.size(),
                                       subset_font.size());
     ERCV(write_finished_object(object_num, dictbuf, compressed_bytes));
-    return NoReturnValue{};
+    RETOK;
 }
 
 void PdfWriter::write_subset_font_descriptor(int32_t object_num,
@@ -591,7 +591,7 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
                                    doc.form_xobjects.at(checkbox.on.id).xobj_num,
                                    doc.form_xobjects.at(checkbox.off.id).xobj_num);
     ERCV(write_finished_object(obj_num, dict, ""));
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnotation &annotation) {
@@ -713,7 +713,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     }
     dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
@@ -785,7 +785,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     }
     dict += ">>\n";
     ERCV(write_finished_object(obj_num, dict, ""));
-    return NoReturnValue{};
+    RETOK;
 }
 
 } // namespace capypdf::internal

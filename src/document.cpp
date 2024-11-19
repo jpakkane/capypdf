@@ -112,7 +112,7 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, dou
     cval = std::byteswap(cval);
     const char *ptr = (const char *)(&cval);
     buf.append(ptr, ptr + sizeof(T));
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
@@ -294,7 +294,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
     if(auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&opts.subtype)) {
         pdfa_md_object = add_pdfa_metadata_object(*aptr);
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
@@ -362,7 +362,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         structure_use[s] = StructureUsage{(int32_t)pages.size(), mcid_num++};
     }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_object_num});
-    return NoReturnValue{};
+    RETOK;
 }
 
 void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
@@ -672,7 +672,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     }
     buf += ">>\n";
     add_object(FullPDFObject{buf, {}});
-    return NoReturnValue{};
+    RETOK;
 }
 
 void PdfDocument::create_output_intent() {
@@ -951,7 +951,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     }
     obj_data.dictionary += ">>\n";
     add_object(std::move(obj_data));
-    return NoReturnValue{};
+    RETOK;
 }
 
 CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
@@ -1703,7 +1703,7 @@ rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
             RETERR(ImageFormatNotPermitted);
         }
     }
-    return NoReturnValue{};
+    RETOK;
 }
 
 } // namespace capypdf::internal

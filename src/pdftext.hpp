@@ -53,22 +53,22 @@ class TextSequence {
 public:
     rvoe<NoReturnValue> append_kerning(int32_t k) {
         e.emplace_back(KerningValue{k});
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> append_unicode(uint32_t codepoint) {
         e.emplace_back(UnicodeCharacter{codepoint});
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> append_raw_glyph(uint32_t glyph_id, uint32_t unicode_codepoint) {
         e.emplace_back(GlyphItem{glyph_id, unicode_codepoint});
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> append_ligature_glyph(uint32_t glyph_id, u8string text) {
         e.emplace_back(GlyphTextItem{glyph_id, std::move(text)});
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> append_actualtext_start(const u8string &at) {
@@ -77,7 +77,7 @@ public:
         }
         e.emplace_back(ActualTextStart{at});
         in_actualtext = true;
-        return NoReturnValue{};
+        RETOK;
     }
 
     rvoe<NoReturnValue> append_actualtext_end() {
@@ -86,7 +86,7 @@ public:
         }
         e.emplace_back(ActualTextEnd{});
         in_actualtext = false;
-        return NoReturnValue{};
+        RETOK;
     }
 
     TextEvents &&steal_guts() { return std::move(e); }
