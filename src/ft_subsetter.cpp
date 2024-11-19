@@ -59,7 +59,7 @@ rvoe<std::string_view> get_substring(const char *buf,
         RETERR(IndexOutOfBounds);
     }
     if(substr_size == 0) {
-        return "";
+        return std::string_view{};
     }
     return std::string_view(buf + offset, substr_size);
 }

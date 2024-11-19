@@ -5,7 +5,8 @@
 
 import pathlib, os, sys, json
 
-os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
+if 'CAPYPDF_SO_OVERRIDE' not in os.environ:
+    os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
 source_root = pathlib.Path(__file__).parent / '..'
 sys.path.append(str(source_root / 'python'))
 
@@ -202,7 +203,77 @@ class Demopresentation:
     def finish(self):
         self.pdfgen.write()
 
+def colorize_pycode(t, lines):
+    import re
+    wordre = re.compile(r'([a-zA-Z_]+)')
+    numre = re.compile(r'([0-9]+)')
+    keywords = {'def', 'class', 'print', 'if', 'for', 'ifelse', 'else', 'return'}
+    normalcolor = capypdf.Color()
+    normalcolor.set_rgb(0, 0, 0)
+    stringcolor = capypdf.Color()
+    stringcolor.set_rgb(0.8, 0.8, 0.8)
+    keywordcolor = capypdf.Color()
+    keywordcolor.set_rgb(0.7, 0, 0.8)
+    numbercolor = capypdf.Color()
+    numbercolor.set_rgb(0, 1.0, 0)
+    for line in lines:
+        ostr = ''
+        while line:
+            if line.startswith("'"):
+                qstr, line = line.split("'", 2)[1:]
+                t.set_nonstroke(stringcolor)
+                t.render_text(f"'{qstr}'")
+                t.set_nonstroke(normalcolor)
+                continue
+            if line.startswith(' '):
+                t.render_text(' ')
+                line = line[1:]
+                continue
+            m = re.match(numre, line)
+            if m:
+                numbah = m.group(0)
+                t.set_nonstroke(numbercolor)
+                t.render_text(numbah)
+                t.set_nonstroke(normalcolor)
+                line = line[len(numbah):]
+                continue
+            m = re.match(wordre, line)
+            if m:
+                word = m.group(0)
+                if word in keywords:
+                    t.set_nonstroke(keywordcolor)
+                    t.render_text(word)
+                    t.set_nonstroke(normalcolor)
+                else:
+                    t.render_text(word)
+                line = line[len(word):]
+                continue
+            t.render_text(line[0:1])
+            line = line[1:]
+        t.cmd_Tstar()
+
+class ColorTest:
+    def __init__(self):
+        ofile = 'colortest.py'
+        self.pdfgen = capypdf.Generator(ofile)
+        self.fid = self.pdfgen.load_font('/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf')
+
+    def doit(self):
+        lines = ['def x():', "    print('x', 4)"]
+        with self.pdfgen.page_draw_context() as ctx:
+            t = ctx.text_new()
+            t.cmd_Tf(self.fid, 12)
+            t.cmd_TL(14)
+            ctx.translate(50, 400)
+            colorize_pycode(t, lines)
+            ctx.render_text_obj(t)
+        self.pdfgen.write()
+
 if __name__ == '__main__':
-    p = Demopresentation(sys.argv[1], 'demo_presentation.pdf')
-    p.create()
-    p.finish()
+    if True:
+        p = Demopresentation(sys.argv[1], 'demo_presentation.pdf')
+        p.create()
+        p.finish()
+    else:
+        p = ColorTest()
+        p.doit()
