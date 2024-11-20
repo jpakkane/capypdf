@@ -178,6 +178,9 @@ public:
     rvoe<NoReturnValue> set_color(const DeviceRGBColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const DeviceGrayColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const DeviceCMYKColor &c, bool stroke);
+    rvoe<NoReturnValue> convert_to_output_cs_and_set_color(const DeviceRGBColor &c, bool stroke);
+    rvoe<NoReturnValue> convert_to_output_cs_and_set_color(const DeviceGrayColor &c, bool stroke);
+    rvoe<NoReturnValue> convert_to_output_cs_and_set_color(const DeviceCMYKColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const LabColor &c, bool stroke);
     rvoe<NoReturnValue> set_color(const ICCColor &icc, bool stroke);
     rvoe<NoReturnValue> set_color(CapyPDF_PatternId id, bool stroke);

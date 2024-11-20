@@ -7,7 +7,6 @@
 #include <expected>
 #include <lcms2.h>
 #include <cassert>
-#include <stdexcept>
 #include <array>
 
 namespace {
@@ -148,11 +147,15 @@ PdfColorConverter::PdfColorConverter() {}
 
 PdfColorConverter::~PdfColorConverter() {}
 
-DeviceRGBColor PdfColorConverter::to_rgb(const DeviceCMYKColor &cmyk) {
+rvoe<DeviceRGBColor> PdfColorConverter::to_rgb(const DeviceCMYKColor &cmyk) {
+    if(!cmyk_profile.h) {
+        RETERR(OutputProfileMissing);
+    }
+    assert(rgb_profile.h);
     DeviceRGBColor rgb;
     auto transform = cmsCreateTransform(cmyk_profile.h,
                                         TYPE_CMYK_DBL,
-                                        gray_profile.h,
+                                        rgb_profile.h,
                                         TYPE_RGB_DBL,
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
@@ -174,7 +177,11 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
     return gray;
 }
 
-DeviceGrayColor PdfColorConverter::to_gray(const DeviceCMYKColor &cmyk) {
+rvoe<DeviceGrayColor> PdfColorConverter::to_gray(const DeviceCMYKColor &cmyk) {
+    if(!cmyk_profile.h) {
+        RETERR(OutputProfileMissing);
+    }
+    assert(gray_profile.h);
     DeviceGrayColor gray;
     auto transform = cmsCreateTransform(cmyk_profile.h,
                                         TYPE_CMYK_DBL,
@@ -191,6 +198,7 @@ rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
     if(!cmyk_profile.h) {
         RETERR(NoCmykProfile);
     }
+    assert(rgb_profile.h);
     DeviceCMYKColor cmyk;
     double buf[4]; // PDF uses values [0, 1] but littlecms seems to use [0, 100].
     auto transform = cmsCreateTransform(rgb_profile.h,

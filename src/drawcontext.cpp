@@ -629,60 +629,61 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const DeviceRGBColor &c,
+                                                                       bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPY_DEVICE_CS_RGB: {
-        if(stroke) {
-            return cmd_RG(c.r.v(), c.g.v(), c.b.v());
-        } else {
-            return cmd_rg(c.r.v(), c.g.v(), c.b.v());
-        }
+        return set_color(c, stroke);
     }
     case CAPY_DEVICE_CS_GRAY: {
         DeviceGrayColor gray = cm->to_gray(c);
-        if(stroke) {
-            return cmd_G(gray.v.v());
-        } else {
-            return cmd_g(gray.v.v());
-        }
+        return set_color(gray, stroke);
     }
     case CAPY_DEVICE_CS_CMYK: {
         ERC(cmyk, cm->to_cmyk(c));
-        if(stroke) {
-            return cmd_K(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-        } else {
-            return cmd_k(cmyk.c.v(), cmyk.m.v(), cmyk.y.v(), cmyk.k.v());
-        }
-        RETOK;
+        return set_color(cmyk, stroke);
     }
     }
     std::abort();
 }
 
+rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
+    if(stroke) {
+        return cmd_RG(c.r.v(), c.g.v(), c.b.v());
+    } else {
+        return cmd_rg(c.r.v(), c.g.v(), c.b.v());
+    }
+}
+
+rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
+    if(stroke) {
+        return cmd_G(c.v.v());
+    } else {
+        return cmd_g(c.v.v());
+    }
+}
+
 rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool stroke) {
+    if(stroke) {
+        return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+    } else {
+        return cmd_k(c.c.v(), c.m.v(), c.y.v(), c.k.v());
+    }
+}
+
+rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const DeviceCMYKColor &c,
+                                                                       bool stroke) {
     switch(doc->opts.output_colorspace) {
     case CAPY_DEVICE_CS_RGB: {
-        auto rgb_var = cm->to_rgb(c);
-        if(stroke) {
-            return cmd_RG(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
-        } else {
-            return cmd_rg(rgb_var.r.v(), rgb_var.g.v(), rgb_var.b.v());
-        }
+        ERC(rgb, cm->to_rgb(c));
+        return set_color(rgb, stroke);
     }
     case CAPY_DEVICE_CS_GRAY: {
-        DeviceGrayColor gray = cm->to_gray(c);
-        if(stroke) {
-            return cmd_G(gray.v.v());
-        } else {
-            return cmd_g(gray.v.v());
-        }
+        ERC(gray, cm->to_gray(c));
+        return set_color(gray, stroke);
     }
     case CAPY_DEVICE_CS_CMYK: {
-        if(stroke) {
-            return cmd_K(c.c.v(), c.m.v(), c.y.v(), c.k.v());
-        } else {
-            return cmd_k(c.c.v(), c.m.v(), c.y.v(), c.k.v());
-        }
+        return set_color(c, stroke);
     }
     default:
         RETERR(Unreachable);
@@ -705,14 +706,10 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const ICCColor &icc, bool stroke) 
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceGrayColor &c, bool stroke) {
+rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const DeviceGrayColor &c,
+                                                                       bool stroke) {
     // Assumes that switching to the gray colorspace is always ok.
-    // If it is not, fix to do the same switch() as above.
-    if(stroke) {
-        return cmd_G(c.v.v());
-    } else {
-        return cmd_g(c.v.v());
-    }
+    return set_color(c, stroke);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke) {

@@ -44,10 +44,10 @@ public:
     PdfColorConverter(PdfColorConverter &&o) = default;
     ~PdfColorConverter();
 
-    DeviceRGBColor to_rgb(const DeviceCMYKColor &cmyk);
+    rvoe<DeviceRGBColor> to_rgb(const DeviceCMYKColor &cmyk);
 
     DeviceGrayColor to_gray(const DeviceRGBColor &rgb);
-    DeviceGrayColor to_gray(const DeviceCMYKColor &cmyk);
+    rvoe<DeviceGrayColor> to_gray(const DeviceCMYKColor &cmyk);
     rvoe<DeviceCMYKColor> to_cmyk(const DeviceRGBColor &rgb);
 
     rvoe<RasterImage> convert_image_to(RasterImage ri,
