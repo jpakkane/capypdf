@@ -838,10 +838,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImageBuilder *builder,
-                                                             int32_t w,
-                                                             int32_t h) CAPYPDF_NOEXCEPT;
+                                                             uint32_t w,
+                                                             uint32_t h) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
-    CapyPDF_RasterImageBuilder *builder, const char *buf, int32_t bufsize) CAPYPDF_NOEXCEPT;
+    CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_compression(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Compression compression) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageBuilder *builder)

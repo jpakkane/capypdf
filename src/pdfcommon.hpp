@@ -478,10 +478,10 @@ struct SubPageNavigation {
 };
 
 struct RasterImageMetadata {
-    int32_t w = 0;
-    int32_t h = 0;
-    int32_t pixel_depth = 8;
-    int32_t alpha_depth = 0;
+    uint32_t w = 0;
+    uint32_t h = 0;
+    uint32_t pixel_depth = 8;
+    uint32_t alpha_depth = 0;
     CapyPDF_ImageColorspace cs = CAPY_IMAGE_CS_RGB;
     CapyPDF_Compression compression = CAPY_COMPRESSION_NONE;
 };
@@ -494,8 +494,8 @@ struct RasterImage {
 };
 
 struct jpg_image {
-    int32_t w;
-    int32_t h;
+    uint32_t w;
+    uint32_t h;
     std::string file_contents;
 };
 

@@ -441,8 +441,8 @@ cfunc_types = (
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_raster_image_builder_new', [ctypes.c_void_p]),
-('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
-('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
+('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint64]),
 ('capy_raster_image_builder_set_compression', [ctypes.c_void_p, enum_type]),
 ('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_raster_image_get_colorspace', [ctypes.c_void_p, ctypes.POINTER(enum_type)]),

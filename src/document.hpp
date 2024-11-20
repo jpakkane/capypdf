@@ -41,8 +41,8 @@ struct PageOffsets {
 };
 
 struct ImageSize {
-    int32_t w;
-    int32_t h;
+    uint32_t w;
+    uint32_t h;
 };
 
 struct ImageInfo {
@@ -452,9 +452,9 @@ private:
     rvoe<int32_t> create_outlines();
     void create_structure_root_dict();
 
-    rvoe<CapyPDF_ImageId> add_image_object(int32_t w,
-                                           int32_t h,
-                                           int32_t bits_per_component,
+    rvoe<CapyPDF_ImageId> add_image_object(uint32_t w,
+                                           uint32_t h,
+                                           uint32_t bits_per_component,
                                            ImageColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,

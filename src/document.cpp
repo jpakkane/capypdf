@@ -1022,7 +1022,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFProperties &params) {
-    if(image.md.w <= 0 || image.md.h <= 0) {
+    if(image.md.w < 1 || image.md.h < 1) {
         RETERR(InvalidImageSize);
     }
     if(image.pixels.empty()) {
@@ -1067,9 +1067,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
     }
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(int32_t w,
-                                                    int32_t h,
-                                                    int32_t bits_per_component,
+rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
+                                                    uint32_t h,
+                                                    uint32_t bits_per_component,
                                                     ImageColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,

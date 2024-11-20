@@ -244,7 +244,9 @@ rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
     cmsHPROFILE input_profile;
     const uint32_t input_pixelformat = pixelformat_for(ri.md.cs);
     const uint32_t output_pixelformat = pixelformat_for(output_format);
-    const uint32_t num_pixels = ri.md.w * ri.md.h;
+    assert(ri.md.w > 0);
+    assert(ri.md.h > 0);
+    const uint64_t num_pixels = ((uint64_t)ri.md.w) * ri.md.h;
     LcmsHolder icc_holder;
     if(ri.icc_profile.empty()) {
         input_profile = profile_for(ri.md.cs);

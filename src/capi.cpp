@@ -1364,8 +1364,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuild
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImageBuilder *builder,
-                                                             int32_t w,
-                                                             int32_t h) CAPYPDF_NOEXCEPT {
+                                                             uint32_t w,
+                                                             uint32_t h) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
     b->i->md.w = w;
     b->i->md.h = h;
@@ -1373,7 +1373,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImage
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
-    CapyPDF_RasterImageBuilder *builder, const char *buf, int32_t bufsize) CAPYPDF_NOEXCEPT {
+    CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
     b->i->pixels.assign(buf, buf + bufsize);
     RETNOERR;

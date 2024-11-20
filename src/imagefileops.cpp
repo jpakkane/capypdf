@@ -122,9 +122,9 @@ rvoe<RasterImage> load_mono_png(png_image &image) {
     size_t offset = 0;
     const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
     const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
-    for(int j = 0; j < result.md.h; ++j) {
+    for(uint32_t j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
-        for(int i = 0; i < result.md.w; ++i) {
+        for(uint32_t i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
             if(pd.pixels[offset] == white_pixel) {
                 current_byte |= 1;
@@ -189,10 +189,10 @@ rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     const uint8_t black_pixel = 0;
     const uint8_t transparent = 255;
     const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
-    for(int j = 0; j < result.md.h; ++j) {
+    for(uint32_t j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
         unsigned char current_mask_byte = 255;
-        for(int i = 0; i < result.md.w; ++i) {
+        for(uint32_t i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
             current_mask_byte <<= 1;
             const auto colormap_entry = pd.pixels.at(j * result.md.w + i);
