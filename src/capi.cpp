@@ -414,6 +414,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     }
     return conv_err(rc);
 }
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_icc_profile(CapyPDF_Generator *gen,
+                                                         const char *buf,
+                                                         uint64_t bufsize,
+                                                         uint32_t num_channels,
+                                                         CapyPDF_IccColorSpaceId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto rc = g->add_icc_profile({buf, bufsize}, num_channels);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *gen,
                                                             double xw,
                                                             double yw,

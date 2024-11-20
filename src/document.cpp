@@ -265,19 +265,22 @@ rvoe<NoReturnValue> PdfDocument::init() {
     switch(opts.output_colorspace) {
     case CAPY_DEVICE_CS_RGB:
         if(!cm.get_rgb().empty()) {
-            output_profile = store_icc_profile(cm.get_rgb(), 3);
+            ERC(retval, add_icc_profile(cm.get_rgb(), 3));
+            output_profile = retval;
         }
         break;
     case CAPY_DEVICE_CS_GRAY:
         if(!cm.get_gray().empty()) {
-            output_profile = store_icc_profile(cm.get_gray(), 1);
+            ERC(retval, add_icc_profile(cm.get_gray(), 1));
+            output_profile = retval;
         }
         break;
     case CAPY_DEVICE_CS_CMYK:
         if(cm.get_cmyk().empty()) {
             RETERR(OutputProfileMissing);
         }
-        output_profile = store_icc_profile(cm.get_cmyk(), 4);
+        ERC(retval, add_icc_profile(cm.get_cmyk(), 4));
+        output_profile = retval;
         break;
     }
     document_objects.push_back(DelayedPages{});
@@ -522,7 +525,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::
         return *iccid;
     }
     ERC(num_channels, cm.get_num_channels(contents));
-    return store_icc_profile(contents, num_channels);
+    return add_icc_profile(contents, num_channels);
 }
 
 void PdfDocument::pad_subset_fonts() {
@@ -894,8 +897,8 @@ std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string
     return {};
 }
 
-CapyPDF_IccColorSpaceId PdfDocument::store_icc_profile(std::string_view contents,
-                                                       int32_t num_channels) {
+rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view contents,
+                                                           int32_t num_channels) {
     auto existing = find_icc_profile(contents);
     assert(!existing);
     if(contents.empty()) {
@@ -1046,7 +1049,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFPr
         smask_id = get(imobj).obj;
     }
     if(!image.icc_profile.empty()) {
-        auto icc_id = store_icc_profile(image.icc_profile, num_channels_for(image.md.cs));
+        ERC(icc_id, add_icc_profile(image.icc_profile, num_channels_for(image.md.cs)));
         return add_image_object(image.md.w,
                                 image.md.h,
                                 image.md.pixel_depth,

@@ -455,6 +455,13 @@ public:
         return cpid;
     }
 
+    CapyPDF_IccColorSpaceId add_icc_profile(std::string_view bytes, int32_t num_channels) {
+        CapyPDF_IccColorSpaceId cpid;
+        CAPY_CPP_CHECK(
+            capy_generator_add_icc_profile(*this, bytes.data(), bytes.size(), num_channels, &cpid));
+        return cpid;
+    }
+
     CapyPDF_FunctionId add_function(Type2Function &fn) {
         CapyPDF_FunctionId fid;
         CAPY_CPP_CHECK(capy_generator_add_function(*this, fn, &fid));
