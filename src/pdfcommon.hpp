@@ -350,7 +350,13 @@ struct FunctionType3 {
     std::vector<double> encode;
 };
 
-typedef std::variant<FunctionType2, FunctionType3> PdfFunction;
+struct FunctionType4 {
+    std::vector<double> domain;
+    std::vector<double> range;
+    std::string code;
+};
+
+typedef std::variant<FunctionType2, FunctionType3, FunctionType4> PdfFunction;
 
 // Linear
 struct ShadingType2 {

@@ -176,7 +176,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         RETERR(FileWriteError);
     }
 
-    // If we made it here, the file has been fully written and fsynd'd to disk. Now replace.
+    // If we made it here, the file has been fully written and fsync'd to disk. Now replace.
     std::error_code ec;
     std::filesystem::rename(tempfname, ofilename, ec);
     if(ec) {

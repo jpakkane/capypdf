@@ -1305,6 +1305,20 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType3 &func) {
     return add_object(FullPDFObject{std::move(buf), {}});
 }
 
+rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
+    std::string buf{"<<\n  FunctionType 4\n  /Domain ["};
+    auto app = std::back_inserter(buf);
+    for(const auto d : func.domain) {
+        std::format_to(app, " {:f}", d);
+    }
+    buf += " ]\n  /Range [";
+    for(const auto r : func.range) {
+        std::format_to(app, " {:f}", r);
+    }
+    buf += " ]\n";
+    return add_object(DeflatePDFObject{std::move(buf), func.code});
+}
+
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
     int32_t object_number;
     if(auto *f2 = std::get_if<FunctionType2>(&f)) {
@@ -1312,6 +1326,9 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
         object_number = rc;
     } else if(auto *f3 = std::get_if<FunctionType3>(&f)) {
         ERC(rc, serialize_function(*f3));
+        object_number = rc;
+    } else if(auto *f4 = std::get_if<FunctionType4>(&f)) {
+        ERC(rc, serialize_function(*f4));
         object_number = rc;
     } else {
         fprintf(stderr, "Function type not implemented yet.\n");

@@ -378,6 +378,7 @@ public:
     // Functions
     rvoe<int32_t> serialize_function(const FunctionType2 &func);
     rvoe<int32_t> serialize_function(const FunctionType3 &func);
+    rvoe<int32_t> serialize_function(const FunctionType4 &func);
     rvoe<CapyPDF_FunctionId> add_function(PdfFunction f);
 
     // Shading
