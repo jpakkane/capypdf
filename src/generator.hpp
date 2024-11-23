@@ -62,8 +62,9 @@ public:
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.get(img_id).s; }
 
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
-                                                 const DeviceCMYKColor &fallback) {
-        return pdoc.create_separation(name, fallback);
+                                                 CapyPDF_DeviceColorspace cs,
+                                                 CapyPDF_FunctionId fid) {
+        return pdoc.create_separation(name, cs, fid);
     }
 
     rvoe<CapyPDF_GraphicsStateId> add_graphics_state(const GraphicsState &state) {

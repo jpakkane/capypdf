@@ -1008,10 +1008,13 @@ class TestPDFCreation(unittest.TestCase):
         opt.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
         with capypdf.Generator(ofilename, opt) as gen:
             red = capypdf.Color()
-            red.set_cmyk(0.2, 1, 0.8, 0)
             gold = capypdf.Color()
-            gold.set_cmyk(gold_c, gold_m, gold_y, gold_k)
-            sepid = gen.create_separation_simple("gold", gold)
+            red.set_cmyk(0.2, 1, 0.8, 0)
+            f4 = capypdf.Type4Function([0, 1],
+                                       [0, 1, 0, 1, 0, 1, 0, 1],
+                                       function_code)
+            f4id  = gen.add_function(f4)
+            sepid = gen.add_separation("gold", capypdf.DeviceColorspace.CMYK, f4id)
             gold.set_separation(sepid, 1.0)
             with gen.page_draw_context() as ctx:
                 ctx.set_nonstroke(red)

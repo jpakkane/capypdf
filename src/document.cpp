@@ -258,10 +258,6 @@ rvoe<NoReturnValue> PdfDocument::init() {
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    if(opts.output_colorspace == CAPY_DEVICE_CS_CMYK) {
-        create_separation(asciistring::from_cstr("All").value(),
-                          DeviceCMYKColor{1.0, 1.0, 1.0, 1.0});
-    }
     switch(opts.output_colorspace) {
     case CAPY_DEVICE_CS_RGB:
         if(!cm.get_rgb().empty()) {
@@ -462,37 +458,24 @@ int32_t PdfDocument::add_object(ObjectType object) {
 }
 
 rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &name,
-                                                          const DeviceCMYKColor &fallback) {
-    std::string stream = std::format(R"({{ dup {} mul
-exch {} exch dup {} mul
-exch {} mul
-}}
-)",
-                                     fallback.c.v(),
-                                     fallback.m.v(),
-                                     fallback.y.v(),
-                                     fallback.k.v());
-    std::string buf = std::format(R"(<<
-  /FunctionType 4
-  /Domain [ 0.0 1.0 ]
-  /Range [ 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 ]
-  /Length {}
->>
-)",
-                                  stream.length(),
-                                  stream);
-    auto fn_num = add_object(FullPDFObject{buf, std::move(stream)});
-    buf.clear();
+                                                          CapyPDF_DeviceColorspace cs,
+                                                          const CapyPDF_FunctionId fid) {
+    const auto &f4 = functions.at(fid.id);
+    if(!std::holds_alternative<FunctionType4>(f4.original)) {
+        RETERR(IncorrectFunctionType);
+    }
+    std::string buf;
     std::format_to(std::back_inserter(buf),
                    R"([
   /Separation
     /{}
-    /DeviceCMYK
+    {}
     {} 0 R
 ]
 )",
                    name.c_str(),
-                   fn_num);
+                   colorspace_names.at((int)cs),
+                   f4.object_number);
     separation_objects.push_back(add_object(FullPDFObject{buf, {}}));
     return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
 }
@@ -1306,7 +1289,7 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType3 &func) {
 }
 
 rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
-    std::string buf{"<<\n  FunctionType 4\n  /Domain ["};
+    std::string buf{"<<\n  /FunctionType 4\n  /Domain ["};
     auto app = std::back_inserter(buf);
     for(const auto d : func.domain) {
         std::format_to(app, " {:f}", d);

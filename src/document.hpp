@@ -350,8 +350,8 @@ public:
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
-    rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
-                                                 const DeviceCMYKColor &fallback);
+    rvoe<CapyPDF_SeparationId>
+    create_separation(const asciistring &name, CapyPDF_DeviceColorspace cs, CapyPDF_FunctionId fid);
     rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
     rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::string_view contents, int32_t num_channels);

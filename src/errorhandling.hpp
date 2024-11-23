@@ -82,6 +82,7 @@ enum class ErrorCode : int32_t {
     WrongDCForMatrix,
     EmptyFunctionList,
     IncorrectShadingType,
+    IncorrectFunctionType,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

@@ -84,6 +84,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Matrix can only be set for form XObjects.",
 "Type3 Function must have at least one Type2 function inside",
 "Incorrect shading type.",
+"Incorrect function type.",
 };
 
 // clang-format on

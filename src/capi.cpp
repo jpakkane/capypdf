@@ -454,22 +454,18 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *gen,
-                                                                  const char *separation_name,
-                                                                  const CapyPDF_Color *c,
-                                                                  CapyPDF_SeparationId *out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
+                                                        const char *separation_name,
+                                                        CapyPDF_DeviceColorspace cs,
+                                                        CapyPDF_FunctionId fid,
+                                                        CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    const auto *color = reinterpret_cast<const Color *>(c);
     auto name = asciistring::from_cstr(separation_name);
     if(!name) {
         return conv_err(name);
     }
-    if(!std::holds_alternative<DeviceCMYKColor>(*color)) {
-        return conv_err(ErrorCode::ColorspaceMismatch);
-    }
-    const auto &cmyk = std::get<DeviceCMYKColor>(*color);
-    auto rc = g->create_separation(name.value(), cmyk);
+    auto rc = g->create_separation(name.value(), cs, fid);
     if(rc) {
         *out_ptr = rc.value();
     }

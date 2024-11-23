@@ -312,7 +312,7 @@ cfunc_types = (
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_create_separation_simple', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, enum_type, FunctionId]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
@@ -1089,7 +1089,7 @@ class Generator:
         return iid
 
     def add_function(self, pfunc):
-        if not isinstance(pfunc, (Type2Function, Type3Function)):
+        if not isinstance(pfunc, (Type2Function, Type3Function, Type4Function)):
             raise CapyPDFException('Argument must be a Function object.')
         fid = FunctionId()
         check_error(libfile.capy_generator_add_function(self, pfunc, ctypes.pointer(fid)))
@@ -1125,12 +1125,14 @@ class Generator:
         return stid
 
 
-    def create_separation_simple(self, name, color):
-        if not isinstance(color, Color):
-            raise CapyPDFException('Color argument must be a color object.')
+    def add_separation(self, name, colorspace, funcid):
         sepid = SeparationId()
         text_bytes = name.encode('UTF-8')
-        check_error(libfile.capy_generator_create_separation_simple(self, text_bytes, color, ctypes.pointer(sepid)))
+        check_error(libfile.capy_generator_add_separation(self,
+                                                          text_bytes,
+                                                          colorspace.value,
+                                                          funcid,
+                                                          ctypes.pointer(sepid)))
         return sepid
 
     def write(self):

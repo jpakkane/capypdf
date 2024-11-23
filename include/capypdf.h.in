@@ -536,10 +536,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
                                                             double bmax,
                                                             CapyPDF_LabColorSpaceId *out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_separation_simple(CapyPDF_Generator *gen,
-                                                                  const char *separation_name,
-                                                                  const CapyPDF_Color *c,
-                                                                  CapyPDF_SeparationId *out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
+                                                        const char *separation_name,
+                                                        CapyPDF_DeviceColorspace cs,
+                                                        CapyPDF_FunctionId fid,
+                                                        CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_write(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC
