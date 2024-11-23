@@ -105,7 +105,7 @@ rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGly
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
     for(const auto &glyph : glyphs) {
-        const auto glyph_id = font_id_for_glyph(face, glyph);
+        const auto glyph_id = font_id_for_glyph(glyph);
         FT_Pos horiadvance = 0;
         if(glyph_id != 0) {
             auto error = FT_Load_Glyph(face, glyph_id, load_flags);

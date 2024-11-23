@@ -153,7 +153,7 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
             std::abort();
         }
     }
-    return std::move(s);
+    return rvoe<std::string>{std::move(s)};
 }
 
 rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
@@ -245,9 +245,9 @@ const std::array<const char *, 4> rendering_intent_names{
 };
 
 rvoe<PdfDocument> PdfDocument::construct(const DocumentMetadata &d, PdfColorConverter cm) {
-    PdfDocument newdoc(d, std::move(cm));
-    ERCV(newdoc.init());
-    return std::move(newdoc);
+    rvoe<PdfDocument> newdoc{PdfDocument(d, std::move(cm))};
+    ERCV(newdoc->init());
+    return newdoc;
 }
 
 PdfDocument::PdfDocument(const DocumentMetadata &d, PdfColorConverter cm)
@@ -845,13 +845,13 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
            subset_glyphs.cend()) {
             continue;
         }
-        subset_glyphs.emplace_back(RegularGlyph{cur_glyph_codepoint});
+        subset_glyphs.emplace_back(RegularGlyph{cur_glyph_codepoint, (uint32_t)-1});
     }
     if(!padding_succeeded) {
         fprintf(stderr, "Font subset padding failed.\n");
         std::abort();
     }
-    subset_glyphs.emplace_back(RegularGlyph{SPACE});
+    subset_glyphs.emplace_back(RegularGlyph{SPACE, (uint32_t)-1});
     assert(subset_glyphs.size() == SPACE + 1);
 }
 

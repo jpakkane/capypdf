@@ -248,7 +248,7 @@ int draw_transp_doc() {
     return 0;
 }
 
-int main(int argc, char **argv) {
+int main(int /*argc*/, char ** /*argv*/) {
     if(draw_simple_form() != 0) {
         return 1;
     }

@@ -57,7 +57,7 @@ get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const ch
     return strlen(sampletext);
 }
 
-void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
+void do_harfbuzz(PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     FT_Library ft;
     FT_Face ftface;
     FT_Error fte;
@@ -97,9 +97,6 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
     unsigned int glyph_count;
     hb_glyph_info_t *glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
-    double cursor_x = 10;
-    double cursor_y = 100;
-    //    assert(strlen(sampletext) == glyph_count);
 
     TextSequence full_line;
     for(unsigned int i = 0; i < glyph_count; i++) {
@@ -109,7 +106,7 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
         hb_position_t x_offset = curpos->x_offset;
         // hb_position_t y_offset = curpos->y_offset;
         hb_position_t x_advance = curpos->x_advance;
-        hb_position_t y_advance = curpos->y_advance;
+        // hb_position_t y_advance = curpos->y_advance;
         std::string original_text(sampletext + glyph_info[i].cluster,
                                   sampletext +
                                       get_endpoint(glyph_info, glyph_count, i, sampletext));
@@ -125,8 +122,6 @@ void do_harfbuzz(PdfGen &gen, PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
                hb_advance_in_font_units);
         printf("  %40.2f\n",
                ftface->glyph->advance.x - hb_advance_in_font_units); // / ftface->units_per_EM);
-        cursor_x += x_advance / num_steps;
-        cursor_y += y_advance / num_steps;
         const int32_t kerning_delta = int32_t(
             (ftface->glyph->advance.x - hb_advance_in_font_units) / ftface->units_per_EM * 1000);
         if(computed_cp < 128) {
@@ -214,7 +209,7 @@ void whole_shebang() {
 
     auto pdffont = gen.load_font(fontfile).value();
     ctx.render_text(u8string::from_cstr(sampletext).value(), pdffont, ptsize, 10, 110);
-    do_harfbuzz(gen, ctx, pdffont);
+    do_harfbuzz(ctx, pdffont);
 }
 
 int main(int, char **) {

@@ -66,7 +66,7 @@ uint32_t pixelformat_for(CapyPDF_ImageColorspace cs) {
     std::abort();
 }
 
-void print_lcms_errors(cmsContext ContextID, cmsUInt32Number ErrorCode, const char *Text) {
+void print_lcms_errors(cmsContext /*ContextID*/, cmsUInt32Number ErrorCode, const char *Text) {
     fprintf(stderr, "LCMS error: %d %s\n", (int)ErrorCode, Text);
 }
 

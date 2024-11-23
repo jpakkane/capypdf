@@ -555,7 +555,7 @@ subset_glyphs(FT_Face face,
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
-        uint32_t gid = font_id_for_glyph(face, g);
+        uint32_t gid = font_id_for_glyph(g);
         assert(gid < source.glyphs.size());
         subset.push_back(source.glyphs[gid]);
         if(!subset.back().empty()) {
@@ -583,7 +583,7 @@ subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<TTGl
            source.maxp.num_glyphs);
     assert(!source.hmtx.longhor.empty());
     for(const auto &g : glyphs) {
-        const auto gid = font_id_for_glyph(face, g);
+        const auto gid = font_id_for_glyph(g);
         if(gid < source.hmtx.longhor.size()) {
             subset.longhor.push_back(source.hmtx.longhor[gid]);
         } else {
@@ -990,7 +990,7 @@ reassign_composite_glyph_numbers(std::string &buf,
     RETOK;
 }
 
-uint32_t font_id_for_glyph(FT_Face face, const TTGlyphs &g) {
+uint32_t font_id_for_glyph(const TTGlyphs &g) {
     if(std::holds_alternative<RegularGlyph>(g)) {
         auto &rg = std::get<RegularGlyph>(g);
         if(rg.unicode_codepoint == 0) {

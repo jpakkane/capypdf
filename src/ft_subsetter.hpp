@@ -201,6 +201,6 @@ rvoe<std::string> generate_font(FT_Face face,
 rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf);
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname);
 
-uint32_t font_id_for_glyph(FT_Face face, const TTGlyphs &g);
+uint32_t font_id_for_glyph(const TTGlyphs &g);
 
 } // namespace capypdf::internal

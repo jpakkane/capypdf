@@ -79,7 +79,7 @@ void video_player() {
     }
 }
 
-int main(int argc, char **argv) {
+int main(int /*argc*/, char ** /*argv*/) {
     file_embed();
     video_player();
     return 0;

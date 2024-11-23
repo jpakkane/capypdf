@@ -574,7 +574,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_K(std::back_insert_iterator<std::s
                                                 LimitDouble m,
                                                 LimitDouble y,
                                                 LimitDouble k) const {
-    std::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", ind, c.v(), m.v(), y.v(), k.v());
+    std::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", indent, c.v(), m.v(), y.v(), k.v());
     RETOK;
 }
 
@@ -584,7 +584,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_k(std::back_insert_iterator<std::s
                                                 LimitDouble m,
                                                 LimitDouble y,
                                                 LimitDouble k) const {
-    std::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", ind, c.v(), m.v(), y.v(), k.v());
+    std::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", indent, c.v(), m.v(), y.v(), k.v());
     RETOK;
 }
 
