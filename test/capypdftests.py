@@ -988,6 +988,18 @@ class TestPDFCreation(unittest.TestCase):
 
     @validate_image('python_separation', 200, 200)
     def test_separation(self, ofilename, w, h):
+        gold_c = 0.0
+        gold_m = 0.03
+        gold_y = 0.55
+        gold_k = 0.08
+        function_code = f'''{{
+  dup
+  {gold_c} mul exch
+  {gold_m} exch dup
+  {gold_y} mul exch
+  {gold_k} mul
+}}
+'''
         prop = capypdf.PageProperties()
         prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         opt = capypdf.DocumentMetadata()
@@ -998,7 +1010,7 @@ class TestPDFCreation(unittest.TestCase):
             red = capypdf.Color()
             red.set_cmyk(0.2, 1, 0.8, 0)
             gold = capypdf.Color()
-            gold.set_cmyk(0, 0.03, 0.55, 0.08)
+            gold.set_cmyk(gold_c, gold_m, gold_y, gold_k)
             sepid = gen.create_separation_simple("gold", gold)
             gold.set_separation(sepid, 1.0)
             with gen.page_draw_context() as ctx:

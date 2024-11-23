@@ -1471,6 +1471,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_new(double *domain,
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
+                                                  int32_t domain_size,
+                                                  double *range,
+                                                  int32_t range_size,
+                                                  const char *code,
+                                                  CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Function *>(
+        new PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
+                                      std::vector<double>(range, range + range_size),
+                                      std::string{code}}});
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double x0,
                                                  double y0,

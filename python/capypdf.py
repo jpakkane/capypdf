@@ -464,6 +464,12 @@ cfunc_types = (
                              ctypes.c_void_p,
                              ctypes.c_int32,
                              ctypes.c_void_p]),
+('capy_type4_function_new', [ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_void_p,
+                             ctypes.c_int32,
+                             ctypes.c_char_p,
+                             ctypes.c_void_p]),
 ('capy_function_destroy', [ctypes.c_void_p]),
 
 ('capy_type2_shading_new', [enum_type,
@@ -1465,17 +1471,32 @@ class Type2Function:
 class Type3Function:
     def __init__(self, domain, functions, bounds, encode):
         self._as_parameter_ = None
-        t2f = ctypes.c_void_p()
+        t3f = ctypes.c_void_p()
         check_error(libfile.capy_type3_function_new(
             *to_array(ctypes.c_double, domain),
             *to_array(FunctionId, functions),
             *to_array(ctypes.c_double, bounds),
             *to_array(ctypes.c_double, encode),
-            ctypes.pointer(t2f)))
-        self._as_parameter_ = t2f
+            ctypes.pointer(t3f)))
+        self._as_parameter_ = t3f
 
     def __del__(self):
         check_error(libfile.capy_function_destroy(self))
+
+class Type4Function:
+    def __init__(self, domain, range_, code):
+        self._as_parameter_ = None
+        t4f = ctypes.c_void_p()
+        check_error(libfile.capy_type4_function_new(
+            *to_array(ctypes.c_double, domain),
+            *to_array(ctypes.c_double, range_),
+            code.encode('UTF-8'),
+            ctypes.pointer(t4f)))
+        self._as_parameter_ = t4f
+
+    def __del__(self):
+        check_error(libfile.capy_function_destroy(self))
+
 
 class Type2Shading:
     def __init__(self, cs, x0, y0, x1, y1, funcid, extend1, extend2):
