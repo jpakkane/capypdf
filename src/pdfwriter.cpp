@@ -407,9 +407,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
 rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
                                                       const DelayedSubsetFontData &ssfont) {
     const auto &font = doc.fonts.at(ssfont.fid.id);
-    ERC(subset_font,
-        font.subsets.generate_subset(
-            font.fontdata.face.get(), font.fontdata.fontdata, ssfont.subset_id));
+    ERC(subset_font, font.subsets.generate_subset(font.fontdata.fontdata, ssfont.subset_id));
 
     ERC(compressed_bytes, flate_compress(subset_font));
     std::string dictbuf = std::format(R"(<<

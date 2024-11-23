@@ -188,8 +188,7 @@ rvoe<NoReturnValue>
 reassign_composite_glyph_numbers(std::string &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping);
 
-rvoe<std::string> generate_font(FT_Face face,
-                                const TrueTypeFontFile &source,
+rvoe<std::string> generate_font(const TrueTypeFontFile &source,
                                 const std::vector<TTGlyphs> &glyphs,
                                 const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 

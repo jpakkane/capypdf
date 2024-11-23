@@ -71,7 +71,7 @@ get_substring(std::string_view sv, const size_t offset, const int64_t substr_siz
 
 template<typename T>
 rvoe<capypdf::internal::NoReturnValue>
-safe_memcpy(T *obj, std::string_view source, const int64_t offset) {
+safe_memcpy(T *obj, std::string_view source, const uint64_t offset) {
     ERC(validated_area, get_substring(source, offset, sizeof(T)));
     memcpy(obj, validated_area.data(), sizeof(T));
     return capypdf::internal::NoReturnValue{};
@@ -491,9 +491,6 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
         int16_t lsb;
         const auto data_offset =
             e->offset + num_hmetrics * sizeof(TTLongHorMetric) + i * sizeof(int16_t);
-        if(data_offset < 0) {
-            RETERR(IndexIsNegative);
-        }
         ERCV(safe_memcpy(&lsb, buf, data_offset));
         byte_swap_inplace(lsb);
         hmtx.left_side_bearings.push_back(lsb);
@@ -537,9 +534,6 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     if(end_offset > buf.size()) {
         RETERR(IndexOutOfBounds);
     }
-    if(end_offset < 0) {
-        RETERR(IndexIsNegative);
-    }
     if(end_offset <= e->offset) {
         RETERR(IndexOutOfBounds);
     }
@@ -547,8 +541,7 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
 }
 
 rvoe<std::vector<std::string>>
-subset_glyphs(FT_Face face,
-              const TrueTypeFontFile &source,
+subset_glyphs(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     std::vector<std::string> subset;
@@ -576,8 +569,7 @@ subset_glyphs(FT_Face face,
     return subset;
 }
 
-TTHmtx
-subset_hmtx(FT_Face face, const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
+TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + source.hmtx.left_side_bearings.size() ==
            source.maxp.num_glyphs);
@@ -883,21 +875,19 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     return tf;
 }
 
-rvoe<std::string> generate_font(FT_Face face,
-                                std::string_view buf,
+rvoe<std::string> generate_font(std::string_view buf,
                                 const std::vector<TTGlyphs> &glyphs,
                                 const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     ERC(source, parse_truetype_font(buf));
-    return generate_font(face, source, glyphs, comp_mapping);
+    return generate_font(source, glyphs, comp_mapping);
 }
 
-rvoe<std::string> generate_font(FT_Face face,
-                                const TrueTypeFontFile &source,
+rvoe<std::string> generate_font(const TrueTypeFontFile &source,
                                 const std::vector<TTGlyphs> &glyphs,
                                 const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
-    ERC(subglyphs, subset_glyphs(face, source, glyphs, comp_mapping));
+    ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
     dest.glyphs = subglyphs;
 
     dest.head = source.head;
@@ -906,7 +896,7 @@ rvoe<std::string> generate_font(FT_Face face,
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
     dest.maxp.num_glyphs = dest.glyphs.size();
-    dest.hmtx = subset_hmtx(face, source, glyphs);
+    dest.hmtx = subset_hmtx(source, glyphs);
     dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
     dest.head.index_to_loc_format = 1;
     dest.cvt = source.cvt;

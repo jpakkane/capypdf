@@ -18,7 +18,7 @@ namespace {
 const uint32_t SPACE = ' ';
 
 FontSubsetData create_startstate() {
-    std::vector<TTGlyphs> start_state{RegularGlyph{0}};
+    std::vector<TTGlyphs> start_state{RegularGlyph{0, (uint32_t)-1}};
     std::unordered_map<uint32_t, uint32_t> start_mapping{};
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
@@ -188,11 +188,10 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) co
     return {};
 }
 
-rvoe<std::string> FontSubsetter::generate_subset(FT_Face face,
-                                                 const TrueTypeFontFile &source,
+rvoe<std::string> FontSubsetter::generate_subset(const TrueTypeFontFile &source,
                                                  int32_t subset_number) const {
     const auto &glyphs = subsets.at(subset_number);
-    return generate_font(face, source, glyphs.glyphs, glyphs.font_index_mapping);
+    return generate_font(source, glyphs.glyphs, glyphs.font_index_mapping);
 }
 
 } // namespace capypdf::internal
