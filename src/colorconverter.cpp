@@ -280,7 +280,7 @@ rvoe<RasterImage> PdfColorConverter::convert_image_to(RasterImage ri,
     cmsDeleteTransform(transform);
     converted.md.cs = (CapyPDF_ImageColorspace)output_format;
     converted.icc_profile.clear();
-    return std::move(converted);
+    return converted;
 }
 
 rvoe<int> PdfColorConverter::get_num_channels(std::string_view icc_data) const {

@@ -31,7 +31,7 @@ rvoe<RasterImage> load_rgb_png(png_image &image) {
         fprintf(stderr, "%s\n", image.message);
         RETERR(UnsupportedFormat);
     }
-    return std::move(result);
+    return result;
 }
 
 rvoe<RasterImage> load_rgba_png(png_image &image) {
@@ -60,7 +60,7 @@ rvoe<RasterImage> load_rgba_png(png_image &image) {
         result.alpha += buf[i + 3];
     }
 
-    return std::move(result);
+    return result;
 }
 
 rvoe<RasterImage> load_ga_png(png_image &image) {
@@ -87,7 +87,7 @@ rvoe<RasterImage> load_ga_png(png_image &image) {
         result.alpha += buf[i + 1];
     }
 
-    return std::move(result);
+    return result;
 }
 
 struct png_data {
@@ -107,7 +107,7 @@ rvoe<png_data> load_png_data(png_image &image) {
         fprintf(stderr, "%s\n", image.message);
         RETERR(UnsupportedFormat);
     }
-    return std::move(pd);
+    return pd;
 }
 
 rvoe<RasterImage> load_mono_png(png_image &image) {
@@ -143,7 +143,7 @@ rvoe<RasterImage> load_mono_png(png_image &image) {
         result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
-    return std::move(result);
+    return result;
 }
 
 struct pngbytes {
@@ -227,7 +227,7 @@ rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha.size() == final_size);
-    return std::move(result);
+    return result;
 }
 
 rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
@@ -367,7 +367,7 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     default:
         RETERR(UnsupportedTIFF);
     }
-    return std::move(result);
+    return result;
 }
 
 } // namespace
@@ -392,7 +392,7 @@ rvoe<jpg_image> load_jpg(const std::filesystem::path &fname) {
     im.h = cinfo.image_height;
     im.w = cinfo.image_width;
     // Fixme, validate that this is an 8bpp RGB image.
-    return std::move(im);
+    return im;
 }
 
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {

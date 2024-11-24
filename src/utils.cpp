@@ -124,7 +124,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
         RETERR(CompressionFailure);
     }
 
-    return std::move(compressed);
+    return compressed;
 }
 
 rvoe<std::string> load_file(const char *fname) {
