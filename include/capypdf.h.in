@@ -695,16 +695,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEP
 // Form XObjects.
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
-                                                double w,
-                                                double h,
+                                                double l,
+                                                double b,
+                                                double t,
+                                                double r,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 
 // Color Pattern
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
                                                          CapyPDF_DrawContext **out_ptr,
-                                                         double w,
-                                                         double h) CAPYPDF_NOEXCEPT;
+                                                         double l,
+                                                         double b,
+                                                         double t,
+                                                         double r) CAPYPDF_NOEXCEPT;
 
 // Text
 

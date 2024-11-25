@@ -1061,7 +1061,7 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opt) as gen:
             font = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             # Repeating pattern.
-            pctx = gen.create_color_pattern_context(10, 10)
+            pctx = gen.create_color_pattern_context(0, 0, 10, 10)
             pctx.cmd_rg(0.9, 0.8, 0.8)
             pctx.cmd_re(0, 0, 10, 10)
             pctx.cmd_f()
@@ -1074,7 +1074,7 @@ class TestPDFCreation(unittest.TestCase):
             pctx.cmd_f()
             patternid = gen.add_color_pattern(pctx)
             # Text
-            textctx = gen.create_color_pattern_context(3, 4)
+            textctx = gen.create_color_pattern_context(0, 0, 3, 4)
             textctx.render_text("g", font, 3, 0, 2)
             textpatternid = gen.add_color_pattern(textctx)
 
@@ -1197,12 +1197,12 @@ class TestPDFCreation(unittest.TestCase):
         opt = capypdf.DocumentMetadata()
         opt.set_default_page_properties(prop)
         with capypdf.Generator(ofilename, opt) as gen:
-            vctx = capypdf.FormXObjectDrawContext(gen, 1, cropmark_size)
+            vctx = capypdf.FormXObjectDrawContext(gen, 0, 0, 1, cropmark_size)
             vctx.cmd_re(0, 0, 1, cropmark_size)
             vctx.cmd_f()
             vid = gen.add_form_xobject(vctx)
             del vctx
-            hctx = capypdf.FormXObjectDrawContext(gen, cropmark_size, 1)
+            hctx = capypdf.FormXObjectDrawContext(gen, 0, 0, cropmark_size, 1)
             hctx.cmd_re(0, 0, cropmark_size, 1)
             hctx.cmd_f()
             hid = gen.add_form_xobject(hctx)

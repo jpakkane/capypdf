@@ -18,7 +18,7 @@ int draw_simple_form() {
         PdfGen &gen = *genpop.g;
         CapyPDF_FormXObjectId offstate, onstate;
         {
-            auto xobj_h = gen.guarded_form_xobject(10, 10);
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
             auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_EMC();
@@ -30,7 +30,7 @@ int draw_simple_form() {
             offstate = *rv;
         }
         {
-            auto xobj_h = gen.guarded_form_xobject(10, 10);
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
             auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_q();

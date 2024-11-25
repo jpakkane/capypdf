@@ -914,11 +914,14 @@ CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
-                                                double w,
-                                                double h,
+                                                double l,
+                                                double b,
+                                                double t,
+                                                double r,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_form_xobject(w, h));
+    *out_ptr =
+        reinterpret_cast<CapyPDF_DrawContext *>(g->new_form_xobject(PdfRectangle{l, b, t, r}));
     RETNOERR;
 }
 
@@ -933,10 +936,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
                                                          CapyPDF_DrawContext **out_ptr,
-                                                         double w,
-                                                         double h) CAPYPDF_NOEXCEPT {
+                                                         double l,
+                                                         double b,
+                                                         double t,
+                                                         double r) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(w, h));
+    *out_ptr =
+        reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(PdfRectangle{l, b, t, r}));
     RETNOERR;
 }
 

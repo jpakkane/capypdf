@@ -135,28 +135,21 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
 rvoe<CapyPDF_PatternId> PdfGen::add_pattern(PdfDrawContext &ctx) { return pdoc.add_pattern(ctx); }
 
 DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{this,
-                             &pdoc,
-                             &pdoc.cm,
-                             CAPY_DC_PAGE,
-                             pdoc.opts.default_page_properties.mediabox->w(),
-                             pdoc.opts.default_page_properties.mediabox->h()};
+    return DrawContextPopper{
+        this, &pdoc, &pdoc.cm, CAPY_DC_PAGE, pdoc.opts.default_page_properties.mediabox.value()};
 }
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
-    return new PdfDrawContext{&pdoc,
-                              &pdoc.cm,
-                              CAPY_DC_PAGE,
-                              pdoc.opts.default_page_properties.mediabox->w(),
-                              pdoc.opts.default_page_properties.mediabox->h()};
+    return new PdfDrawContext{
+        &pdoc, &pdoc.cm, CAPY_DC_PAGE, pdoc.opts.default_page_properties.mediabox.value()};
 }
 
-PdfDrawContext PdfGen::new_color_pattern_builder(double w, double h) {
-    return PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, w, h};
+PdfDrawContext PdfGen::new_color_pattern_builder(const PdfRectangle &rect) {
+    return PdfDrawContext{&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, rect};
 }
 
-PdfDrawContext *PdfGen::new_color_pattern(double w, double h) {
-    return new PdfDrawContext(&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, w, h);
+PdfDrawContext *PdfGen::new_color_pattern(const PdfRectangle &rect) {
+    return new PdfDrawContext(&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, rect);
 }
 
 rvoe<double>

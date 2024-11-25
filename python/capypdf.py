@@ -375,8 +375,8 @@ cfunc_types = (
 ('capy_dc_set_transparency_group_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
-('capy_color_pattern_context_new', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
-('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
+('capy_color_pattern_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_properties_new', [ctypes.c_void_p]),
 ('capy_transparency_group_properties_set_CS', [ctypes.c_void_p, ctypes.c_int32]),
@@ -928,18 +928,18 @@ class DrawContext(DrawContextBase):
 
 class ColorPatternDrawContext(DrawContextBase):
 
-    def __init__(self, generator, w, h):
+    def __init__(self, generator, l, b, t, r):
         super().__init__(generator)
         dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_color_pattern_context_new(generator, ctypes.pointer(dcptr), w, h))
+        check_error(libfile.capy_color_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, t, r))
         self._as_parameter_ = dcptr
 
 class FormXObjectDrawContext(DrawContextBase):
 
-    def __init__(self, generator, w, h):
+    def __init__(self, generator, l, b, t, r):
         super().__init__(generator)
         dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_form_xobject_new(generator, w, h, ctypes.pointer(dcptr)))
+        check_error(libfile.capy_form_xobject_new(generator, l, b, t, r, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
 
 class TransparencyGroupProperties():
@@ -1019,8 +1019,8 @@ class Generator:
     def page_draw_context(self):
         return DrawContext(self)
 
-    def create_color_pattern_context(self, w, h):
-        return ColorPatternDrawContext(self, w, h)
+    def create_color_pattern_context(self, l, b, r, t):
+        return ColorPatternDrawContext(self, l, b, r, t)
 
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))

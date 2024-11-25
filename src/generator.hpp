@@ -25,9 +25,8 @@ struct DrawContextPopper {
                                PdfDocument *doc,
                                PdfColorConverter *cm,
                                CapyPDF_Draw_Context_Type dtype,
-                               double w,
-                               double h)
-        : g{g}, ctx{doc, cm, dtype, w, h} {}
+                               const PdfRectangle &rect)
+        : g{g}, ctx{doc, cm, dtype, rect} {}
 
     DrawContextPopper() = delete;
     DrawContextPopper(const DrawContextPopper &) = delete;
@@ -106,19 +105,19 @@ public:
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 
-    DrawContextPopper guarded_form_xobject(double w, double h) {
-        return DrawContextPopper(this, &this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
+    DrawContextPopper guarded_form_xobject(const PdfRectangle &rect) {
+        return DrawContextPopper(this, &this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, rect);
     }
-    PdfDrawContext *new_form_xobject(double w, double h) {
-        return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, w, h);
+    PdfDrawContext *new_form_xobject(const PdfRectangle &rect) {
+        return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_FORM_XOBJECT, rect);
     }
 
     PdfDrawContext *new_transparency_group(const PdfRectangle &bbox) {
         return new PdfDrawContext(&this->pdoc, &pdoc.cm, CAPY_DC_TRANSPARENCY_GROUP, bbox);
     }
 
-    PdfDrawContext new_color_pattern_builder(double w, double h);
-    PdfDrawContext *new_color_pattern(double w, double h);
+    PdfDrawContext new_color_pattern_builder(const PdfRectangle &rect);
+    PdfDrawContext *new_color_pattern(const PdfRectangle &rect);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);

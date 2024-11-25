@@ -27,10 +27,6 @@ void write_matrix(std::back_insert_iterator<std::string> &app, const PdfMatrix &
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfDrawContext::PdfDrawContext(
-    PdfDocument *doc, PdfColorConverter *cm, CapyPDF_Draw_Context_Type dtype, double w, double h)
-    : PdfDrawContext(doc, cm, dtype, PdfRectangle{0, 0, w, h}) {}
-
 PdfDrawContext::PdfDrawContext(PdfDocument *doc,
                                PdfColorConverter *cm,
                                CapyPDF_Draw_Context_Type dtype,
