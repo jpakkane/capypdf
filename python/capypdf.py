@@ -928,10 +928,10 @@ class DrawContext(DrawContextBase):
 
 class ColorPatternDrawContext(DrawContextBase):
 
-    def __init__(self, generator, l, b, t, r):
+    def __init__(self, generator, l, b, r, t):
         super().__init__(generator)
         dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_tiling_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, t, r))
+        check_error(libfile.capy_tiling_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, r, t))
         self._as_parameter_ = dcptr
 
 class FormXObjectDrawContext(DrawContextBase):

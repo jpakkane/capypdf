@@ -938,11 +938,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
                                                           CapyPDF_DrawContext **out_ptr,
                                                           double l,
                                                           double b,
-                                                          double t,
-                                                          double r) CAPYPDF_NOEXCEPT {
+                                                          double r,
+                                                          double t) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     *out_ptr =
-        reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(PdfRectangle{l, b, t, r}));
+        reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(PdfRectangle{l, b, r, t}));
     RETNOERR;
 }
 
