@@ -240,11 +240,11 @@ capy_generator_add_transparency_group(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *gen, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *colordc = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto rc = g->add_pattern(*colordc);
+    auto rc = g->add_tiling_pattern(*colordc);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -934,12 +934,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
-                                                         CapyPDF_DrawContext **out_ptr,
-                                                         double l,
-                                                         double b,
-                                                         double t,
-                                                         double r) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen,
+                                                          CapyPDF_DrawContext **out_ptr,
+                                                          double l,
+                                                          double b,
+                                                          double t,
+                                                          double r) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     *out_ptr =
         reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(PdfRectangle{l, b, t, r}));

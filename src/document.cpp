@@ -1475,7 +1475,7 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
     return CapyPDF_ShadingId{(int32_t)shadings.size() - 1};
 }
 
-rvoe<CapyPDF_PatternId> PdfDocument::add_pattern(PdfDrawContext &ctx) {
+rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     if(&ctx.get_doc() != this) {
         RETERR(IncorrectDocumentForObject);
     }

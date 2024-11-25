@@ -390,7 +390,7 @@ public:
     rvoe<CapyPDF_ShadingId> add_shading(PdfShading sh);
 
     // Patterns
-    rvoe<CapyPDF_PatternId> add_pattern(PdfDrawContext &ctx);
+    rvoe<CapyPDF_PatternId> add_tiling_pattern(PdfDrawContext &ctx);
 
     // Outlines
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o);

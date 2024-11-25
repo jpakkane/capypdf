@@ -1061,7 +1061,7 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, opt) as gen:
             font = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
             # Repeating pattern.
-            pctx = gen.create_color_pattern_context(0, 0, 10, 10)
+            pctx = gen.create_tiling_pattern_context(0, 0, 10, 10)
             pctx.cmd_rg(0.9, 0.8, 0.8)
             pctx.cmd_re(0, 0, 10, 10)
             pctx.cmd_f()
@@ -1072,11 +1072,11 @@ class TestPDFCreation(unittest.TestCase):
             pctx.cmd_f()
             pctx.cmd_re(5, 7.5, 2.5, 2.5)
             pctx.cmd_f()
-            patternid = gen.add_color_pattern(pctx)
+            patternid = gen.add_tiling_pattern(pctx)
             # Text
-            textctx = gen.create_color_pattern_context(0, 0, 3, 4)
+            textctx = gen.create_tiling_pattern_context(0, 0, 3, 4)
             textctx.render_text("g", font, 3, 0, 2)
-            textpatternid = gen.add_color_pattern(textctx)
+            textpatternid = gen.add_tiling_pattern(textctx)
 
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():

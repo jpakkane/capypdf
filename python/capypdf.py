@@ -295,7 +295,7 @@ cfunc_types = (
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_form_xobject', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_color_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_tiling_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -375,7 +375,7 @@ cfunc_types = (
 ('capy_dc_set_transparency_group_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
 
-('capy_color_pattern_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_tiling_pattern_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_properties_new', [ctypes.c_void_p]),
@@ -931,7 +931,7 @@ class ColorPatternDrawContext(DrawContextBase):
     def __init__(self, generator, l, b, t, r):
         super().__init__(generator)
         dcptr = ctypes.c_void_p()
-        check_error(libfile.capy_color_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, t, r))
+        check_error(libfile.capy_tiling_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, t, r))
         self._as_parameter_ = dcptr
 
 class FormXObjectDrawContext(DrawContextBase):
@@ -1019,7 +1019,7 @@ class Generator:
     def page_draw_context(self):
         return DrawContext(self)
 
-    def create_color_pattern_context(self, l, b, r, t):
+    def create_tiling_pattern_context(self, l, b, r, t):
         return ColorPatternDrawContext(self, l, b, r, t)
 
     def add_page(self, page_ctx):
@@ -1035,9 +1035,9 @@ class Generator:
         check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, ctypes.pointer(tgid)))
         return tgid
 
-    def add_color_pattern(self, pattern_ctx):
+    def add_tiling_pattern(self, pattern_ctx):
         pid = PatternId()
-        check_error(libfile.capy_generator_add_color_pattern(self, pattern_ctx, ctypes.pointer(pid)))
+        check_error(libfile.capy_generator_add_tiling_pattern(self, pattern_ctx, ctypes.pointer(pid)))
         return pid
 
     def embed_jpg(self, fname, props):

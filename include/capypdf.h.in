@@ -470,7 +470,7 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_color_pattern(
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
                                                    const char *fname,
@@ -703,12 +703,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
 
 // Color Pattern
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_color_pattern_context_new(CapyPDF_Generator *gen,
-                                                         CapyPDF_DrawContext **out_ptr,
-                                                         double l,
-                                                         double b,
-                                                         double t,
-                                                         double r) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen,
+                                                          CapyPDF_DrawContext **out_ptr,
+                                                          double l,
+                                                          double b,
+                                                          double t,
+                                                          double r) CAPYPDF_NOEXCEPT;
 
 // Text
 

@@ -132,7 +132,9 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     return rvoe<CapyPDF_FormXObjectId>{fxoid};
 }
 
-rvoe<CapyPDF_PatternId> PdfGen::add_pattern(PdfDrawContext &ctx) { return pdoc.add_pattern(ctx); }
+rvoe<CapyPDF_PatternId> PdfGen::add_tiling_pattern(PdfDrawContext &ctx) {
+    return pdoc.add_tiling_pattern(ctx);
+}
 
 DrawContextPopper PdfGen::guarded_page_context() {
     return DrawContextPopper{
