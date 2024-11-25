@@ -374,6 +374,11 @@ struct ShadingType3 {
     bool extend0, extend1;
 };
 
+struct ShadingPattern {
+    CapyPDF_ShadingId sid;
+    std::optional<PdfMatrix> m;
+};
+
 // Gouraud
 
 struct ShadingPoint {

@@ -339,6 +339,7 @@ typedef struct _capyPDF_StructItemExtraData CapyPDF_StructItemExtraData;
 typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
 typedef struct _capyPDF_Destination CapyPDF_Destination;
 typedef struct _capyPDF_Outline CapyPDF_Outline;
+typedef struct _capyPDF_ShadingPattern CapyPDF_ShadingPattern;
 
 typedef int32_t CapyPDF_EC;
 
@@ -470,6 +471,8 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(
+    CapyPDF_Generator *g, CapyPDF_ShadingPattern *shp, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
@@ -998,6 +1001,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_f(CapyPDF_Outline *outline, uint32_t 
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
                                                   CapyPDF_OutlineId parent) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT;
+
+// Shading pattern
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_shading_pattern_new(CapyPDF_ShadingId shid, CapyPDF_ShadingPattern **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern *shp,
+                                                          double a,
+                                                          double b,
+                                                          double c,
+                                                          double d,
+                                                          double e,
+                                                          double f) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
+    CAPYPDF_NOEXCEPT;
 
 // Error
 

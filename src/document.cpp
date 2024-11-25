@@ -1475,6 +1475,27 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
     return CapyPDF_ShadingId{(int32_t)shadings.size() - 1};
 }
 
+rvoe<CapyPDF_PatternId> PdfDocument::add_shading_pattern(const ShadingPattern &shp) {
+    std::string buf = R"(<<
+  /Type /Pattern
+  /PatternType 2
+)";
+    auto app = std::back_inserter(buf);
+    std::format_to(app, "  /Shading {} 0 R\n", shadings.at(shp.sid.id).object_number);
+    if(shp.m) {
+        std::format_to(app,
+                       "  /Matrix [ {:f} {:f} {:f} {:f} {:f} {:f} ]\n",
+                       shp.m->a,
+                       shp.m->b,
+                       shp.m->c,
+                       shp.m->d,
+                       shp.m->e,
+                       shp.m->f);
+    }
+    buf += ">>\n";
+    return CapyPDF_PatternId{add_object(FullPDFObject{std::move(buf), {}})};
+}
+
 rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     if(&ctx.get_doc() != this) {
         RETERR(IncorrectDocumentForObject);

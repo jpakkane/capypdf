@@ -132,6 +132,10 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     return rvoe<CapyPDF_FormXObjectId>{fxoid};
 }
 
+rvoe<CapyPDF_PatternId> PdfGen::add_shading_pattern(const ShadingPattern &shp) {
+    return pdoc.add_shading_pattern(shp);
+}
+
 rvoe<CapyPDF_PatternId> PdfGen::add_tiling_pattern(PdfDrawContext &ctx) {
     return pdoc.add_tiling_pattern(ctx);
 }

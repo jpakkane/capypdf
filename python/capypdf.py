@@ -295,6 +295,7 @@ cfunc_types = (
 ('capy_generator_add_page', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_form_xobject', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_shading_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_tiling_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -531,6 +532,16 @@ cfunc_types = (
 ('capy_outline_set_f', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_outline_set_parent', [ctypes.c_void_p, OutlineId]),
 ('capy_outline_destroy', [ctypes.c_void_p]),
+
+('capy_shading_pattern_new', [ShadingId, ctypes.c_void_p]),
+('capy_shading_pattern_set_matrix', [ctypes.c_void_p,
+                                     ctypes.c_double,
+                                     ctypes.c_double,
+                                     ctypes.c_double,
+                                     ctypes.c_double,
+                                     ctypes.c_double,
+                                     ctypes.c_double]),
+('capy_shading_pattern_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1034,6 +1045,11 @@ class Generator:
         tgid = TransparencyGroupId()
         check_error(libfile.capy_generator_add_transparency_group(self, tg_ctx, ctypes.pointer(tgid)))
         return tgid
+
+    def add_shading_pattern(self, shp):
+        pid = PatternId()
+        check_error(libfile.capy_generator_add_shading_pattern(self, shp, ctypes.pointer(pid)))
+        return pid
 
     def add_tiling_pattern(self, pattern_ctx):
         pid = PatternId()
@@ -1724,3 +1740,15 @@ class Outline:
         if not isinstance(parent, OutlineId):
             raise CapyPDFException('Argument must be a parent id.')
         check_error(libfile.capy_outline_set_parent(self, parent))
+
+class ShadingPattern:
+    def __init__(self, shid):
+        o = ctypes.c_void_p()
+        check_error(libfile.capy_shading_pattern_new(shid, ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def set_matrix(self, a, b, c, d, e, f):
+        check_error(libfile.capy_shading_pattern_set_matrix(self, a, b, c, d, e, f))
+
+    def __del__(self):
+        check_error(libfile.capy_shading_pattern_destroy(self))

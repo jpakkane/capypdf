@@ -240,6 +240,19 @@ capy_generator_add_transparency_group(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(CapyPDF_Generator *gen,
+                                                             CapyPDF_ShadingPattern *shp,
+                                                             CapyPDF_PatternId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *shad = reinterpret_cast<ShadingPattern *>(shp);
+    auto rc = g->add_shading_pattern(*shad);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *gen, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -1872,6 +1885,30 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<Outline *>(outline);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_new(
+    CapyPDF_ShadingId shid, CapyPDF_ShadingPattern **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_ShadingPattern *>(new ShadingPattern{shid, {}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern *shp,
+                                                          double a,
+                                                          double b,
+                                                          double c,
+                                                          double d,
+                                                          double e,
+                                                          double f) CAPYPDF_NOEXCEPT {
+    auto *p = reinterpret_cast<ShadingPattern *>(shp);
+    p->m = PdfMatrix{a, b, c, d, e, f};
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
+    CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<ShadingPattern *>(shp);
     RETNOERR;
 }
 

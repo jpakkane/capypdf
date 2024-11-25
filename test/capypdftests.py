@@ -1311,5 +1311,62 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.scale(50, 50)
                     ctx.draw_image(image)
 
+    @validate_image('python_shading_pattern', 200, 200)
+    def test_shading_pattern(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.DocumentMetadata()
+        opt.set_default_page_properties(prop)
+
+        with capypdf.Generator(ofilename, opt) as gen:
+            # Fill gradient
+            c1 = capypdf.Color()
+            c2 = capypdf.Color()
+            c1.set_rgb(0, 0, 1)
+            c2.set_rgb(1, 0, 0)
+            f1 = capypdf.Type2Function([0, 1], c1, c2, 1)
+            f1id = gen.add_function(f1)
+            sh1 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
+                                       312.925537,
+                                       484.552765,
+                                       498.24588,
+                                       661.916748,
+                                       f1id,
+                                       True,
+                                       True)
+            sh1id = gen.add_shading(sh1)
+            p1 = capypdf.ShadingPattern(sh1id)
+            p1.set_matrix(0.752683, 0, 0, -0.752683, -207.66943, 529.072279)
+            p1id = gen.add_shading_pattern(p1)
+
+            # Stroke gradient
+            c1.set_rgb(1, 0.00392157, 1)
+            c2.set_rgb(0.262745, 0.996078, 0)
+            f2 = capypdf.Type2Function([0, 1], c1, c2, 1)
+            f2id = gen.add_function(f2)
+            sh2 = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
+                                       302.362183,
+                                       572.714111,
+                                       509.850525,
+                                       572.714111,
+                                       f2id,
+                                       True,
+                                       True)
+            sh2id = gen.add_shading(sh2)
+            p2 = capypdf.ShadingPattern(sh2id)
+            p2.set_matrix(0.752683, 0, 0, -0.752683, -207.66943, 529.072279)
+            p2id = gen.add_shading_pattern(p2)
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_w(40)
+                fillpattern = capypdf.Color()
+                fillpattern.set_pattern(p1id)
+                ctx.set_nonstroke(fillpattern)
+                strokepattern = capypdf.Color()
+                strokepattern.set_pattern(p2id)
+                ctx.set_stroke(strokepattern)
+                ctx.cmd_j(capypdf.LineJoinStyle.Round)
+                ctx.cmd_re(20, 20, 160, 160)
+                ctx.cmd_B()
+
 if __name__ == "__main__":
     unittest.main()

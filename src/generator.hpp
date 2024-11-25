@@ -121,6 +121,7 @@ public:
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
+    rvoe<CapyPDF_PatternId> add_shading_pattern(const ShadingPattern &shp);
     rvoe<CapyPDF_PatternId> add_tiling_pattern(PdfDrawContext &cp);
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx) {
         return pdoc.add_transparency_group(ctx);
