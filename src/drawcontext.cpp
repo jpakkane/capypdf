@@ -709,9 +709,6 @@ rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const Dev
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke) {
-    if(context_type != CAPY_DC_PAGE) {
-        RETERR(PatternNotAccepted);
-    }
     if(stroke) {
         ERCV(cmd_CS("/Pattern"));
     } else {

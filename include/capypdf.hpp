@@ -50,6 +50,8 @@ struct CapyCTypeDeleter {
             rc = capy_function_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Shading>) {
             rc = capy_shading_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_ShadingPattern>) {
+            rc = capy_shading_pattern_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
         } else {
@@ -150,8 +152,12 @@ public:
     void set_cmyk(double c, double m, double y, double k) {
         CAPY_CPP_CHECK(capy_color_set_cmyk(*this, c, m, y, k));
     }
+    void set_gray(double g) { CAPY_CPP_CHECK(capy_color_set_gray(*this, g)); }
     void set_icc(CapyPDF_IccColorSpaceId icc_id, double *values, int32_t num_values) {
         CAPY_CPP_CHECK(capy_color_set_icc(*this, icc_id, values, num_values));
+    }
+    void set_pattern(CapyPDF_PatternId pattern_id) {
+        CAPY_CPP_CHECK(capy_color_set_pattern(*this, pattern_id));
     }
 };
 
@@ -227,6 +233,13 @@ public:
         CAPY_CPP_CHECK(capy_type2_shading_new(cs, x0, y0, x1, y1, func, &sd));
         _d.reset(sd);
     }
+
+    void set_extend(bool starting, bool ending) {
+        CAPY_CPP_CHECK(capy_shading_set_extend(*this, starting, ending));
+    }
+    void set_domain(double starting, double ending) {
+        CAPY_CPP_CHECK(capy_shading_set_domain(*this, starting, ending));
+    }
 };
 
 class Type3Shading : public CapyC<CapyPDF_Shading> {
@@ -243,6 +256,12 @@ public:
         CapyPDF_Shading *sd;
         CAPY_CPP_CHECK(capy_type3_shading_new(cs, coords, func, &sd));
         _d.reset(sd);
+    }
+    void set_extend(bool starting, bool ending) {
+        CAPY_CPP_CHECK(capy_shading_set_extend(*this, starting, ending));
+    }
+    void set_domain(double starting, double ending) {
+        CAPY_CPP_CHECK(capy_shading_set_domain(*this, starting, ending));
     }
 };
 
@@ -320,6 +339,21 @@ public:
         }
         CAPY_CPP_CHECK(
             capy_type6_shading_extend(*this, flag, coords, (const CapyPDF_Color **)c_colors));
+    }
+};
+
+class ShadingPattern : public CapyC<CapyPDF_ShadingPattern> {
+    friend class Generator;
+
+public:
+    ShadingPattern(CapyPDF_ShadingId shid) {
+        CapyPDF_ShadingPattern *sp;
+        CAPY_CPP_CHECK(capy_shading_pattern_new(shid, &sp));
+        _d.reset(sp);
+    }
+
+    void set_matrix(double a, double b, double c, double d, double e, double f) {
+        CAPY_CPP_CHECK(capy_shading_pattern_set_matrix(*this, a, b, c, d, e, f));
     }
 };
 
@@ -437,6 +471,12 @@ public:
         return DrawContext(dc);
     }
 
+    DrawContext new_tiling_pattern_context(double l, double b, double r, double t) {
+        CapyPDF_DrawContext *dc;
+        CAPY_CPP_CHECK(capy_tiling_pattern_context_new(*this, &dc, l, b, r, t));
+        return DrawContext(dc);
+    }
+
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}
 
     CapyPDF_FontId load_font(const char *fname) {
@@ -492,6 +532,18 @@ public:
         CapyPDF_ShadingId sid;
         CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
         return sid;
+    }
+
+    CapyPDF_PatternId add_shading_pattern(ShadingPattern &sp) {
+        CapyPDF_PatternId pid;
+        CAPY_CPP_CHECK(capy_generator_add_shading_pattern(*this, sp, &pid));
+        return pid;
+    }
+
+    CapyPDF_PatternId add_tiling_pattern(DrawContext &ctx) {
+        CapyPDF_PatternId pid;
+        CAPY_CPP_CHECK(capy_generator_add_tiling_pattern(*this, ctx, &pid));
+        return pid;
     }
 
     RasterImage load_image(const char *fname) {

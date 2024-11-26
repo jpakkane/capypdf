@@ -1528,6 +1528,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
+                                                  double starting,
+                                                  double ending) CAPYPDF_NOEXCEPT {
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
+        ptr->domain = ShadingDomain{starting, ending};
+    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
+        ptr->domain = ShadingDomain{starting, ending};
+    } else {
+        return conv_err(ErrorCode::IncorrectFunctionType);
+    }
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<PdfShading *>(shade);
     RETNOERR;
