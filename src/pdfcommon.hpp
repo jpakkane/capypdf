@@ -363,12 +363,18 @@ struct ShadingExtend {
     bool ending;
 };
 
+struct ShadingDomain {
+    double starting;
+    double ending;
+};
+
 // Linear
 struct ShadingType2 {
     CapyPDF_DeviceColorspace colorspace;
     double x0, y0, x1, y1;
     CapyPDF_FunctionId function;
     std::optional<ShadingExtend> extend;
+    std::optional<ShadingDomain> domain;
 };
 
 // Radial
@@ -377,6 +383,7 @@ struct ShadingType3 {
     double x0, y0, r0, x1, y1, r1;
     CapyPDF_FunctionId function;
     std::optional<ShadingExtend> extend;
+    std::optional<ShadingDomain> domain;
 };
 
 struct ShadingPattern {

@@ -476,6 +476,8 @@ cfunc_types = (
 ('capy_type2_shading_new', [enum_type,
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
                             FunctionId, ctypes.c_void_p]),
+('capy_shading_set_extend', [ctypes.c_void_p, ctypes.c_int32, ctypes.c_int32]),
+('capy_shading_set_domain', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_shading_destroy', [ctypes.c_void_p]),
 
 
@@ -1527,6 +1529,9 @@ class Type2Shading:
         e2 = 1 if ending else 0
         check_error(libfile.capy_shading_set_extend(self, e1, e2))
 
+    def set_domain(self, starting, ending):
+        check_error(libfile.capy_shading_set_domain(self, starting, ending))
+
     def __del__(self):
         check_error(libfile.capy_shading_destroy(self))
 
@@ -1543,6 +1548,9 @@ class Type3Shading:
         e1 = 1 if starting else 0
         e2 = 1 if ending else 0
         check_error(libfile.capy_shading_set_extend(self, e1, e2))
+
+    def set_domain(self, starting, ending):
+        check_error(libfile.capy_shading_set_domain(self, starting, ending))
 
     def __del__(self):
         check_error(libfile.capy_shading_destroy(self))

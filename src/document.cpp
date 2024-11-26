@@ -1358,6 +1358,11 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType2 &shade) {
                        shade.extend->starting ? "true" : "false",
                        shade.extend->ending ? "true" : "false");
     }
+    if(shade.domain) {
+        auto app = std::back_inserter(buf);
+        std::format_to(
+            app, "  /Domain [ {:f} {:f} ]\n", shade.domain->starting, shade.domain->ending);
+    }
     buf += ">>\n";
     return FullPDFObject{std::move(buf), {}};
 }
@@ -1386,6 +1391,11 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType3 &shade) {
                        "  /Extend [ {} {} ]\n",
                        shade.extend->starting ? "true" : "false",
                        shade.extend->ending ? "true" : "false");
+    }
+    if(shade.domain) {
+        auto app = std::back_inserter(buf);
+        std::format_to(
+            app, "  /Domain [ {:f} {:f} ]\n", shade.domain->starting, shade.domain->ending);
     }
     buf += ">>\n";
 
