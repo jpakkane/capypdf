@@ -1505,13 +1505,26 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double x1,
                                                  double y1,
                                                  CapyPDF_FunctionId func,
-                                                 int32_t extend1,
-                                                 int32_t extend2,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    CHECK_BOOLEAN(extend1);
-    CHECK_BOOLEAN(extend2);
     *out_ptr = reinterpret_cast<CapyPDF_Shading *>(
-        new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func, extend1 != 0, extend2 != 0}});
+        new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func, {}}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
+                                                  int32_t starting,
+                                                  int32_t ending) CAPYPDF_NOEXCEPT {
+    CHECK_BOOLEAN(starting);
+    CHECK_BOOLEAN(ending);
+
+    auto *sh = reinterpret_cast<PdfShading *>(shade);
+    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
+        ptr->extend = ShadingExtend{starting != 0, ending != 0};
+    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
+        ptr->extend = ShadingExtend{starting != 0, ending != 0};
+    } else {
+        return conv_err(ErrorCode::IncorrectFunctionType);
+    }
     RETNOERR;
 }
 
@@ -1523,21 +1536,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_N
 CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
-                                                 int32_t extend1,
-                                                 int32_t extend2,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    CHECK_BOOLEAN(extend1);
-    CHECK_BOOLEAN(extend2);
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType3{cs,
-                                                                               coords[0],
-                                                                               coords[1],
-                                                                               coords[2],
-                                                                               coords[3],
-                                                                               coords[4],
-                                                                               coords[5],
-                                                                               func,
-                                                                               extend1 != 0,
-                                                                               extend2 != 0}});
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType3{
+        cs, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], func, {}}});
     RETNOERR;
 }
 

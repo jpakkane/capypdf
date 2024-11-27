@@ -176,8 +176,6 @@ int draw_transp_doc() {
         shade.x1 = 80;
         shade.y1 = 40;
         shade.function = funcid;
-        shade.extend0 = false;
-        shade.extend1 = false;
 
         GraphicsState gs;
         gs.BM = CAPY_BM_MULTIPLY;

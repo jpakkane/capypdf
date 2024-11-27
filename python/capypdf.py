@@ -475,13 +475,12 @@ cfunc_types = (
 
 ('capy_type2_shading_new', [enum_type,
                             ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
-                            FunctionId, ctypes.c_int32, ctypes.c_int32,
-                            ctypes.c_void_p]),
+                            FunctionId, ctypes.c_void_p]),
 ('capy_shading_destroy', [ctypes.c_void_p]),
 
 
 ('capy_type3_shading_new', [enum_type, ctypes.POINTER(ctypes.c_double),
-                            FunctionId, ctypes.c_int32, ctypes.c_int32, ctypes.c_void_p]),
+                            FunctionId, ctypes.c_void_p]),
 
 ('capy_type4_shading_new', [enum_type, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_type4_shading_add_triangle', [ctypes.c_void_p,
@@ -1517,27 +1516,33 @@ class Type4Function:
 
 
 class Type2Shading:
-    def __init__(self, cs, x0, y0, x1, y1, funcid, extend1, extend2):
-        e1 = 1 if extend1 else 0
-        e2 = 1 if extend2 else 0
+    def __init__(self, cs, x0, y0, x1, y1, funcid):
         self._as_parameter_ = None
         t2s = ctypes.c_void_p()
-        check_error(libfile.capy_type2_shading_new(cs.value, x0, y0, x1, y1, funcid, e1, e2, ctypes.pointer(t2s)))
+        check_error(libfile.capy_type2_shading_new(cs.value, x0, y0, x1, y1, funcid, ctypes.pointer(t2s)))
         self._as_parameter_ = t2s
+
+    def set_extend(self, starting, ending):
+        e1 = 1 if starting else 0
+        e2 = 1 if ending else 0
+        check_error(libfile.capy_shading_set_extend(self, e1, e2))
 
     def __del__(self):
         check_error(libfile.capy_shading_destroy(self))
 
 class Type3Shading:
-    def __init__(self, cs, coords, funcid, extend1, extend2):
-        e1 = 1 if extend1 else 0
-        e2 = 1 if extend2 else 0
+    def __init__(self, cs, coords, funcid):
         if len(coords) != 6:
             raise CapyPDFException('Coords array must hold exactly 6 doubles.')
         self._as_parameter_ = None
         t3s = ctypes.c_void_p()
-        check_error(libfile.capy_type3_shading_new(cs.value, to_array(ctypes.c_double, coords)[0], funcid, e1, e2, ctypes.pointer(t3s)))
+        check_error(libfile.capy_type3_shading_new(cs.value, to_array(ctypes.c_double, coords)[0], funcid, ctypes.pointer(t3s)))
         self._as_parameter_ = t3s
+
+    def set_extend(self, starting, ending):
+        e1 = 1 if starting else 0
+        e2 = 1 if ending else 0
+        check_error(libfile.capy_shading_set_extend(self, e1, e2))
 
     def __del__(self):
         check_error(libfile.capy_shading_destroy(self))

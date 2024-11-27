@@ -899,16 +899,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double x1,
                                                  double y1,
                                                  CapyPDF_FunctionId func,
-                                                 int32_t extend1,
-                                                 int32_t extend2,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
+                                                  int32_t starting,
+                                                  int32_t ending) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
-                                                 int32_t extend1,
-                                                 int32_t extend2,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,

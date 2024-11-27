@@ -658,9 +658,7 @@ class TestPDFCreation(unittest.TestCase):
                                        50.0,
                                        90.0,
                                        50.0,
-                                       f2id,
-                                       False,
-                                       False)
+                                       f2id)
             sh2id = gen.add_shading(sh2)
 
             f2o = capypdf.Type2Function([0.0, 1.0], c2, c1, 1.0)
@@ -673,16 +671,13 @@ class TestPDFCreation(unittest.TestCase):
                                        50.0,
                                        90.0,
                                        50.0,
-                                       f3id,
-                                       False,
-                                       False)
+                                       f3id)
             sh2f3id = gen.add_shading(sh2f3)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.RGB,
                                        [50, 50, 40, 40, 30, 10],
-                                       f2id,
-                                       False,
-                                       True)
+                                       f2id)
+            sh3.set_extend(False, True)
             sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.RGB, 0, 0, 100, 100)
@@ -758,16 +753,13 @@ class TestPDFCreation(unittest.TestCase):
                                        50.0,
                                        90.0,
                                        50.0,
-                                       f2id,
-                                       False,
-                                       False)
+                                       f2id)
             sh2id = gen.add_shading(sh2)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.Gray,
                                        [50, 50, 40, 40, 30, 10],
-                                       f2id,
-                                       False,
-                                       True)
+                                       f2id)
+            sh3.set_extend(False, True)
             sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.Gray, 0, 0, 100, 100)
@@ -838,16 +830,13 @@ class TestPDFCreation(unittest.TestCase):
                                        50.0,
                                        90.0,
                                        50.0,
-                                       f2id,
-                                       False,
-                                       False)
+                                       f2id)
             sh2id = gen.add_shading(sh2)
 
             sh3 = capypdf.Type3Shading(capypdf.DeviceColorspace.CMYK,
                                        [50, 50, 40, 40, 30, 10],
-                                       f2id,
-                                       False,
-                                       True)
+                                       f2id)
+            sh3.set_extend(False, True)
             sh3id = gen.add_shading(sh3)
 
             sh4 = capypdf.Type4Shading(capypdf.DeviceColorspace.CMYK, 0, 0, 100, 100)
@@ -1331,9 +1320,8 @@ class TestPDFCreation(unittest.TestCase):
                                        484.552765,
                                        498.24588,
                                        661.916748,
-                                       f1id,
-                                       True,
-                                       True)
+                                       f1id)
+            sh1.set_extend(True, True)
             sh1id = gen.add_shading(sh1)
             p1 = capypdf.ShadingPattern(sh1id)
             p1.set_matrix(0.752683, 0, 0, -0.752683, -207.66943, 529.072279)
@@ -1349,9 +1337,8 @@ class TestPDFCreation(unittest.TestCase):
                                        572.714111,
                                        509.850525,
                                        572.714111,
-                                       f2id,
-                                       True,
-                                       True)
+                                       f2id)
+            sh2.set_extend(True, True)
             sh2id = gen.add_shading(sh2)
             p2 = capypdf.ShadingPattern(sh2id)
             p2.set_matrix(0.752683, 0, 0, -0.752683, -207.66943, 529.072279)

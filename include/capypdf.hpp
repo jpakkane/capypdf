@@ -222,11 +222,9 @@ public:
                  double y0,
                  double x1,
                  double y1,
-                 CapyPDF_FunctionId func,
-                 int32_t extend1,
-                 int32_t extend2) {
+                 CapyPDF_FunctionId func) {
         CapyPDF_Shading *sd;
-        CAPY_CPP_CHECK(capy_type2_shading_new(cs, x0, y0, x1, y1, func, extend1, extend2, &sd));
+        CAPY_CPP_CHECK(capy_type2_shading_new(cs, x0, y0, x1, y1, func, &sd));
         _d.reset(sd);
     }
 };
@@ -238,14 +236,12 @@ public:
     Type3Shading(CapyPDF_DeviceColorspace cs,
                  double *coords,
                  uint32_t num_coords,
-                 CapyPDF_FunctionId func,
-                 uint32_t extend1,
-                 uint32_t extend2) {
+                 CapyPDF_FunctionId func) {
         if(num_coords != 6) {
             throw PdfException("Coords array must hold exactly 6 doubles");
         }
         CapyPDF_Shading *sd;
-        CAPY_CPP_CHECK(capy_type3_shading_new(cs, coords, func, extend1, extend2, &sd));
+        CAPY_CPP_CHECK(capy_type3_shading_new(cs, coords, func, &sd));
         _d.reset(sd);
     }
 };

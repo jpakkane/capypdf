@@ -358,12 +358,17 @@ struct FunctionType4 {
 
 typedef std::variant<FunctionType2, FunctionType3, FunctionType4> PdfFunction;
 
+struct ShadingExtend {
+    bool starting;
+    bool ending;
+};
+
 // Linear
 struct ShadingType2 {
     CapyPDF_DeviceColorspace colorspace;
     double x0, y0, x1, y1;
     CapyPDF_FunctionId function;
-    bool extend0, extend1;
+    std::optional<ShadingExtend> extend;
 };
 
 // Radial
@@ -371,7 +376,7 @@ struct ShadingType3 {
     CapyPDF_DeviceColorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     CapyPDF_FunctionId function;
-    bool extend0, extend1;
+    std::optional<ShadingExtend> extend;
 };
 
 struct ShadingPattern {

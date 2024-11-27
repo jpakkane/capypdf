@@ -1343,8 +1343,6 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType2 &shade) {
   /ColorSpace {}
   /Coords [ {:f} {:f} {:f} {:f} ]
   /Function {} 0 R
-  /Extend [ {} {} ]
->>
 )",
         shadingtype,
         colorspace_names.at((int)shade.colorspace),
@@ -1352,9 +1350,15 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType2 &shade) {
         shade.y0,
         shade.x1,
         shade.y1,
-        functions.at(shade.function.id).object_number,
-        shade.extend0 ? "true" : "false",
-        shade.extend1 ? "true" : "false");
+        functions.at(shade.function.id).object_number);
+    if(shade.extend) {
+        auto app = std::back_inserter(buf);
+        std::format_to(app,
+                       "  /Extend [ {} {} ]\n",
+                       shade.extend->starting ? "true" : "false",
+                       shade.extend->ending ? "true" : "false");
+    }
+    buf += ">>\n";
     return FullPDFObject{std::move(buf), {}};
 }
 
@@ -1364,10 +1368,8 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType3 &shade) {
         R"(<<
   /ShadingType {}
   /ColorSpace {}
-  /Coords [ {:f} {:f} {:f} {:f} {:f} {:f}]
+  /Coords [ {:f} {:f} {:f} {:f} {:f} {:f} ]
   /Function {} 0 R
-  /Extend [ {} {} ]
->>
 )",
         shadingtype,
         colorspace_names.at((int)shade.colorspace),
@@ -1377,9 +1379,16 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType3 &shade) {
         shade.x1,
         shade.y1,
         shade.r1,
-        functions.at(shade.function.id).object_number,
-        shade.extend0 ? "true" : "false",
-        shade.extend1 ? "true" : "false");
+        functions.at(shade.function.id).object_number);
+    if(shade.extend) {
+        auto app = std::back_inserter(buf);
+        std::format_to(app,
+                       "  /Extend [ {} {} ]\n",
+                       shade.extend->starting ? "true" : "false",
+                       shade.extend->ending ? "true" : "false");
+    }
+    buf += ">>\n";
+
     return FullPDFObject{std::move(buf), {}};
 }
 
