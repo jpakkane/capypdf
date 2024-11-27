@@ -962,12 +962,12 @@ class TestPDFCreation(unittest.TestCase):
             o6 = capypdf.Outline()
             o6.set_title('Top1, child2, child1')
             o6.set_parent(t1c2)
-            o6.set_f(1)
-            o6.set_rgb(0, 0, 1)
+            o6.set_F(1)
+            o6.set_C(0, 0, 1)
             gen.add_outline(o6)
             o7 = capypdf.Outline()
             o7.set_title('Fourth toplevel')
-            o7.set_f(2)
+            o7.set_F(2)
             gen.add_outline(o7)
 
             with gen.page_draw_context() as ctx:

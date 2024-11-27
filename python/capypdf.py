@@ -527,8 +527,8 @@ cfunc_types = (
 ('capy_outline_new', [ctypes.c_void_p]),
 ('capy_outline_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_outline_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_outline_set_rgb', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
-('capy_outline_set_f', [ctypes.c_void_p, ctypes.c_uint32]),
+('capy_outline_set_C', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_outline_set_F', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_outline_set_parent', [ctypes.c_void_p, OutlineId]),
 ('capy_outline_destroy', [ctypes.c_void_p]),
 
@@ -1735,11 +1735,11 @@ class Outline:
             raise CapyPDFException('Argument must be a destination object.')
         check_error(libfile.capy_outline_set_destination(self, dest))
 
-    def set_rgb(self, r, g, b):
-        check_error(libfile.capy_outline_set_rgb(self, r, g, b))
+    def set_C(self, r, g, b):
+        check_error(libfile.capy_outline_set_C(self, r, g, b))
 
-    def set_f(self, f):
-        check_error(libfile.capy_outline_set_f(self, f))
+    def set_F(self, F):
+        check_error(libfile.capy_outline_set_F(self, F))
 
     def set_parent(self, parent):
         if not isinstance(parent, OutlineId):

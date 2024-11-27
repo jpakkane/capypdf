@@ -754,12 +754,12 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         if(cur_obj.F != 0) {
             std::format_to(app, "  /F {}\n", cur_obj.F);
         }
-        if(cur_obj.color) {
+        if(cur_obj.C) {
             std::format_to(app,
                            "  /C [ {:f} {:f} {:f} ]\n",
-                           cur_obj.color.value().r.v(),
-                           cur_obj.color.value().g.v(),
-                           cur_obj.color.value().b.v());
+                           cur_obj.C.value().r.v(),
+                           cur_obj.C.value().g.v(),
+                           cur_obj.C.value().b.v());
         }
         oitem += ">>\n";
         add_object(FullPDFObject{std::move(oitem), {}});

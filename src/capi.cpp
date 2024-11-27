@@ -1861,16 +1861,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_rgb(CapyPDF_Outline *outline,
-                                               double r,
-                                               double g,
-                                               double b) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r, double g, double b)
+    CAPYPDF_NOEXCEPT {
     auto *o = reinterpret_cast<Outline *>(outline);
-    o->color = DeviceRGBColor{r, g, b};
+    o->C = DeviceRGBColor{r, g, b};
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_f(CapyPDF_Outline *outline,
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_F(CapyPDF_Outline *outline,
                                              uint32_t F) CAPYPDF_NOEXCEPT {
     auto *o = reinterpret_cast<Outline *>(outline);
     o->F = F;

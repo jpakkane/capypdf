@@ -992,11 +992,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
                                                  const char *title) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_rgb(CapyPDF_Outline *outline,
-                                               double r,
-                                               double g,
-                                               double b) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_f(CapyPDF_Outline *outline, uint32_t F) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r, double g, double b)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_F(CapyPDF_Outline *outline, uint32_t F) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
                                                   CapyPDF_OutlineId parent) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT;

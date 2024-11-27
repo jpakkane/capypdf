@@ -189,7 +189,7 @@ struct DocumentMetadata {
 struct Outline {
     u8string title;
     std::optional<Destination> dest;
-    std::optional<DeviceRGBColor> color;
+    std::optional<DeviceRGBColor> C;
     uint32_t F = 0;
     std::optional<CapyPDF_OutlineId> parent;
 };
