@@ -1506,8 +1506,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double y1,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(
-        new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func, {}}});
+    *out_ptr =
+        reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func}});
     RETNOERR;
 }
 
@@ -1551,8 +1551,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType3{
-        cs, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], func, {}}});
+    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{
+        ShadingType3{cs, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], func}});
     RETNOERR;
 }
 
