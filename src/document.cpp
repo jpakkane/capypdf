@@ -125,8 +125,8 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
         const char *ptr;
         ptr = (const char *)(&flag);
         s.append(ptr, ptr + sizeof(char));
-        ERCV(append_floatvalue<uint32_t>(s, xratio));
-        ERCV(append_floatvalue<uint32_t>(s, yratio));
+        ERCV(append_floatvalue<uint32_t>(s, std::clamp(xratio, 0.0, 1.0)));
+        ERCV(append_floatvalue<uint32_t>(s, std::clamp(yratio, 0.0, 1.0)));
 
         if(auto *c = std::get_if<DeviceRGBColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_DEVICE_CS_RGB) {
@@ -174,8 +174,8 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
             double xratio = (p.x - shade.minx) / (shade.maxx - shade.minx);
             double yratio = (p.y - shade.miny) / (shade.maxy - shade.miny);
 
-            ERCV(append_floatvalue<uint32_t>(s, xratio));
-            ERCV(append_floatvalue<uint32_t>(s, yratio));
+            ERCV(append_floatvalue<uint32_t>(s, std::clamp(xratio, 0.0, 1.0)));
+            ERCV(append_floatvalue<uint32_t>(s, std::clamp(yratio, 0.0, 1.0)));
         }
         for(const auto &colorobj : e.c) {
             if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
