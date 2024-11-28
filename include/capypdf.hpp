@@ -400,6 +400,7 @@ public:
     void set_nonstroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_nonstroke(*this, color)); }
     void set_stroke(Color &color) { CAPY_CPP_CHECK(capy_dc_set_stroke(*this, color)); }
     void cmd_w(double value) { CAPY_CPP_CHECK(capy_dc_cmd_w(*this, value)); }
+    void cmd_n() { CAPY_CPP_CHECK(capy_dc_cmd_n(*this)); }
     void cmd_M(double value) { CAPY_CPP_CHECK(capy_dc_cmd_M(*this, value)); }
     void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_dc_cmd_j(*this, value)); }
     void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_dc_cmd_J(*this, value)); }
