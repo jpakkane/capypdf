@@ -1293,6 +1293,76 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.scale(50, 50)
                     ctx.draw_image(image)
 
+
+    @validate_image('python_shading_transparency', 200, 200)
+    def test_shading_transparency(self, ofilename, w, h):
+        prop = capypdf.PageProperties()
+        prop.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        opt = capypdf.DocumentMetadata()
+        opt.set_default_page_properties(prop)
+
+        with capypdf.Generator(ofilename, opt) as gen:
+            # Fill gradient + opacity gradient
+            c1 = capypdf.Color()
+            o1 = capypdf.Color()
+            c2 = capypdf.Color()
+            o2 = capypdf.Color()
+            c1.set_rgb(0, 0, 1)
+            o1.set_gray(1);
+            c2.set_rgb(1, 0, 0)
+            o2.set_gray(0);
+            fc = capypdf.Type2Function([0, 1], c1, c2, 1)
+            fo = capypdf.Type2Function([0, 1], o1, o2, 1)
+            fcid = gen.add_function(fc)
+            foid = gen.add_function(fo)
+            shc = capypdf.Type2Shading(capypdf.DeviceColorspace.RGB,
+                                       0,
+                                       0,
+                                       200,
+                                       200,
+                                       fcid)
+            sho = capypdf.Type2Shading(capypdf.DeviceColorspace.Gray,
+                                       0,
+                                       0,
+                                       200,
+                                       200,
+                                       foid)
+            shcid = gen.add_shading(shc)
+            shoid = gen.add_shading(sho)
+            pc = capypdf.ShadingPattern(shcid)
+            po = capypdf.ShadingPattern(shoid)
+            pcid = gen.add_shading_pattern(pc)
+            poid = gen.add_shading_pattern(po)
+
+            # Paint a soft mask for the alpha channel
+            ctx = capypdf.TransparencyGroupDrawContext(gen, 0, 0, 200, 200)
+            fillpattern = capypdf.Color()
+            fillpattern.set_pattern(poid)
+            ctx.set_nonstroke(fillpattern)
+            ctx.cmd_re(0, 0, 200, 200)
+            ctx.cmd_f()
+            tr_props = capypdf.TransparencyGroupProperties()
+            tr_props.set_CS(capypdf.DeviceColorspace.Gray)
+            tr_props.set_I(True);
+            tr_props.set_K(False);
+            ctx.set_transparency_group_properties(tr_props)
+            tid = gen.add_transparency_group(ctx)
+
+            sm = capypdf.SoftMask(capypdf.SoftMaskSubType.Luminosity, tid)
+            smid = gen.add_soft_mask(sm)
+
+            gstate = capypdf.GraphicsState()
+            gstate.set_SMask(smid)
+            gsid = gen.add_graphics_state(gstate)
+
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_gs(gsid)
+                fillpattern = capypdf.Color()
+                fillpattern.set_pattern(pcid)
+                ctx.set_nonstroke(fillpattern)
+                ctx.cmd_re(0, 0, 200, 200)
+                ctx.cmd_f()
+
     @validate_image('python_shading_pattern', 200, 200)
     def test_shading_pattern(self, ofilename, w, h):
         prop = capypdf.PageProperties()

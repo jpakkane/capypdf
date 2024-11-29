@@ -423,6 +423,9 @@ public:
     // Transparency groups
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx);
 
+    // Soft Mask
+    rvoe<CapyPDF_SoftMaskId> add_soft_mask(const SoftMask &sm);
+
     std::optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
@@ -502,6 +505,7 @@ private:
     std::vector<StructItem> structure_items;
     std::vector<int32_t> ocg_items;
     std::vector<int32_t> transparency_groups;
+    std::vector<int32_t> soft_masks;
     std::vector<FunctionInfo> functions;
     std::vector<ShadingInfo> shadings;
     std::vector<RolemapEnty> rolemap;

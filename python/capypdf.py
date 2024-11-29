@@ -45,6 +45,10 @@ class ImageColorspace(Enum):
     Gray = 1
     CMYK = 2
 
+class SoftMaskSubType(Enum):
+    Alpha = 0
+    Luminosity = 1
+
 class TransitionType(Enum):
     Split = 0
     Blinds = 1
@@ -245,6 +249,9 @@ class FunctionId(ctypes.Structure):
 class ShadingId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class SoftMaskId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 class OutlineId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
@@ -313,6 +320,7 @@ cfunc_types = (
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, enum_type, FunctionId]),
+('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
@@ -374,6 +382,9 @@ cfunc_types = (
 ('capy_dc_set_group_matrix', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_set_transparency_group_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_destroy', [ctypes.c_void_p]),
+
+('capy_soft_mask_new', [enum_type, TransparencyGroupId, ctypes.c_void_p]),
+('capy_soft_mask_destroy', [ctypes.c_void_p]),
 
 ('capy_tiling_pattern_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
@@ -437,6 +448,7 @@ cfunc_types = (
 ('capy_graphics_state_set_op', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OP', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OPM', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_SMask', [ctypes.c_void_p, SoftMaskId]),
 ('capy_graphics_state_set_TK', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
@@ -1190,6 +1202,23 @@ class Generator:
         check_error(libfile.capy_generator_add_rolemap_entry(self, name_bytes, builtin_type.value, ctypes.pointer(roid)))
         return roid
 
+    def add_soft_mask(self, sm):
+        smid = SoftMaskId()
+        check_error(libfile.capy_generator_add_soft_mask(self, sm, ctypes.pointer(smid)))
+        return smid
+
+class SoftMask:
+    def __init__(self, subtype, tgid):
+        if not isinstance(subtype, SoftMaskSubType):
+            raise CapyPDFException('Argument not a soft mask subtype.')
+        if not isinstance(tgid, TransparencyGroupId):
+            raise CapyPDFException('Argument must be a transparency group id.')
+        gptr = ctypes.c_void_p()
+        check_error(libfile.capy_soft_mask_new(subtype.value, tgid, ctypes.pointer(gptr)))
+        self._as_parameter_ = gptr
+
+    def __del__(self):
+        check_error(libfile.capy_soft_mask_destroy(self))
 
 class TextSequence:
     def __init__(self):
@@ -1459,6 +1488,11 @@ class GraphicsState:
 
     def set_OPM(self, value):
         check_error(libfile.capy_graphics_state_set_OPM(self, value))
+
+    def set_SMask(self, value):
+        if not isinstance(value, SoftMaskId):
+            raise CapyPDFException('Argument must be a soft mask id.')
+        check_error(libfile.capy_graphics_state_set_SMask(self, value))
 
     def set_TK(self, value):
         value = 1 if value else 0

@@ -265,7 +265,7 @@ struct GraphicsState {
     std::optional<double> SM;
     std::optional<bool> SA;
     std::optional<CapyPDF_Blend_Mode> BM;
-    // std::optional<std::string> SMask;
+    std::optional<CapyPDF_SoftMaskId> SMask;
     std::optional<LimitDouble> CA;
     std::optional<LimitDouble> ca;
     std::optional<bool> AIS;
@@ -492,6 +492,13 @@ struct TransparencyGroupProperties {
     std::optional<bool> K;
 
     void serialize(std::back_insert_iterator<std::string> &app, const char *indent) const;
+};
+
+struct SoftMask {
+    CapyPDF_SoftMaskSubType S;
+    CapyPDF_TransparencyGroupId G;
+    // std::vector<double> BC;
+    // TransferFunctionId TR;
 };
 
 struct SubPageNavigation {

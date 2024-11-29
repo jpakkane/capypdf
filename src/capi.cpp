@@ -240,6 +240,20 @@ capy_generator_add_transparency_group(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_soft_mask(CapyPDF_Generator *gen,
+                                                       const CapyPDF_SoftMask *sm,
+                                                       CapyPDF_SoftMaskId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *s = reinterpret_cast<const SoftMask *>(sm);
+
+    auto rc = g->add_soft_mask(*s);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(CapyPDF_Generator *gen,
                                                              CapyPDF_ShadingPattern *shp,
                                                              CapyPDF_PatternId *out_ptr)
@@ -1273,6 +1287,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_new(CapyPDF_GraphicsState **out_pt
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *state,
+                                                        CapyPDF_SoftMaskId smid) CAPYPDF_NOEXCEPT {
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    s->SMask = smid;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT {
     auto *s = reinterpret_cast<GraphicsState *>(state);
@@ -1939,6 +1960,18 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
     CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<ShadingPattern *>(shp);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_SoftMaskSubType subtype,
+                                             CapyPDF_TransparencyGroupId trid,
+                                             CapyPDF_SoftMask **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_SoftMask *>(new SoftMask{subtype, trid});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<SoftMask *>(sm);
     RETNOERR;
 }
 

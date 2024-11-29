@@ -124,6 +124,7 @@ public:
     rvoe<CapyPDF_TransparencyGroupId> add_transparency_group(PdfDrawContext &ctx) {
         return pdoc.add_transparency_group(ctx);
     }
+    rvoe<CapyPDF_SoftMaskId> add_soft_mask(const SoftMask &sm) { return pdoc.add_soft_mask(sm); }
 
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o) { return pdoc.add_outline(o); }
 
