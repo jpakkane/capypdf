@@ -316,6 +316,11 @@ typedef enum {
     CAPY_PAGE_MODE_ATTACHMENTS,
 } CapyPDF_PageMode;
 
+typedef enum {
+    CAPY_SOFT_MASK_ALPHA,
+    CAPY_SOFT_MASK_LUMINOSITY,
+} CapyPDF_SoftMaskSubType;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
@@ -340,6 +345,7 @@ typedef struct _capyPDF_ImagePdfProperties CapyPDF_ImagePdfProperties;
 typedef struct _capyPDF_Destination CapyPDF_Destination;
 typedef struct _capyPDF_Outline CapyPDF_Outline;
 typedef struct _capyPDF_ShadingPattern CapyPDF_ShadingPattern;
+typedef struct _capyPDF_SoftMask CapyPDF_SoftMask;
 
 typedef int32_t CapyPDF_EC;
 
@@ -390,6 +396,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } CapyPDF_TransparencyGroupId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_SoftMaskId;
 
 typedef struct {
     int32_t id;
@@ -471,6 +481,10 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_soft_mask(CapyPDF_Generator *gen,
+                                                       const CapyPDF_SoftMask *sm,
+                                                       CapyPDF_SoftMaskId *out_ptr)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(
     CapyPDF_Generator *g, CapyPDF_ShadingPattern *shp, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
@@ -820,6 +834,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OP(CapyPDF_GraphicsState *stat
                                                      int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *state,
                                                       int32_t value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *state,
+                                                        CapyPDF_SoftMaskId smid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
@@ -1014,6 +1030,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern
                                                           double f) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
     CAPYPDF_NOEXCEPT;
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_SoftMaskSubType subtype,
+                                             CapyPDF_TransparencyGroupId trid,
+                                             CapyPDF_SoftMask **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_NOEXCEPT;
 
 // Error
 

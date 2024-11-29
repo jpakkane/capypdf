@@ -1207,6 +1207,10 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     if(state.BM) {
         std::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
     }
+    if(state.SMask) {
+        auto objnum = soft_masks.at(state.SMask->id);
+        std::format_to(resource_appender, "  /SMask {} 0 R\n", objnum);
+    }
     if(state.CA) {
         std::format_to(resource_appender, "  /CA {:f}\n", state.CA->v());
     }
@@ -1667,6 +1671,21 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
     auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
     transparency_groups.push_back(objid);
     return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
+}
+
+rvoe<CapyPDF_SoftMaskId> PdfDocument::add_soft_mask(const SoftMask &sm) {
+    auto id =
+        add_object(FullPDFObject{std::format(R"(<<
+  /Type /Mask
+  /S /{}
+  /G {} 0 R
+>>
+)",
+                                             sm.S == CAPY_SOFT_MASK_ALPHA ? "Alpha" : "Luminosity",
+                                             transparency_groups.at(sm.G.id)),
+                                 {}});
+    soft_masks.push_back(id);
+    return CapyPDF_SoftMaskId{(int32_t)soft_masks.size() - 1};
 }
 
 std::optional<double>

@@ -53,6 +53,8 @@ struct CapyCTypeDeleter {
             rc = capy_shading_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_ShadingPattern>) {
             rc = capy_shading_pattern_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_SoftMask>) {
+            rc = capy_soft_mask_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
         } else {
@@ -180,6 +182,9 @@ public:
     void set_op(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_op(*this, value)); }
     void set_OP(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OP(*this, value)); }
     void set_OPM(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_OPM(*this, value)); }
+    void set_SMask(CapyPDF_SoftMaskId value) {
+        CAPY_CPP_CHECK(capy_graphics_state_set_SMask(*this, value));
+    }
     void set_TK(int32_t value) { CAPY_CPP_CHECK(capy_graphics_state_set_TK(*this, value)); }
 };
 
@@ -452,6 +457,17 @@ public:
     }
 };
 
+class SoftMask : public CapyC<CapyPDF_SoftMask> {
+public:
+    friend class Generator;
+
+    SoftMask(CapyPDF_SoftMaskSubType type, CapyPDF_TransparencyGroupId tgid) {
+        CapyPDF_SoftMask *sm;
+        CAPY_CPP_CHECK(capy_soft_mask_new(type, tgid, &sm));
+        _d.reset(sm);
+    }
+};
+
 class Generator : public CapyC<CapyPDF_Generator> {
 public:
     Generator(const char *filename, const DocumentMetadata &md) {
@@ -569,6 +585,12 @@ public:
         CapyPDF_TransparencyGroupId tgid;
         CAPY_CPP_CHECK(capy_generator_add_transparency_group(*this, dct, &tgid));
         return tgid;
+    }
+
+    CapyPDF_SoftMaskId add_soft_mask(SoftMask &sm) {
+        CapyPDF_SoftMaskId smid;
+        CAPY_CPP_CHECK(capy_generator_add_soft_mask(*this, sm, &smid));
+        return smid;
     }
 
     void write() { CAPY_CPP_CHECK(capy_generator_write(*this)); }
