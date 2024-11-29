@@ -118,15 +118,17 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, dou
 rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
     std::string s;
     for(const auto &e : shade.elements) {
-        double xratio = (e.sp.p.x - shade.minx) / (shade.maxx - shade.minx);
-        double yratio = (e.sp.p.y - shade.miny) / (shade.maxy - shade.miny);
+        const double xratio =
+            std::clamp((e.sp.p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
+        const double yratio =
+            std::clamp((e.sp.p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
         char flag = (char)e.flag;
         assert(flag >= 0 && flag < 3);
         const char *ptr;
         ptr = (const char *)(&flag);
         s.append(ptr, ptr + sizeof(char));
-        ERCV(append_floatvalue<uint32_t>(s, std::clamp(xratio, 0.0, 1.0)));
-        ERCV(append_floatvalue<uint32_t>(s, std::clamp(yratio, 0.0, 1.0)));
+        ERCV(append_floatvalue<uint32_t>(s, xratio));
+        ERCV(append_floatvalue<uint32_t>(s, yratio));
 
         if(auto *c = std::get_if<DeviceRGBColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_DEVICE_CS_RGB) {
@@ -171,11 +173,13 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
         s.append(ptr, ptr + sizeof(char));
 
         for(const auto &p : e.p) {
-            double xratio = (p.x - shade.minx) / (shade.maxx - shade.minx);
-            double yratio = (p.y - shade.miny) / (shade.maxy - shade.miny);
+            const double xratio =
+                std::clamp((p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
+            const double yratio =
+                std::clamp((p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
 
-            ERCV(append_floatvalue<uint32_t>(s, std::clamp(xratio, 0.0, 1.0)));
-            ERCV(append_floatvalue<uint32_t>(s, std::clamp(yratio, 0.0, 1.0)));
+            ERCV(append_floatvalue<uint32_t>(s, xratio));
+            ERCV(append_floatvalue<uint32_t>(s, yratio));
         }
         for(const auto &colorobj : e.c) {
             if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
