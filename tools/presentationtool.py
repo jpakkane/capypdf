@@ -124,34 +124,42 @@ class Demopresentation:
             ctx.cmd_re(0, 0, self.w, self.footerh)
             ctx.cmd_f()
             ctx.cmd_rg(1, 1, 1)
-            ctx.render_text(self.doc['metadata']['url'], self.codefont, self.footersize, self.w-280, 10)
+            url = self.doc['metadata']['url']
+            w = self.pdfgen.text_width(url, self.codefont, self.footersize)
+            ctx.render_text(url, self.codefont, self.footersize, self.w-50-w, 10)
 
     def render_centered(self, ctx, text, font, pointsize, x, y):
         text_w = self.pdfgen.text_width(text, font, pointsize)
         ctx.render_text(text, font, pointsize, x -text_w/2, y)
 
     def render_title_page(self, ctx, p):
-        self.render_centered(ctx,
-                             p['title'],
-                             self.boldbasefont,
-                             self.titlesize,
-                             self.w/2,
-                             self.h - 2*self.headingsize)
+        titlelines = self.split_to_lines(p['title'], self.boldbasefont, self.titlesize, self.w*0.8)
 
+        y_off = self.h - 2*self.headingsize
+        for i in range(len(titlelines)):
+            self.render_centered(ctx,
+                                 titlelines[i],
+                                 self.boldbasefont,
+                                 self.titlesize,
+                                 self.w/2,
+                                 y_off)
+            y_off -= 1.5*self.headingsize
+
+        y_off -= self.headingsize
         self.render_centered(ctx,
                              p['author'],
                              self.basefont,
                              self.titlesize,
                              self.w/2,
-                             0.5*self.h)
+                             y_off)
+        y_off -= 1.5*self.headingsize
 
         self.render_centered(ctx,
                              p['email'],
                              self.codefont,
                              self.titlesize-4,
                              self.w/2,
-                             0.35*self.h)
-
+                             y_off)
 
     def render_bullet_page(self, ctx, p):
         subtr = p['subtransition']
