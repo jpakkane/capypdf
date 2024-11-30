@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2023-2024 Jussi Pakkanen
 
-import pathlib, os, sys, json
+import pathlib, os, sys, json, re
 
 if 'CAPYPDF_SO_OVERRIDE' not in os.environ:
     os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
@@ -65,6 +65,25 @@ class Demopresentation:
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)
         #self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
         self.codefont = self.pdfgen.load_font(self.codefontfile)
+        self.setup_colors()
+        self.setup_parsevars()
+
+    def setup_colors(self):
+        self.normalcolor = capypdf.Color()
+        self.normalcolor.set_rgb(0, 0, 0)
+        self.stringcolor = capypdf.Color()
+        self.stringcolor.set_rgb(0.7, 0.7, 0.7)
+        self.keywordcolor = capypdf.Color()
+        self.keywordcolor.set_rgb(0.7, 0, 0.8)
+        self.numbercolor = capypdf.Color()
+        self.numbercolor.set_rgb(0, 1.0, 0)
+        self.commentcolor = capypdf.Color()
+        self.commentcolor.set_rgb(0.2, 0.6, 0.2)
+
+    def setup_parsevars(self):
+        self.wordre = re.compile(r'([a-zA-Z_]+)')
+        self.numre = re.compile(r'([0-9]+)')
+        self.keywords = {'def', 'class', 'print', 'if', 'for', 'ifelse', 'else', 'return'}
 
     def split_to_lines(self, text, fid, ptsize, width):
         if self.pdfgen.text_width(text, fid, ptsize) <= width:
@@ -157,7 +176,7 @@ class Demopresentation:
             ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
             ocgs.append(ocg)
             ctx.cmd_BDC(ocg)
-            ctx.render_text('-', #p['bulletchar'],
+            ctx.render_text('—', #p['bulletchar'],
                             self.basefont, #self.symbolfont,
                             self.symbolsize,
                             box_indent - 40,
@@ -181,9 +200,12 @@ class Demopresentation:
         text.cmd_Tf(self.codefont, self.codesize)
         text.cmd_Td(60, self.h - 3.5*self.headingsize)
         text.cmd_TL(1.5 * self.codesize)
-        for line in p['code']:
-            text.render_text(line)
-            text.cmd_Tstar()
+        if p.get('language', 'none'):
+            self.colorize_pycode(text, p['code'])
+        else:
+            for line in p['code']:
+                text.render_text(line)
+                text.cmd_Tstar()
         ctx.render_text_obj(text)
 
     def render_image_page(self, ctx, p):
@@ -227,73 +249,50 @@ class Demopresentation:
                 else:
                     raise RuntimeError('Unknown page type.')
 
-    def finish(self):
-        self.pdfgen.write()
-
-def colorize_pycode(t, lines):
-    import re
-    wordre = re.compile(r'([a-zA-Z_]+)')
-    numre = re.compile(r'([0-9]+)')
-    keywords = {'def', 'class', 'print', 'if', 'for', 'ifelse', 'else', 'return'}
-    normalcolor = capypdf.Color()
-    normalcolor.set_rgb(0, 0, 0)
-    stringcolor = capypdf.Color()
-    stringcolor.set_rgb(0.8, 0.8, 0.8)
-    keywordcolor = capypdf.Color()
-    keywordcolor.set_rgb(0.7, 0, 0.8)
-    numbercolor = capypdf.Color()
-    numbercolor.set_rgb(0, 1.0, 0)
-    for line in lines:
-        ostr = ''
-        while line:
-            if line.startswith("'"):
-                qstr, line = line.split("'", 2)[1:]
-                t.set_nonstroke(stringcolor)
-                t.render_text(f"'{qstr}'")
-                t.set_nonstroke(normalcolor)
-                continue
-            if line.startswith(' '):
-                t.render_text(' ')
+    def colorize_pycode(self, t, lines):
+        for line in lines:
+            ostr = ''
+            while line:
+                if line.startswith("'"):
+                    qstr, line = line.split("'", 2)[1:]
+                    t.set_nonstroke(self.stringcolor)
+                    t.render_text(f"'{qstr}'")
+                    t.set_nonstroke(self.normalcolor)
+                    continue
+                if line.startswith(' '):
+                    t.render_text(' ')
+                    line = line[1:]
+                    continue
+                if line.startswith('#'):
+                    t.set_nonstroke(self.commentcolor)
+                    t.render_text(line)
+                    t.set_nonstroke(self.normalcolor)
+                    line = ''
+                    continue
+                m = re.match(self.numre, line)
+                if m:
+                    numbah = m.group(0)
+                    t.set_nonstroke(self.numbercolor)
+                    t.render_text(numbah)
+                    t.set_nonstroke(self.normalcolor)
+                    line = line[len(numbah):]
+                    continue
+                m = re.match(self.wordre, line)
+                if m:
+                    word = m.group(0)
+                    if word in self.keywords:
+                        t.set_nonstroke(self.keywordcolor)
+                        t.render_text(word)
+                        t.set_nonstroke(self.normalcolor)
+                    else:
+                        t.render_text(word)
+                    line = line[len(word):]
+                    continue
+                t.render_text(line[0:1])
                 line = line[1:]
-                continue
-            m = re.match(numre, line)
-            if m:
-                numbah = m.group(0)
-                t.set_nonstroke(numbercolor)
-                t.render_text(numbah)
-                t.set_nonstroke(normalcolor)
-                line = line[len(numbah):]
-                continue
-            m = re.match(wordre, line)
-            if m:
-                word = m.group(0)
-                if word in keywords:
-                    t.set_nonstroke(keywordcolor)
-                    t.render_text(word)
-                    t.set_nonstroke(normalcolor)
-                else:
-                    t.render_text(word)
-                line = line[len(word):]
-                continue
-            t.render_text(line[0:1])
-            line = line[1:]
-        t.cmd_Tstar()
+            t.cmd_Tstar()
 
-class ColorTest:
-    def __init__(self):
-        ofile = 'colortest.py'
-        self.pdfgen = capypdf.Generator(ofile)
-        self.fid = self.pdfgen.load_font('/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf')
-
-    def doit(self):
-        lines = ['def x():', "    print('x', 4)"]
-        with self.pdfgen.page_draw_context() as ctx:
-            t = ctx.text_new()
-            t.cmd_Tf(self.fid, 12)
-            t.cmd_TL(14)
-            ctx.translate(50, 400)
-            colorize_pycode(t, lines)
-            ctx.render_text_obj(t)
+    def finish(self):
         self.pdfgen.write()
 
 if __name__ == '__main__':

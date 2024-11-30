@@ -58,9 +58,11 @@
                 "type": "uncover",
                 "duration": 1.0
             },
+            "language": "python",
             "code": [
-                "def advance_highlighting():",
-                "    code_color += compute_increment()",
+                "def advanced_highlighting():",
+                "    # Do something",
+                "    code_color += compute_increment('faster')",
                 "    return code_color"
             ]
         }
