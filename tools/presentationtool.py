@@ -52,6 +52,9 @@ class Demopresentation:
         self.textsize = fontsizes['text']
         self.codesize = fontsizes['code']
         self.symbolsize = fontsizes['symbol']
+        self.hlineheight = 1.2*self.headingsize
+        self.codelineheight = 1.5*self.codesize
+        self.textlineheight = 1.5*self.textsize
         self.footersize = fontsizes['footer']
         opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
@@ -132,10 +135,9 @@ class Demopresentation:
         text_w = self.pdfgen.text_width(text, font, pointsize)
         ctx.render_text(text, font, pointsize, x -text_w/2, y)
 
-    def render_title_page(self, ctx, p):
-        titlelines = self.split_to_lines(p['title'], self.boldbasefont, self.titlesize, self.w*0.8)
-
-        y_off = self.h - 2*self.headingsize
+    def render_heading(self, ctx, text, y):
+        titlelines = self.split_to_lines(text, self.boldbasefont, self.titlesize, self.w*0.8)
+        y_off = y
         for i in range(len(titlelines)):
             self.render_centered(ctx,
                                  titlelines[i],
@@ -143,21 +145,27 @@ class Demopresentation:
                                  self.titlesize,
                                  self.w/2,
                                  y_off)
-            y_off -= 1.5*self.headingsize
+            y_off -= self.hlineheight
+        return y - y_off
 
+    def render_title_page(self, ctx, p):
+        y_off = self.h - 2*self.headingsize
+        taken_height = self.render_heading(ctx, p['title'], y_off)
+
+        y_off -= taken_height
         y_off -= self.headingsize
         self.render_centered(ctx,
                              p['author'],
                              self.basefont,
-                             self.titlesize,
+                             self.titlesize-4,
                              self.w/2,
                              y_off)
-        y_off -= 1.5*self.headingsize
+        y_off -= self.hlineheight
 
         self.render_centered(ctx,
                              p['email'],
                              self.codefont,
-                             self.titlesize-4,
+                             self.titlesize-8,
                              self.w/2,
                              y_off)
 
@@ -169,12 +177,12 @@ class Demopresentation:
         text_w = self.pdfgen.text_width(p['heading'],
                                         self.boldbasefont,
                                         self.headingsize)
-        head_y = self.h - 1.5*self.headingsize
+        head_y = self.h - self.hlineheight
         ctx.render_text(p['heading'],
                         self.boldbasefont,
                         self.headingsize,
                         (self.w-text_w)/2, head_y)
-        current_y = head_y - 1.5*self.headingsize
+        current_y = head_y - self.hlineheight
         box_indent = 90
         bullet_separation = 1.5
         bullet_linesep = 1.2
@@ -203,11 +211,11 @@ class Demopresentation:
                              self.boldbasefont,
                              self.headingsize,
                              self.w/2,
-                             self.h - 1.5*self.headingsize)
+                             self.h - self.hlineheight)
         text = ctx.text_new()
         text.cmd_Tf(self.codefont, self.codesize)
         text.cmd_Td(60, self.h - 3.5*self.headingsize)
-        text.cmd_TL(1.5 * self.codesize)
+        text.cmd_TL(self.codelineheight)
         if p.get('language', 'none'):
             self.colorize_pycode(text, p['code'])
         else:
@@ -221,20 +229,16 @@ class Demopresentation:
         improp = capypdf.ImagePdfProperties()
         imw, imh = image.get_size()
         imid = self.pdfgen.add_image(image, improp)
-        w = p['width']
-        h = w / imw * imh
         with ctx.push_gstate():
             usable_h = self.h - self.footerh
-            head_height = 1.5*self.headingsize
-            head_y = self.h - head_height
+            head_y = self.h - self.hlineheight
             if 'heading' in p:
-                self.render_centered(ctx,
-                                     p['heading'],
-                                     self.boldbasefont,
-                                     self.headingsize,
-                                     self.w/2,
-                                     head_y)
-                usable_h -= head_height
+                taken_y = self.render_heading(ctx, p['heading'], head_y)
+                usable_h -= taken_y
+            w = p.get('width', None)
+            if w is None:
+                w = 0.8*usable_h / imh * imw
+            h = w / imw * imh
             ctx.translate((self.w-w)/2, (usable_h-h)/2 + self.footerh)
             ctx.scale(w, h)
             ctx.draw_image(imid)
