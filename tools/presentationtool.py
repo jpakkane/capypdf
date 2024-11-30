@@ -109,6 +109,32 @@ class Demopresentation:
             lines.append(' '.join(current_line))
         return lines
 
+    def split_to_even_lines(self, text, fid, ptsize, width):
+        total_width = self.pdfgen.text_width(text, fid, ptsize)
+        if total_width <= width:
+            return [text]
+        line_target = int(total_width / width) + 1
+        line_width_target = width/line_target
+        words = text.strip().split(' ')
+        lines = []
+        space_width = self.pdfgen.text_width(' ', fid, ptsize)
+        current_line = []
+        current_width = 0
+        for word in words:
+            wwidth = self.pdfgen.text_width(word, fid, ptsize)
+            if current_width >= line_width_target:
+                current_line.append(word)
+                lines.append(' '.join(current_line))
+                current_line = []
+                current_width = 0
+            else:
+                current_line.append(word)
+                current_width += space_width + wwidth
+        if current_line:
+            lines.append(' '.join(current_line))
+        return lines
+
+
     def set_transition(self, ctx, page):
         try:
             tdict = page['pagetransition']
@@ -136,7 +162,7 @@ class Demopresentation:
         ctx.render_text(text, font, pointsize, x -text_w/2, y)
 
     def render_heading(self, ctx, text, y):
-        titlelines = self.split_to_lines(text, self.boldbasefont, self.titlesize, self.w*0.8)
+        titlelines = self.split_to_even_lines(text, self.boldbasefont, self.titlesize, self.w*0.8)
         y_off = y
         for i in range(len(titlelines)):
             self.render_centered(ctx,
@@ -244,7 +270,7 @@ class Demopresentation:
             ctx.draw_image(imid)
 
     def render_splash_page(self, ctx, p):
-        entries = [self.split_to_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in p['text']]
+        entries = [self.split_to_even_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in p['text']]
         text_height = 0
         for e in entries:
             text_height += len(e)*self.textlineheight
