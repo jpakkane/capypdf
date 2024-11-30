@@ -243,6 +243,23 @@ class Demopresentation:
             ctx.scale(w, h)
             ctx.draw_image(imid)
 
+    def render_splash_page(self, ctx, p):
+        entries = [self.split_to_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in p['text']]
+        text_height = 0
+        for e in entries:
+            text_height += len(e)*self.textlineheight
+        padding = self.h - self.footerh - text_height
+        num_slots = len(entries) + 1
+        slot_padding = padding / num_slots
+
+        y = self.h - slot_padding*0.8 - self.textlineheight
+        for i in range(len(entries)):
+            e = entries[i]
+            for line in e:
+                self.render_centered(ctx, line, self.basefont, self.textsize, self.w/2, y)
+                y -= self.textlineheight
+            y -= slot_padding
+
     def create(self):
         for page in self.doc['pages']:
             with self.pdfgen.page_draw_context() as ctx:
@@ -254,10 +271,10 @@ class Demopresentation:
                     self.render_bullet_page(ctx, page)
                 elif page['type'] == 'code':
                     self.render_code_page(ctx, page)
-                    pass
                 elif page['type'] == 'image':
                     self.render_image_page(ctx, page)
-                    pass
+                elif page['type'] == 'splash':
+                    self.render_splash_page(ctx, page)
                 else:
                     raise RuntimeError('Unknown page type.')
 
