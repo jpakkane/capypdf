@@ -9,6 +9,7 @@
 #include <capypdf.h>
 #include <memory>
 #include <stdexcept>
+#include <string_view>
 
 #define CAPY_CPP_CHECK(funccall)                                                                   \
     {                                                                                              \
@@ -492,10 +493,15 @@ public:
         return cpid;
     }
 
+    // It is arguable whether this should a string_view or a span.
     CapyPDF_IccColorSpaceId add_icc_profile(std::string_view bytes, int32_t num_channels) {
+        return add_icc_profile(bytes.data(), bytes.size(), num_channels);
+    }
+
+    CapyPDF_IccColorSpaceId
+    add_icc_profile(const char *bytes, uint64_t bufsize, int32_t num_channels) {
         CapyPDF_IccColorSpaceId cpid;
-        CAPY_CPP_CHECK(
-            capy_generator_add_icc_profile(*this, bytes.data(), bytes.size(), num_channels, &cpid));
+        CAPY_CPP_CHECK(capy_generator_add_icc_profile(*this, bytes, bufsize, num_channels, &cpid));
         return cpid;
     }
 
