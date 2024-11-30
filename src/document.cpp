@@ -537,7 +537,9 @@ void PdfDocument::pad_subset_fonts() {
             subsetter.get_glyph_subset(cur_glyph_codepoint, {});
         }
         if(!padding_succeeded) {
-            fprintf(stderr, "Font subset padding failed.\n");
+            fprintf(stderr,
+                    "Font subset padding failed for file %s.\n",
+                    sf.fontdata.original_file.string().c_str());
             std::abort();
         }
         subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
@@ -852,7 +854,7 @@ void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
         subset_glyphs.emplace_back(RegularGlyph{cur_glyph_codepoint, (uint32_t)-1});
     }
     if(!padding_succeeded) {
-        fprintf(stderr, "Font subset padding failed.\n");
+        fprintf(stderr, "Font subset space padding failed.n");
         std::abort();
     }
     subset_glyphs.emplace_back(RegularGlyph{SPACE, (uint32_t)-1});
@@ -1680,6 +1682,7 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
     ERC(fontdata, load_and_parse_truetype_font(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
+                fname,
                 std::move(fontdata)};
     FT_Face face;
     auto error = FT_New_Face(ft, fname.string().c_str(), 0, &face);

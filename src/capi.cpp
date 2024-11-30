@@ -1423,6 +1423,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *image,
+                                                     uint32_t *w,
+                                                     uint32_t *h) CAPYPDF_NOEXCEPT {
+    auto *i = reinterpret_cast<const RasterImage *>(image);
+    *w = i->md.w;
+    *h = i->md.h;
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
     const CapyPDF_RasterImage *image, CapyPDF_ImageColorspace *out_ptr) CAPYPDF_NOEXCEPT {
     auto *i = reinterpret_cast<const RasterImage *>(image);

@@ -40,11 +40,12 @@ class Demopresentation:
         self.doc = json.load(open(inputdoc))
         self.ofilename = ofilename
         self.w, self.h = self.doc['metadata']['pagesize']
+        self.footerh = 30
         fonts = self.doc['fonts']
         self.fontfile = fonts['regular']
-        self.boldfontfile = '/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf'
-        self.symbolfontfile = '/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf'
-        self.codefontfile = '/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf'
+        self.boldfontfile = fonts['bold']
+        self.symbolfontfile = fonts['symbol']
+        self.codefontfile = fonts['code']
         fontsizes = self.doc['fontsizes']
         self.titlesize = fontsizes['title']
         self.headingsize = fontsizes['heading']
@@ -52,7 +53,7 @@ class Demopresentation:
         self.codesize = fontsizes['code']
         self.symbolsize = fontsizes['symbol']
         self.footersize = fontsizes['footer']
-        opts = capypdf.Options()
+        opts = capypdf.DocumentMetadata()
         props = capypdf.PageProperties()
         opts.set_title(self.doc['metadata']['title'])
         opts.set_author(self.doc['metadata']['author'])
@@ -62,7 +63,7 @@ class Demopresentation:
         self.pdfgen = capypdf.Generator(self.ofilename, opts)
         self.basefont = self.pdfgen.load_font(self.fontfile)
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)
-        self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
+        #self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
         self.codefont = self.pdfgen.load_font(self.codefontfile)
 
     def split_to_lines(self, text, fid, ptsize, width):
@@ -101,7 +102,7 @@ class Demopresentation:
     def draw_master(self, ctx):
         with ctx.push_gstate():
             ctx.cmd_rg(0.1, 0.3, 0.5)
-            ctx.cmd_re(0, 0, self.w, 30)
+            ctx.cmd_re(0, 0, self.w, self.footerh)
             ctx.cmd_f()
             ctx.cmd_rg(1, 1, 1)
             ctx.render_text(self.doc['metadata']['url'], self.codefont, self.footersize, self.w-280, 10)
@@ -156,8 +157,8 @@ class Demopresentation:
             ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
             ocgs.append(ocg)
             ctx.cmd_BDC(ocg)
-            ctx.render_text(p['bulletchar'],
-                            self.symbolfont,
+            ctx.render_text('-', #p['bulletchar'],
+                            self.basefont, #self.symbolfont,
                             self.symbolsize,
                             box_indent - 40,
                             current_y+1)
@@ -185,6 +186,29 @@ class Demopresentation:
             text.cmd_Tstar()
         ctx.render_text_obj(text)
 
+    def render_image_page(self, ctx, p):
+        image = self.pdfgen.load_image(p['file'])
+        improp = capypdf.ImagePdfProperties()
+        imw, imh = image.get_size()
+        imid = self.pdfgen.add_image(image, improp)
+        w = p['width']
+        h = w / imw * imh
+        with ctx.push_gstate():
+            usable_h = self.h - self.footerh
+            head_height = 1.5*self.headingsize
+            head_y = self.h - head_height
+            if 'heading' in p:
+                self.render_centered(ctx,
+                                     p['heading'],
+                                     self.boldbasefont,
+                                     self.headingsize,
+                                     self.w/2,
+                                     head_y)
+                usable_h -= head_height
+            ctx.translate((self.w-w)/2, (usable_h-h)/2 + self.footerh)
+            ctx.scale(w, h)
+            ctx.draw_image(imid)
+
     def create(self):
         for page in self.doc['pages']:
             with self.pdfgen.page_draw_context() as ctx:
@@ -196,6 +220,9 @@ class Demopresentation:
                     self.render_bullet_page(ctx, page)
                 elif page['type'] == 'code':
                     self.render_code_page(ctx, page)
+                    pass
+                elif page['type'] == 'image':
+                    self.render_image_page(ctx, page)
                     pass
                 else:
                     raise RuntimeError('Unknown page type.')

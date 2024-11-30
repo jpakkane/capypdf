@@ -27,6 +27,12 @@
             "email": "none@example.com"
         },
         {
+            "type": "image",
+            "file": "images/flame_gradient.png",
+            "heading": "This is an image",
+            "width": 200
+        },
+        {
             "type": "bullet",
             "pagetransition": {
                 "type": "push",

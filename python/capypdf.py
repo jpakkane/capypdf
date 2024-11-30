@@ -446,6 +446,7 @@ cfunc_types = (
 ('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint64]),
 ('capy_raster_image_builder_set_compression', [ctypes.c_void_p, enum_type]),
 ('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_raster_image_get_size', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]),
 ('capy_raster_image_get_colorspace', [ctypes.c_void_p, ctypes.POINTER(enum_type)]),
 ('capy_raster_image_has_profile', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32)]),
 ('capy_raster_image_builder_destroy', [ctypes.c_void_p]),
@@ -1387,6 +1388,12 @@ class RasterImage:
 
     def __del__(self):
         check_error(libfile.capy_raster_image_destroy(self))
+
+    def get_size(self):
+        w = ctypes.c_uint32()
+        h = ctypes.c_uint32()
+        check_error(libfile.capy_raster_image_get_size(self, ctypes.pointer(w), ctypes.pointer(h)))
+        return (w.value, h.value)
 
     def get_colorspace(self):
         val = enum_type(99)

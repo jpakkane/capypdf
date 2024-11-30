@@ -31,6 +31,7 @@ namespace capypdf::internal {
 
 struct TtfFont {
     std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
+    std::filesystem::path original_file;
     TrueTypeFontFile fontdata;
 };
 
