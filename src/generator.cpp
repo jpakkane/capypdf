@@ -82,7 +82,7 @@ rvoe<RasterImage> PdfGen::convert_image_to_cs(RasterImage image,
 
 rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,
                                         const ImagePDFProperties &props) {
-    ERC(jpg, load_jpg(fname));
+    ERC(jpg, load_jpg_from_file(fname));
     return pdoc.embed_jpg(std::move(jpg), props);
 }
 

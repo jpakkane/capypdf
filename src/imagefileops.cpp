@@ -230,52 +230,34 @@ rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     return result;
 }
 
-rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
-    png_image image;
-    std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
-
-    memset(&image, 0, (sizeof image));
-    image.version = PNG_IMAGE_VERSION;
-
-    if(png_image_begin_read_from_file(&image, fname.string().c_str()) != 0) {
-        if(image.format == PNG_FORMAT_RGBA) {
-            return load_rgba_png(image);
-        } else if(image.format == PNG_FORMAT_RGB) {
-            return load_rgb_png(image);
-        } else if(image.format == PNG_FORMAT_GA) {
-            return load_ga_png(image);
-        } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
-            if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
-                RETERR(UnsupportedFormat);
-            }
-            if(image.colormap_entries == 2) {
-                return load_mono_png(image);
-            }
-            if(image.colormap_entries == 3 || image.colormap_entries == 4) {
-                ERC(res, try_load_mono_alpha_png(image));
-                if(res) {
-                    return std::move(*res);
-                }
-            }
-            RETERR(NonBWColormap);
-        } else {
+rvoe<RasterImage> do_png_load(png_image &image) {
+    if(image.format == PNG_FORMAT_RGBA) {
+        return load_rgba_png(image);
+    } else if(image.format == PNG_FORMAT_RGB) {
+        return load_rgb_png(image);
+    } else if(image.format == PNG_FORMAT_GA) {
+        return load_ga_png(image);
+    } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
+        if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
             RETERR(UnsupportedFormat);
         }
-    } else {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
+        if(image.colormap_entries == 2) {
+            return load_mono_png(image);
+        }
+        if(image.colormap_entries == 3 || image.colormap_entries == 4) {
+            ERC(res, try_load_mono_alpha_png(image));
+            if(res) {
+                return std::move(*res);
+            }
+        }
+        RETERR(NonBWColormap);
     }
-    RETERR(Unreachable);
+    RETERR(UnsupportedFormat);
 }
 
-rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
-    TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
-    if(!tif) {
-        RETERR(FileReadError);
-    }
+rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     RasterImage result;
     std::optional<std::string> icc;
-    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
 
     uint32_t w{}, h{};
     uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{};
@@ -370,11 +352,123 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     return result;
 }
 
+struct TifBuf {
+    const char *buf;
+    int64_t bufsize;
+    int64_t fptr;
+};
+
+tmsize_t tiffreadfunc(thandle_t h, void *buf, tmsize_t bufsize) {
+    TifBuf *tiffdata = (TifBuf *)h;
+    auto num_bytes = std::min(bufsize, tiffdata->bufsize - tiffdata->fptr);
+    assert(num_bytes >= 0);
+    memcpy(buf, tiffdata->buf + tiffdata->fptr, num_bytes);
+    tiffdata->fptr += num_bytes;
+    return num_bytes;
+}
+
+tmsize_t tiffwritefunc(thandle_t, void *, tmsize_t) { std::abort(); }
+
+toff_t tiffseekfunc(thandle_t h, toff_t off, int whence) {
+    TifBuf *tiffdata = (TifBuf *)h;
+    switch(whence) {
+    case SEEK_SET:
+        tiffdata->fptr = off;
+        break;
+    case SEEK_CUR:
+        tiffdata->fptr += off;
+        break;
+    case SEEK_END:
+        tiffdata->fptr = tiffdata->bufsize + off;
+        break;
+    default:
+        std::abort();
+    }
+    tiffdata->fptr = std::clamp(tiffdata->fptr, int64_t{0}, tiffdata->bufsize);
+    return tiffdata->fptr;
+};
+
+int tiffclosefunc(thandle_t) { return 0; }
+
+toff_t tiffsizefunc(thandle_t h) {
+    TifBuf *tiffdata = (TifBuf *)h;
+    return tiffdata->bufsize;
+}
+
+int tiffmmapfunc(thandle_t h, tdata_t *base, toff_t *psize) {
+    TifBuf *tiffdata = (TifBuf *)h;
+    *base = (void *)tiffdata->buf;
+    *psize = tiffdata->bufsize;
+    return 1;
+}
+
+void tiffunmapfunc(thandle_t, tdata_t, toff_t) {}
+
+rvoe<RasterImage> load_tif_from_memory(const char *buf, int64_t bufsize) {
+    assert(bufsize > 0);
+    TifBuf tb{buf, bufsize, 0};
+    TIFF *tif = TIFFClientOpen("memory",
+                               "r",
+                               (thandle_t)&tb,
+                               tiffreadfunc,
+                               tiffwritefunc,
+                               tiffseekfunc,
+                               tiffclosefunc,
+                               tiffsizefunc,
+                               tiffmmapfunc,
+                               tiffunmapfunc);
+    if(!tif) {
+        RETERR(FileReadError);
+    }
+    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
+    return do_tiff_load(tif);
+}
+
+rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
+    png_image image;
+    std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
+
+    memset(&image, 0, (sizeof image));
+    image.version = PNG_IMAGE_VERSION;
+
+    if(png_image_begin_read_from_memory(&image, buf, bufsize) != 0) {
+        return do_png_load(image);
+    } else {
+        fprintf(stderr, "%s\n", image.message);
+        RETERR(UnsupportedFormat);
+    }
+    RETERR(Unreachable);
+}
+
+rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
+    png_image image;
+    std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
+
+    memset(&image, 0, (sizeof image));
+    image.version = PNG_IMAGE_VERSION;
+
+    if(png_image_begin_read_from_file(&image, fname.string().c_str()) != 0) {
+        return do_png_load(image);
+    } else {
+        fprintf(stderr, "%s\n", image.message);
+        RETERR(UnsupportedFormat);
+    }
+    RETERR(Unreachable);
+}
+
+rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
+    TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
+    if(!tif) {
+        RETERR(FileReadError);
+    }
+    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
+    return do_tiff_load(tif);
+}
+
 } // namespace
 
-rvoe<jpg_image> load_jpg(const std::filesystem::path &fname) {
+rvoe<jpg_image> do_jpg_load(std::string contents) {
     jpg_image im;
-    ERC(contents, load_file(fname));
     im.file_contents = std::move(contents);
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -395,6 +489,16 @@ rvoe<jpg_image> load_jpg(const std::filesystem::path &fname) {
     return im;
 }
 
+rvoe<jpg_image> load_jpg_from_file(const std::filesystem::path &fname) {
+    ERC(contents, load_file(fname));
+    return do_jpg_load(std::move(contents));
+}
+
+rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
+    std::string contents(buf, buf + bufsize);
+    return do_jpg_load(std::move(contents));
+}
+
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     if(!std::filesystem::exists(fname)) {
         RETERR(FileDoesNotExist);
@@ -408,6 +512,17 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     }
     fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
     RETERR(UnsupportedFormat);
+}
+
+rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
+    // There is no metadata telling us what the bytes represent.
+    // Try to open with all parsers until one succeeds.
+
+    auto rc = load_png_from_memory(buf, bufsize);
+    if(rc) {
+        return rc;
+    }
+    return load_tif_from_memory(buf, bufsize);
 }
 
 } // namespace capypdf::internal
