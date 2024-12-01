@@ -198,10 +198,13 @@ class Demopresentation:
                              y_off)
 
     def render_bullet_page(self, ctx, p):
-        subtr = p['subtransition']
-        bullettr = capypdf.Transition()
-        bullettr.set_S(TRANS2ENUM[subtr['type']])
-        bullettr.set_D(subtr['duration'])
+        subtr = p.get('subtransition', None)
+        if subtr:
+            bullettr = capypdf.Transition()
+            bullettr.set_S(TRANS2ENUM[subtr['type']])
+            bullettr.set_D(subtr['duration'])
+        else:
+            bullettr = None
         text_w = self.pdfgen.text_width(p['heading'],
                                         self.boldbasefont,
                                         self.headingsize)
@@ -217,21 +220,24 @@ class Demopresentation:
         bullet_id = 1
         ocgs = []
         for entry in p['bullets']:
-            ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
-            ocgs.append(ocg)
-            ctx.cmd_BDC(ocg)
+            if bullettr is not None:
+                ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
+                ocgs.append(ocg)
+                ctx.cmd_BDC(ocg)
             ctx.render_text('—', #p['bulletchar'],
                             self.basefont, #self.symbolfont,
                             self.symbolsize,
                             box_indent - 40,
                             current_y+1)
-            for line in self.split_to_lines(entry, self.basefont, self.textsize, self.w - 2*box_indent):
+            for line in self.split_to_lines(entry, self.basefont, self.textsize, self.w - 1.5*box_indent):
                 ctx.render_text(line, self.basefont, self.textsize, box_indent, current_y)
                 current_y -= bullet_linesep*self.textsize
-            ctx.cmd_EMC()
+            if bullettr is not None:
+                ctx.cmd_EMC()
             current_y += (bullet_linesep - bullet_separation)*self.textsize
             bullet_id += 1
-        ctx.add_simple_navigation(ocgs, bullettr)
+        if bullettr is not None:
+            ctx.add_simple_navigation(ocgs, bullettr)
 
     def render_code_page(self, ctx, p):
         self.render_centered(ctx,
