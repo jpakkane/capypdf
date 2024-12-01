@@ -509,7 +509,7 @@ struct RasterImageMetadata {
     CapyPDF_Compression compression = CAPY_COMPRESSION_NONE;
 };
 
-struct RasterImage {
+struct RawPixelImage {
     RasterImageMetadata md;
     std::string pixels;
     std::string alpha;
@@ -521,6 +521,8 @@ struct jpg_image {
     uint32_t h;
     std::string file_contents;
 };
+
+typedef std::variant<RawPixelImage, jpg_image> RasterImage;
 
 struct ImagePDFProperties {
     CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;

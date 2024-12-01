@@ -67,23 +67,23 @@ rvoe<RasterImage> PdfGen::load_image(const std::filesystem::path &fname) {
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImagePDFProperties &params) {
-    if(params.as_mask) {
-        return pdoc.add_mask_image(std::move(image), params);
+    if(auto *raster = std::get_if<RawPixelImage>(&image)) {
+        if(params.as_mask) {
+            return pdoc.add_mask_image(std::move(*raster), params);
+        } else {
+            return pdoc.add_image(std::move(*raster), params);
+        }
+    } else if(auto *jpg = std::get_if<jpg_image>(&image)) {
+        return pdoc.embed_jpg(std::move(*jpg), params);
     } else {
-        return pdoc.add_image(std::move(image), params);
+        RETERR(Unreachable);
     }
 }
 
-rvoe<RasterImage> PdfGen::convert_image_to_cs(RasterImage image,
-                                              CapyPDF_DeviceColorspace cs,
-                                              CapyPDF_Rendering_Intent ri) const {
+rvoe<RawPixelImage> PdfGen::convert_image_to_cs(RawPixelImage image,
+                                                CapyPDF_DeviceColorspace cs,
+                                                CapyPDF_Rendering_Intent ri) const {
     return pdoc.cm.convert_image_to(image, cs, ri);
-}
-
-rvoe<CapyPDF_ImageId> PdfGen::embed_jpg(const std::filesystem::path &fname,
-                                        const ImagePDFProperties &props) {
-    ERC(jpg, load_jpg_from_file(fname));
-    return pdoc.embed_jpg(std::move(jpg), props);
 }
 
 rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {

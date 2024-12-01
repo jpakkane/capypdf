@@ -369,8 +369,8 @@ public:
     // Images
     rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
                                      CapyPDF_Image_Interpolation interpolate);
-    rvoe<CapyPDF_ImageId> add_mask_image(RasterImage image, const ImagePDFProperties &params);
-    rvoe<CapyPDF_ImageId> add_image(RasterImage image, const ImagePDFProperties &params);
+    rvoe<CapyPDF_ImageId> add_mask_image(RawPixelImage image, const ImagePDFProperties &params);
+    rvoe<CapyPDF_ImageId> add_image(RawPixelImage image, const ImagePDFProperties &params);
     rvoe<CapyPDF_ImageId> embed_jpg(jpg_image jpg, const ImagePDFProperties &props);
 
     // Graphics states
@@ -470,7 +470,7 @@ private:
     void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
     int32_t add_pdfa_metadata_object(CapyPDF_PDFA_Type atype);
 
-    rvoe<NoReturnValue> validate_format(const RasterImage &ri) const;
+    rvoe<NoReturnValue> validate_format(const RawPixelImage &ri) const;
 
     // Typed getters for less typing.
     IccInfo &get(CapyPDF_IccColorSpaceId id) { return icc_profiles.at(id.id); }

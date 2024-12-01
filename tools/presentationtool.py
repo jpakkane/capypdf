@@ -147,7 +147,9 @@ class Demopresentation:
         tr.set_D(duration)
         ctx.set_page_transition(tr)
 
-    def draw_master(self, ctx):
+    def draw_master(self, ctx, page):
+        if page['type'] == 'fullpage':
+            return
         with ctx.push_gstate():
             ctx.cmd_rg(0.1, 0.3, 0.5)
             ctx.cmd_re(0, 0, self.w, self.footerh)
@@ -286,11 +288,25 @@ class Demopresentation:
                 y -= self.textlineheight
             y -= slot_padding
 
+    def render_full_page(self, ctx, p):
+        imfile = p['file']
+        image = self.pdfgen.load_image(imfile)
+        w, h = image.get_size()
+        iid = self.pdfgen.add_image(image, capypdf.ImagePdfProperties())
+        with ctx.push_gstate():
+            ctx.cmd_rg(0, 0, 0)
+            ctx.cmd_re(0, 0, self.w, self.h)
+            ctx.cmd_f()
+            scaled_w = w/h*self.h
+            ctx.translate((self.w-scaled_w)/2, 0)
+            ctx.scale(scaled_w, self.h)
+            ctx.draw_image(iid)
+
     def create(self):
         for page in self.doc['pages']:
             with self.pdfgen.page_draw_context() as ctx:
                 self.set_transition(ctx, page)
-                self.draw_master(ctx)
+                self.draw_master(ctx, page)
                 if page['type'] == 'title':
                     self.render_title_page(ctx, page)
                 elif page['type'] == 'bullet':
@@ -301,6 +317,8 @@ class Demopresentation:
                     self.render_image_page(ctx, page)
                 elif page['type'] == 'splash':
                     self.render_splash_page(ctx, page)
+                elif page['type'] == 'fullpage':
+                    self.render_full_page(ctx, page)
                 else:
                     raise RuntimeError('Unknown page type.')
 

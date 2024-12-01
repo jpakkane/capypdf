@@ -995,7 +995,7 @@ PdfDocument::get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t
     return fss;
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
+rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RawPixelImage image,
                                                   const ImagePDFProperties &params) {
     if(image.md.cs != CAPY_IMAGE_CS_GRAY || image.md.pixel_depth != 1) {
         RETERR(UnsupportedFormat);
@@ -1013,7 +1013,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RasterImage image,
                             image.md.compression);
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_image(RasterImage image, const ImagePDFProperties &params) {
+rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
+                                             const ImagePDFProperties &params) {
     if(image.md.w < 1 || image.md.h < 1) {
         RETERR(InvalidImageSize);
     }
@@ -1740,7 +1741,7 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
     return fid;
 }
 
-rvoe<NoReturnValue> PdfDocument::validate_format(const RasterImage &ri) const {
+rvoe<NoReturnValue> PdfDocument::validate_format(const RawPixelImage &ri) const {
     // Check that the image has the correct format.
     if(std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype)) {
         if(ri.md.cs == CAPY_IMAGE_CS_RGB) {

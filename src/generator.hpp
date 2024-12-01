@@ -44,8 +44,6 @@ public:
     rvoe<NoReturnValue> write();
 
     rvoe<RasterImage> load_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_ImageId> embed_jpg(const std::filesystem::path &fname,
-                                    const ImagePDFProperties &props);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
         return pdoc.embed_file(fname);
     }
@@ -53,9 +51,9 @@ public:
         return pdoc.load_font(ft.get(), fname);
     };
 
-    rvoe<RasterImage> convert_image_to_cs(RasterImage image,
-                                          CapyPDF_DeviceColorspace cs,
-                                          CapyPDF_Rendering_Intent ri) const;
+    rvoe<RawPixelImage> convert_image_to_cs(RawPixelImage image,
+                                            CapyPDF_DeviceColorspace cs,
+                                            CapyPDF_Rendering_Intent ri) const;
     rvoe<CapyPDF_ImageId> add_image(RasterImage ri, const ImagePDFProperties &params);
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.get(img_id).s; }

@@ -50,9 +50,9 @@ public:
     rvoe<DeviceGrayColor> to_gray(const DeviceCMYKColor &cmyk);
     rvoe<DeviceCMYKColor> to_cmyk(const DeviceRGBColor &rgb);
 
-    rvoe<RasterImage> convert_image_to(RasterImage ri,
-                                       CapyPDF_DeviceColorspace output_format,
-                                       CapyPDF_Rendering_Intent intent) const;
+    rvoe<RawPixelImage> convert_image_to(RawPixelImage ri,
+                                         CapyPDF_DeviceColorspace output_format,
+                                         CapyPDF_Rendering_Intent intent) const;
 
     const std::string &get_rgb() const { return rgb_profile_data; }
     const std::string &get_gray() const { return gray_profile_data; }

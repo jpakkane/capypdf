@@ -475,10 +475,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(
     CapyPDF_Generator *g, CapyPDF_ShadingPattern *shp, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *g, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_jpg(CapyPDF_Generator *gen,
-                                                   const char *fname,
-                                                   CapyPDF_ImagePdfProperties *props,
-                                                   CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT;
 // FIXME, specify whether to compress the file or not.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(
     CapyPDF_Generator *g, const char *fname, CapyPDF_EmbeddedFileId *out_ptr) CAPYPDF_NOEXCEPT;

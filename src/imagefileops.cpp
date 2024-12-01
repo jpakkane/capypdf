@@ -18,7 +18,7 @@ namespace capypdf::internal {
 namespace {
 
 rvoe<RasterImage> load_rgb_png(png_image &image) {
-    RasterImage result;
+    RawPixelImage result;
     result.md.w = image.width;
     result.md.h = image.height;
     result.md.pixel_depth = 8;
@@ -35,7 +35,7 @@ rvoe<RasterImage> load_rgb_png(png_image &image) {
 }
 
 rvoe<RasterImage> load_rgba_png(png_image &image) {
-    RasterImage result;
+    RawPixelImage result;
     std::string buf;
     result.md.w = image.width;
     result.md.h = image.height;
@@ -64,7 +64,7 @@ rvoe<RasterImage> load_rgba_png(png_image &image) {
 }
 
 rvoe<RasterImage> load_ga_png(png_image &image) {
-    RasterImage result;
+    RawPixelImage result;
     std::string buf;
     result.md.w = image.width;
     result.md.h = image.height;
@@ -111,7 +111,7 @@ rvoe<png_data> load_png_data(png_image &image) {
 }
 
 rvoe<RasterImage> load_mono_png(png_image &image) {
-    RasterImage result;
+    RawPixelImage result;
     const size_t final_size = (image.width + 7) / 8 * image.height;
     result.pixels.reserve(final_size);
     result.md.w = image.width;
@@ -175,9 +175,9 @@ bool is_1bit(std::string_view colormap) {
 rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     ERC(pd, load_png_data(image));
     if(!is_1bit(pd.colormap)) {
-        return std::optional<RasterImage>{};
+        return std::optional<RawPixelImage>{};
     }
-    RasterImage result;
+    RawPixelImage result;
     result.md.w = image.width;
     result.md.h = image.height;
     result.alpha = std::string{};
@@ -256,7 +256,7 @@ rvoe<RasterImage> do_png_load(png_image &image) {
 }
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
-    RasterImage result;
+    RawPixelImage result;
     std::optional<std::string> icc;
 
     uint32_t w{}, h{};
@@ -510,6 +510,9 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     if(extension == ".tif" || extension == ".tiff" || extension == ".TIF" || extension == ".TIFF") {
         return load_tif_file(fname);
     }
+    if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
+        return load_jpg_from_file(fname);
+    }
     fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
     RETERR(UnsupportedFormat);
 }
@@ -518,9 +521,13 @@ rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
     // There is no metadata telling us what the bytes represent.
     // Try to open with all parsers until one succeeds.
 
-    auto rc = load_png_from_memory(buf, bufsize);
-    if(rc) {
-        return rc;
+    auto png = load_png_from_memory(buf, bufsize);
+    if(png) {
+        return png;
+    }
+    auto jpg = load_jpg_from_memory(buf, bufsize);
+    if(jpg) {
+        return jpg;
     }
     return load_tif_from_memory(buf, bufsize);
 }

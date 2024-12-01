@@ -297,7 +297,6 @@ cfunc_types = (
 ('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_shading_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_tiling_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_embed_jpg', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_convert_image', [ctypes.c_void_p, ctypes.c_void_p, enum_type, enum_type, ctypes.c_void_p]),
@@ -1057,13 +1056,6 @@ class Generator:
         pid = PatternId()
         check_error(libfile.capy_generator_add_tiling_pattern(self, pattern_ctx, ctypes.pointer(pid)))
         return pid
-
-    def embed_jpg(self, fname, props):
-        if not isinstance(props, ImagePdfProperties):
-            raise CapyPDFException('Argument must be an image property object.')
-        iid = ImageId()
-        check_error(libfile.capy_generator_embed_jpg(self, to_bytepath(fname), props, ctypes.pointer(iid)))
-        return iid
 
     def embed_file(self, fname):
         fid = EmbeddedFileId()
