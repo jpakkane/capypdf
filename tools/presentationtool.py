@@ -82,6 +82,8 @@ class Demopresentation:
         self.numbercolor.set_rgb(0, 1.0, 0)
         self.commentcolor = capypdf.Color()
         self.commentcolor.set_rgb(0.2, 0.6, 0.2)
+        self.dundercolor = capypdf.Color()
+        self.dundercolor.set_rgb(0.8, 0.2, 0.2)
 
     def setup_parsevars(self):
         self.wordre = re.compile(r'([a-zA-Z_]+)')
@@ -240,15 +242,10 @@ class Demopresentation:
             ctx.add_simple_navigation(ocgs, bullettr)
 
     def render_code_page(self, ctx, p):
-        self.render_centered(ctx,
-                             p['heading'],
-                             self.boldbasefont,
-                             self.headingsize,
-                             self.w/2,
-                             self.h - self.hlineheight)
+        y_off = self.render_heading(ctx, p['heading'], self.h - self.hlineheight)
         text = ctx.text_new()
         text.cmd_Tf(self.codefont, self.codesize)
-        text.cmd_Td(60, self.h - 2.5*self.headingsize)
+        text.cmd_Td(60, self.h - y_off - 1.5*self.headingsize)
         text.cmd_TL(self.codelineheight)
         if p.get('language', None):
             self.colorize_pycode(text, p['code'])
@@ -361,6 +358,10 @@ class Demopresentation:
                     word = m.group(0)
                     if word in self.keywords:
                         t.set_nonstroke(self.keywordcolor)
+                        t.render_text(word)
+                        t.set_nonstroke(self.normalcolor)
+                    elif word.startswith('__'):
+                        t.set_nonstroke(self.dundercolor)
                         t.render_text(word)
                         t.set_nonstroke(self.normalcolor)
                     else:
