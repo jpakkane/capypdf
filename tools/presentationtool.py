@@ -248,9 +248,9 @@ class Demopresentation:
                              self.h - self.hlineheight)
         text = ctx.text_new()
         text.cmd_Tf(self.codefont, self.codesize)
-        text.cmd_Td(60, self.h - 3.5*self.headingsize)
+        text.cmd_Td(60, self.h - 2.5*self.headingsize)
         text.cmd_TL(self.codelineheight)
-        if p.get('language', 'none'):
+        if p.get('language', None):
             self.colorize_pycode(text, p['code'])
         else:
             for line in p['code']:
