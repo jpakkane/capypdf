@@ -377,7 +377,7 @@ class Demopresentation:
 
 if __name__ == '__main__':
     if True:
-        p = Demopresentation(sys.argv[1], 'demo_presentation.pdf')
+        p = Demopresentation(sys.argv[1], sys.argv[2])
         p.create()
         p.finish()
     else:
