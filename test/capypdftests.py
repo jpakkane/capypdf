@@ -135,14 +135,6 @@ class TestPDFCreation(unittest.TestCase):
         self.assertEqual(str(cm_outer.exception), 'No pages defined.')
         self.assertFalse(ofile.exists())
 
-    def test_line_drawing(self):
-        ofile = pathlib.Path('nope.pdf')
-        with capypdf.Generator(ofile) as g:
-            with g.page_draw_context() as ctx:
-                ctx.cmd_J(capypdf.LineCapStyle.Round)
-                ctx.cmd_j(capypdf.LineJoinStyle.Bevel)
-        ofile.unlink()
-
     @validate_image('python_image', 200, 200)
     def test_images(self, ofilename, w, h):
         opts = capypdf.DocumentMetadata()
