@@ -63,6 +63,25 @@ rvoe<RasterImage> load_rgba_png(png_image &image) {
     return result;
 }
 
+rvoe<RasterImage> load_gray_png(png_image &image) {
+    RawPixelImage result;
+    result.md.w = image.width;
+    result.md.h = image.height;
+    result.md.pixel_depth = 8;
+    result.md.cs = CAPY_IMAGE_CS_GRAY;
+
+    result.pixels.resize(PNG_IMAGE_SIZE(image));
+
+    png_image_finish_read(
+        &image, NULL, result.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
+    if(PNG_IMAGE_FAILED(image)) {
+        fprintf(stderr, "%s\n", image.message);
+        RETERR(UnsupportedFormat);
+    }
+
+    return result;
+}
+
 rvoe<RasterImage> load_ga_png(png_image &image) {
     RawPixelImage result;
     std::string buf;
@@ -235,6 +254,8 @@ rvoe<RasterImage> do_png_load(png_image &image) {
         return load_rgba_png(image);
     } else if(image.format == PNG_FORMAT_RGB) {
         return load_rgb_png(image);
+    } else if(image.format == PNG_FORMAT_GRAY) {
+        return load_gray_png(image);
     } else if(image.format == PNG_FORMAT_GA) {
         return load_ga_png(image);
     } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
