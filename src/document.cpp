@@ -1536,30 +1536,10 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto resources = ctx.build_resource_dict();
-    auto commands = ctx.get_command_stream();
-    auto pattern_dict = std::format(R"(<<
-  /Type /Pattern
-  /PatternType 1
-  /PaintType 1
-  /TilingType 1
-  /BBox [ {:f} {:f} {:f} {:f} ]
-  /XStep {:f}
-  /YStep {:f}
-  /Resources {}
-  /Length {}
->>
-)",
-                                    0.0,
-                                    0.0,
-                                    ctx.get_w(),
-                                    ctx.get_h(),
-                                    ctx.get_w(),
-                                    ctx.get_h(),
-                                    resources,
-                                    commands.length());
-    return CapyPDF_PatternId{
-        add_object(FullPDFObject{std::move(pattern_dict), std::string(commands)})};
+    auto sc_var = ctx.serialize();
+    auto &d = std::get<SerializedXObject>(sc_var);
+    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
+    return CapyPDF_PatternId{objid};
 }
 
 rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
