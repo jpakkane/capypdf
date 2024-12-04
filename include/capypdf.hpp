@@ -41,6 +41,8 @@ struct CapyCTypeDeleter {
             rc = capy_graphics_state_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_DrawContext>) {
             rc = capy_dc_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_ImagePdfProperties>) {
+            rc = capy_image_pdf_properties_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_RasterImage>) {
             rc = capy_raster_image_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_RasterImageBuilder>) {
@@ -456,6 +458,8 @@ public:
     void cmd_W() { CAPY_CPP_CHECK(capy_dc_cmd_W(*this)); }
     void cmd_Wstar() { CAPY_CPP_CHECK(capy_dc_cmd_Wstar(*this)); }
 
+    void draw_image(CapyPDF_ImageId iid) { CAPY_CPP_CHECK(capy_dc_draw_image(*this, iid)); }
+
     void set_custom_page_properties(PageProperties const &props) {
         CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));
     }
@@ -481,6 +485,27 @@ public:
 
 private:
     RasterImage(CapyPDF_RasterImage *ri) { _d.reset(ri); }
+};
+
+class ImagePdfProperties : public CapyC<CapyPDF_ImagePdfProperties> {
+public:
+    friend class Generator;
+
+    ImagePdfProperties() {
+        CapyPDF_ImagePdfProperties *props;
+        CAPY_CPP_CHECK(capy_image_pdf_properties_new(&props));
+        _d.reset(props);
+    }
+
+    void set_mask(bool as_mask) {
+        CAPY_CPP_CHECK(capy_image_pdf_properties_set_mask(*this, as_mask));
+    }
+    void set_interpolate(CapyPDF_Image_Interpolation interp) {
+        CAPY_CPP_CHECK(capy_image_pdf_properties_set_interpolate(*this, interp));
+    }
+    void set_conversion_intent(CapyPDF_Rendering_Intent intent) {
+        CAPY_CPP_CHECK(capy_image_pdf_properties_set_conversion_intent(*this, intent));
+    }
 };
 
 class RasterImageBuilder : public CapyC<CapyPDF_RasterImageBuilder> {
@@ -608,6 +633,12 @@ public:
         CapyPDF_RasterImage *im;
         CAPY_CPP_CHECK(capy_generator_load_image(*this, fname, &im));
         return RasterImage(im);
+    }
+
+    CapyPDF_ImageId add_image(RasterImage &image, ImagePdfProperties const &props) {
+        CapyPDF_ImageId imid;
+        CAPY_CPP_CHECK(capy_generator_add_image(*this, image, props, &imid));
+        return imid;
     }
 
     CapyPDF_GraphicsStateId add_graphics_state(GraphicsState const &gstate) {
