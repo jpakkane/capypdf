@@ -329,7 +329,7 @@ typedef struct _capyPDF_DrawContext CapyPDF_DrawContext;
 typedef struct _capyPDF_Generator CapyPDF_Generator;
 typedef struct _capyPDF_GraphicsState CapyPDF_GraphicsState;
 typedef struct _capyPDF_OptionalContentGroup CapyPDF_OptionalContentGroup;
-typedef struct _capyPDF_DocumentMetadata CapyPDF_DocumentMetadata;
+typedef struct _capyPDF_DocumentProperties CapyPDF_DocumentProperties;
 typedef struct _capyPDF_PageProperties CapyPDF_PageProperties;
 typedef struct _capyPDF_Text CapyPDF_Text;
 typedef struct _capyPDF_TextSequence CapyPDF_TextSequence;
@@ -427,49 +427,54 @@ typedef struct {
 
 // Options
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_new(CapyPDF_DocumentMetadata **out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_destroy(CapyPDF_DocumentMetadata *md) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_title(CapyPDF_DocumentMetadata *md,
-                                                const char *utf8_title) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_author(CapyPDF_DocumentMetadata *md,
-                                                 const char *utf8_author) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_creator(CapyPDF_DocumentMetadata *md,
-                                                  const char *utf8_creator) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_language(CapyPDF_DocumentMetadata *md,
-                                                   const char *lang) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_device_profile(CapyPDF_DocumentMetadata *md,
-                                                         CapyPDF_DeviceColorspace cs,
-                                                         const char *profile_path) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_colorspace(CapyPDF_DocumentMetadata *md,
-                                                     CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_output_intent(CapyPDF_DocumentMetadata *md,
-                                                        const char *identifier) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfx(CapyPDF_DocumentMetadata *md,
-                                               CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_pdfa(CapyPDF_DocumentMetadata *md,
-                                               CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_default_page_properties(
-    CapyPDF_DocumentMetadata *md, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_doc_md_set_tagged(CapyPDF_DocumentMetadata *md,
-                                                 int32_t is_tagged) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_destroy(CapyPDF_DocumentProperties *docprops)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_title(
+    CapyPDF_DocumentProperties *docprops, const char *utf8_title) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(
+    CapyPDF_DocumentProperties *docprops, const char *utf8_author) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(
+    CapyPDF_DocumentProperties *docprops, const char *utf8_creator) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
+    CapyPDF_DocumentProperties *docprops, const char *lang) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops,
+                                            CapyPDF_DeviceColorspace cs,
+                                            const char *profile_path) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
+    CapyPDF_DocumentProperties *docprops, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_output_intent(
+    CapyPDF_DocumentProperties *docprops, const char *identifier) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
+    CapyPDF_DocumentProperties *docprops, CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
+    CapyPDF_DocumentProperties *docprops, CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
+    CapyPDF_DocumentProperties *docprops, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentProperties *docprops,
+                                                              int32_t is_tagged) CAPYPDF_NOEXCEPT;
 
 // Page properties.
 CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PageProperties *prop,
+CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *pageprops)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PageProperties *pageprops,
                                                            CapyPDF_Page_Box boxtype,
                                                            double x1,
                                                            double y1,
                                                            double x2,
                                                            double y2) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties(
-    CapyPDF_PageProperties *pageprop, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT;
+    CapyPDF_PageProperties *pageprops,
+    CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT;
 
 // Generator
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_new(const char *filename,
-                                             const CapyPDF_DocumentMetadata *md,
+                                             const CapyPDF_DocumentProperties *docprops,
                                              CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
                                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;

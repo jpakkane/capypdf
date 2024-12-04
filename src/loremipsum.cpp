@@ -244,7 +244,7 @@ void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
 }
 
 int create_doc() {
-    DocumentMetadata opts;
+    DocumentProperties opts;
     opts.is_tagged = true;
     opts.lang = asciistring::from_cstr("en-US").value();
     opts.subtype = CAPY_PDFA_2b;

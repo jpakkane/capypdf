@@ -248,21 +248,21 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
-rvoe<PdfDocument> PdfDocument::construct(const DocumentMetadata &d, PdfColorConverter cm) {
+rvoe<PdfDocument> PdfDocument::construct(const DocumentProperties &d, PdfColorConverter cm) {
     rvoe<PdfDocument> newdoc{PdfDocument(d, std::move(cm))};
     ERCV(newdoc->init());
     return newdoc;
 }
 
-PdfDocument::PdfDocument(const DocumentMetadata &d, PdfColorConverter cm)
-    : opts{d}, cm{std::move(cm)} {}
+PdfDocument::PdfDocument(const DocumentProperties &d, PdfColorConverter cm)
+    : docprops{d}, cm{std::move(cm)} {}
 
 rvoe<NoReturnValue> PdfDocument::init() {
     // PDF uses 1-based indexing so add a dummy thing in this vector
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
     generate_info_object();
-    switch(opts.output_colorspace) {
+    switch(docprops.output_colorspace) {
     case CAPY_DEVICE_CS_RGB:
         if(!cm.get_rgb().empty()) {
             ERC(retval, add_icc_profile(cm.get_rgb(), 3));
@@ -285,16 +285,16 @@ rvoe<NoReturnValue> PdfDocument::init() {
     }
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
-    if(!std::holds_alternative<std::monostate>(opts.subtype)) {
+    if(!std::holds_alternative<std::monostate>(docprops.subtype)) {
         if(!output_profile) {
             RETERR(OutputProfileMissing);
         }
-        if(opts.intent_condition_identifier.empty()) {
+        if(docprops.intent_condition_identifier.empty()) {
             RETERR(MissingIntentIdentifier);
         }
         create_output_intent();
     }
-    if(auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&opts.subtype)) {
+    if(auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype)) {
         pdfa_md_object = add_pdfa_metadata_object(*aptr);
     }
     RETOK;
@@ -326,7 +326,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     }
     const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
     int32_t commands_num{-1};
-    if(opts.compress_streams) {
+    if(docprops.compress_streams) {
         commands_num = add_object(
             DeflatePDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
     } else {
@@ -629,10 +629,10 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     if(!structure.empty()) {
         buf += structure;
     }
-    if(!opts.lang.empty()) {
-        std::format_to(app, "  /Lang ({})\n", opts.lang.c_str());
+    if(!docprops.lang.empty()) {
+        std::format_to(app, "  /Lang ({})\n", docprops.lang.c_str());
     }
-    if(opts.is_tagged) {
+    if(docprops.is_tagged) {
         std::format_to(app, "  /MarkInfo << /Marked true >>\n");
     }
     if(output_intent_object) {
@@ -670,9 +670,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 void PdfDocument::create_output_intent() {
     std::string buf;
     assert(output_profile);
-    assert(!std::holds_alternative<std::monostate>(opts.subtype));
+    assert(!std::holds_alternative<std::monostate>(docprops.subtype));
     const char *gts =
-        std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
+        std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
     buf = std::format(R"(<<
   /Type /OutputIntent
   /S {}
@@ -681,7 +681,7 @@ void PdfDocument::create_output_intent() {
 >>
 )",
                       gts,
-                      pdfstring_quote(opts.intent_condition_identifier),
+                      pdfstring_quote(docprops.intent_condition_identifier),
                       get(*output_profile).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, {}});
 }
@@ -909,21 +909,21 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view cont
 rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     FullPDFObject obj_data;
     obj_data.dictionary = "<<\n";
-    if(!opts.title.empty()) {
+    if(!docprops.title.empty()) {
         obj_data.dictionary += "  /Title ";
-        auto titlestr = utf8_to_pdfutf16be(opts.title);
+        auto titlestr = utf8_to_pdfutf16be(docprops.title);
         obj_data.dictionary += titlestr;
         obj_data.dictionary += "\n";
     }
-    if(!opts.author.empty()) {
+    if(!docprops.author.empty()) {
         obj_data.dictionary += "  /Author ";
-        auto authorstr = utf8_to_pdfutf16be(opts.author);
+        auto authorstr = utf8_to_pdfutf16be(docprops.author);
         obj_data.dictionary += authorstr;
         obj_data.dictionary += "\n";
     }
-    if(!opts.creator.empty()) {
+    if(!docprops.creator.empty()) {
         obj_data.dictionary += "  /Creator ";
-        auto creatorstr = utf8_to_pdfutf16be(opts.creator);
+        auto creatorstr = utf8_to_pdfutf16be(docprops.creator);
         obj_data.dictionary += creatorstr;
         obj_data.dictionary += "\n";
     }
@@ -936,7 +936,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     obj_data.dictionary += current_date;
     obj_data.dictionary += '\n';
     obj_data.dictionary += "  /Trapped /False\n";
-    if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&opts.subtype)) {
+    if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&docprops.subtype)) {
         obj_data.dictionary += "  /GTS_PDFXVersion (";
         obj_data.dictionary += pdfx_names.at(*xptr);
         obj_data.dictionary += ")\n";
@@ -1742,7 +1742,7 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
 
 rvoe<NoReturnValue> PdfDocument::validate_format(const RawPixelImage &ri) const {
     // Check that the image has the correct format.
-    if(std::holds_alternative<CapyPDF_PDFX_Type>(opts.subtype)) {
+    if(std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype)) {
         if(ri.md.cs == CAPY_IMAGE_CS_RGB) {
             // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
             RETERR(ImageFormatNotPermitted);

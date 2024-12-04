@@ -10,7 +10,7 @@
 int main() {
     CapyPDF_EC rc;
     CapyPDF_Generator *gen;
-    CapyPDF_DocumentMetadata *opt;
+    CapyPDF_DocumentProperties *opt;
     CapyPDF_DrawContext *dc;
     const char *fname = "capy_ctest.pdf";
     FILE *f;
@@ -21,7 +21,7 @@ int main() {
         return 1;
     }
 
-    if((rc = capy_doc_md_new(&opt)) != 0) {
+    if((rc = capy_document_properties_new(&opt)) != 0) {
         fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }
@@ -31,7 +31,7 @@ int main() {
         return 1;
     }
 
-    if((rc = capy_doc_md_destroy(opt)) != 0) {
+    if((rc = capy_document_properties_destroy(opt)) != 0) {
         fprintf(stderr, "%s\n", capy_error_message(rc));
         return 1;
     }

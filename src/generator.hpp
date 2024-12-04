@@ -37,7 +37,7 @@ struct DrawContextPopper {
 class PdfGen {
 public:
     static rvoe<std::unique_ptr<PdfGen>> construct(const std::filesystem::path &ofname,
-                                                   const DocumentMetadata &d);
+                                                   const DocumentProperties &d);
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
@@ -170,7 +170,7 @@ private:
 
 struct GenPopper {
     std::unique_ptr<PdfGen> g;
-    GenPopper(const std::filesystem::path &ofname, const DocumentMetadata &d) : g() {
+    GenPopper(const std::filesystem::path &ofname, const DocumentProperties &d) : g() {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));

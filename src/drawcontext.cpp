@@ -650,7 +650,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
 
 rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const DeviceRGBColor &c,
                                                                        bool stroke) {
-    switch(doc->opts.output_colorspace) {
+    switch(doc->docprops.output_colorspace) {
     case CAPY_DEVICE_CS_RGB: {
         return set_color(c, stroke);
     }
@@ -692,7 +692,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceCMYKColor &c, bool str
 
 rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const DeviceCMYKColor &c,
                                                                        bool stroke) {
-    switch(doc->opts.output_colorspace) {
+    switch(doc->docprops.output_colorspace) {
     case CAPY_DEVICE_CS_RGB: {
         ERC(rgb, cm->to_rgb(c));
         return set_color(rgb, stroke);
@@ -1137,7 +1137,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
                                                                double pointsize,
                                                                double x,
                                                                double y) {
-    if(!std::holds_alternative<std::monostate>(doc->opts.subtype)) {
+    if(!std::holds_alternative<std::monostate>(doc->docprops.subtype)) {
         RETERR(BadOperationForIntent);
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));

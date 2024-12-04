@@ -38,7 +38,7 @@ DrawContextPopper::~DrawContextPopper() {
 }
 
 rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const std::filesystem::path &ofname,
-                                                const DocumentMetadata &d) {
+                                                const DocumentProperties &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {
@@ -141,13 +141,16 @@ rvoe<CapyPDF_PatternId> PdfGen::add_tiling_pattern(PdfDrawContext &ctx) {
 }
 
 DrawContextPopper PdfGen::guarded_page_context() {
-    return DrawContextPopper{
-        this, &pdoc, &pdoc.cm, CAPY_DC_PAGE, pdoc.opts.default_page_properties.mediabox.value()};
+    return DrawContextPopper{this,
+                             &pdoc,
+                             &pdoc.cm,
+                             CAPY_DC_PAGE,
+                             pdoc.docprops.default_page_properties.mediabox.value()};
 }
 
 PdfDrawContext *PdfGen::new_page_draw_context() {
     return new PdfDrawContext{
-        &pdoc, &pdoc.cm, CAPY_DC_PAGE, pdoc.opts.default_page_properties.mediabox.value()};
+        &pdoc, &pdoc.cm, CAPY_DC_PAGE, pdoc.docprops.default_page_properties.mediabox.value()};
 }
 
 PdfDrawContext PdfGen::new_color_pattern_builder(const PdfRectangle &rect) {

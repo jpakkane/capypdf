@@ -7,7 +7,7 @@
 using namespace capypdf::internal;
 
 void file_embed() {
-    DocumentMetadata opts;
+    DocumentProperties opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("File embedding test").value();
@@ -48,7 +48,7 @@ void file_embed() {
 }
 
 void video_player() {
-    DocumentMetadata opts;
+    DocumentProperties opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
     opts.title = u8string::from_cstr("Video player test").value();

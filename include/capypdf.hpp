@@ -29,8 +29,8 @@ public:
 struct CapyCTypeDeleter {
     template<typename T> void operator()(T *cobj) {
         int32_t rc;
-        if constexpr(std::is_same_v<T, CapyPDF_DocumentMetadata>) {
-            rc = capy_doc_md_destroy(cobj);
+        if constexpr(std::is_same_v<T, CapyPDF_DocumentProperties>) {
+            rc = capy_document_properties_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_PageProperties>) {
             rc = capy_page_properties_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_TextSequence>) {
@@ -58,7 +58,7 @@ struct CapyCTypeDeleter {
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
         } else {
-            static_assert(std::is_same_v<T, CapyPDF_DocumentMetadata>, "Unknown C object type.");
+            static_assert(std::is_same_v<T, CapyPDF_DocumentProperties>, "Unknown C object type.");
         }
         (void)rc; // Not much we can do about this because destructors should not fail or throw.
     }
@@ -72,17 +72,17 @@ protected:
     std::unique_ptr<T, CapyCTypeDeleter> _d;
 };
 
-class DocumentMetadata : public CapyC<CapyPDF_DocumentMetadata> {
+class DocumentProperties : public CapyC<CapyPDF_DocumentProperties> {
 public:
     friend class Generator;
 
-    DocumentMetadata() {
-        CapyPDF_DocumentMetadata *md;
-        CAPY_CPP_CHECK(capy_doc_md_new(&md));
-        _d.reset(md);
+    DocumentProperties() {
+        CapyPDF_DocumentProperties *dp;
+        CAPY_CPP_CHECK(capy_document_properties_new(&dp));
+        _d.reset(dp);
     }
 };
-static_assert(sizeof(DocumentMetadata) == sizeof(void *));
+static_assert(sizeof(DocumentProperties) == sizeof(void *));
 
 class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
 public:
@@ -470,7 +470,7 @@ public:
 
 class Generator : public CapyC<CapyPDF_Generator> {
 public:
-    Generator(const char *filename, const DocumentMetadata &md) {
+    Generator(const char *filename, const DocumentProperties &md) {
         CapyPDF_Generator *gen;
         CAPY_CPP_CHECK(capy_generator_new(filename, md, &gen));
         _d.reset(gen);
