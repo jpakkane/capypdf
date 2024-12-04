@@ -94,8 +94,8 @@ DCSerialization PdfDrawContext::serialize() {
         if(group_matrix) {
             write_matrix(app, group_matrix.value());
         }
-        std::format_to(app, "/XStep {:f}", get_w());
-        std::format_to(app, "/YStep {:f}", get_h());
+        std::format_to(app, "  /XStep {:f}\n", get_w());
+        std::format_to(app, "  /YStep {:f}\n", get_h());
         std::format_to(app,
                        R"(  /Resources {}
   /Length {}
