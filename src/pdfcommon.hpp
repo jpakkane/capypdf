@@ -526,6 +526,8 @@ struct RawPixelImage {
 struct jpg_image {
     uint32_t w;
     uint32_t h;
+    uint32_t depth;
+    CapyPDF_DeviceColorspace cs;
     std::string file_contents;
 };
 

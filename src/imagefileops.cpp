@@ -486,8 +486,6 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     return do_tiff_load(tif);
 }
 
-} // namespace
-
 rvoe<jpg_image> do_jpg_load(std::string contents) {
     jpg_image im;
     im.file_contents = std::move(contents);
@@ -506,7 +504,27 @@ rvoe<jpg_image> do_jpg_load(std::string contents) {
     jpeg_start_decompress(&cinfo);
     im.h = cinfo.image_height;
     im.w = cinfo.image_width;
-    // Fixme, validate that this is an 8bpp RGB image.
+
+    switch(cinfo.jpeg_color_space) {
+    case JCS_GRAYSCALE:
+        im.cs = CAPY_DEVICE_CS_GRAY;
+        break;
+    // You'd think this would be JCS_RGB, but no, internally it is stored in this
+    // format.
+    case JCS_YCbCr:
+        im.cs = CAPY_DEVICE_CS_RGB;
+        break;
+    case JCS_CMYK:
+        im.cs = CAPY_DEVICE_CS_CMYK;
+        break;
+    default:
+        RETERR(UnsupportedFormat);
+    }
+
+    im.depth = cinfo.data_precision;
+    if(im.depth != 8) {
+        RETERR(UnsupportedFormat);
+    }
     return im;
 }
 
@@ -519,6 +537,8 @@ rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
     std::string contents(buf, buf + bufsize);
     return do_jpg_load(std::move(contents));
 }
+
+} // namespace
 
 rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     if(!std::filesystem::exists(fname)) {

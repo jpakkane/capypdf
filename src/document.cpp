@@ -1141,16 +1141,18 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
                    R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace /DeviceRGB
+  /ColorSpace {}
   /Width {}
   /Height {}
-  /BitsPerComponent 8
+  /BitsPerComponent {}
   /Length {}
   /Filter /DCTDecode
 >>
 )",
+                   colorspace_names.at(jpg.cs),
                    jpg.w,
                    jpg.h,
+                   jpg.depth,
                    jpg.file_contents.length());
 
     // Auto means don't specify the interpolation
