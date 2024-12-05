@@ -471,7 +471,6 @@ rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
     if(png_image_begin_read_from_file(&image, fname.string().c_str()) != 0) {
         return do_png_load(image);
     } else {
-        fprintf(stderr, "%s\n", image.message);
         RETERR(UnsupportedFormat);
     }
     RETERR(Unreachable);
@@ -488,19 +487,32 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
 
 rvoe<jpg_image> do_jpg_load(std::string contents) {
     jpg_image im;
+    // Libjpeg kills the process on invalid input.
+    // Changing the behaviour requires mucking about
+    // with setjmp/longjmp.
+    //
+    // See: https://github.com/eiimage/detiq-t/blob/master/ImageIn/JpgImage.cpp
+    //
+    // A simpler solution is to check the magic bytes first. If the file
+    // is corrupt somewhere later, erroring out is fine.
+    const char jpg_magic[4] = {(char)0xff, (char)0xd8, (char)0xff, 0};
+    if(!contents.starts_with(jpg_magic)) {
+        RETERR(UnsupportedFormat);
+    }
     im.file_contents = std::move(contents);
+
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
-    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
-        &cinfo, &jpeg_destroy_decompress);
-
     jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
         RETERR(UnsupportedFormat);
     }
+    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
+        &cinfo, &jpeg_destroy_decompress);
+
     jpeg_start_decompress(&cinfo);
     im.h = cinfo.image_height;
     im.w = cinfo.image_width;
@@ -528,7 +540,7 @@ rvoe<jpg_image> do_jpg_load(std::string contents) {
     return im;
 }
 
-rvoe<jpg_image> load_jpg_from_file(const std::filesystem::path &fname) {
+rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
     return do_jpg_load(std::move(contents));
 }
@@ -552,10 +564,23 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
         return load_tif_file(fname);
     }
     if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
-        return load_jpg_from_file(fname);
+        return load_jpg_file(fname);
     }
-    fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
-    RETERR(UnsupportedFormat);
+
+    // If the input file was created with `tmpfile` or something similar, it might
+    // not even have an extension at all. Try to open it with all decoders because
+    // there is not much else we can do.
+    if(auto rc = load_png_file(fname)) {
+        return rc;
+    }
+    if(auto rc = load_jpg_file(fname)) {
+        return rc;
+    }
+    auto rc = load_tif_file(fname);
+    if(!rc) {
+        fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
+    }
+    return rc;
 }
 
 rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
