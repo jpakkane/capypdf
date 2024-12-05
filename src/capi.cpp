@@ -1395,13 +1395,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
 // Raster images.
 
 struct RasterImageBuilder {
-    std::unique_ptr<RawPixelImage> i;
+    RawPixelImage i;
 };
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)
     CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_RasterImageBuilder *>(
-        new RasterImageBuilder{std::make_unique<RawPixelImage>()});
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImageBuilder *>(new RasterImageBuilder);
     RETNOERR;
 }
 
@@ -1409,22 +1408,22 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImage
                                                              uint32_t w,
                                                              uint32_t h) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    b->i->md.w = w;
-    b->i->md.h = h;
+    b->i.md.w = w;
+    b->i.md.h = h;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    b->i->pixels.assign(buf, buf + bufsize);
+    b->i.pixels.assign(buf, buf + bufsize);
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_compression(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Compression compression) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    b->i->md.compression = compression;
+    b->i.md.compression = compression;
     RETNOERR;
 }
 
@@ -1432,8 +1431,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
     // FIXME. Check validity.
-    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(*b->i.get())));
-    b->i.reset(new RawPixelImage{});
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(b->i)));
+    b->i = RawPixelImage{};
     RETNOERR;
 }
 
