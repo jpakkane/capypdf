@@ -216,10 +216,6 @@ rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
             current_mask_byte <<= 1;
             const auto colormap_entry = pd.pixels.at(j * result.md.w + i);
             assert(colormap_entry * sizeof(pngbytes) < pd.colormap.size());
-            if(colormap_entry != 0) {
-                ++i;
-                --i;
-            }
             const auto *colormap_data = pd.colormap.data() + colormap_entry * sizeof(pngbytes);
             const auto *pixel = reinterpret_cast<const pngbytes *>(colormap_data);
             if(pixel->r == black_pixel) {
