@@ -56,14 +56,14 @@ class Demopresentation:
         self.codelineheight = 1.5*self.codesize
         self.textlineheight = 1.5*self.textsize
         self.footersize = fontsizes['footer']
-        opts = capypdf.DocumentMetadata()
+        dprops = capypdf.DocumentProperties()
         props = capypdf.PageProperties()
-        opts.set_title(self.doc['metadata']['title'])
-        opts.set_author(self.doc['metadata']['author'])
-        opts.set_creator('PDF presentation generator')
+        dprops.set_title(self.doc['metadata']['title'])
+        dprops.set_author(self.doc['metadata']['author'])
+        dprops.set_creator('PDF presentation generator')
         props.set_pagebox(capypdf.PageBox.Media, 0, 0, self.w, self.h)
-        opts.set_default_page_properties(props)
-        self.pdfgen = capypdf.Generator(self.ofilename, opts)
+        dprops.set_default_page_properties(props)
+        self.pdfgen = capypdf.Generator(self.ofilename, dprops)
         self.basefont = self.pdfgen.load_font(self.fontfile)
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)
         #self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
@@ -275,8 +275,16 @@ class Demopresentation:
             ctx.draw_image(imid)
 
     def render_splash_page(self, ctx, p):
+        subtrnode = p.get('subtransition', None)
+        if subtrnode is not None:
+            subtr = capypdf.Transition()
+            subtr.set_S(TRANS2ENUM[subtrnode['type']])
+            subtr.set_D(subtrnode['duration'])
+        else:
+            bullettr = None
         entries = [self.split_to_even_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in p['text']]
         text_height = 0
+        ocgs = []
         for e in entries:
             text_height += len(e)*self.textlineheight
         padding = self.h - self.footerh - text_height
@@ -286,10 +294,19 @@ class Demopresentation:
         y = self.h - slot_padding*0.8 - self.textlineheight
         for i in range(len(entries)):
             e = entries[i]
+            use_subtr = i > 0 and subtrnode is not None
+            if use_subtr:
+                ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('splash' + str(i)))
+                ocgs.append(ocg)
+                ctx.cmd_BDC(ocg)
             for line in e:
                 self.render_centered(ctx, line, self.basefont, self.textsize, self.w/2, y)
                 y -= self.textlineheight
+            if use_subtr:
+                ctx.cmd_EMC()
             y -= slot_padding
+        if subtrnode is not None:
+            ctx.add_simple_navigation(ocgs, subtr)
 
     def render_full_page(self, ctx, p):
         imfile = p['file']
