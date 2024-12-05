@@ -72,18 +72,6 @@ protected:
     std::unique_ptr<T, CapyCTypeDeleter> _d;
 };
 
-class DocumentProperties : public CapyC<CapyPDF_DocumentProperties> {
-public:
-    friend class Generator;
-
-    DocumentProperties() {
-        CapyPDF_DocumentProperties *dp;
-        CAPY_CPP_CHECK(capy_document_properties_new(&dp));
-        _d.reset(dp);
-    }
-};
-static_assert(sizeof(DocumentProperties) == sizeof(void *));
-
 class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
 public:
     friend class PageProperties;
@@ -106,6 +94,7 @@ public:
 
 class PageProperties : public CapyC<CapyPDF_PageProperties> {
 public:
+    friend class DocumentProperties;
     friend class DrawContext;
 
     PageProperties() {
@@ -122,6 +111,52 @@ public:
         CAPY_CPP_CHECK(capy_page_properties_set_transparency_group_properties(*this, trprop));
     }
 };
+
+class DocumentProperties : public CapyC<CapyPDF_DocumentProperties> {
+public:
+    friend class Generator;
+
+    DocumentProperties() {
+        CapyPDF_DocumentProperties *dp;
+        CAPY_CPP_CHECK(capy_document_properties_new(&dp));
+        _d.reset(dp);
+    }
+
+    void set_title(std::string_view const &title) {
+        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title.data()));
+    }
+    void set_author(std::string_view const &author) {
+        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author.data()));
+    }
+    void set_creator(std::string_view const &creator) {
+        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator.data()));
+    }
+    void set_language(std::string_view const &lang) {
+        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang.data()));
+    }
+    void set_device_profile(CapyPDF_DeviceColorspace cs, std::string_view const &path) {
+        CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path.data()));
+    }
+    void set_colorspace(CapyPDF_DeviceColorspace cs) {
+        CAPY_CPP_CHECK(capy_document_properties_set_colorspace(*this, cs));
+    }
+    void set_output_intent(std::string_view const &identifier) {
+        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier.data()));
+    }
+    void set_pdfx(CapyPDF_PDFX_Type xtype) {
+        CAPY_CPP_CHECK(capy_document_properties_set_pdfx(*this, xtype));
+    }
+    void set_pdfa(CapyPDF_PDFA_Type atype) {
+        CAPY_CPP_CHECK(capy_document_properties_set_pdfa(*this, atype));
+    }
+    void set_default_page_properties(PageProperties const &prop) {
+        CAPY_CPP_CHECK(capy_document_properties_set_default_page_properties(*this, prop));
+    }
+    void set_tagged(bool is_tagged) {
+        CAPY_CPP_CHECK(capy_document_properties_set_tagged(*this, is_tagged));
+    }
+};
+static_assert(sizeof(DocumentProperties) == sizeof(void *));
 
 class TextSequence : public CapyC<CapyPDF_TextSequence> {
 public:
