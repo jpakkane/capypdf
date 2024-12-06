@@ -43,6 +43,8 @@ struct CapyCTypeDeleter {
             rc = capy_dc_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_ImagePdfProperties>) {
             rc = capy_image_pdf_properties_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_OptionalContentGroup>) {
+            rc = capy_optional_content_group_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_RasterImage>) {
             rc = capy_raster_image_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_RasterImageBuilder>) {
@@ -92,6 +94,17 @@ public:
     void set_I(bool I) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_I(*this, I)); }
 
     void set_K(bool K) { CAPY_CPP_CHECK(capy_transparency_group_properties_set_K(*this, K)); }
+};
+
+class OptionalContentGroup : public CapyC<CapyPDF_OptionalContentGroup> {
+public:
+    friend class Generator;
+
+    OptionalContentGroup(std::string name) {
+        CapyPDF_OptionalContentGroup *ocg;
+        CAPY_CPP_CHECK(capy_optional_content_group_new(&ocg, name.c_str()));
+        _d.reset(ocg);
+    }
 };
 
 class PageProperties : public CapyC<CapyPDF_PageProperties> {
@@ -410,12 +423,17 @@ public:
     void cmd_bstar() { CAPY_CPP_CHECK(capy_dc_cmd_bstar(*this)); }
     void cmd_Bstar() { CAPY_CPP_CHECK(capy_dc_cmd_Bstar(*this)); }
 
+    void cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
+        CAPY_CPP_CHECK(capy_dc_cmd_BDC_ocg(*this, ocgid));
+    }
+
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
         CAPY_CPP_CHECK(capy_dc_cmd_c(*this, x1, y1, x2, y2, x3, y3));
     }
     void cmd_cm(double a, double b, double c, double d, double e, double f) {
         CAPY_CPP_CHECK(capy_dc_cmd_cm(*this, a, b, c, d, e, f));
     }
+    void cmd_EMC() { CAPY_CPP_CHECK(capy_dc_cmd_EMC(*this)); }
     void cmd_f() { CAPY_CPP_CHECK(capy_dc_cmd_f(*this)); }
     void cmd_fstar() { CAPY_CPP_CHECK(capy_dc_cmd_fstar(*this)); }
 
@@ -645,6 +663,12 @@ public:
         CapyPDF_GraphicsStateId gsid;
         CAPY_CPP_CHECK(capy_generator_add_graphics_state(*this, gstate, &gsid));
         return gsid;
+    }
+
+    CapyPDF_OptionalContentGroupId add_optional_content_group(OptionalContentGroup const &ocg) {
+        CapyPDF_OptionalContentGroupId ocgid;
+        CAPY_CPP_CHECK(capy_generator_add_optional_content_group(*this, ocg, &ocgid));
+        return ocgid;
     }
 
     CapyPDF_TransparencyGroupId add_transparency_group(DrawContext &dct) {
