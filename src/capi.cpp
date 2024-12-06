@@ -1639,12 +1639,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
     auto *cc = reinterpret_cast<const Color *>(color);
     if(flag == 1 || flag == 2) {
         if(sh4->elements.empty()) {
-            conv_err(ErrorCode::BadStripStart);
+            return conv_err(ErrorCode::BadStripStart);
         }
         ShadingPoint sp = conv_shpoint(coords, cc);
         sh4->extend_strip(sp, flag);
     } else {
-        conv_err(ErrorCode::BadEnum);
+        return conv_err(ErrorCode::BadEnum);
     }
     RETNOERR;
 }
@@ -1703,13 +1703,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
     auto **cc = reinterpret_cast<const Color **>(colors);
     if(flag == 1 || flag == 2 || flag == 3) {
         if(sh6->elements.empty()) {
-            conv_err(ErrorCode::BadStripStart);
+            return conv_err(ErrorCode::BadStripStart);
         }
         ContinuationCoonsPatch ccp;
         grab_coons_data(ccp, coords, cc);
         sh6->elements.emplace_back(std::move(ccp));
     } else {
-        conv_err(ErrorCode::BadEnum);
+        return conv_err(ErrorCode::BadEnum);
     }
     RETNOERR;
 }
