@@ -7,20 +7,20 @@
 #include <drawcontext.hpp>
 #include <errorhandling.hpp>
 
-#define RETNOERR return (CapyPDF_EC)ErrorCode::NoError
+#define RETNOERR return conv_err(ErrorCode::NoError)
 
 #define CHECK_NULL(x)                                                                              \
     if(x == nullptr) {                                                                             \
-        return (CapyPDF_EC)ErrorCode::ArgIsNull;                                                   \
+        return conv_err(ErrorCode::ArgIsNull);                                                     \
     }
 
 using namespace capypdf::internal;
 
 namespace {
 
-CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
+[[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
 
-template<typename T> CapyPDF_EC conv_err(const rvoe<T> &rc) {
+template<typename T> [[nodiscard]] CapyPDF_EC conv_err(const rvoe<T> &rc) {
     return (CapyPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
 
