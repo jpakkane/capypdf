@@ -180,7 +180,7 @@ struct DocumentProperties {
     u8string creator;
     asciistring lang;
     bool is_tagged = false;
-    CapyPDF_DeviceColorspace output_colorspace = CAPY_DEVICE_CS_RGB;
+    CapyPDF_Device_Colorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
     std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
     std::string intent_condition_identifier;
@@ -263,7 +263,7 @@ typedef std::variant<TextAnnotation,
 struct Annotation {
     AnnotationSubType sub;
     std::optional<PdfRectangle> rect;
-    CapyPDF_AnnotationFlags flags{CAPY_ANNOTATION_FLAG_NONE};
+    CapyPDF_Annotation_Flags flags{CAPY_ANNOTATION_FLAG_NONE};
 };
 
 struct DelayedAnnotation {
@@ -285,7 +285,7 @@ struct StructItemExtraData {
 
 struct StructItem {
     int32_t obj_id;
-    std::variant<CapyPDF_StructureType, CapyPDF_RoleId> stype;
+    std::variant<CapyPDF_Structure_Type, CapyPDF_RoleId> stype;
     std::optional<CapyPDF_StructureItemId> parent;
     StructItemExtraData extra;
 };
@@ -311,7 +311,7 @@ typedef std::variant<DummyIndexZero,
 
 struct RolemapEnty {
     std::string name;
-    CapyPDF_StructureType builtin;
+    CapyPDF_Structure_Type builtin;
 };
 
 struct FunctionInfo {
@@ -324,7 +324,7 @@ struct ShadingInfo {
     int32_t object_number;
 };
 
-typedef std::variant<CapyPDF_ImageColorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
+typedef std::variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
 class PdfDocument {
 public:
@@ -351,8 +351,9 @@ public:
     void add_form_xobject(std::string xobj_data, std::string xobj_stream);
 
     // Colors
-    rvoe<CapyPDF_SeparationId>
-    create_separation(const asciistring &name, CapyPDF_DeviceColorspace cs, CapyPDF_FunctionId fid);
+    rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
+                                                 CapyPDF_Device_Colorspace cs,
+                                                 CapyPDF_FunctionId fid);
     rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
     rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::string_view contents, int32_t num_channels);
@@ -410,7 +411,7 @@ public:
     rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
 
     // Structure itemsconst std::array<const char *, 3> colorspace_names
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_Structure_Type stype,
                                                      std::optional<CapyPDF_StructureItemId> parent,
                                                      std::optional<StructItemExtraData> extra);
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
@@ -431,7 +432,7 @@ public:
 
     rvoe<int32_t> create_structure_parent_tree();
 
-    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_StructureType builtin_type);
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type);
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

@@ -52,14 +52,14 @@ public:
     };
 
     rvoe<RawPixelImage> convert_image_to_cs(RawPixelImage image,
-                                            CapyPDF_DeviceColorspace cs,
+                                            CapyPDF_Device_Colorspace cs,
                                             CapyPDF_Rendering_Intent ri) const;
     rvoe<CapyPDF_ImageId> add_image(RasterImage ri, const ImagePDFProperties &params);
 
     ImageSize get_image_info(CapyPDF_ImageId img_id) { return pdoc.get(img_id).s; }
 
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
-                                                 CapyPDF_DeviceColorspace cs,
+                                                 CapyPDF_Device_Colorspace cs,
                                                  CapyPDF_FunctionId fid) {
         return pdoc.create_separation(name, cs, fid);
     }
@@ -128,7 +128,7 @@ public:
 
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o) { return pdoc.add_outline(o); }
 
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_StructureType stype,
+    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_Structure_Type stype,
                                                      std::optional<CapyPDF_StructureItemId> parent,
                                                      std::optional<StructItemExtraData> extra) {
         return pdoc.add_structure_item(stype, parent, std::move(extra));
@@ -153,7 +153,7 @@ public:
 
     rvoe<double> utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const;
 
-    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_StructureType builtin_type) {
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type) {
         return pdoc.add_rolemap_entry(std::move(name), builtin_type);
     }
 

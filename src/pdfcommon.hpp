@@ -370,7 +370,7 @@ struct ShadingDomain {
 
 // Linear
 struct ShadingType2 {
-    CapyPDF_DeviceColorspace colorspace;
+    CapyPDF_Device_Colorspace colorspace;
     double x0, y0, x1, y1;
     CapyPDF_FunctionId function;
     std::optional<ShadingExtend> extend{};
@@ -379,7 +379,7 @@ struct ShadingType2 {
 
 // Radial
 struct ShadingType3 {
-    CapyPDF_DeviceColorspace colorspace;
+    CapyPDF_Device_Colorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     CapyPDF_FunctionId function;
     std::optional<ShadingExtend> extend{};
@@ -409,7 +409,7 @@ struct ShadingType4 {
     double miny;
     double maxx;
     double maxy;
-    CapyPDF_DeviceColorspace colorspace = CAPY_DEVICE_CS_RGB;
+    CapyPDF_Device_Colorspace colorspace = CAPY_DEVICE_CS_RGB;
 
     void start_strip(const ShadingPoint &v0, const ShadingPoint &v1, const ShadingPoint &v2) {
         elements.emplace_back(ShadingElement{v0, 0});
@@ -442,7 +442,7 @@ struct ShadingType6 {
     double miny = 0;
     double maxx = 200;
     double maxy = 200;
-    CapyPDF_DeviceColorspace colorspace = CAPY_DEVICE_CS_RGB;
+    CapyPDF_Device_Colorspace colorspace = CAPY_DEVICE_CS_RGB;
 };
 
 typedef std::variant<ShadingType2, ShadingType3, ShadingType4, ShadingType6> PdfShading;
@@ -487,7 +487,7 @@ struct OptionalContentGroup {
 struct TransparencyGroupProperties {
     // This should eventually be a variant of some sort,
     // because the mixing colorspace can be an ICC one.
-    std::optional<CapyPDF_DeviceColorspace> CS;
+    std::optional<CapyPDF_Device_Colorspace> CS;
     std::optional<bool> I;
     std::optional<bool> K;
 
@@ -495,7 +495,7 @@ struct TransparencyGroupProperties {
 };
 
 struct SoftMask {
-    CapyPDF_SoftMaskSubType S;
+    CapyPDF_Soft_Mask_Subtype S;
     CapyPDF_TransparencyGroupId G;
     // std::vector<double> BC;
     // TransferFunctionId TR;
@@ -512,7 +512,7 @@ struct RasterImageMetadata {
     uint32_t h = 0;
     uint32_t pixel_depth = 8;
     uint32_t alpha_depth = 0;
-    CapyPDF_ImageColorspace cs = CAPY_IMAGE_CS_RGB;
+    CapyPDF_Image_Colorspace cs = CAPY_IMAGE_CS_RGB;
     CapyPDF_Compression compression = CAPY_COMPRESSION_NONE;
 };
 
@@ -527,7 +527,7 @@ struct jpg_image {
     uint32_t w;
     uint32_t h;
     uint32_t depth;
-    CapyPDF_DeviceColorspace cs;
+    CapyPDF_Device_Colorspace cs;
     std::string file_contents;
 };
 

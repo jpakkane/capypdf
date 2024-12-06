@@ -16,7 +16,7 @@ const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
                                     INTENT_SATURATION,
                                     INTENT_PERCEPTUAL};
 
-int32_t num_bytes_for(CapyPDF_DeviceColorspace cs) {
+int32_t num_bytes_for(CapyPDF_Device_Colorspace cs) {
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
         return 3;
@@ -42,7 +42,7 @@ int32_t num_bytes_for(CapyPDF_ImageColorspace cs) {
 }
 */
 
-uint32_t pixelformat_for(CapyPDF_DeviceColorspace cs) {
+uint32_t pixelformat_for(CapyPDF_Device_Colorspace cs) {
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
         return TYPE_RGB_8;
@@ -54,7 +54,7 @@ uint32_t pixelformat_for(CapyPDF_DeviceColorspace cs) {
     std::abort();
 }
 
-uint32_t pixelformat_for(CapyPDF_ImageColorspace cs) {
+uint32_t pixelformat_for(CapyPDF_Image_Colorspace cs) {
     switch(cs) {
     case CAPY_IMAGE_CS_RGB:
         return TYPE_RGB_8;
@@ -216,7 +216,7 @@ rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
     return cmyk;
 }
 
-cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_DeviceColorspace cs) const {
+cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Device_Colorspace cs) const {
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
         return rgb_profile.h;
@@ -228,15 +228,15 @@ cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_DeviceColorspace cs) const {
     std::abort();
 }
 
-cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_ImageColorspace cs) const {
+cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Image_Colorspace cs) const {
     if(cs <= CAPY_IMAGE_CS_CMYK) {
-        return profile_for((CapyPDF_DeviceColorspace)cs);
+        return profile_for((CapyPDF_Device_Colorspace)cs);
     }
     std::abort();
 }
 
 rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
-                                                        CapyPDF_DeviceColorspace output_format,
+                                                        CapyPDF_Device_Colorspace output_format,
                                                         CapyPDF_Rendering_Intent intent) const {
     RawPixelImage converted;
     converted.md = ri.md;
@@ -278,7 +278,7 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     converted.pixels = std::string(num_pixels * num_bytes_for(output_format), '\0');
     cmsDoTransform(transform, ri.pixels.data(), converted.pixels.data(), num_pixels);
     cmsDeleteTransform(transform);
-    converted.md.cs = (CapyPDF_ImageColorspace)output_format;
+    converted.md.cs = (CapyPDF_Image_Colorspace)output_format;
     converted.icc_profile.clear();
     return converted;
 }

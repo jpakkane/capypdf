@@ -214,7 +214,7 @@ rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
     return s;
 }
 
-int32_t num_channels_for(const CapyPDF_ImageColorspace cs) {
+int32_t num_channels_for(const CapyPDF_Image_Colorspace cs) {
     switch(cs) {
     case CAPY_IMAGE_CS_RGB:
         return 3;
@@ -462,7 +462,7 @@ int32_t PdfDocument::add_object(ObjectType object) {
 }
 
 rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &name,
-                                                          CapyPDF_DeviceColorspace cs,
+                                                          CapyPDF_Device_Colorspace cs,
                                                           const CapyPDF_FunctionId fid) {
     const auto &f4 = functions.at(fid.id);
     if(!std::holds_alternative<FunctionType4>(f4.original)) {
@@ -580,7 +580,7 @@ rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
 }
 
 rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
-                                                    CapyPDF_StructureType builtin_type) {
+                                                    CapyPDF_Structure_Type builtin_type) {
     if(name.empty() || name.front() == '/') {
         RETERR(SlashStart);
     }
@@ -1110,7 +1110,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     if(params.as_mask) {
         buf += "  /ImageMask true\n";
     } else {
-        if(auto cs = std::get_if<CapyPDF_ImageColorspace>(&colorspace)) {
+        if(auto cs = std::get_if<CapyPDF_Image_Colorspace>(&colorspace)) {
             std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
             const auto icc_obj = get(*icc).object_num;
@@ -1601,7 +1601,7 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(const CapyPDF_StructureType stype,
+PdfDocument::add_structure_item(const CapyPDF_Structure_Type stype,
                                 std::optional<CapyPDF_StructureItemId> parent,
                                 std::optional<StructItemExtraData> extra) {
     if(parent) {

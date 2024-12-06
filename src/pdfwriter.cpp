@@ -737,7 +737,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
   /Type /StructElem
 )";
     auto app = std::back_inserter(dict);
-    if(auto bi = std::get_if<CapyPDF_StructureType>(&si.stype)) {
+    if(auto bi = std::get_if<CapyPDF_Structure_Type>(&si.stype)) {
         std::format_to(app,
                        R"(  /S /{}
 )",

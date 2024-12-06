@@ -81,7 +81,7 @@ rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImagePDFPropert
 }
 
 rvoe<RawPixelImage> PdfGen::convert_image_to_cs(RawPixelImage image,
-                                                CapyPDF_DeviceColorspace cs,
+                                                CapyPDF_Device_Colorspace cs,
                                                 CapyPDF_Rendering_Intent ri) const {
     return pdoc.cm.convert_image_to(image, cs, ri);
 }

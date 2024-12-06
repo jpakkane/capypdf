@@ -293,7 +293,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
     const auto &itemtype = doc->structure_items.at(sid.id).stype;
-    if(auto builtin = std::get_if<CapyPDF_StructureType>(&itemtype)) {
+    if(auto builtin = std::get_if<CapyPDF_Structure_Type>(&itemtype)) {
         ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
         return cmd_BDC(astr, sid, {});
     } else if(auto role = std::get_if<CapyPDF_RoleId>(&itemtype)) {
@@ -1009,7 +1009,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             // this and cmd_BDC use that.
             ERC(mcid_id, add_bcd_structure(sitem.sid));
             auto item = doc->structure_items.at(sitem.sid.id).stype;
-            if(auto itemid = std::get_if<CapyPDF_StructureType>(&item)) {
+            if(auto itemid = std::get_if<CapyPDF_Structure_Type>(&item)) {
                 const auto &itemstr = structure_type_names.at(*itemid);
                 std::format_to(app, "{}/{} << /MCID {} >>\n{}BDC\n", ind, itemstr, mcid_id, ind);
             } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {

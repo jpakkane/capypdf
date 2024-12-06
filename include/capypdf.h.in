@@ -52,14 +52,14 @@ typedef enum {
     CAPY_DEVICE_CS_RGB,
     CAPY_DEVICE_CS_GRAY,
     CAPY_DEVICE_CS_CMYK
-} CapyPDF_DeviceColorspace;
+} CapyPDF_Device_Colorspace;
 
 typedef enum {
     CAPY_IMAGE_CS_RGB,
     CAPY_IMAGE_CS_GRAY,
     CAPY_IMAGE_CS_CMYK,
     // CAPY_IMAGE_CS_LAB,
-} CapyPDF_ImageColorspace;
+} CapyPDF_Image_Colorspace;
 
 typedef enum {
     CAPY_RI_RELATIVE_COLORIMETRIC,
@@ -192,7 +192,7 @@ typedef enum {
     CAPY_ANNOTATION_FLAG_LOCKED = (1 << 7),
     CAPY_ANNOTATION_FLAG_TOGGLENOVIEW = (1 << 8),
     CAPY_ANNOTATION_FLAG_LOCKEDCONTENTS = (1 << 9),
-} CapyPDF_AnnotationFlags;
+} CapyPDF_Annotation_Flags;
 
 typedef enum {
     CAPY_STRUCTURE_TYPE_DOCUMENT,
@@ -254,7 +254,7 @@ typedef enum {
     CAPY_STRUCTURE_TYPE_ARTIFACT,
 
     CAPY_STRUCTURE_TYPE_NUM_ITEMS
-} CapyPDF_StructureType;
+} CapyPDF_Structure_Type;
 
 // Note that some of these flags share the same bit values.
 // That is what the specification says.
@@ -279,7 +279,7 @@ typedef enum {
     CAPY_FFIELD_RICHTEXT = (1 << 25),
     CAPY_FFIELD_RADIOSINUNUSON = (1 << 25),
     CAPY_FFIELD_COMMITONSELCHANGE = (1 << 26),
-} CapyPDF_FormFieldFlags;
+} CapyPDF_Form_Field_Flags;
 
 typedef enum {
     CAPY_FORM_ACTION_NONE = 0,
@@ -296,7 +296,7 @@ typedef enum {
     CAPY_FORM_ACTION_EXCLNONUSERANNOTS = (1 << 10),
     CAPY_FORM_ACTION_EXCLFKEY = (1 << 11),
     CAPY_FORM_ACTION_EMBEDFORM = (1 << 12),
-} CapyPDF_FormSubmitActionFlags;
+} CapyPDF_Form_Submit_Action_Flags;
 
 typedef enum {
     CAPY_PAGE_LAYOUT_SINGLE_PAGE,
@@ -305,7 +305,7 @@ typedef enum {
     CAPY_PAGE_LAYOUT_TWO_COLUMN_RIGHT,
     CAPY_PAGE_LAYOUT_TWO_PAGE_LEFT,
     CAPY_PAGE_LAYOUT_TWO_PAGE_RIGHT,
-} CapyPDF_PageLayout;
+} CapyPDF_Page_Layout;
 
 typedef enum {
     CAPY_PAGE_MODE_USE_NONE,
@@ -314,12 +314,12 @@ typedef enum {
     CAPY_PAGE_MODE_FULL_SCREEN,
     CAPY_PAGE_MODE_OC,
     CAPY_PAGE_MODE_ATTACHMENTS,
-} CapyPDF_PageMode;
+} CapyPDF_Page_Mode;
 
 typedef enum {
     CAPY_SOFT_MASK_ALPHA,
     CAPY_SOFT_MASK_LUMINOSITY,
-} CapyPDF_SoftMaskSubType;
+} CapyPDF_Soft_Mask_Subtype;
 
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
@@ -441,10 +441,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
     CapyPDF_DocumentProperties *docprops, const char *lang) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops,
-                                            CapyPDF_DeviceColorspace cs,
+                                            CapyPDF_Device_Colorspace cs,
                                             const char *profile_path) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
-    CapyPDF_DocumentProperties *docprops, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
+    CapyPDF_DocumentProperties *docprops, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_output_intent(
     CapyPDF_DocumentProperties *docprops, const char *identifier) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
@@ -505,7 +505,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        const CapyPDF_RasterImage *source,
-                                                       CapyPDF_DeviceColorspace output_cs,
+                                                       CapyPDF_Device_Colorspace output_cs,
                                                        CapyPDF_Rendering_Intent ri,
                                                        CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT;
@@ -524,7 +524,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
                                                             CapyPDF_GraphicsStateId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *gen,
-                                                            const CapyPDF_StructureType stype,
+                                                            const CapyPDF_Structure_Type stype,
                                                             const CapyPDF_StructureItemId *parent,
                                                             CapyPDF_StructItemExtraData *extra,
                                                             CapyPDF_StructureItemId *out_ptr)
@@ -556,7 +556,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
                                                         const char *separation_name,
-                                                        CapyPDF_DeviceColorspace cs,
+                                                        CapyPDF_Device_Colorspace cs,
                                                         CapyPDF_FunctionId fid,
                                                         CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT;
@@ -571,7 +571,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *ge
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
-                                                           CapyPDF_StructureType builtin,
+                                                           CapyPDF_Structure_Type builtin,
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT;
@@ -857,7 +857,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
     CapyPDF_TransparencyGroupProperties **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_CS(
-    CapyPDF_TransparencyGroupProperties *props, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT;
+    CapyPDF_TransparencyGroupProperties *props, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_I(
     CapyPDF_TransparencyGroupProperties *props, int32_t I) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
@@ -884,7 +884,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *
                                                      uint32_t *w,
                                                      uint32_t *h) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
-    const CapyPDF_RasterImage *image, CapyPDF_ImageColorspace *out_ptr) CAPYPDF_NOEXCEPT;
+    const CapyPDF_RasterImage *image, CapyPDF_Image_Colorspace *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_has_profile(const CapyPDF_RasterImage *image,
                                                         int32_t *out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT;
@@ -914,7 +914,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT;
 
 // Shadings
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
@@ -929,12 +929,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
                                                   double starting,
                                                   double ending) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -947,7 +947,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
                                                     const double *coords,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -969,8 +969,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(CapyPDF_Annotation *annotation,
-                                                    CapyPDF_AnnotationFlags flags) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
+    CapyPDF_Annotation *annotation, CapyPDF_Annotation_Flags flags) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT;
 
 // Structural item extra data
@@ -1036,7 +1036,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
     CAPYPDF_NOEXCEPT;
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_SoftMaskSubType subtype,
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_Soft_Mask_Subtype subtype,
                                              CapyPDF_TransparencyGroupId trid,
                                              CapyPDF_SoftMask **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_NOEXCEPT;

@@ -125,7 +125,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties
 
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops,
-                                            CapyPDF_DeviceColorspace cs,
+                                            CapyPDF_Device_Colorspace cs,
                                             const char *profile_path) CAPYPDF_NOEXCEPT {
     auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
     switch(cs) {
@@ -143,7 +143,7 @@ capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
-    CapyPDF_DocumentProperties *docprops, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
+    CapyPDF_DocumentProperties *docprops, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT {
     auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
     metadata->output_colorspace = cs;
     RETNOERR;
@@ -312,7 +312,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        const CapyPDF_RasterImage *source,
-                                                       CapyPDF_DeviceColorspace output_cs,
+                                                       CapyPDF_Device_Colorspace output_cs,
                                                        CapyPDF_Rendering_Intent ri,
                                                        CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT {
@@ -382,7 +382,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *gen,
-                                                            const CapyPDF_StructureType stype,
+                                                            const CapyPDF_Structure_Type stype,
                                                             const CapyPDF_StructureItemId *parent,
                                                             CapyPDF_StructItemExtraData *extra,
                                                             CapyPDF_StructureItemId *out_ptr)
@@ -476,7 +476,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
                                                         const char *separation_name,
-                                                        CapyPDF_DeviceColorspace cs,
+                                                        CapyPDF_Device_Colorspace cs,
                                                         CapyPDF_FunctionId fid,
                                                         CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT {
@@ -526,7 +526,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *ge
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
-                                                           CapyPDF_StructureType builtin,
+                                                           CapyPDF_Structure_Type builtin,
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
@@ -1364,7 +1364,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_CS(
-    CapyPDF_TransparencyGroupProperties *props, CapyPDF_DeviceColorspace cs) CAPYPDF_NOEXCEPT {
+    CapyPDF_TransparencyGroupProperties *props, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT {
     auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
     p->CS = cs;
     RETNOERR;
@@ -1453,7 +1453,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
-    const CapyPDF_RasterImage *image, CapyPDF_ImageColorspace *out_ptr) CAPYPDF_NOEXCEPT {
+    const CapyPDF_RasterImage *image, CapyPDF_Image_Colorspace *out_ptr) CAPYPDF_NOEXCEPT {
     auto *i = reinterpret_cast<const RasterImage *>(image);
     if(auto *raw = std::get_if<RawPixelImage>(i)) {
         *out_ptr = raw->md.cs;
@@ -1536,7 +1536,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double x0,
                                                  double y0,
                                                  double x1,
@@ -1584,7 +1584,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_N
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double *coords,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
@@ -1593,7 +1593,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_DeviceColorspace cs,
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -1649,7 +1649,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_DeviceColorspace cs,
+CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double minx,
                                                  double miny,
                                                  double maxx,
@@ -1749,7 +1749,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
-    CapyPDF_Annotation *annotation, CapyPDF_AnnotationFlags flags) CAPYPDF_NOEXCEPT {
+    CapyPDF_Annotation *annotation, CapyPDF_Annotation_Flags flags) CAPYPDF_NOEXCEPT {
     auto *a = reinterpret_cast<Annotation *>(annotation);
     a->flags = flags;
     RETNOERR;
@@ -1962,7 +1962,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *s
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_SoftMaskSubType subtype,
+CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_Soft_Mask_Subtype subtype,
                                              CapyPDF_TransparencyGroupId trid,
                                              CapyPDF_SoftMask **out_ptr) CAPYPDF_NOEXCEPT {
     *out_ptr = reinterpret_cast<CapyPDF_SoftMask *>(new SoftMask{subtype, trid});

@@ -83,7 +83,7 @@ public:
         _d.reset(tge);
     }
 
-    void set_CS(CapyPDF_DeviceColorspace cs) {
+    void set_CS(CapyPDF_Device_Colorspace cs) {
         CAPY_CPP_CHECK(capy_transparency_group_properties_set_CS(*this, cs));
     }
 
@@ -134,10 +134,10 @@ public:
     void set_language(std::string_view const &lang) {
         CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang.data()));
     }
-    void set_device_profile(CapyPDF_DeviceColorspace cs, std::string_view const &path) {
+    void set_device_profile(CapyPDF_Device_Colorspace cs, std::string_view const &path) {
         CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path.data()));
     }
-    void set_colorspace(CapyPDF_DeviceColorspace cs) {
+    void set_colorspace(CapyPDF_Device_Colorspace cs) {
         CAPY_CPP_CHECK(capy_document_properties_set_colorspace(*this, cs));
     }
     void set_output_intent(std::string_view const &identifier) {
@@ -264,7 +264,7 @@ class Type2Shading : public CapyC<CapyPDF_Shading> {
 public:
     friend class Generator;
 
-    Type2Shading(CapyPDF_DeviceColorspace cs,
+    Type2Shading(CapyPDF_Device_Colorspace cs,
                  double x0,
                  double y0,
                  double x1,
@@ -287,7 +287,7 @@ class Type3Shading : public CapyC<CapyPDF_Shading> {
 public:
     friend class Generator;
 
-    Type3Shading(CapyPDF_DeviceColorspace cs,
+    Type3Shading(CapyPDF_Device_Colorspace cs,
                  double *coords,
                  uint32_t num_coords,
                  CapyPDF_FunctionId func) {
@@ -310,7 +310,7 @@ class Type4Shading : public CapyC<CapyPDF_Shading> {
 public:
     friend class Generator;
 
-    Type4Shading(CapyPDF_DeviceColorspace cs, double minx, double miny, double maxx, double maxy) {
+    Type4Shading(CapyPDF_Device_Colorspace cs, double minx, double miny, double maxx, double maxy) {
         CapyPDF_Shading *sd;
         CAPY_CPP_CHECK(capy_type4_shading_new(cs, minx, miny, maxx, maxy, &sd));
         _d.reset(sd);
@@ -344,7 +344,7 @@ class Type6Shading : public CapyC<CapyPDF_Shading> {
 public:
     friend class Generator;
 
-    Type6Shading(CapyPDF_DeviceColorspace cs, double minx, double miny, double maxx, double maxy) {
+    Type6Shading(CapyPDF_Device_Colorspace cs, double minx, double miny, double maxx, double maxy) {
         CapyPDF_Shading *sd;
         CAPY_CPP_CHECK(capy_type6_shading_new(cs, minx, miny, maxx, maxy, &sd));
         _d.reset(sd);
@@ -496,7 +496,7 @@ class SoftMask : public CapyC<CapyPDF_SoftMask> {
 public:
     friend class Generator;
 
-    SoftMask(CapyPDF_SoftMaskSubType type, CapyPDF_TransparencyGroupId tgid) {
+    SoftMask(CapyPDF_Soft_Mask_Subtype type, CapyPDF_TransparencyGroupId tgid) {
         CapyPDF_SoftMask *sm;
         CAPY_CPP_CHECK(capy_soft_mask_new(type, tgid, &sm));
         _d.reset(sm);

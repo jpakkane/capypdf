@@ -51,7 +51,7 @@ public:
     rvoe<DeviceCMYKColor> to_cmyk(const DeviceRGBColor &rgb);
 
     rvoe<RawPixelImage> convert_image_to(RawPixelImage ri,
-                                         CapyPDF_DeviceColorspace output_format,
+                                         CapyPDF_Device_Colorspace output_format,
                                          CapyPDF_Rendering_Intent intent) const;
 
     const std::string &get_rgb() const { return rgb_profile_data; }
@@ -65,8 +65,8 @@ public:
 private:
     PdfColorConverter();
 
-    cmsHPROFILE profile_for(CapyPDF_DeviceColorspace cs) const;
-    cmsHPROFILE profile_for(CapyPDF_ImageColorspace cs) const;
+    cmsHPROFILE profile_for(CapyPDF_Device_Colorspace cs) const;
+    cmsHPROFILE profile_for(CapyPDF_Image_Colorspace cs) const;
 
     LcmsHolder rgb_profile;
     LcmsHolder gray_profile;
