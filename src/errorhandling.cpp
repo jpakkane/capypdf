@@ -79,6 +79,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 
 "Image is not in format required by output settings.",
 "Page reference points to a non-existing page.",
+"Page number less than previous entry, page labeling must be added sequentially",
 "Title is empty.",
 "Transparency properties can only be set on pages and transparency groups.",
 "Matrix can only be set for form XObjects.",

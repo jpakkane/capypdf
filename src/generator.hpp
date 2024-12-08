@@ -118,6 +118,10 @@ public:
     PdfDrawContext *new_color_pattern(const PdfRectangle &rect);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
+    rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
+                                          std::optional<CapyPDF_Page_Label_Number_Style> style,
+                                          std::optional<u8string> prefix,
+                                          std::optional<uint32_t> start_num);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<CapyPDF_PatternId> add_shading_pattern(const ShadingPattern &shp);
     rvoe<CapyPDF_PatternId> add_tiling_pattern(PdfDrawContext &cp);

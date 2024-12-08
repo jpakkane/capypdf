@@ -114,6 +114,12 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     ctx.clear();
     return PageId{(int32_t)pdoc.pages.size() - 1};
 }
+rvoe<NoReturnValue> PdfGen::add_page_labeling(uint32_t start_page,
+                                              std::optional<CapyPDF_Page_Label_Number_Style> style,
+                                              std::optional<u8string> prefix,
+                                              std::optional<uint32_t> start_num) {
+    return pdoc.add_page_labeling(start_page, style, prefix, start_num);
+}
 
 rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     if(ctx.draw_context_type() != CAPY_DC_FORM_XOBJECT) {

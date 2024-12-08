@@ -212,6 +212,31 @@ CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *gen,
     return conv_err(rc);
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *gen,
+                                                           uint32_t start_page,
+                                                           CapyPDF_Page_Label_Number_Style *style,
+                                                           const char *prefix,
+                                                           uint32_t *start_num) CAPYPDF_NOEXCEPT {
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    std::optional<CapyPDF_Page_Label_Number_Style> opt_style;
+    std::optional<u8string> opt_prefix;
+    std::optional<uint32_t> opt_start_num;
+    if(style) {
+        opt_style = *style;
+    }
+    if(prefix) {
+        auto u8_prefix = u8string::from_cstr(prefix);
+        if(!u8_prefix) {
+            return conv_err(u8_prefix);
+        }
+        opt_prefix = std::move(*u8_prefix);
+    }
+    if(start_num) {
+        opt_start_num = *start_num;
+    }
+    return conv_err(g->add_page_labeling(start_page, opt_style, opt_prefix, opt_start_num));
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)

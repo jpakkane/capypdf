@@ -299,6 +299,14 @@ typedef enum {
 } CapyPDF_Form_Submit_Action_Flags;
 
 typedef enum {
+    CAPY_PAGE_LABEL_NUMBER_STYLE_DECIMAL,
+    CAPY_PAGE_LABEL_NUMBER_STYLE_ROMAN_UPPER,
+    CAPY_PAGE_LABEL_NUMBER_STYLE_ROMAN_LOWER,
+    CAPY_PAGE_LABEL_NUMBER_STYLE_LETTER_UPPER,
+    CAPY_PAGE_LABEL_NUMBER_STYLE_LETTER_LOWER
+} CapyPDF_Page_Label_Number_Style;
+
+typedef enum {
     CAPY_PAGE_LAYOUT_SINGLE_PAGE,
     CAPY_PAGE_LAYOUT_ONE_COLUMN,
     CAPY_PAGE_LAYOUT_TWO_COLUMN_LEFT,
@@ -478,6 +486,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_new(const char *filename,
                                              CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g,
                                                   CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *gen,
+                                                           uint32_t start_page,
+                                                           CapyPDF_Page_Label_Number_Style *style,
+                                                           const char *prefix,
+                                                           uint32_t *start_num) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)
