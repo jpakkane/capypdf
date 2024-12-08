@@ -1082,12 +1082,12 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, dprops) as gen:
             ta = capypdf.Annotation.new_text_annotation('This is a text ännotation.')
             ta.set_rectangle(30, 80, 40, 90)
-            taid = gen.create_annotation(ta)
+            taid = gen.add_annotation(ta)
             fid = gen.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
             embid = gen.embed_file(image_dir / '../readme.md')
             emba = capypdf.Annotation.new_file_attachment_annotation(embid)
             emba.set_rectangle(30, 50, 40, 60)
-            embid = gen.create_annotation(emba)
+            embid = gen.add_annotation(emba)
             with gen.page_draw_context() as ctx:
                 ctx.annotate(taid)
                 ctx.render_text("<- This is a text annotation", fid, 11, 50, 80)
@@ -1198,24 +1198,24 @@ class TestPDFCreation(unittest.TestCase):
                 a = capypdf.Annotation.new_printers_mark_annotation(vid)
                 a.set_rectangle(bleed_size-0.5, 0, bleed_size+.5, cropmark_size)
                 a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
-                aid = gen.create_annotation(a)
+                aid = gen.add_annotation(a)
                 ctx.annotate(aid)
                 a = capypdf.Annotation.new_printers_mark_annotation(vid)
                 a.set_rectangle(bleed_size-0.5, h-cropmark_size, bleed_size+.5, h)
                 a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
-                aid = gen.create_annotation(a)
+                aid = gen.add_annotation(a)
                 ctx.annotate(aid)
 
                 # Horizontal annotations
                 a = capypdf.Annotation.new_printers_mark_annotation(hid)
                 a.set_rectangle(0, bleed_size - 0.5, cropmark_size, bleed_size+.5)
                 a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
-                aid = gen.create_annotation(a)
+                aid = gen.add_annotation(a)
                 ctx.annotate(aid)
                 a = capypdf.Annotation.new_printers_mark_annotation(hid)
                 a.set_rectangle(0, h - bleed_size - 0.5, cropmark_size, h - bleed_size+.5)
                 a.set_flags(capypdf.AnnotationFlag.Print | capypdf.AnnotationFlag.ReadOnly)
-                aid = gen.create_annotation(a)
+                aid = gen.add_annotation(a)
                 ctx.annotate(aid)
 
                 # The other corners would go here, but I'm lazy.

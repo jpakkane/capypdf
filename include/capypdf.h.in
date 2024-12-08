@@ -565,9 +565,9 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_generator_add_optional_content_group(CapyPDF_Generator *gen,
                                           const CapyPDF_OptionalContentGroup *ocg,
                                           CapyPDF_OptionalContentGroupId *out_ptr) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
-                                                           CapyPDF_Annotation *annotation,
-                                                           CapyPDF_AnnotationId *out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
+                                                        CapyPDF_Annotation *annotation,
+                                                        CapyPDF_AnnotationId *out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,

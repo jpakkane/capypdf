@@ -322,6 +322,7 @@ cfunc_types = (
 ('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, enum_type, FunctionId]),
 ('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
+('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 
@@ -1189,9 +1190,9 @@ class Generator:
         check_error(libfile.capy_generator_add_optional_content_group(self, ocg, ctypes.pointer(ocgid)))
         return ocgid
 
-    def create_annotation(self, annotation):
+    def add_annotation(self, annotation):
         aid = AnnotationId()
-        check_error(libfile.capy_generator_create_annotation(self, annotation, ctypes.pointer(aid)))
+        check_error(libfile.capy_generator_add_annotation(self, annotation, ctypes.pointer(aid)))
         return aid
 
     def add_rolemap_entry(self, name, builtin_type):

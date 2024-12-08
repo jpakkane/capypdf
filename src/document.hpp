@@ -408,7 +408,7 @@ public:
     rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
 
     // Annotations.
-    rvoe<CapyPDF_AnnotationId> create_annotation(const Annotation &a);
+    rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a);
 
     // Structure itemsconst std::array<const char *, 3> colorspace_names
     rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_Structure_Type stype,

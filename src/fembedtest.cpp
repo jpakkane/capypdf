@@ -16,8 +16,8 @@ void file_embed() {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         auto efid = gen.embed_file("embed.txt").value();
-        auto fileannoid = gen.create_annotation(Annotation{FileAttachmentAnnotation{efid},
-                                                           PdfRectangle{35, 95, 45, 105}})
+        auto fileannoid = gen.add_annotation(Annotation{FileAttachmentAnnotation{efid},
+                                                        PdfRectangle{35, 95, 45, 105}})
                               .value();
         {
             auto ctxguard = gen.guarded_page_context();
@@ -28,7 +28,7 @@ void file_embed() {
             ctx.annotate(fileannoid);
             auto textannoid =
                 gen
-                    .create_annotation(Annotation{
+                    .add_annotation(Annotation{
                         TextAnnotation{u8string::from_cstr("This is a text ännotation").value()},
                         PdfRectangle{150, 60, 180, 90}})
                     .value();
@@ -36,7 +36,7 @@ void file_embed() {
             ctx.cmd_rg(0, 0, 1);
             ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
-                gen.create_annotation(
+                gen.add_annotation(
                        Annotation{UriAnnotation{asciistring::from_cstr("https://github.com/"
                                                                        "mesonbuild/meson")
                                                     .value()},
@@ -71,8 +71,8 @@ void video_player() {
             auto &ctx = ctxguard.ctx;
             ctx.render_pdfdoc_text_builtin("Video below", CAPY_FONT_HELVETICA, 12, 70, 170);
             auto media_anno_id =
-                gen.create_annotation(Annotation{ScreenAnnotation{efid, mimetype, subplay},
-                                                 PdfRectangle{20, 20, 180, 160}})
+                gen.add_annotation(Annotation{ScreenAnnotation{efid, mimetype, subplay},
+                                              PdfRectangle{20, 20, 180, 160}})
                     .value();
             ctx.annotate(media_anno_id);
         }

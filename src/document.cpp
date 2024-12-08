@@ -1590,7 +1590,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
     return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
-rvoe<CapyPDF_AnnotationId> PdfDocument::create_annotation(const Annotation &a) {
+rvoe<CapyPDF_AnnotationId> PdfDocument::add_annotation(const Annotation &a) {
     if(!a.rect) {
         RETERR(AnnotationMissingRect);
     }

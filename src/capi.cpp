@@ -511,13 +511,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_create_annotation(CapyPDF_Generator *gen,
-                                                           CapyPDF_Annotation *annotation,
-                                                           CapyPDF_AnnotationId *out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
+                                                        CapyPDF_Annotation *annotation,
+                                                        CapyPDF_AnnotationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *a = reinterpret_cast<Annotation *>(annotation);
-    auto rc = g->create_annotation(*a);
+    auto rc = g->add_annotation(*a);
     if(rc) {
         *out_ptr = rc.value();
     }
