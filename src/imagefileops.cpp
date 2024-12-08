@@ -590,17 +590,24 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
 
 rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
     // There is no metadata telling us what the bytes represent.
-    // Try to open with all parsers until one succeeds.
+    // Autodetect with magic numbers.
 
-    auto png = load_png_from_memory(buf, bufsize);
-    if(png) {
-        return png;
+    if(bufsize < 10) {
+        RETERR(UnsupportedFormat);
     }
-    auto jpg = load_jpg_from_memory(buf, bufsize);
-    if(jpg) {
-        return jpg;
+
+    std::string_view v(buf, buf + bufsize);
+
+    if(v.starts_with(".PNG")) {
+        return load_png_from_memory(buf, bufsize);
     }
-    return load_tif_from_memory(buf, bufsize);
+    if(v.starts_with("II*") || v.starts_with("MM")) {
+        return load_tif_from_memory(buf, bufsize);
+    }
+    if((unsigned char)v[0] == 0xff && (unsigned char)v[1] == 0xd8 && (unsigned char)v[2] == 0xff) {
+        return load_jpg_from_memory(buf, bufsize);
+    }
+    RETERR(UnsupportedFormat);
 }
 
 } // namespace capypdf::internal
