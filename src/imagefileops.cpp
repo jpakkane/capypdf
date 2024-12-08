@@ -491,7 +491,8 @@ void jpegErrorExit(j_common_ptr cinfo) {
     longjmp(e->buf, 1);
 }
 
-rvoe<jpg_image> load_jpg_metadata(const char *buf, int64_t bufsize) {
+rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
+    assert(f == nullptr || buf == nullptr);
     jpg_image im;
     // Libjpeg kills the process on invalid input.
     // Changing the behaviour requires mucking about
@@ -507,10 +508,14 @@ rvoe<jpg_image> load_jpg_metadata(const char *buf, int64_t bufsize) {
     if(setjmp(jerr.buf)) {
         RETERR(UnsupportedFormat);
     }
+    jpeg_create_decompress(&cinfo);
     std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
         &cinfo, &jpeg_destroy_decompress);
-    jpeg_create_decompress(&cinfo);
-    jpeg_mem_src(&cinfo, (const unsigned char *)buf, bufsize);
+    if(f) {
+        jpeg_stdio_src(&cinfo, f);
+    } else {
+        jpeg_mem_src(&cinfo, (const unsigned char *)buf, bufsize);
+    }
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
         RETERR(UnsupportedFormat);
     }
@@ -543,14 +548,19 @@ rvoe<jpg_image> load_jpg_metadata(const char *buf, int64_t bufsize) {
 }
 
 rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
-    ERC(contents, load_file(fname));
-    ERC(meta, load_jpg_metadata(contents.data(), contents.size()));
-    meta.file_contents = std::move(contents);
+    FILE *f = fopen(fname.string().c_str(), "rb");
+    if(!f) {
+        RETERR(FileDoesNotExist);
+    }
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    ERC(meta, load_jpg_metadata(f, nullptr, 0));
+    ERC(file_contents, load_file(f));
+    meta.file_contents = std::move(file_contents);
     return meta;
 }
 
 rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
-    ERC(meta, load_jpg_metadata(buf, bufsize));
+    ERC(meta, load_jpg_metadata(nullptr, buf, bufsize));
     meta.file_contents = std::string(buf, buf + bufsize);
     return meta;
 }
