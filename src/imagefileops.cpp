@@ -491,15 +491,13 @@ void jpegErrorExit(j_common_ptr cinfo) {
     longjmp(e->buf, 1);
 }
 
-rvoe<jpg_image> do_jpg_load(std::string contents) {
+rvoe<jpg_image> load_jpg_metadata(const char *buf, int64_t bufsize) {
     jpg_image im;
     // Libjpeg kills the process on invalid input.
     // Changing the behaviour requires mucking about
     // with setjmp/longjmp.
     //
     // See: https://github.com/eiimage/detiq-t/blob/master/ImageIn/JpgImage.cpp
-
-    im.file_contents = std::move(contents);
 
     struct jpeg_decompress_struct cinfo;
     JpegError jerr;
@@ -512,7 +510,7 @@ rvoe<jpg_image> do_jpg_load(std::string contents) {
     std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
         &cinfo, &jpeg_destroy_decompress);
     jpeg_create_decompress(&cinfo);
-    jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
+    jpeg_mem_src(&cinfo, (const unsigned char *)buf, bufsize);
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
         RETERR(UnsupportedFormat);
     }
@@ -546,12 +544,15 @@ rvoe<jpg_image> do_jpg_load(std::string contents) {
 
 rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
     ERC(contents, load_file(fname));
-    return do_jpg_load(std::move(contents));
+    ERC(meta, load_jpg_metadata(contents.data(), contents.size()));
+    meta.file_contents = std::move(contents);
+    return meta;
 }
 
 rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
-    std::string contents(buf, buf + bufsize);
-    return do_jpg_load(std::move(contents));
+    ERC(meta, load_jpg_metadata(buf, bufsize));
+    meta.file_contents = std::string(buf, buf + bufsize);
+    return meta;
 }
 
 } // namespace
