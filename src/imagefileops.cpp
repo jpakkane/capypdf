@@ -481,6 +481,16 @@ rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
     return do_tiff_load(tif);
 }
 
+struct JpegError {
+    struct jpeg_error_mgr jmgr;
+    jmp_buf buf;
+};
+
+void jpegErrorExit(j_common_ptr cinfo) {
+    JpegError *e = (JpegError *)cinfo;
+    longjmp(e->buf, 1);
+}
+
 rvoe<jpg_image> do_jpg_load(std::string contents) {
     jpg_image im;
     // Libjpeg kills the process on invalid input.
@@ -488,26 +498,24 @@ rvoe<jpg_image> do_jpg_load(std::string contents) {
     // with setjmp/longjmp.
     //
     // See: https://github.com/eiimage/detiq-t/blob/master/ImageIn/JpgImage.cpp
-    //
-    // A simpler solution is to check the magic bytes first. If the file
-    // is corrupt somewhere later, erroring out is fine.
-    const char jpg_magic[4] = {(char)0xff, (char)0xd8, (char)0xff, 0};
-    if(!contents.starts_with(jpg_magic)) {
-        RETERR(UnsupportedFormat);
-    }
+
     im.file_contents = std::move(contents);
 
     struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
+    JpegError jerr;
 
-    cinfo.err = jpeg_std_error(&jerr);
+    cinfo.err = jpeg_std_error(&jerr.jmgr);
+    jerr.jmgr.error_exit = jpegErrorExit;
+    if(setjmp(jerr.buf)) {
+        RETERR(UnsupportedFormat);
+    }
+    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
+        &cinfo, &jpeg_destroy_decompress);
     jpeg_create_decompress(&cinfo);
     jpeg_mem_src(&cinfo, (const unsigned char *)im.file_contents.data(), im.file_contents.length());
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
         RETERR(UnsupportedFormat);
     }
-    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
-        &cinfo, &jpeg_destroy_decompress);
 
     jpeg_start_decompress(&cinfo);
     im.h = cinfo.image_height;
