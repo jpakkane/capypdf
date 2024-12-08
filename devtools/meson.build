@@ -13,3 +13,6 @@ if hb_dep.found()
     'hbtest.cpp',
     dependencies: [capypdf_internal_dep, hb_dep])
 endif
+
+executable('im2pdf', 'im2pdf.cpp',
+  dependencies: capypdf_dep)
