@@ -1105,6 +1105,40 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.annotate(embid)
                 ctx.render_text("<- This is a file attachment annotation", fid, 11, 50, 50)
 
+    @cleanup('python_annotate_link')
+    def test_annotate_link(self, ofilename, w=200, h=200):
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops = capypdf.DocumentProperties()
+        dprops.set_default_page_properties(pprops)
+
+        with capypdf.Generator(ofilename, dprops) as gen:
+            forward_anno = capypdf.Annotation.new_link_annotation()
+            forward_dest = capypdf.Destination()
+            forward_dest.set_page_fit(1)
+            forward_anno.set_destination(forward_dest)
+            forward_anno.set_rectangle(10, 10, 20, 20)
+            forward_id = gen.add_annotation(forward_anno)
+
+            backward_anno = capypdf.Annotation.new_link_annotation()
+            backward_dest = capypdf.Destination()
+            backward_dest.set_page_fit(0)
+            backward_anno.set_destination(backward_dest)
+            backward_anno.set_rectangle(10, 10, 20, 20)
+            backward_id = gen.add_annotation(backward_anno)
+
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_rg(1, 0, 0)
+                ctx.cmd_re(10, 10, 20, 20)
+                ctx.cmd_f()
+                ctx.annotate(forward_id)
+
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_rg(0, 0, 1)
+                ctx.cmd_re(10, 10, 20, 20)
+                ctx.cmd_f()
+                ctx.annotate(backward_id)
+
     @validate_image('python_tagged', 200, 200)
     def test_tagged(self, ofilename, w, h):
         pprops = capypdf.PageProperties()

@@ -37,9 +37,9 @@ void file_embed() {
             ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
                 gen.add_annotation(
-                       Annotation{UriAnnotation{asciistring::from_cstr("https://github.com/"
-                                                                       "mesonbuild/meson")
-                                                    .value()},
+                       Annotation{LinkAnnotation{asciistring::from_cstr("https://github.com/"
+                                                                        "mesonbuild/meson")
+                                                     .value()},
                                   PdfRectangle{10, 10, 32, 20}})
                     .value();
             ctx.annotate(linkannoid);

@@ -247,6 +247,14 @@ void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) 
     }
 }
 
+template<typename T1, typename T2> static void append_value_or_null(T1 &app, const T2 &val) {
+    if(val) {
+        std::format_to(app, "{:f} ", val.value());
+    } else {
+        std::format_to(app, "{} ", "null");
+    }
+}
+
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -255,6 +263,30 @@ const std::array<const char *, 4> rendering_intent_names{
     "Saturation",
     "Perceptual",
 };
+
+rvoe<NoReturnValue> serialize_destination(std::string &oitem,
+                                          const Destination &dest,
+                                          int32_t page_object_number,
+                                          std::string_view indent) {
+    auto app = std::back_inserter(oitem);
+    std::format_to(app, "/Dest [ {} 0 R\n", page_object_number);
+    if(auto xyz = std::get_if<DestinationXYZ>(&dest.loc)) {
+        std::format_to(app, "{}/XYZ ", indent);
+        append_value_or_null(app, xyz->x);
+        append_value_or_null(app, xyz->y);
+        append_value_or_null(app, xyz->z);
+        oitem += '\n';
+    } else if(std::holds_alternative<DestinationFit>(dest.loc)) {
+        std::format_to(app, "{}/Fit\n", indent);
+    } else if(auto r = std::get_if<DestinationFitR>(&dest.loc)) {
+        std::format_to(app, "{}/FitR {} {} {} {}\n", indent, r->left, r->bottom, r->right, r->top);
+    } else {
+        fprintf(stderr, "No link target specified.\n");
+        std::abort();
+    }
+    std::format_to(app, "{}]\n", indent);
+    RETOK;
+}
 
 rvoe<PdfDocument> PdfDocument::construct(const DocumentProperties &d, PdfColorConverter cm) {
     rvoe<PdfDocument> newdoc{PdfDocument(d, std::move(cm))};
@@ -745,14 +777,6 @@ void PdfDocument::create_output_intent() {
     output_intent_object = add_object(FullPDFObject{buf, {}});
 }
 
-template<typename T1, typename T2> static void append_value_or_null(T1 &app, const T2 &val) {
-    if(val) {
-        std::format_to(app, "{:f} ", val.value());
-    } else {
-        std::format_to(app, "{} ", "null");
-    }
-}
-
 rvoe<int32_t> PdfDocument::create_outlines() {
     int32_t first_obj_num = (int32_t)document_objects.size();
     int32_t catalog_obj_num = first_obj_num + (int32_t)outlines.items.size();
@@ -773,20 +797,8 @@ rvoe<int32_t> PdfDocument::create_outlines() {
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = pages.at(physical_page).page_obj_num;
-            std::format_to(app, "  /Dest [ {} 0 R ", page_object_number);
-            if(auto xyz = std::get_if<DestinationXYZ>(&dest.loc)) {
-                std::format_to(app, "/XYZ ");
-                append_value_or_null(app, xyz->x);
-                append_value_or_null(app, xyz->y);
-                append_value_or_null(app, xyz->z);
-            } else if(std::holds_alternative<DestinationFit>(dest.loc)) {
-                std::format_to(app, "/Fit ");
-            } else if(auto r = std::get_if<DestinationFitR>(&dest.loc)) {
-                std::format_to(app, "/FitR {} {} {} {} ", r->left, r->bottom, r->right, r->top);
-            } else {
-                std::abort();
-            }
-            oitem += "]\n";
+            oitem += "  ";
+            serialize_destination(oitem, dest, page_object_number, "  ");
         }
         if(siblings.size() > 1) {
             auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
