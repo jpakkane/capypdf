@@ -66,7 +66,7 @@ class Demopresentation:
         self.pdfgen = capypdf.Generator(self.ofilename, dprops)
         self.basefont = self.pdfgen.load_font(self.fontfile)
         self.boldbasefont = self.pdfgen.load_font(self.boldfontfile)
-        #self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
+        self.symbolfont = self.pdfgen.load_font(self.symbolfontfile)
         self.codefont = self.pdfgen.load_font(self.codefontfile)
         self.setup_colors()
         self.setup_parsevars()
@@ -153,7 +153,7 @@ class Demopresentation:
         if page['type'] == 'fullpage':
             return
         with ctx.push_gstate():
-            ctx.cmd_rg(0.1, 0.3, 0.5)
+            ctx.cmd_rg(57/255, 32/255, 124/255)
             ctx.cmd_re(0, 0, self.w, self.footerh)
             ctx.cmd_f()
             ctx.cmd_rg(1, 1, 1)
@@ -226,8 +226,8 @@ class Demopresentation:
                 ocg = self.pdfgen.add_optional_content_group(capypdf.OptionalContentGroup('bullet' + str(bullet_id)))
                 ocgs.append(ocg)
                 ctx.cmd_BDC(ocg)
-            ctx.render_text('—', #p['bulletchar'],
-                            self.basefont, #self.symbolfont,
+            ctx.render_text(p['bulletchar'],
+                            self.symbolfont,
                             self.symbolsize,
                             box_indent - 40,
                             current_y+1)

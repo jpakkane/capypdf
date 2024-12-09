@@ -16,3 +16,6 @@ endif
 
 executable('im2pdf', 'im2pdf.cpp',
   dependencies: capypdf_dep)
+
+executable('text2pdf', 'text2pdf.cpp',
+  dependencies: capypdf_dep)

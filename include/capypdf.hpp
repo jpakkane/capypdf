@@ -491,6 +491,10 @@ public:
         CAPY_CPP_CHECK(capy_dc_set_group_matrix(*this, a, b, c, d, e, f));
     }
 
+    void render_text(const char *text, CapyPDF_FontId fid, double point_size, double x, double y) {
+        CAPY_CPP_CHECK(capy_dc_render_text(*this, text, fid, point_size, x, y));
+    }
+
 private:
     explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
 };

@@ -289,7 +289,6 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_TJ(ts)
                 ctx.render_text_obj(t)
 
-
     @validate_image('python_smallcaps', 200, 200)
     def test_smallcaps(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
@@ -318,6 +317,18 @@ class TestPDFCreation(unittest.TestCase):
                     ts.append_raw_glyph(gid, codepoint)
                 t.cmd_TJ(ts)
                 ctx.render_text_obj(t)
+
+    @validate_image('python_unusualfont', 200, 200)
+    def test_unusualfont(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            font = g.load_font(noto_fontdir / 'NotoSansSymbols2-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                ctx.render_text("🖙", font, 100, 30, 80)
+
 
     @validate_image('python_lab', 200, 200)
     def test_lab(self, ofilename, w, h):

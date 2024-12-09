@@ -540,22 +540,33 @@ void PdfDocument::pad_subset_fonts() {
     const uint32_t SPACE = ' ';
     const uint32_t max_count = 100;
 
+    // A hidden requirement of the PDF text model is that _every_ subset font
+    // must have the space character mapped at location 32.
+
     for(auto &sf : fonts) {
+        auto face = sf.fontdata.face.get();
+        if(!font_has_character(face, SPACE)) {
+            // This font does not have the space character.
+            // Thus nobody can use it and the subset does not need padding.
+            continue;
+        }
         auto &subsetter = sf.subsets;
         assert(subsetter.num_subsets() > 0);
         const auto subset_id = subsetter.num_subsets() - 1;
-        if(subsetter.get_subset(subset_id).size() > SPACE) {
-            continue;
-        }
         // Try to add glyphs until the subset has 32 elements.
         bool padding_succeeded = false;
+        uint32_t gindex;
+        auto charcode = FT_Get_First_Char(face, &gindex);
         for(uint32_t i = 0; i < max_count; ++i) {
-            if(subsetter.get_subset(subset_id).size() == SPACE) {
+            if(subsetter.get_subset(subset_id).size() >= SPACE) {
                 padding_succeeded = true;
-                break;
             }
-            const auto cur_glyph_codepoint = '!' + i;
-            subsetter.get_glyph_subset(cur_glyph_codepoint, {});
+            auto rv = subsetter.get_glyph_subset(charcode, gindex);
+            if(!rv) {
+                // fprintf(stderr, "Bad!\n");
+                // std::abort();
+            }
+            charcode = FT_Get_Next_Char(face, charcode, &gindex);
         }
         if(!padding_succeeded) {
             fprintf(stderr,
@@ -564,7 +575,10 @@ void PdfDocument::pad_subset_fonts() {
             std::abort();
         }
         subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
-        assert(subsetter.get_subset(subset_id).size() == SPACE + 1);
+        assert(subsetter.get_subset(subset_id).size() > SPACE);
+        const auto &space_glyph = subsetter.get_subset(subset_id).at(SPACE);
+        assert(std::holds_alternative<RegularGlyph>(space_glyph));
+        assert(std::get<RegularGlyph>(space_glyph).unicode_codepoint == SPACE);
     }
 }
 
@@ -1016,10 +1030,18 @@ uint32_t PdfDocument::glyph_for_codepoint(FT_Face face, uint32_t ucs4) {
     return FT_Get_Char_Index(face, ucs4);
 }
 
+bool PdfDocument::font_has_character(CapyPDF_FontId fid, uint32_t codepoint) {
+    return font_has_character(fonts.at(fid.id).fontdata.face.get(), codepoint);
+}
+
+bool PdfDocument::font_has_character(FT_Face face, uint32_t codepoint) {
+    return FT_Get_Char_Index(face, codepoint) != 0;
+}
+
 rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
                                                 uint32_t codepoint,
                                                 const std::optional<uint32_t> glyph_id) {
-    if(!glyph_id && (FT_Get_Char_Index(fonts.at(fid.id).fontdata.face.get(), codepoint) == 0)) {
+    if(!glyph_id && !font_has_character(fid, codepoint)) {
         RETERR(MissingGlyph);
     }
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
