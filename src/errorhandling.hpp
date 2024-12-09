@@ -84,6 +84,7 @@ enum class ErrorCode : int32_t {
     EmptyFunctionList,
     IncorrectShadingType,
     IncorrectFunctionType,
+    IncorrectAnnotationType,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };
