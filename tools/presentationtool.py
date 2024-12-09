@@ -147,6 +147,12 @@ class Demopresentation:
         tr = capypdf.Transition()
         tr.set_S(ttype)
         tr.set_D(duration)
+        Di = tdict.get('Di', None)
+        if Di is not None:
+            tr.set_Di(Di)
+        SS = tdict.get('SS', None)
+        if SS is not None:
+            tr.set_SS(SS)
         ctx.set_page_transition(tr)
 
     def draw_master(self, ctx, page):
