@@ -86,6 +86,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Type3 Function must have at least one Type2 function inside",
 "Incorrect shading type.",
 "Incorrect function type.",
+"Incorrect annotation type.",
 };
 
 // clang-format on

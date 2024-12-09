@@ -1752,6 +1752,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
     RETNOERR;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{LinkAnnotation{}});
+    RETNOERR;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     *out_ptr =
@@ -1763,6 +1768,35 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     *out_ptr =
         reinterpret_cast<CapyPDF_Annotation *>(new Annotation{PrintersMarkAnnotation{fid}, {}});
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
+    CapyPDF_Annotation *annotation, const CapyPDF_Destination *d) CAPYPDF_NOEXCEPT {
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *dest = reinterpret_cast<const Destination *>(d);
+    if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
+        linka->Dest = *dest;
+        linka->URI.reset();
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation,
+                                                  const char *uri) CAPYPDF_NOEXCEPT {
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto urirc = asciistring::from_cstr(uri);
+    if(!urirc) {
+        return conv_err(urirc);
+    }
+    if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
+        linka->Dest.reset();
+        linka->URI = std::move(urirc.value());
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
     RETNOERR;
 }
 

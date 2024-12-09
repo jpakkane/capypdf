@@ -241,8 +241,15 @@ struct TextAnnotation {
     u8string content;
 };
 
-struct UriAnnotation {
-    asciistring uri;
+struct LinkAnnotation {
+    // This should really be an Action object but hove not
+    // gotten around to implementing it yet.
+    std::optional<asciistring> URI;
+    std::optional<Destination> Dest;
+    // HighlightType H
+    // UriAction PA;
+    // QuadPoints
+    // BS
 };
 
 struct ClipTimes {
@@ -261,8 +268,8 @@ struct PrintersMarkAnnotation {
 };
 
 typedef std::variant<TextAnnotation,
+                     LinkAnnotation,
                      FileAttachmentAnnotation,
-                     UriAnnotation,
                      ScreenAnnotation,
                      PrintersMarkAnnotation>
     AnnotationSubType;
@@ -332,6 +339,12 @@ struct ShadingInfo {
 };
 
 typedef std::variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
+
+// Not really the best place for this but it'll do for now.
+rvoe<NoReturnValue> serialize_destination(std::string &oitem,
+                                          const Destination &dest,
+                                          int32_t page_object_number,
+                                          std::string_view indent);
 
 class PdfDocument {
 public:

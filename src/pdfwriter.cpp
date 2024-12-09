@@ -623,18 +623,27 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
   /FS {} 0 R
 )",
                        doc.get(faa->fileid).filespec_obj);
-    } else if(auto ua = std::get_if<UriAnnotation>(&annotation.a.sub)) {
-        auto uri_as_str = pdfstring_quote(ua->uri.sv());
-        std::format_to(app,
-                       R"(  /Subtype /Link
-  /Contents {}
-  /A <<
+    } else if(auto linkobj = std::get_if<LinkAnnotation>(&annotation.a.sub)) {
+        std::format_to(app, "  /Subtype /Link\n");
+        if(linkobj->URI) {
+            assert(!linkobj->Dest);
+            auto uri_as_str = pdfstring_quote(linkobj->URI->sv());
+            std::format_to(app,
+                           R"(  /A <<
     /S /URI
     /URI {}
-  >>
 )",
-                       uri_as_str,
-                       uri_as_str);
+                           uri_as_str);
+        } else if(linkobj->Dest) {
+            dict += "  ";
+            const auto physical_page = linkobj->Dest->page;
+            if(physical_page < 0 || physical_page >= (int32_t)doc.pages.size()) {
+                RETERR(InvalidPageNumber);
+            }
+            const auto page_object_number = doc.pages.at(physical_page).page_obj_num;
+            serialize_destination(dict, linkobj->Dest.value(), page_object_number, "  ");
+        }
+        dict += "  >>\n";
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
         int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {

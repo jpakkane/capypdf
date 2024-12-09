@@ -516,8 +516,11 @@ cfunc_types = (
                                ctypes.c_void_p]),
 
 ('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_link_annotation_new', [ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
+('capy_annotation_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
@@ -1673,11 +1676,26 @@ class Annotation:
             raise CapyPDFException('Flag argument is not an AnnotationFlag.')
         check_error(libfile.capy_annotation_set_flags(self, flags.value ))
 
+    def set_destination(self, destination):
+        if not isinstance(destination, Destination):
+            raise CapyPDFException('Argument must be a Destination object.')
+        check_error(libfile.capy_annotation_set_destination(self, destination))
+
+    def set_uri(self, uri):
+        uritxt = uri.encode('ASCII')
+        check_error(libfile.capy_annotation_set_uri(self, uritxt))
+
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
         check_error(libfile.capy_text_annotation_new(text.encode('utf-8'), ctypes.pointer(ta)))
         return Annotation(ta)
+
+    @classmethod
+    def new_link_annotation(cls):
+        la = ctypes.c_void_p()
+        check_error(libfile.capy_link_annotation_new(ctypes.pointer(la)))
+        return Annotation(la)
 
     @classmethod
     def new_file_attachment_annotation(cls, fid):
