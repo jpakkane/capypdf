@@ -381,7 +381,7 @@ PdfDocument::add_page_labeling(uint32_t start_page,
                                std::optional<CapyPDF_Page_Label_Number_Style> style,
                                std::optional<u8string> prefix,
                                std::optional<uint32_t> start_num) {
-    if(!page_labels.empty() && page_labels.back().start_page < start_page) {
+    if(!page_labels.empty() && page_labels.back().start_page > start_page) {
         RETERR(NonSequentialPageNumber);
     }
     page_labels.emplace_back(start_page, style, std::move(prefix), start_num);
