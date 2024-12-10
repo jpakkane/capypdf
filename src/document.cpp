@@ -888,38 +888,6 @@ void PdfDocument::create_structure_root_dict() {
     structure_root_object = add_object(FullPDFObject{buf, {}});
 }
 
-void PdfDocument::pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs) {
-    const size_t max_count = 100;
-    const uint32_t SPACE = ' ';
-    if(subset_glyphs.size() > SPACE) {
-        return;
-    }
-    bool padding_succeeded = false;
-    for(uint32_t i = 0; i < max_count; ++i) {
-        if(subset_glyphs.size() == SPACE) {
-            padding_succeeded = true;
-            break;
-        }
-        // Yes, this is O(n^2), but n is at most 31.
-        const auto cur_glyph_codepoint = '!' + i;
-        auto glfind = [cur_glyph_codepoint](const TTGlyphs &g) {
-            return std::holds_alternative<RegularGlyph>(g) &&
-                   std::get<RegularGlyph>(g).unicode_codepoint == cur_glyph_codepoint;
-        };
-        if(std::find_if(subset_glyphs.cbegin(), subset_glyphs.cend(), glfind) !=
-           subset_glyphs.cend()) {
-            continue;
-        }
-        subset_glyphs.emplace_back(RegularGlyph{cur_glyph_codepoint, (uint32_t)-1});
-    }
-    if(!padding_succeeded) {
-        fprintf(stderr, "Font subset space padding failed.n");
-        std::abort();
-    }
-    subset_glyphs.emplace_back(RegularGlyph{SPACE, (uint32_t)-1});
-    assert(subset_glyphs.size() == SPACE + 1);
-}
-
 int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_Type atype) {
     auto stream = std::format(
         pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(atype), pdfa_conformance.at(atype));

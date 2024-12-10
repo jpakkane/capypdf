@@ -485,7 +485,6 @@ private:
 
     rvoe<NoReturnValue> generate_info_object();
     void pad_subset_fonts();
-    void pad_subset_until_space(std::vector<TTGlyphs> &subset_glyphs);
     int32_t add_pdfa_metadata_object(CapyPDF_PDFA_Type atype);
 
     rvoe<NoReturnValue> validate_format(const RawPixelImage &ri) const;
