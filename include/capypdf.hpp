@@ -434,6 +434,10 @@ public:
     void cmd_cm(double a, double b, double c, double d, double e, double f) {
         CAPY_CPP_CHECK(capy_dc_cmd_cm(*this, a, b, c, d, e, f));
     }
+    void cmd_Do(CapyPDF_TransparencyGroupId tgid) {
+        CAPY_CPP_CHECK(capy_dc_cmd_Do_trgroup(*this, tgid));
+    }
+    void cmd_Do(CapyPDF_ImageId iid) { CAPY_CPP_CHECK(capy_dc_cmd_Do_image(*this, iid)); }
     void cmd_EMC() { CAPY_CPP_CHECK(capy_dc_cmd_EMC(*this)); }
     void cmd_f() { CAPY_CPP_CHECK(capy_dc_cmd_f(*this)); }
     void cmd_fstar() { CAPY_CPP_CHECK(capy_dc_cmd_fstar(*this)); }
@@ -469,7 +473,6 @@ public:
     void cmd_d(double *values, int32_t num_values, double offset) {
         CAPY_CPP_CHECK(capy_dc_cmd_d(*this, values, num_values, offset));
     }
-    void cmd_Do(CapyPDF_TransparencyGroupId tgid) { CAPY_CPP_CHECK(capy_dc_cmd_Do(*this, tgid)); }
     void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_dc_cmd_gs(*this, gsid)); }
 
     void cmd_s() { CAPY_CPP_CHECK(capy_dc_cmd_s(*this)); }
@@ -477,7 +480,7 @@ public:
     void cmd_W() { CAPY_CPP_CHECK(capy_dc_cmd_W(*this)); }
     void cmd_Wstar() { CAPY_CPP_CHECK(capy_dc_cmd_Wstar(*this)); }
 
-    void draw_image(CapyPDF_ImageId iid) { CAPY_CPP_CHECK(capy_dc_draw_image(*this, iid)); }
+    [[deprecated]] void draw_image(CapyPDF_ImageId iid) { return cmd_Do(iid); }
 
     void set_custom_page_properties(PageProperties const &props) {
         CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));

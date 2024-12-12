@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     auto imageid = gen.add_image(image, capypdf::ImagePdfProperties{});
     auto ctx = gen.new_page_context();
     ctx.cmd_cm(200, 0, 0, 200, 0, 0);
-    ctx.draw_image(imageid);
+    ctx.cmd_Do(imageid);
     gen.add_page(ctx);
     gen.write();
 

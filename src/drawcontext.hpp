@@ -103,6 +103,7 @@ public:
     rvoe<NoReturnValue> cmd_d(double *dash_array, size_t dash_array_length, double phase);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_FormXObjectId fxoid);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_TransparencyGroupId trid);
+    rvoe<NoReturnValue> cmd_Do(CapyPDF_ImageId obj_num);
     rvoe<NoReturnValue> cmd_EMC();
     rvoe<NoReturnValue> cmd_f();
     // rvoe<NoReturnValue> cmd_F(); PDF spec says this is obsolete.
@@ -185,7 +186,6 @@ public:
     rvoe<NoReturnValue> set_color(const SeparationColor &color, bool stroke);
 
     void set_all_stroke_color();
-    rvoe<NoReturnValue> draw_image(CapyPDF_ImageId obj_num);
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);

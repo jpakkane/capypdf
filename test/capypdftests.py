@@ -155,20 +155,20 @@ class TestPDFCreation(unittest.TestCase):
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
                     ctx.scale(80, 80)
-                    ctx.draw_image(bg_img)
+                    ctx.cmd_Do(bg_img)
                 with ctx.push_gstate():
                     ctx.translate(0, 100)
                     ctx.translate(10, 10)
                     ctx.scale(80, 80)
-                    ctx.draw_image(mono_img)
+                    ctx.cmd_Do(mono_img)
                 with ctx.push_gstate():
                     ctx.translate(110, 110)
                     ctx.scale(80, 80)
-                    ctx.draw_image(gray_img)
+                    ctx.cmd_Do(gray_img)
                 with ctx.push_gstate():
                     ctx.translate(110, 10)
                     ctx.scale(80, 80)
-                    ctx.draw_image(rgb_tif_img)
+                    ctx.cmd_Do(rgb_tif_img)
 
     @validate_image('python_path', 200, 200)
     def test_path(self, ofilename, w, h):
@@ -475,11 +475,11 @@ class TestPDFCreation(unittest.TestCase):
                 with ctx.push_gstate():
                     ctx.translate(10, 10)
                     ctx.scale(20, 30)
-                    ctx.draw_image(iid)
+                    ctx.cmd_Do(iid)
                 with ctx.push_gstate():
                     ctx.translate(40, 40)
                     ctx.scale(20, 30)
-                    ctx.draw_image(ciid)
+                    ctx.cmd_Do(ciid)
 
     @validate_image('python_linestyles', 200, 200)
     def test_line_styles(self, ofilename, w, h):
@@ -917,7 +917,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_rg(0.06, 0.26, 0.05)
                     ctx.translate(50, 85)
                     ctx.scale(100, 100)
-                    ctx.draw_image(maskid)
+                    ctx.cmd_Do(maskid)
                 with ctx.push_gstate():
                     alphags = capypdf.GraphicsState()
                     alphags.set_ca(0.5)
@@ -929,7 +929,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.scale(1, -1)
                     ctx.translate(0, -0.5)
                     ctx.cmd_gs(gsid)
-                    ctx.draw_image(maskid)
+                    ctx.cmd_Do(maskid)
 
     @cleanup('outlines')
     def test_outline(self, ofilename):
@@ -1032,7 +1032,7 @@ class TestPDFCreation(unittest.TestCase):
             with gen.page_draw_context() as ctx:
                 with ctx.push_gstate():
                     ctx.scale(200, 200)
-                    ctx.draw_image(bgimage)
+                    ctx.cmd_Do(bgimage)
                 for j in range(4):
                     for i in range(4):
                         bm = capypdf.BlendMode(j*4+i)
@@ -1043,7 +1043,7 @@ class TestPDFCreation(unittest.TestCase):
                             ctx.cmd_gs(bmid)
                             ctx.translate(50*i, 150-j*50)
                             ctx.scale(50, 50)
-                            ctx.draw_image(fgimage)
+                            ctx.cmd_Do(fgimage)
 
     @validate_image('python_colorpattern', 200, 200)
     def test_colorpattern(self, ofilename, w, h):
@@ -1336,7 +1336,7 @@ class TestPDFCreation(unittest.TestCase):
                 with ctx.push_gstate():
                     ctx.translate(75, 50)
                     ctx.scale(50, 50)
-                    ctx.draw_image(image)
+                    ctx.cmd_Do(image)
 
 
     @validate_image('python_shading_transparency', 200, 200)

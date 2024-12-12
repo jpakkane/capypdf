@@ -675,10 +675,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
     return conv_err(dc->cmd_d(dash_array, array_size, phase));
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do(CapyPDF_DrawContext *ctx,
-                                         CapyPDF_TransparencyGroupId tgid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do_trgroup(
+    CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupId tgid) CAPYPDF_NOEXCEPT {
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
     return conv_err(dc->cmd_Do(tgid));
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do_image(CapyPDF_DrawContext *ctx,
+                                               CapyPDF_ImageId iid) CAPYPDF_NOEXCEPT {
+    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(c->cmd_Do(iid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_EMC(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
@@ -860,12 +866,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
     auto *color = reinterpret_cast<Color *>(c);
     return conv_err(dc->set_nonstroke_color(*color));
-}
-
-CAPYPDF_PUBLIC CapyPDF_EC capy_dc_draw_image(CapyPDF_DrawContext *ctx,
-                                             CapyPDF_ImageId iid) CAPYPDF_NOEXCEPT {
-    auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(c->draw_image(iid));
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,

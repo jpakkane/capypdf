@@ -380,6 +380,14 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
     RETOK;
 }
 
+rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_ImageId im_id) {
+    CHECK_INDEXNESS(im_id.id, doc->image_info);
+    auto obj_num = doc->image_object_number(im_id);
+    used_images.insert(obj_num);
+    std::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
+    RETOK;
+}
+
 rvoe<NoReturnValue> PdfDrawContext::cmd_EMC() {
     if(marked_depth == 0) {
         RETERR(EmcOnEmpty);
@@ -775,14 +783,6 @@ void PdfDrawContext::set_all_stroke_color() {
     uses_all_colorspace = true;
     cmd_CS("/All");
     cmd_SCN(1.0);
-}
-
-rvoe<NoReturnValue> PdfDrawContext::draw_image(CapyPDF_ImageId im_id) {
-    CHECK_INDEXNESS(im_id.id, doc->image_info);
-    auto obj_num = doc->image_object_number(im_id);
-    used_images.insert(obj_num);
-    std::format_to(cmd_appender, "{}/Image{} Do\n", ind, obj_num);
-    RETOK;
 }
 
 void PdfDrawContext::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }

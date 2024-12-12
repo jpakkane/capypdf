@@ -339,7 +339,8 @@ cfunc_types = (
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_d', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int32, ctypes.c_double]),
-('capy_dc_cmd_Do', [ctypes.c_void_p, TransparencyGroupId]),
+('capy_dc_cmd_Do_trgroup', [ctypes.c_void_p, TransparencyGroupId]),
+('capy_dc_cmd_Do_image', [ctypes.c_void_p, ImageId]),
 ('capy_dc_cmd_EMC', [ctypes.c_void_p]),
 ('capy_dc_cmd_f', [ctypes.c_void_p]),
 ('capy_dc_cmd_fstar', [ctypes.c_void_p]),
@@ -371,8 +372,6 @@ cfunc_types = (
 ('capy_dc_cmd_Wstar', [ctypes.c_void_p]),
 ('capy_dc_cmd_y', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_set_custom_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_dc_draw_image',
-    [ctypes.c_void_p, ImageId]),
 ('capy_dc_render_text',
     [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_render_text_obj',
@@ -757,10 +756,13 @@ class DrawContextBase:
     def cmd_d(self, array, phase):
         check_error(libfile.capy_dc_cmd_d(self, *to_array(ctypes.c_double, array), phase))
 
-    def cmd_Do(self, tgid):
-        if not isinstance(tgid, TransparencyGroupId):
-            raise CapyPDFException('Argument must be a transparency group id.')
-        check_error(libfile.capy_dc_cmd_Do(self, tgid))
+    def cmd_Do(self, id):
+        if isinstance(id, TransparencyGroupId):
+            check_error(libfile.capy_dc_cmd_Do_trgroup(self, id))
+        elif isinstance(id, ImageId):
+            check_error(libfile.capy_dc_cmd_Do_image(self, id))
+        else:
+            raise CapyPDFException('Unknown argument type for Do command.')
 
     def cmd_EMC(self):
         check_error(libfile.capy_dc_cmd_EMC(self))
@@ -884,11 +886,6 @@ class DrawContextBase:
 
     def render_text_obj(self, tobj):
         check_error(libfile.capy_dc_render_text_obj(self, tobj))
-
-    def draw_image(self, iid):
-        if not isinstance(iid, ImageId):
-            raise CapyPDFException('Image id argument is not an image id object.')
-        check_error(libfile.capy_dc_draw_image(self, iid))
 
     def set_page_transition(self, tr):
         if not isinstance(tr, Transition):
