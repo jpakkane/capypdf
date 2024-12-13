@@ -1327,7 +1327,6 @@ class TestPDFCreation(unittest.TestCase):
                 params = capypdf.ImagePdfProperties()
                 rgb_image = gen.load_image(image_dir / 'flame_gradient.png')
                 self.assertEqual(rgb_image.get_colorspace(), capypdf.ImageColorspace.RGB)
-                self.assertFalse(rgb_image.has_profile())
                 cmyk_image = gen.convert_image(rgb_image,
                     capypdf.DeviceColorspace.CMYK,
                     capypdf.RenderingIntent.RelativeColorimetric)

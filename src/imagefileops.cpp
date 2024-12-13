@@ -188,7 +188,14 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
     RawPixelImage image;
     image.md.w = png_get_image_width(png_ptr, info_ptr);
     image.md.h = png_get_image_height(png_ptr, info_ptr);
-    //    const int32_t png_bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    char *profile_name;
+    int compression_type = PNG_COMPRESSION_TYPE_BASE;
+    unsigned char *icc;
+    uint32_t icc_length;
+    if(png_get_iCCP(png_ptr, info_ptr, &profile_name, &compression_type, &icc, &icc_length) ==
+       PNG_INFO_iCCP) {
+        image.icc_profile.assign(icc, icc + icc_length);
+    }
     const auto image_format = png_get_color_type(png_ptr, info_ptr);
     if(image_format == PNG_COLOR_TYPE_RGB_ALPHA) {
         load_rgba_png(png_ptr, info_ptr, image);
@@ -213,10 +220,14 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
         }
         if(palette_size == 2) {
             // FIXME: validate that the two entries in the file are in fact black and
+            // Some programs write ICC profiles to monochrome images. They confuse
+            // PDF renderers quite a bit so delete.
+            image.icc_profile.clear();
             // white
             load_mono_png(png_ptr, info_ptr, pspan, image);
         } else if((palette_size == 3 || palette_size == 4) && trns_rc == PNG_INFO_tRNS) {
             std::span<unsigned char> aspan(trans, num_trans);
+            image.icc_profile.clear();
             ERCV(try_load_mono_alpha_png(png_ptr, info_ptr, pspan, aspan, image));
         } else {
             RETERR(NonBWColormap);
