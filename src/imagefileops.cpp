@@ -516,6 +516,8 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     } else {
         jpeg_mem_src(&cinfo, (const unsigned char *)buf, bufsize);
     }
+    // Required for ICC profile reading to work.
+    jpeg_save_markers(&cinfo, JPEG_APP0 + 2, 0xFFFF);
     if(jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) {
         RETERR(UnsupportedFormat);
     }
@@ -541,6 +543,12 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     }
 
     im.depth = cinfo.data_precision;
+    JOCTET *icc_buf = nullptr;
+    unsigned int icc_len;
+    if(jpeg_read_icc_profile(&cinfo, &icc_buf, &icc_len)) {
+        im.icc_profile.assign(icc_buf, icc_buf + icc_len);
+        free(icc_buf);
+    }
     if(im.depth != 8) {
         RETERR(UnsupportedFormat);
     }

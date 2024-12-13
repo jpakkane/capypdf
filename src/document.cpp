@@ -928,7 +928,9 @@ std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string
 rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view contents,
                                                            int32_t num_channels) {
     auto existing = find_icc_profile(contents);
-    assert(!existing);
+    if(existing) {
+        return existing.value();
+    }
     if(contents.empty()) {
         return CapyPDF_IccColorSpaceId{-1};
     }
@@ -1184,24 +1186,45 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
 
 rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProperties &props) {
     std::string buf;
-    std::format_to(std::back_inserter(buf),
+    auto app = std::back_inserter(buf);
+    std::format_to(app,
                    R"(<<
   /Type /XObject
   /Subtype /Image
-  /ColorSpace {}
   /Width {}
   /Height {}
   /BitsPerComponent {}
   /Length {}
   /Filter /DCTDecode
->>
 )",
-                   colorspace_names.at(jpg.cs),
                    jpg.w,
                    jpg.h,
                    jpg.depth,
                    jpg.file_contents.length());
 
+    if(jpg.icc_profile.empty()) {
+        std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(jpg.cs));
+    } else {
+        int32_t expected_channels;
+        switch(jpg.cs) {
+        case CAPY_DEVICE_CS_RGB:
+            expected_channels = 3;
+            break;
+        case CAPY_DEVICE_CS_GRAY:
+            expected_channels = 1;
+            break;
+        case CAPY_DEVICE_CS_CMYK:
+            expected_channels = 4;
+            break;
+        default:
+            std::abort();
+        }
+
+        // Note: the profile is now stored twice in the output file.
+        // Once as a PDF object an a second time in the embedded image file.
+        ERC(icc, add_icc_profile(jpg.icc_profile, expected_channels));
+        std::format_to(app, "  /ColorSpace {} 0 R\n", icc_profiles.at(icc.id).object_num);
+    }
     // Auto means don't specify the interpolation
     if(props.interp == CAPY_INTERPOLATION_PIXELATED) {
         buf += "  /Interpolate false\n";
@@ -1210,6 +1233,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     }
     // FIXME, add other properties too?
 
+    buf += ">>\n";
     auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};

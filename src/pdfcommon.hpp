@@ -529,6 +529,7 @@ struct jpg_image {
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
     std::string file_contents;
+    std::string icc_profile;
 };
 
 typedef std::variant<RawPixelImage, jpg_image> RasterImage;
