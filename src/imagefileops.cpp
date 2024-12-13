@@ -12,147 +12,106 @@
 #include <stdexcept>
 #include <vector>
 #include <memory>
+#include <span>
 
 namespace capypdf::internal {
 
 namespace {
 
-rvoe<RasterImage> load_rgb_png(png_image &image) {
-    RawPixelImage result;
-    result.md.w = image.width;
-    result.md.h = image.height;
+void load_rgb_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 8;
     result.md.cs = CAPY_IMAGE_CS_RGB;
-    result.pixels.resize(PNG_IMAGE_SIZE(image));
+    result.pixels.reserve(result.md.w * result.md.h * 3);
 
-    png_image_finish_read(
-        &image, NULL, result.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
-    if(PNG_IMAGE_FAILED(image)) {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
+    for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
+        unsigned char *current_row = rows[row_number];
+        for(size_t i = 0; i < result.md.w * 3; i += 3) {
+            result.pixels += current_row[i];
+            result.pixels += current_row[i + 1];
+            result.pixels += current_row[i + 2];
+        }
     }
-    return result;
 }
 
-rvoe<RasterImage> load_rgba_png(png_image &image) {
-    RawPixelImage result;
-    std::string buf;
-    result.md.w = image.width;
-    result.md.h = image.height;
+void load_rgba_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 8;
     result.md.alpha_depth = 8;
     result.md.cs = CAPY_IMAGE_CS_RGB;
-    buf.resize(PNG_IMAGE_SIZE(image));
-    result.alpha = std::string();
 
-    png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
-    if(PNG_IMAGE_FAILED(image)) {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
-    }
-    assert(buf.size() % 4 == 0);
-    result.pixels.reserve(PNG_IMAGE_SIZE(image) * 3 / 4);
-    result.alpha.reserve(PNG_IMAGE_SIZE(image) / 4);
-    for(size_t i = 0; i < buf.size(); i += 4) {
-        result.pixels += buf[i];
-        result.pixels += buf[i + 1];
-        result.pixels += buf[i + 2];
-        result.alpha += buf[i + 3];
-    }
+    result.pixels.reserve(result.md.w * result.md.h * 3);
+    result.alpha.reserve(result.md.w * result.md.h);
 
-    return result;
+    for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
+        unsigned char *current_row = rows[row_number];
+        for(size_t i = 0; i < result.md.w * 4; i += 4) {
+            result.pixels += current_row[i];
+            result.pixels += current_row[i + 1];
+            result.pixels += current_row[i + 2];
+            result.alpha += current_row[i + 3];
+        }
+    }
 }
 
-rvoe<RasterImage> load_gray_png(png_image &image) {
-    RawPixelImage result;
-    result.md.w = image.width;
-    result.md.h = image.height;
+void load_gray_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 8;
     result.md.cs = CAPY_IMAGE_CS_GRAY;
 
-    result.pixels.resize(PNG_IMAGE_SIZE(image));
+    result.pixels.reserve(result.md.w * result.md.h);
 
-    png_image_finish_read(
-        &image, NULL, result.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
-    if(PNG_IMAGE_FAILED(image)) {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
+    for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
+        unsigned char *current_row = rows[row_number];
+        for(size_t i = 0; i < result.md.w; ++i) {
+            result.pixels += current_row[i];
+        }
     }
-
-    return result;
 }
 
-rvoe<RasterImage> load_ga_png(png_image &image) {
-    RawPixelImage result;
-    std::string buf;
-    result.md.w = image.width;
-    result.md.h = image.height;
+void load_ga_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 8;
     result.md.alpha_depth = 8;
     result.md.cs = CAPY_IMAGE_CS_GRAY;
 
-    buf.resize(PNG_IMAGE_SIZE(image));
-    result.alpha = std::string();
-
-    png_image_finish_read(&image, NULL, buf.data(), PNG_IMAGE_SIZE(image) / image.height, NULL);
-    if(PNG_IMAGE_FAILED(image)) {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
+    result.pixels.reserve(result.md.w * result.md.h);
+    result.alpha.reserve(result.md.w * result.md.h);
+    for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
+        unsigned char *current_row = rows[row_number];
+        for(size_t i = 0; i < result.md.w * 2; i += 2) {
+            result.pixels += current_row[i];
+            result.alpha += current_row[i + 1];
+        }
     }
-    result.pixels.reserve(PNG_IMAGE_SIZE(image) / 2);
-    result.alpha.reserve(PNG_IMAGE_SIZE(image) / 2);
-    for(size_t i = 0; i < buf.size(); i += 2) {
-        result.pixels += buf[i];
-        result.alpha += buf[i + 1];
-    }
-
-    return result;
 }
 
-struct png_data {
-    std::string pixels;
-    std::string colormap;
-};
+bool is_white(const png_color *c) { return c->red == 255 && c->green == 255 && c->blue == 255; }
+bool is_white(const png_color &c) { return is_white(&c); }
 
-rvoe<png_data> load_png_data(png_image &image) {
-    png_data pd;
-
-    auto bufsize = PNG_IMAGE_SIZE(image);
-    pd.pixels.resize(bufsize);
-    pd.colormap.resize(PNG_IMAGE_COLORMAP_SIZE(image));
-    png_image_finish_read(
-        &image, NULL, pd.pixels.data(), PNG_IMAGE_SIZE(image) / image.height, pd.colormap.data());
-    if(PNG_IMAGE_FAILED(image)) {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
-    }
-    return pd;
-}
-
-rvoe<RasterImage> load_mono_png(png_image &image) {
-    RawPixelImage result;
-    const size_t final_size = (image.width + 7) / 8 * image.height;
+void load_mono_png(png_struct *png_ptr,
+                   png_info *info_ptr,
+                   std::span<png_color> palette,
+                   RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
+    const size_t final_size = (result.md.w + 7) / 8 * result.md.h;
     result.pixels.reserve(final_size);
-    result.md.w = image.width;
-    result.md.h = image.height;
     result.md.pixel_depth = 1;
     result.md.cs = CAPY_IMAGE_CS_GRAY;
-    ERC(pd, load_png_data(image));
-    size_t offset = 0;
-    const int white_pixel = pd.colormap[0] == 1 ? 1 : 0;
     const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
+    const int white_pixel = is_white(palette[0]) ? 0 : 1;
     for(uint32_t j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
+        auto current_row = rows[j];
         for(uint32_t i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
-            if(pd.pixels[offset] == white_pixel) {
+            if(current_row[i] != white_pixel) {
                 current_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
                 result.pixels.push_back(~current_byte);
                 current_byte = 0;
             }
-            ++offset;
         }
         // PDF spec 8.9.3 "Sample representation"
 
@@ -162,66 +121,46 @@ rvoe<RasterImage> load_mono_png(png_image &image) {
         result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
-    return result;
 }
 
-struct pngbytes {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t a;
-};
-
-bool is_1bit(std::string_view colormap) {
-    for(size_t off = 0; off < colormap.size(); off += sizeof(pngbytes)) {
-        const pngbytes *e = reinterpret_cast<const pngbytes *>(colormap.data() + off);
-        if(e->a == 255 || e->a == 0) {
-        } else {
-            return false;
+template<typename T> bool span_contains(std::span<T> &span, const T &value) {
+    for(const auto &e : span) {
+        if(e == value) {
+            return true;
         }
-        if(e->r == 0 && e->g == 0 && e->b == 0) {
-            continue;
-        }
-        if(e->r == 255 && e->g == 255 && e->b == 255) {
-            continue;
-        }
-        return false;
     }
-    return true;
+    return false;
 }
 
 // Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
-rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
-    ERC(pd, load_png_data(image));
-    if(!is_1bit(pd.colormap)) {
-        return std::optional<RawPixelImage>{};
-    }
-    RawPixelImage result;
-    result.md.w = image.width;
-    result.md.h = image.height;
-    result.alpha = std::string{};
+rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
+                                            png_info *info_ptr,
+                                            std::span<png_color> palette,
+                                            std::span<unsigned char> alpha,
+                                            RawPixelImage &result) {
+    unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 1;
     result.md.alpha_depth = 1;
-    const size_t final_size = (image.width + 7) / 8 * image.height;
+    result.md.cs = CAPY_IMAGE_CS_GRAY;
+    const size_t final_size = (result.md.w + 7) / 8 * result.md.h;
     result.pixels.reserve(final_size);
     result.alpha.reserve(final_size);
-    const uint8_t black_pixel = 0;
-    const uint8_t transparent = 255;
     const int num_padding_bits = (result.md.w % 8) == 0 ? 0 : 8 - result.md.w % 8;
     for(uint32_t j = 0; j < result.md.h; ++j) {
         unsigned char current_byte = 0;
         unsigned char current_mask_byte = 255;
+        auto *current_row = rows[j];
         for(uint32_t i = 0; i < result.md.w; ++i) {
             current_byte <<= 1;
             current_mask_byte <<= 1;
-            const auto colormap_entry = pd.pixels.at(j * result.md.w + i);
-            assert(colormap_entry * sizeof(pngbytes) < pd.colormap.size());
-            const auto *colormap_data = pd.colormap.data() + colormap_entry * sizeof(pngbytes);
-            const auto *pixel = reinterpret_cast<const pngbytes *>(colormap_data);
-            if(pixel->r == black_pixel) {
+            auto input_value = current_row[i];
+            assert(input_value < palette.size()); // Span has .at only at c++26.
+            bool is_white_p = is_white(palette[input_value]);
+            bool is_trans_p = span_contains(alpha, current_row[i]);
+            if(!is_white_p) {
                 current_byte |= 1;
             }
-            if(pixel->a != transparent) {
+            if(is_trans_p) {
                 current_mask_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
@@ -242,34 +181,50 @@ rvoe<std::optional<RasterImage>> try_load_mono_alpha_png(png_image &image) {
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha.size() == final_size);
-    return result;
+    return NoReturnValue{};
 }
 
-rvoe<RasterImage> do_png_load(png_image &image) {
-    if(image.format == PNG_FORMAT_RGBA) {
-        return load_rgba_png(image);
-    } else if(image.format == PNG_FORMAT_RGB) {
-        return load_rgb_png(image);
-    } else if(image.format == PNG_FORMAT_GRAY) {
-        return load_gray_png(image);
-    } else if(image.format == PNG_FORMAT_GA) {
-        return load_ga_png(image);
-    } else if(image.format & PNG_FORMAT_FLAG_COLORMAP) {
-        if(!(image.format & PNG_FORMAT_FLAG_COLOR)) {
+rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
+    RawPixelImage image;
+    image.md.w = png_get_image_width(png_ptr, info_ptr);
+    image.md.h = png_get_image_height(png_ptr, info_ptr);
+    //    const int32_t png_bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    const auto image_format = png_get_color_type(png_ptr, info_ptr);
+    if(image_format == PNG_COLOR_TYPE_RGB_ALPHA) {
+        load_rgba_png(png_ptr, info_ptr, image);
+    } else if(image_format == PNG_COLOR_TYPE_RGB) {
+        load_rgb_png(png_ptr, info_ptr, image);
+    } else if(image_format == PNG_COLOR_TYPE_GRAY) {
+        load_gray_png(png_ptr, info_ptr, image);
+    } else if(image_format == PNG_COLOR_TYPE_GRAY_ALPHA) {
+        load_ga_png(png_ptr, info_ptr, image);
+    } else if(image_format == PNG_COLOR_TYPE_PALETTE) {
+        png_color *palette;
+        int palette_size;
+        png_get_PLTE(png_ptr, info_ptr, &palette, &palette_size);
+        std::span<png_color> pspan(palette, palette_size);
+        unsigned char *trans;
+        int num_trans;
+        png_color_16p trcolor;
+        auto trns_rc = png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, &trcolor);
+        const int32_t num_channels = png_get_channels(png_ptr, info_ptr);
+        if(num_channels != 1) {
             RETERR(UnsupportedFormat);
         }
-        if(image.colormap_entries == 2) {
-            return load_mono_png(image);
+        if(palette_size == 2) {
+            // FIXME: validate that the two entries in the file are in fact black and
+            // white
+            load_mono_png(png_ptr, info_ptr, pspan, image);
+        } else if((palette_size == 3 || palette_size == 4) && trns_rc == PNG_INFO_tRNS) {
+            std::span<unsigned char> aspan(trans, num_trans);
+            ERCV(try_load_mono_alpha_png(png_ptr, info_ptr, pspan, aspan, image));
+        } else {
+            RETERR(NonBWColormap);
         }
-        if(image.colormap_entries == 3 || image.colormap_entries == 4) {
-            ERC(res, try_load_mono_alpha_png(image));
-            if(res) {
-                return std::move(*res);
-            }
-        }
-        RETERR(NonBWColormap);
+    } else {
+        RETERR(UnsupportedFormat);
     }
-    RETERR(UnsupportedFormat);
+    return image;
 }
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
@@ -441,35 +396,48 @@ rvoe<RasterImage> load_tif_from_memory(const char *buf, int64_t bufsize) {
     return do_tiff_load(tif);
 }
 
-rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
-    png_image image;
-    std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
+rvoe<RasterImage> load_png_file(FILE *f) {
+    struct PngCloser {
+        png_struct *p = nullptr;
+        png_info *i = nullptr;
 
-    memset(&image, 0, (sizeof image));
-    image.version = PNG_IMAGE_VERSION;
+        ~PngCloser() {
+            png_destroy_info_struct(p, &i);
+            png_destroy_read_struct(&p, nullptr, nullptr);
+        }
+    };
+    PngCloser pclose;
+    pclose.p = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    pclose.i = png_create_info_struct(pclose.p);
 
-    if(png_image_begin_read_from_memory(&image, buf, bufsize) != 0) {
-        return do_png_load(image);
-    } else {
-        fprintf(stderr, "%s\n", image.message);
-        RETERR(UnsupportedFormat);
-    }
-    RETERR(Unreachable);
+    png_init_io(pclose.p, f);
+    png_read_png(pclose.p, pclose.i, PNG_TRANSFORM_PACKING, nullptr);
+    return do_png_load(pclose.p, pclose.i);
 }
 
 rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
-    png_image image;
-    std::unique_ptr<png_image, decltype(&png_image_free)> pngcloser(&image, &png_image_free);
-
-    memset(&image, 0, (sizeof image));
-    image.version = PNG_IMAGE_VERSION;
-
-    if(png_image_begin_read_from_file(&image, fname.string().c_str()) != 0) {
-        return do_png_load(image);
-    } else {
-        RETERR(UnsupportedFormat);
+    FILE *f = fopen(fname.string().c_str(), "r");
+    if(!f) {
+        RETERR(CouldNotOpenFile);
     }
-    RETERR(Unreachable);
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    return load_png_file(f);
+}
+
+rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
+    // libpng could _in theory_ load png files from memory, but their
+    // callback function does not have a ctx argument. This means
+    // using global variables which is not threadsafe in the least.
+    // The internal implementation gets around this by stuffing its
+    // state inside the png private pointer. We can't do that.
+    FILE *f = tmpfile();
+    if(!f) {
+        RETERR(CouldNotOpenFile);
+    }
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    fwrite(buf, 1, bufsize, f);
+    fseek(f, 0, SEEK_SET);
+    return load_png_file(f);
 }
 
 rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
