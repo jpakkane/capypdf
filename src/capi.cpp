@@ -1753,7 +1753,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
-    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{LinkAnnotation{}});
+    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{LinkAnnotation{}, {}});
     RETNOERR;
 }
 

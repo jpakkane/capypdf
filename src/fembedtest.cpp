@@ -39,7 +39,8 @@ void file_embed() {
                 gen.add_annotation(
                        Annotation{LinkAnnotation{asciistring::from_cstr("https://github.com/"
                                                                         "mesonbuild/meson")
-                                                     .value()},
+                                                     .value(),
+                                                 {}},
                                   PdfRectangle{10, 10, 32, 20}})
                     .value();
             ctx.annotate(linkannoid);
