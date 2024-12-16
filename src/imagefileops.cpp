@@ -469,7 +469,7 @@ struct JpegError {
 };
 
 void jpegErrorExit(j_common_ptr cinfo) {
-    JpegError *e = (JpegError *)cinfo;
+    JpegError *e = (JpegError *)cinfo->err;
     longjmp(e->buf, 1);
 }
 
@@ -487,12 +487,12 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
 
     cinfo.err = jpeg_std_error(&jerr.jmgr);
     jerr.jmgr.error_exit = jpegErrorExit;
+    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
+        &cinfo, &jpeg_destroy_decompress);
     if(setjmp(jerr.buf)) {
         RETERR(UnsupportedFormat);
     }
     jpeg_create_decompress(&cinfo);
-    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
-        &cinfo, &jpeg_destroy_decompress);
     if(f) {
         jpeg_stdio_src(&cinfo, f);
     } else {
