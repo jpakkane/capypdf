@@ -421,6 +421,9 @@ rvoe<RasterImage> load_png_file(FILE *f) {
     pclose.p = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     pclose.i = png_create_info_struct(pclose.p);
 
+    if(setjmp(png_jmpbuf(pclose.p))) {
+        RETERR(UnsupportedFormat);
+    }
     png_init_io(pclose.p, f);
     png_read_png(pclose.p, pclose.i, PNG_TRANSFORM_PACKING, nullptr);
     return do_png_load(pclose.p, pclose.i);
