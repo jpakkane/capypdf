@@ -219,7 +219,8 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
             RETERR(UnsupportedFormat);
         }
         if(palette_size == 2) {
-            // FIXME: validate that the two entries in the file are in fact black and
+            // FIXME: validate that the two entries in the file are in fact black and white.
+
             // Some programs write ICC profiles to monochrome images. They confuse
             // PDF renderers quite a bit so delete.
             image.icc_profile.clear();
@@ -236,6 +237,22 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
         RETERR(UnsupportedFormat);
     }
     return image;
+}
+
+void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
+    assert(image.md.alpha_depth == 8);
+    assert(image.pixels.size() % (num_color_channels + 1) == 0);
+    assert(image.alpha.empty());
+    std::string colors;
+    colors.reserve(image.pixels.size() * num_color_channels / (num_color_channels + 1));
+    image.alpha.reserve(image.pixels.size() / (num_color_channels + 1));
+    for(size_t i = 0; i < image.pixels.size(); i += (num_color_channels + 1)) {
+        for(size_t j = 0; j < num_color_channels; ++j) {
+            colors.push_back(image.pixels[i + j]);
+        }
+        image.alpha.push_back(image.pixels[num_color_channels]);
+    }
+    image.pixels = std::move(colors);
 }
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
@@ -309,21 +326,27 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
 
     switch(photometric) {
     case PHOTOMETRIC_SEPARATED:
-        if(samplesperpixel != 4) {
+        if(samplesperpixel == 5) {
+            separate_tif_alpha(result, 4);
+        } else if(samplesperpixel != 4) {
             RETERR(UnsupportedTIFF);
         }
         result.md.cs = CAPY_IMAGE_CS_CMYK;
         break;
 
     case PHOTOMETRIC_RGB:
-        if(samplesperpixel != 3) {
+        if(samplesperpixel == 4) {
+            separate_tif_alpha(result, 3);
+        } else if(samplesperpixel != 3) {
             RETERR(UnsupportedTIFF);
         }
         result.md.cs = CAPY_IMAGE_CS_RGB;
         break;
 
     case PHOTOMETRIC_MINISBLACK:
-        if(samplesperpixel != 1) {
+        if(samplesperpixel == 2) {
+            separate_tif_alpha(result, 1);
+        } else if(samplesperpixel != 1) {
             RETERR(UnsupportedTIFF);
         }
         result.md.cs = CAPY_IMAGE_CS_GRAY;
