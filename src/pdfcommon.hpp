@@ -528,6 +528,7 @@ struct jpg_image {
     uint32_t h;
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
+    bool invert_channels = false;
     std::string file_contents;
     std::string icc_profile;
 };

@@ -535,13 +535,21 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     case JCS_GRAYSCALE:
         im.cs = CAPY_DEVICE_CS_GRAY;
         break;
-    // You'd think this would be JCS_RGB, but no, internally it is stored in this
-    // format.
+    case JCS_RGB:
+        im.cs = CAPY_DEVICE_CS_RGB;
+        break;
     case JCS_YCbCr:
         im.cs = CAPY_DEVICE_CS_RGB;
         break;
     case JCS_CMYK:
         im.cs = CAPY_DEVICE_CS_CMYK;
+        // FIXME: should detect whether to invert or not:
+        // https://graphicdesign.stackexchange.com/questions/12894/cmyk-jpegs-extracted-from-pdf-appear-inverted
+        im.invert_channels = true;
+        break;
+    case JCS_YCCK:
+        im.cs = CAPY_DEVICE_CS_CMYK;
+        im.invert_channels = true;
         break;
     default:
         RETERR(UnsupportedFormat);

@@ -1202,6 +1202,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
                    jpg.depth,
                    jpg.file_contents.length());
 
+    if(jpg.invert_channels) {
+        assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
+        buf += "  /Decode [1 0 1 0 1 0 1 0]\n";
+    }
     if(jpg.icc_profile.empty()) {
         std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(jpg.cs));
     } else {
