@@ -34,6 +34,8 @@ struct CapyCTypeDeleter {
             rc = capy_document_properties_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_PageProperties>) {
             rc = capy_page_properties_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Text>) {
+            rc = capy_text_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_TextSequence>) {
             rc = capy_text_sequence_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Color>) {
@@ -175,6 +177,8 @@ public:
 static_assert(sizeof(DocumentProperties) == sizeof(void *));
 
 class TextSequence : public CapyC<CapyPDF_TextSequence> {
+    friend class Text;
+
 public:
     TextSequence() {
         CapyPDF_TextSequence *ts;
@@ -185,6 +189,65 @@ public:
     void append_codepoint(uint32_t codepoint) {
         CAPY_CPP_CHECK(capy_text_sequence_append_codepoint(*this, codepoint));
     }
+
+    void append_kerning(int32_t kern) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_kerning(*this, kern));
+    }
+
+    void append_actualtext_start(std::string_view const &actual_text) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text.data()));
+    }
+
+    void append_actualtext_end() {
+        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_end(*this));
+    }
+
+    void append_raw_glyph(uint32_t glyph_id, uint32_t codepoint) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_raw_glyph(*this, glyph_id, codepoint));
+    }
+
+    void apppend_ligature_glyph(uint32_t glyph_id, std::string_view const &original_text) {
+        CAPY_CPP_CHECK(
+            capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text.data()));
+    }
+};
+
+class Text : public CapyC<CapyPDF_Text> {
+    friend class DrawContext;
+
+public:
+    Text() = delete;
+
+    void render_text(std::string_view const &utf8_text) {
+        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text.data()));
+    }
+
+    void cmd_Tc(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tc(*this, spacing)); }
+
+    void cmd_Td(double x, double y) { CAPY_CPP_CHECK(capy_text_cmd_Td(*this, x, y)); }
+
+    void cmd_TD(double x, double y) { CAPY_CPP_CHECK(capy_text_cmd_TD(*this, x, y)); }
+
+    void cmd_Tf(CapyPDF_FontId font, double pointsize) {
+        CAPY_CPP_CHECK(capy_text_cmd_Tf(*this, font, pointsize));
+    }
+
+    void cmd_TJ(TextSequence &sequence) { CAPY_CPP_CHECK(capy_text_cmd_TJ(*this, sequence)); }
+
+    void cmd_TL(double leading) { CAPY_CPP_CHECK(capy_text_cmd_TL(*this, leading)); }
+
+    void cmd_Tm(double a, double b, double c, double d, double e, double f) {
+        CAPY_CPP_CHECK(capy_text_cmd_Tm(*this, a, b, c, d, e, f));
+    }
+
+    void cmd_Tr(CapyPDF_Text_Mode tmode) { CAPY_CPP_CHECK(capy_text_cmd_Tr(*this, tmode)); }
+
+    void cmd_Tw(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tw(*this, spacing)); }
+
+    void cmd_Tstar() { CAPY_CPP_CHECK(capy_text_cmd_Tstar(*this)); }
+
+private:
+    explicit Text(CapyPDF_Text *text) { _d.reset(text); }
 };
 
 class Color : public CapyC<CapyPDF_Color> {
@@ -497,6 +560,14 @@ public:
     void render_text(const char *text, CapyPDF_FontId fid, double point_size, double x, double y) {
         CAPY_CPP_CHECK(capy_dc_render_text(*this, text, fid, point_size, x, y));
     }
+
+    Text text_new() {
+        CapyPDF_Text *text;
+        CAPY_CPP_CHECK(capy_dc_text_new(*this, &text));
+        return Text(text);
+    }
+
+    void render_text_obj(Text &text) { CAPY_CPP_CHECK(capy_dc_render_text_obj(*this, text)); }
 
 private:
     explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
