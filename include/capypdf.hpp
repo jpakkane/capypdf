@@ -140,26 +140,26 @@ public:
         _d.reset(dp);
     }
 
-    void set_title(std::string_view const &title) {
-        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title.data()));
+    void set_title(const char *title) {
+        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title));
     }
-    void set_author(std::string_view const &author) {
-        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author.data()));
+    void set_author(const char *author) {
+        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author));
     }
-    void set_creator(std::string_view const &creator) {
-        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator.data()));
+    void set_creator(const char *creator) {
+        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator));
     }
-    void set_language(std::string_view const &lang) {
-        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang.data()));
+    void set_language(const char *lang) {
+        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang));
     }
-    void set_device_profile(CapyPDF_Device_Colorspace cs, std::string_view const &path) {
-        CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path.data()));
+    void set_device_profile(CapyPDF_Device_Colorspace cs, const char *path) {
+        CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path));
     }
     void set_colorspace(CapyPDF_Device_Colorspace cs) {
         CAPY_CPP_CHECK(capy_document_properties_set_colorspace(*this, cs));
     }
-    void set_output_intent(std::string_view const &identifier) {
-        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier.data()));
+    void set_output_intent(const char *identifier) {
+        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier));
     }
     void set_pdfx(CapyPDF_PDFX_Type xtype) {
         CAPY_CPP_CHECK(capy_document_properties_set_pdfx(*this, xtype));
@@ -194,8 +194,8 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_kerning(*this, kern));
     }
 
-    void append_actualtext_start(std::string_view const &actual_text) {
-        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text.data()));
+    void append_actualtext_start(const char *actual_text) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text));
     }
 
     void append_actualtext_end() {
@@ -206,9 +206,8 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_raw_glyph(*this, glyph_id, codepoint));
     }
 
-    void apppend_ligature_glyph(uint32_t glyph_id, std::string_view const &original_text) {
-        CAPY_CPP_CHECK(
-            capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text.data()));
+    void apppend_ligature_glyph(uint32_t glyph_id, const char *original_text) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text));
     }
 };
 
@@ -218,8 +217,8 @@ class Text : public CapyC<CapyPDF_Text> {
 public:
     Text() = delete;
 
-    void render_text(std::string_view const &utf8_text) {
-        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text.data()));
+    void render_text(const char *utf8_text) {
+        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text));
     }
 
     void cmd_Tc(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tc(*this, spacing)); }
