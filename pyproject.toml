@@ -9,7 +9,7 @@ shared-libs-win32 = true
 
 [project]
 name = 'capypdf'
-version = '0.14.0'
+version = '0.15.0'
 description = 'A color managed PDF generation library tech preview'
 readme = 'readme.md'
 requires-python = '>=3.10'
@@ -18,7 +18,7 @@ authors = [
   {name = 'Jussi Pakkanen', email = 'jpakkane@gmail.com'},
 ]
 classifiers = [
-    'Development Status :: 2 - Pre-Alpha',
+    'Development Status :: 3 - Alpha',
     'Operating System :: POSIX :: Linux',
     'Operating System :: Microsoft :: Windows',
     'Programming Language :: Python :: 3',

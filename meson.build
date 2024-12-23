@@ -1,5 +1,5 @@
 project('capypdf', 'cpp', 'c',
-  version: '0.14.0',
+  version: '0.15.0',
   meson_version: '>=1.5',
   default_options : ['cpp_std=c++23,c++latest', 'default_library=static'])
 
