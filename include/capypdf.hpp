@@ -103,9 +103,9 @@ class OptionalContentGroup : public CapyC<CapyPDF_OptionalContentGroup> {
 public:
     friend class Generator;
 
-    OptionalContentGroup(std::string name) {
+    OptionalContentGroup(const char *name) {
         CapyPDF_OptionalContentGroup *ocg;
-        CAPY_CPP_CHECK(capy_optional_content_group_new(&ocg, name.c_str()));
+        CAPY_CPP_CHECK(capy_optional_content_group_new(&ocg, name));
         _d.reset(ocg);
     }
 };
@@ -653,12 +653,12 @@ public:
 
     void add_page_labeling(uint32_t start_page,
                            std::optional<CapyPDF_Page_Label_Number_Style> style,
-                           std::optional<std::string> prefix,
+                           const char *prefix,
                            std::optional<uint32_t> page_num) {
         CAPY_CPP_CHECK(capy_generator_add_page_labeling(*this,
                                                         start_page,
                                                         style ? &*style : nullptr,
-                                                        prefix ? prefix->c_str() : nullptr,
+                                                        prefix,
                                                         page_num ? &(*page_num) : nullptr));
     }
 
