@@ -27,6 +27,12 @@ public:
     PdfException(const char *msg) : std::runtime_error(msg) {}
 };
 
+template<typename T>
+concept ByteSequence = requires(T a) {
+    a.data();
+    a.size();
+};
+
 struct CapyCTypeDeleter {
     template<typename T> void operator()(T *cobj) {
         int32_t rc;
@@ -140,20 +146,32 @@ public:
         _d.reset(dp);
     }
 
-    void set_title(const char *title) {
-        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title, -1));
+    void set_title(const char *title, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title, strsize));
+    }
+    template<ByteSequence T> void set_title(const T &title) {
+        set_title(title.data(), title.size());
     }
 
-    void set_author(const char *author) {
-        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author, -1));
+    void set_author(const char *author, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author, strsize));
+    }
+    template<ByteSequence T> void set_author(const T &author) {
+        set_author(author.data(), author.size());
     }
 
-    void set_creator(const char *creator) {
-        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator, -1));
+    void set_creator(const char *creator, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator, strsize));
+    }
+    template<ByteSequence T> void set_creator(const T &creator) {
+        set_creator(creator.data(), creator.size());
     }
 
-    void set_language(const char *lang) {
-        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang, -1));
+    void set_language(const char *lang, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang, strsize));
+    }
+    template<ByteSequence T> void set_language(const T &language) {
+        set_language(language.data(), language.size());
     }
 
     void set_device_profile(CapyPDF_Device_Colorspace cs, const char *path) {
