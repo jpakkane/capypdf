@@ -150,7 +150,7 @@ public:
         CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator));
     }
     void set_language(const char *lang) {
-        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang));
+        CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang, -1));
     }
     void set_device_profile(CapyPDF_Device_Colorspace cs, const char *path) {
         CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path));

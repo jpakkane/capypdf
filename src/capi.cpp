@@ -24,6 +24,20 @@ template<typename T> [[nodiscard]] CapyPDF_EC conv_err(const rvoe<T> &rc) {
     return (CapyPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
 
+rvoe<asciistring> validate_ascii(const char *buf, int32_t strsize) {
+    if(!buf) {
+        RETERR(ArgIsNull);
+    }
+    if(strsize < -1) {
+        RETERR(InvalidBufsize);
+    }
+    if(strsize == -1) {
+        return asciistring::from_cstr(buf);
+    } else {
+        return asciistring::from_view(buf, strsize);
+    }
+}
+
 } // namespace
 
 CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr) CAPYPDF_NOEXCEPT {
@@ -64,8 +78,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
-    CapyPDF_DocumentProperties *docprops, const char *lang) CAPYPDF_NOEXCEPT {
-    auto rc = asciistring::from_cstr(lang);
+    CapyPDF_DocumentProperties *docprops, const char *lang, int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto rc = validate_ascii(lang, strsize);
     if(rc) {
         reinterpret_cast<DocumentProperties *>(docprops)->lang = std::move(rc.value());
     }
@@ -504,12 +518,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
                                                         const char *separation_name,
+                                                        int32_t strsize,
                                                         CapyPDF_Device_Colorspace cs,
                                                         CapyPDF_FunctionId fid,
                                                         CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto name = asciistring::from_cstr(separation_name);
+    auto name = validate_ascii(separation_name, strsize);
     if(!name) {
         return conv_err(name);
     }
@@ -1795,9 +1810,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation,
-                                                  const char *uri) CAPYPDF_NOEXCEPT {
+                                                  const char *uri,
+                                                  int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *a = reinterpret_cast<Annotation *>(annotation);
-    auto urirc = asciistring::from_cstr(uri);
+    auto urirc = validate_ascii(uri, strsize);
     if(!urirc) {
         return conv_err(urirc);
     }
@@ -1846,9 +1862,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemEx
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructItemExtraData *extra,
-                                                               const char *lang) CAPYPDF_NOEXCEPT {
+                                                               const char *lang,
+                                                               int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
-    auto rc = asciistring::from_cstr(lang);
+    auto rc = validate_ascii(lang, strsize);
     if(rc) {
         ed->Lang = std::move(rc.value());
     }
@@ -2064,7 +2081,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
                                                          const char *subtype,
                                                          int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *eobj = reinterpret_cast<EmbeddedFile *>(efile);
-    auto rc = asciistring::from_cstr(subtype);
+    auto rc = validate_ascii(subtype, strsize);
     if(!rc) {
         return conv_err(rc);
     }

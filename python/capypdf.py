@@ -286,7 +286,7 @@ cfunc_types = (
 ('capy_document_properties_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_document_properties_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_document_properties_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_document_properties_set_language', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_document_properties_set_language', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_document_properties_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_document_properties_set_pdfx', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_pdfa', [ctypes.c_void_p, enum_type]),
@@ -319,7 +319,7 @@ cfunc_types = (
 ('capy_generator_add_graphics_state', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_optional_content_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, enum_type, FunctionId]),
+('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, FunctionId]),
 ('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -519,14 +519,14 @@ cfunc_types = (
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
 ('capy_annotation_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
-('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
 ('capy_struct_item_extra_data_new', [ctypes.c_void_p]),
 ('capy_struct_item_extra_data_set_t', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_struct_item_extra_data_set_lang', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_lang', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_struct_item_extra_data_set_alt', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_struct_item_extra_data_set_actual_text', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_struct_item_extra_data_destroy', [ctypes.c_void_p]),
@@ -670,7 +670,8 @@ class DocumentProperties:
     def set_language(self, lang):
         if not isinstance(lang, str):
             raise CapyPDFException('Creator must be an Unicode string.')
-        check_error(libfile.capy_document_properties_set_language(self, lang.encode('ASCII')))
+        asciibytes = lang.encode('ASCII')
+        check_error(libfile.capy_document_properties_set_language(self, asciibytes, len(asciibytes)))
 
     def set_device_profile(self, colorspace, path):
         check_error(libfile.capy_document_properties_set_device_profile(self, colorspace.value, to_bytepath(path)))
@@ -1159,6 +1160,7 @@ class Generator:
         text_bytes = name.encode('UTF-8')
         check_error(libfile.capy_generator_add_separation(self,
                                                           text_bytes,
+                                                          len(text_bytes),
                                                           colorspace.value,
                                                           funcid,
                                                           ctypes.pointer(sepid)))
@@ -1686,7 +1688,7 @@ class Annotation:
 
     def set_uri(self, uri):
         uritxt = uri.encode('ASCII')
-        check_error(libfile.capy_annotation_set_uri(self, uritxt))
+        check_error(libfile.capy_annotation_set_uri(self, uritxt, len(uritxt)))
 
     @classmethod
     def new_text_annotation(cls, text):
@@ -1727,7 +1729,7 @@ class StructItemExtraData:
 
     def set_lang(self, lang):
         chars = lang.encode('UTF-8')
-        check_error(libfile.capy_struct_item_extra_data_set_lang(self, chars))
+        check_error(libfile.capy_struct_item_extra_data_set_lang(self, chars, len(chars)))
 
     def set_alt(self, alt):
         chars = alt.encode('UTF-8')

@@ -127,7 +127,11 @@ public:
 
     static rvoe<asciistring> from_cstr(const char *cstr);
     static rvoe<asciistring> from_cstr(const std::string &str) {
-        return asciistring::from_cstr(str.c_str());
+        return asciistring::from_view(std::string_view(str));
+    }
+    static rvoe<asciistring> from_view(std::string_view sv);
+    static rvoe<asciistring> from_view(const char *buf, uint32_t bufsize) {
+        return asciistring::from_view(std::string_view(buf, bufsize));
     }
     bool empty() const { return buf.empty(); }
 
@@ -135,7 +139,7 @@ public:
     asciistring &operator=(const asciistring &o) = default;
 
 private:
-    explicit asciistring(const char *prevalidated_ascii) : buf(prevalidated_ascii) {}
+    explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
     std::string buf;
 };
 

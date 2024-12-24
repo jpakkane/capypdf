@@ -89,6 +89,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Incorrect annotation type.",
 
 "Duplicated name.",
+"String must not have an embedded null character.",
+"Buffer size argument is invalid.",
 };
 
 // clang-format on
