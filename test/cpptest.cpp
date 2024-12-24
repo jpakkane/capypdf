@@ -13,11 +13,17 @@ int main() {
     unlink(fname);
     f = fopen(fname, "r");
     if(f) {
-        fprintf(stderr, "Test file exists.\n");
+        fprintf(stderr, "Test file alread exists.\n");
+        fclose(f);
         return 1;
     }
 
     capypdf::DocumentProperties docpropd;
+    docpropd.set_author("Creator Person");
+    std::string creator{"C++ test program"};
+    docpropd.set_creator(creator);
+    std::string title{"Test document"};
+    docpropd.set_title(std::string_view{title});
     capypdf::Generator gen(fname, docpropd);
     capypdf::DrawContext dc = gen.new_page_context();
     dc.cmd_rg(1.0, 0.1, 0.5);
