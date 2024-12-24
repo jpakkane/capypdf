@@ -440,12 +440,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentPropertie
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_destroy(CapyPDF_DocumentProperties *docprops)
     CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_title(
-    CapyPDF_DocumentProperties *docprops, const char *utf8_title) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(
-    CapyPDF_DocumentProperties *docprops, const char *utf8_author) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(
-    CapyPDF_DocumentProperties *docprops, const char *utf8_creator) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_title(CapyPDF_DocumentProperties *docprops,
+                                                             const char *utf8_title,
+                                                             int32_t strsize) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(CapyPDF_DocumentProperties *docprops,
+                                                              const char *utf8_author,
+                                                              int32_t strsize) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(CapyPDF_DocumentProperties *docprops,
+                                                               const char *utf8_creator,
+                                                               int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
     CapyPDF_DocumentProperties *docprops, const char *lang, int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC
@@ -455,7 +458,7 @@ capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
     CapyPDF_DocumentProperties *docprops, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_output_intent(
-    CapyPDF_DocumentProperties *docprops, const char *identifier) CAPYPDF_NOEXCEPT;
+    CapyPDF_DocumentProperties *docprops, const char *identifier, int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
@@ -491,6 +494,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
                                                            uint32_t start_page,
                                                            CapyPDF_Page_Label_Number_Style *style,
                                                            const char *prefix,
+                                                           int32_t strsize,
                                                            uint32_t *start_num) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
@@ -599,6 +603,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
 // Probably not final API.
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *gen,
                                                     const char *utf8_text,
+                                                    int32_t strsize,
                                                     CapyPDF_FontId font,
                                                     double pointsize,
                                                     double *out_ptr) CAPYPDF_NOEXCEPT;
@@ -695,6 +700,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,
                                               const char *text,
+                                              int32_t strsize,
                                               CapyPDF_FontId fid,
                                               double point_size,
                                               double x,
@@ -752,19 +758,23 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequen
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
                                                             int32_t kern) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(
-    CapyPDF_TextSequence *tseq, const char *actual_text) CAPYPDF_NOEXCEPT;
+    CapyPDF_TextSequence *tseq, const char *actual_text, int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_end(CapyPDF_TextSequence *tseq)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequence *tseq,
                                                               uint32_t glyph_id,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(
-    CapyPDF_TextSequence *tseq, uint32_t glyph_id, const char *original_text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(CapyPDF_TextSequence *tseq,
+                                                                   uint32_t glyph_id,
+                                                                   const char *original_text,
+                                                                   int32_t strsize)
+    CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq) CAPYPDF_NOEXCEPT;
 
 // This is basically cmd_Tj except that it does kerning if the font and Freetype support it.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,
-                                                const char *utf8_text) CAPYPDF_NOEXCEPT;
+                                                const char *utf8_text,
+                                                int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_nonstroke(CapyPDF_Text *text,
                                                   const CapyPDF_Color *color) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
@@ -979,6 +989,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
 
 // Annotations.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
+                                                   int32_t strsize,
                                                    CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
@@ -1000,14 +1011,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtraData **out_ptr)
     CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemExtraData *extra,
-                                                            const char *title) CAPYPDF_NOEXCEPT;
+                                                            const char *ttext,
+                                                            int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructItemExtraData *extra,
                                                                const char *lang,
                                                                int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItemExtraData *extra,
-                                                              const char *alt) CAPYPDF_NOEXCEPT;
+                                                              const char *alt,
+                                                              int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
-    CapyPDF_StructItemExtraData *extra, const char *actual) CAPYPDF_NOEXCEPT;
+    CapyPDF_StructItemExtraData *extra, const char *actual, int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
     CAPYPDF_NOEXCEPT;
 
@@ -1037,7 +1050,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CA
 // Outline
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
-                                                 const char *title) CAPYPDF_NOEXCEPT;
+                                                 const char *title,
+                                                 int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r, double g, double b)

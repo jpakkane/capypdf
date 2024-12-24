@@ -156,6 +156,11 @@ public:
         return u8string::from_cstr(str.c_str());
     }
 
+    static rvoe<u8string> from_view(std::string_view sv);
+    static rvoe<u8string> from_view(const char *buf, uint32_t bufsize) {
+        return u8string::from_view(std::string_view(buf, bufsize));
+    }
+
     bool empty() const { return buf.empty(); }
 
     CodepointIterator begin() const {
@@ -172,7 +177,7 @@ public:
     bool operator==(const u8string &other) const = default;
 
 private:
-    explicit u8string(const char *prevalidated_utf8) : buf(prevalidated_utf8) {}
+    explicit u8string(std::string_view prevalidated_utf8) : buf(prevalidated_utf8) {}
     std::string buf;
 };
 

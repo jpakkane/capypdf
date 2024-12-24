@@ -38,6 +38,20 @@ rvoe<asciistring> validate_ascii(const char *buf, int32_t strsize) {
     }
 }
 
+rvoe<u8string> validate_utf8(const char *buf, int32_t strsize) {
+    if(!buf) {
+        RETERR(ArgIsNull);
+    }
+    if(strsize < -1) {
+        RETERR(InvalidBufsize);
+    }
+    if(strsize == -1) {
+        return u8string::from_cstr(buf);
+    } else {
+        return u8string::from_view(buf, strsize);
+    }
+}
+
 } // namespace
 
 CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr) CAPYPDF_NOEXCEPT {
@@ -51,26 +65,29 @@ CapyPDF_EC capy_document_properties_destroy(CapyPDF_DocumentProperties *docprops
 }
 
 CapyPDF_EC capy_document_properties_set_title(CapyPDF_DocumentProperties *docprops,
-                                              const char *utf8_title) CAPYPDF_NOEXCEPT {
-    auto rc = u8string::from_cstr(utf8_title);
+                                              const char *utf8_title,
+                                              int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto rc = validate_utf8(utf8_title, strsize);
     if(rc) {
         reinterpret_cast<DocumentProperties *>(docprops)->title = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(
-    CapyPDF_DocumentProperties *docprops, const char *utf8_author) CAPYPDF_NOEXCEPT {
-    auto rc = u8string::from_cstr(utf8_author);
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(CapyPDF_DocumentProperties *docprops,
+                                                              const char *utf8_author,
+                                                              int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto rc = validate_utf8(utf8_author, strsize);
     if(rc) {
         reinterpret_cast<DocumentProperties *>(docprops)->author = std::move(rc.value());
     }
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(
-    CapyPDF_DocumentProperties *docprops, const char *utf8_creator) CAPYPDF_NOEXCEPT {
-    auto rc = u8string::from_cstr(utf8_creator);
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(CapyPDF_DocumentProperties *docprops,
+                                                               const char *utf8_creator,
+                                                               int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto rc = validate_utf8(utf8_creator, strsize);
     if(rc) {
         reinterpret_cast<DocumentProperties *>(docprops)->creator = std::move(rc.value());
     }
@@ -163,11 +180,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
     RETNOERR;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_output_intent(
-    CapyPDF_DocumentProperties *docprops, const char *identifier) CAPYPDF_NOEXCEPT {
-    CHECK_NULL(identifier);
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_document_properties_set_output_intent(CapyPDF_DocumentProperties *docprops,
+                                           const char *identifier,
+                                           int32_t strsize) CAPYPDF_NOEXCEPT {
     auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
-    metadata->intent_condition_identifier = identifier;
+    auto rc = validate_utf8(identifier, strsize);
+    if(!rc) {
+        return conv_err(rc.error());
+    }
+    metadata->intent_condition_identifier = std::move(rc.value());
     RETNOERR;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
@@ -230,6 +252,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
                                                            uint32_t start_page,
                                                            CapyPDF_Page_Label_Number_Style *style,
                                                            const char *prefix,
+                                                           int32_t strsize,
                                                            uint32_t *start_num) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
     std::optional<CapyPDF_Page_Label_Number_Style> opt_style;
@@ -239,7 +262,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
         opt_style = *style;
     }
     if(prefix) {
-        auto u8_prefix = u8string::from_cstr(prefix);
+        auto u8_prefix = validate_utf8(prefix, strsize);
         if(!u8_prefix) {
             return conv_err(u8_prefix);
         }
@@ -601,11 +624,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *gen,
                                                     const char *utf8_text,
+                                                    int32_t strsize,
                                                     CapyPDF_FontId font,
                                                     double pointsize,
                                                     double *out_ptr) CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto u8t = u8string::from_cstr(utf8_text);
+    auto u8t = validate_utf8(utf8_text, strsize);
     if(!u8t) {
         return conv_err(u8t);
     }
@@ -888,12 +912,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text(CapyPDF_DrawContext *ctx,
                                               const char *text,
+                                              int32_t strsize,
                                               CapyPDF_FontId fid,
                                               double point_size,
                                               double x,
                                               double y) CAPYPDF_NOEXCEPT {
     auto c = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto utxt = u8string::from_cstr(text);
+    auto utxt = validate_utf8(text, strsize);
     if(!utxt) {
         return conv_err(utxt);
     }
@@ -1030,9 +1055,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(
-    CapyPDF_TextSequence *tseq, const char *actual_text) CAPYPDF_NOEXCEPT {
+    CapyPDF_TextSequence *tseq, const char *actual_text, int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
-    auto utxt = u8string::from_cstr(actual_text);
+    auto utxt = validate_utf8(actual_text, strsize);
     if(!utxt) {
         return conv_err(utxt);
     }
@@ -1059,13 +1084,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequen
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(
-    CapyPDF_TextSequence *tseq, uint32_t glyph_id, const char *original_text) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(CapyPDF_TextSequence *tseq,
+                                                                   uint32_t glyph_id,
+                                                                   const char *original_text,
+                                                                   int32_t strsize)
+    CAPYPDF_NOEXCEPT {
     auto *ts = reinterpret_cast<TextSequence *>(tseq);
     if(glyph_id == 0) {
         return conv_err(ErrorCode::MissingGlyph);
     }
-    auto txt = u8string::from_cstr(original_text);
+    auto txt = validate_utf8(original_text, strsize);
     if(!txt) {
         return conv_err(txt);
     }
@@ -1079,9 +1107,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq)
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,
-                                                const char *utf8_text) CAPYPDF_NOEXCEPT {
+                                                const char *utf8_text,
+                                                int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *t = reinterpret_cast<PdfText *>(text);
-    auto txt = u8string::from_cstr(utf8_text);
+    auto txt = validate_utf8(utf8_text, strsize);
     if(!txt) {
         return conv_err(txt);
     }
@@ -1767,8 +1796,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
 // Annotations
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
+                                                   int32_t strsize,
                                                    CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
-    auto u8str = u8string::from_cstr(utf8_text);
+    auto u8str = validate_utf8(utf8_text, strsize);
     if(!u8str) {
         return conv_err(u8str);
     }
@@ -1852,9 +1882,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtr
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemExtraData *extra,
-                                                            const char *title) CAPYPDF_NOEXCEPT {
+                                                            const char *ttext,
+                                                            int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
-    auto rc = u8string::from_cstr(title);
+    auto rc = validate_utf8(ttext, strsize);
     if(rc) {
         ed->T = std::move(rc.value());
     }
@@ -1873,9 +1904,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructIte
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItemExtraData *extra,
-                                                              const char *alt) CAPYPDF_NOEXCEPT {
+                                                              const char *alt,
+                                                              int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
-    auto rc = u8string::from_cstr(alt);
+    auto rc = validate_utf8(alt, strsize);
     if(rc) {
         ed->Alt = std::move(rc.value());
     }
@@ -1883,9 +1915,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItem
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
-    CapyPDF_StructItemExtraData *extra, const char *actual) CAPYPDF_NOEXCEPT {
+    CapyPDF_StructItemExtraData *extra, const char *actual, int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
-    auto rc = u8string::from_cstr(actual);
+    auto rc = validate_utf8(actual, strsize);
     if(rc) {
         ed->ActualText = std::move(rc.value());
     }
@@ -1982,9 +2014,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr) CAPYPDF_NO
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
-                                                 const char *title) CAPYPDF_NOEXCEPT {
+                                                 const char *title,
+                                                 int32_t strsize) CAPYPDF_NOEXCEPT {
     auto *o = reinterpret_cast<Outline *>(outline);
-    auto u8str = u8string::from_cstr(title);
+    auto u8str = validate_utf8(title, strsize);
     if(!u8str) {
         return conv_err(u8str);
     }

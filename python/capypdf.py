@@ -283,11 +283,11 @@ cfunc_types = (
 ('capy_document_properties_destroy', [ctypes.c_void_p]),
 ('capy_document_properties_set_colorspace', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_device_profile', [ctypes.c_void_p, enum_type, ctypes.c_char_p]),
-('capy_document_properties_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_document_properties_set_author', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_document_properties_set_title', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_document_properties_set_author', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_document_properties_set_creator', [ctypes.c_void_p, ctypes.c_char_p]),
 ('capy_document_properties_set_language', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
-('capy_document_properties_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_document_properties_set_output_intent', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_document_properties_set_pdfx', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_pdfa', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -321,7 +321,7 @@ cfunc_types = (
 ('capy_generator_add_outline', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_separation', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, FunctionId]),
 ('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
+('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
@@ -373,7 +373,7 @@ cfunc_types = (
 ('capy_dc_cmd_y', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_set_custom_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_render_text',
-    [ctypes.c_void_p, ctypes.c_char_p, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+    [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, FontId, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_render_text_obj',
     [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_dc_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -398,10 +398,10 @@ cfunc_types = (
 ('capy_text_sequence_new', [ctypes.c_void_p]),
 ('capy_text_sequence_append_codepoint', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_text_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_int32]),
-('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_sequence_append_actualtext_end', [ctypes.c_void_p]),
 ('capy_text_sequence_append_raw_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
-('capy_text_sequence_append_ligature_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_char_p]),
+('capy_text_sequence_append_ligature_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
@@ -417,7 +417,7 @@ cfunc_types = (
 ('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
 ('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
-('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_set_stroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 
@@ -514,7 +514,7 @@ cfunc_types = (
                                ctypes.POINTER(ctypes.c_double),
                                ctypes.c_void_p]),
 
-('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p]),
 ('capy_link_annotation_new', [ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
@@ -525,10 +525,10 @@ cfunc_types = (
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
 ('capy_struct_item_extra_data_new', [ctypes.c_void_p]),
-('capy_struct_item_extra_data_set_t', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_t', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_struct_item_extra_data_set_lang', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
-('capy_struct_item_extra_data_set_alt', [ctypes.c_void_p, ctypes.c_char_p]),
-('capy_struct_item_extra_data_set_actual_text', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_struct_item_extra_data_set_alt', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_struct_item_extra_data_set_actual_text', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_struct_item_extra_data_destroy', [ctypes.c_void_p]),
 
 ('capy_image_pdf_properties_new', [ctypes.c_void_p]),
@@ -542,7 +542,7 @@ cfunc_types = (
 ('capy_destination_destroy', [ctypes.c_void_p]),
 
 ('capy_outline_new', [ctypes.c_void_p]),
-('capy_outline_set_title', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_outline_set_title', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_outline_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_outline_set_C', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_outline_set_F', [ctypes.c_void_p, ctypes.c_uint32]),
@@ -653,19 +653,16 @@ class DocumentProperties:
         check_error(libfile.capy_document_properties_set_colorspace(self, cs.value))
 
     def set_title(self, title):
-        if not isinstance(title, str):
-            raise CapyPDFException('Title must be an Unicode string.')
-        check_error(libfile.capy_document_properties_set_title(self, title.encode('UTF-8')))
+        titleutf = title.encode('UTF-8')
+        check_error(libfile.capy_document_properties_set_title(self, titleutf, len(titleutf)))
 
     def set_author(self, author):
-        if not isinstance(author, str):
-            raise CapyPDFException('Author must be an Unicode string.')
-        check_error(libfile.capy_document_properties_set_author(self, author.encode('UTF-8')))
+        authbytes = author.encode('UTF-8')
+        check_error(libfile.capy_document_properties_set_author(self, authbytes, len(authbytes)))
 
     def set_creator(self, creator):
-        if not isinstance(creator, str):
-            raise CapyPDFException('Creator must be an Unicode string.')
-        check_error(libfile.capy_document_properties_set_creator(self, creator.encode('UTF-8')))
+        cbytes = creator.encode('UTF-8')
+        check_error(libfile.capy_document_properties_set_creator(self, cbytes, len(cbytes)))
 
     def set_language(self, lang):
         if not isinstance(lang, str):
@@ -677,7 +674,8 @@ class DocumentProperties:
         check_error(libfile.capy_document_properties_set_device_profile(self, colorspace.value, to_bytepath(path)))
 
     def set_output_intent(self, identifier):
-        check_error(libfile.capy_document_properties_set_output_intent(self, identifier.encode('utf-8')))
+        ibytes = identifier.encode('UTF-8')
+        check_error(libfile.capy_document_properties_set_output_intent(self, ibytes, len(ibytes)))
 
     def set_pdfx(self, xtype):
         if not isinstance(xtype, PdfXType):
@@ -887,7 +885,7 @@ class DrawContextBase:
         if not isinstance(fid, FontId):
             raise CapyPDFException('Font id argument is not a font id object.')
         text_bytes = text.encode('UTF-8')
-        check_error(libfile.capy_dc_render_text(self, text_bytes, fid, point_size, x, y))
+        check_error(libfile.capy_dc_render_text(self, text_bytes, len(text_bytes), fid, point_size, x, y))
 
     def render_text_obj(self, tobj):
         check_error(libfile.capy_dc_render_text_obj(self, tobj))
@@ -1176,7 +1174,7 @@ class Generator:
             raise CapyPDFException('Font argument is not a font id.')
         w = ctypes.c_double()
         bytes = text.encode('UTF-8')
-        check_error(libfile.capy_generator_text_width(self, bytes, font, pointsize, ctypes.pointer(w)))
+        check_error(libfile.capy_generator_text_width(self, bytes, len(bytes), font, pointsize, ctypes.pointer(w)))
         return w.value
 
     def add_graphics_state(self, gs):
@@ -1247,7 +1245,8 @@ class TextSequence:
         check_error(libfile.capy_text_sequence_append_kerning(self, kern))
 
     def append_actualtext_start(self, txt):
-        check_error(libfile.capy_text_sequence_append_actualtext_start(self, txt.encode('UTF-8')))
+        tbytes = txt.encode('UTF-8')
+        check_error(libfile.capy_text_sequence_append_actualtext_start(self, tbytes, len(tbytes)))
 
     def append_actualtext_end(self):
         check_error(libfile.capy_text_sequence_append_actualtext_end(self))
@@ -1259,7 +1258,7 @@ class TextSequence:
 
     def append_ligature_glyph(self, glyph_id, txt):
         u8txt = txt.encode('UTF-8')
-        check_error(libfile.capy_text_sequence_append_ligature_glyph(self, glyph_id, u8txt))
+        check_error(libfile.capy_text_sequence_append_ligature_glyph(self, glyph_id, u8txt, len(u8txt)))
 
 
 class Text:
@@ -1289,7 +1288,7 @@ class Text:
         if not isinstance(text, str):
             raise CapyPDFException('Text must be a Unicode string.')
         bytes = text.encode('UTF-8')
-        check_error(libfile.capy_text_render_text(self, bytes))
+        check_error(libfile.capy_text_render_text(self, bytes, len(bytes)))
 
     def set_nonstroke(self, color):
         check_error(libfile.capy_text_set_nonstroke(self, color))
@@ -1693,7 +1692,8 @@ class Annotation:
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
-        check_error(libfile.capy_text_annotation_new(text.encode('utf-8'), ctypes.pointer(ta)))
+        at = text.encode('UTF-8')
+        check_error(libfile.capy_text_annotation_new(at, len(at), ctypes.pointer(ta)))
         return Annotation(ta)
 
     @classmethod
@@ -1725,7 +1725,7 @@ class StructItemExtraData:
 
     def set_t(self, T):
         chars = T.encode('UTF-8')
-        check_error(libfile.capy_struct_item_extra_data_set_t(self, chars))
+        check_error(libfile.capy_struct_item_extra_data_set_t(self, chars, len(chars)))
 
     def set_lang(self, lang):
         chars = lang.encode('UTF-8')
@@ -1733,11 +1733,11 @@ class StructItemExtraData:
 
     def set_alt(self, alt):
         chars = alt.encode('UTF-8')
-        check_error(libfile.capy_struct_item_extra_data_set_alt(self, chars))
+        check_error(libfile.capy_struct_item_extra_data_set_alt(self, chars, len(chars)))
 
     def set_actual_text(self, actual):
         chars = actual.encode('UTF-8')
-        check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars))
+        check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars, len(chars)))
 
 class ImagePdfProperties:
     def __init__(self):
@@ -1793,7 +1793,7 @@ class Outline:
 
     def set_title(self, title):
         ctitle = title.encode('UTF-8')
-        check_error(libfile.capy_outline_set_title(self, ctitle))
+        check_error(libfile.capy_outline_set_title(self, ctitle, len(ctitle)))
 
     def set_destination(self, dest):
         if not isinstance(dest, Destination):

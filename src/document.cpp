@@ -793,7 +793,7 @@ void PdfDocument::create_output_intent() {
 >>
 )",
                       gts,
-                      pdfstring_quote(docprops.intent_condition_identifier),
+                      utf8_to_pdfutf16be(docprops.intent_condition_identifier),
                       get(*output_profile).stream_num);
     output_intent_object = add_object(FullPDFObject{buf, {}});
 }

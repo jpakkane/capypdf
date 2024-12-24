@@ -121,6 +121,17 @@ rvoe<u8string> u8string::from_cstr(const char *cstr) {
     return u8string(cstr);
 }
 
+rvoe<u8string> u8string::from_view(std::string_view sv) {
+    if(!is_valid_utf8(sv)) {
+        RETERR(BadUtf8);
+    }
+    auto ustr = u8string(sv);
+    if(ustr.sv().find('\0') != std::string_view::npos) {
+        RETERR(EmbeddedNullInString);
+    }
+    return ustr;
+}
+
 CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsigned char *buf) {
     UtfDecodeStep par;
     // clang-format off
