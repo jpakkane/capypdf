@@ -100,10 +100,18 @@ void TransparencyGroupProperties::serialize(std::back_insert_iterator<std::strin
 }
 
 rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
-    if(!is_ascii(cstr)) {
+    return asciistring::from_view(std::string_view(cstr));
+}
+
+rvoe<asciistring> asciistring::from_view(std::string_view sv) {
+    if(!is_ascii(sv)) {
         RETERR(NotASCII);
     }
-    return asciistring(cstr);
+    auto astr = asciistring(sv);
+    if(astr.sv().find('\0') != std::string_view::npos) {
+        RETERR(EmbeddedNullInString);
+    }
+    return astr;
 }
 
 rvoe<u8string> u8string::from_cstr(const char *cstr) {
