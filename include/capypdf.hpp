@@ -141,35 +141,45 @@ public:
     }
 
     void set_title(const char *title) {
-        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title));
+        CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title, -1));
     }
+
     void set_author(const char *author) {
-        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author));
+        CAPY_CPP_CHECK(capy_document_properties_set_author(*this, author, -1));
     }
+
     void set_creator(const char *creator) {
-        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator));
+        CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator, -1));
     }
+
     void set_language(const char *lang) {
         CAPY_CPP_CHECK(capy_document_properties_set_language(*this, lang, -1));
     }
+
     void set_device_profile(CapyPDF_Device_Colorspace cs, const char *path) {
         CAPY_CPP_CHECK(capy_document_properties_set_device_profile(*this, cs, path));
     }
+
     void set_colorspace(CapyPDF_Device_Colorspace cs) {
         CAPY_CPP_CHECK(capy_document_properties_set_colorspace(*this, cs));
     }
+
     void set_output_intent(const char *identifier) {
-        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier));
+        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier, -1));
     }
+
     void set_pdfx(CapyPDF_PDFX_Type xtype) {
         CAPY_CPP_CHECK(capy_document_properties_set_pdfx(*this, xtype));
     }
+
     void set_pdfa(CapyPDF_PDFA_Type atype) {
         CAPY_CPP_CHECK(capy_document_properties_set_pdfa(*this, atype));
     }
+
     void set_default_page_properties(PageProperties const &prop) {
         CAPY_CPP_CHECK(capy_document_properties_set_default_page_properties(*this, prop));
     }
+
     void set_tagged(bool is_tagged) {
         CAPY_CPP_CHECK(capy_document_properties_set_tagged(*this, is_tagged));
     }
@@ -195,7 +205,7 @@ public:
     }
 
     void append_actualtext_start(const char *actual_text) {
-        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text));
+        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text, -1));
     }
 
     void append_actualtext_end() {
@@ -207,7 +217,8 @@ public:
     }
 
     void apppend_ligature_glyph(uint32_t glyph_id, const char *original_text) {
-        CAPY_CPP_CHECK(capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text));
+        CAPY_CPP_CHECK(
+            capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text, -1));
     }
 };
 
@@ -218,7 +229,7 @@ public:
     Text() = delete;
 
     void render_text(const char *utf8_text) {
-        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text));
+        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text, -1));
     }
 
     void cmd_Tc(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tc(*this, spacing)); }
@@ -557,7 +568,7 @@ public:
     }
 
     void render_text(const char *text, CapyPDF_FontId fid, double point_size, double x, double y) {
-        CAPY_CPP_CHECK(capy_dc_render_text(*this, text, fid, point_size, x, y));
+        CAPY_CPP_CHECK(capy_dc_render_text(*this, text, -1, fid, point_size, x, y));
     }
 
     Text text_new() {
@@ -659,6 +670,7 @@ public:
                                                         start_page,
                                                         style ? &*style : nullptr,
                                                         prefix,
+                                                        -1,
                                                         page_num ? &(*page_num) : nullptr));
     }
 

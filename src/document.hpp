@@ -190,7 +190,7 @@ struct DocumentProperties {
     CapyPDF_Device_Colorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
     std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
-    std::string intent_condition_identifier;
+    u8string intent_condition_identifier;
     bool compress_streams = false;
 };
 
