@@ -275,7 +275,8 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     if(!transform) {
         RETERR(ProfileProblem);
     }
-    converted.pixels = std::string(num_pixels * num_bytes_for(output_format), '\0');
+    converted.pixels =
+        std::vector<std::byte>(num_pixels * num_bytes_for(output_format), std::byte{0});
     cmsDoTransform(transform, ri.pixels.data(), converted.pixels.data(), num_pixels);
     cmsDeleteTransform(transform);
     converted.md.cs = (CapyPDF_Image_Colorspace)output_format;

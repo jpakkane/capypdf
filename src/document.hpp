@@ -503,7 +503,7 @@ private:
                                            ImageColorspaceType colorspace,
                                            std::optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
-                                           std::string_view original_bytes,
+                                           std::span<std::byte> original_bytes,
                                            CapyPDF_Compression compression);
 
     rvoe<NoReturnValue> generate_info_object();

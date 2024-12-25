@@ -558,8 +558,8 @@ struct RasterImageMetadata {
 
 struct RawPixelImage {
     RasterImageMetadata md;
-    std::string pixels;
-    std::string alpha;
+    std::vector<std::byte> pixels;
+    std::vector<std::byte> alpha;
     std::vector<std::byte> icc_profile;
 };
 

@@ -1496,7 +1496,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImage
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    b->i.pixels.assign(buf, buf + bufsize);
+    auto *byteptr = (std::byte *)buf;
+    b->i.pixels.assign(byteptr, byteptr + bufsize);
     RETNOERR;
 }
 

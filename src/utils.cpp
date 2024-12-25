@@ -88,10 +88,10 @@ bool needs_quoting(const unsigned char c) {
 
 } // namespace
 
-rvoe<std::string> flate_compress(std::string_view data) {
-    std::string compressed;
+rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
+    std::vector<std::byte> compressed;
     const int CHUNK = 1024 * 1024;
-    std::string buf;
+    std::vector<std::byte> buf;
     z_stream strm;
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
@@ -114,7 +114,7 @@ rvoe<std::string> flate_compress(std::string_view data) {
         int write_size = CHUNK - strm.avail_out;
         assert(write_size <= (int)buf.size());
         buf.resize(write_size);
-        compressed += buf;
+        compressed.insert(compressed.end(), buf.cbegin(), buf.cend());
     } while(strm.avail_out == 0);
     if(strm.avail_in != 0) { /* all input will be used */
         RETERR(CompressionFailure);
@@ -125,6 +125,11 @@ rvoe<std::string> flate_compress(std::string_view data) {
     }
 
     return compressed;
+}
+
+rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data) {
+    std::string_view sv((const char *)data.data(), data.size());
+    return flate_compress(sv);
 }
 
 rvoe<std::string> load_file_as_string(const char *fname) {
@@ -396,6 +401,11 @@ void quote_xml_element_data_into(const u8string &content, std::string &result) {
 std::span<std::byte> str2span(const std::string &s) {
     auto *ptr = (std::byte *)s.data();
     return std::span<std::byte>(ptr, ptr + s.size());
+}
+
+std::string_view span2sv(std::span<std::byte> s) {
+    auto *ptr = (const char *)s.data();
+    return std::string_view(ptr, s.size());
 }
 
 } // namespace capypdf::internal

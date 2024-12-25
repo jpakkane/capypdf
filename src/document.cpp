@@ -1138,11 +1138,11 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
                                                     ImageColorspaceType colorspace,
                                                     std::optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
-                                                    std::string_view original_bytes,
+                                                    std::span<std::byte> original_bytes,
                                                     CapyPDF_Compression compression) {
     std::string buf;
-    std::string compression_buffer;
-    std::string_view compressed_bytes;
+    std::vector<std::byte> compression_buffer;
+    std::span<std::byte> compressed_bytes;
     switch(compression) {
     case CAPY_COMPRESSION_NONE: {
         ERC(trial_compressed, flate_compress(original_bytes));

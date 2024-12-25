@@ -22,7 +22,8 @@ template<class... Ts> struct overloaded : Ts... {
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 #endif
 
-rvoe<std::string> flate_compress(std::string_view data);
+rvoe<std::vector<std::byte>> flate_compress(std::string_view data);
+rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data);
 
 rvoe<std::string> load_file_as_string(const char *fname);
 
@@ -59,5 +60,6 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
 void quote_xml_element_data_into(const u8string &content, std::string &result);
 
 std::span<std::byte> str2span(const std::string &s);
+std::string_view span2sv(std::span<std::byte> s);
 
 } // namespace capypdf::internal

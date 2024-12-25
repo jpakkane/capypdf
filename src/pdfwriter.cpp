@@ -228,7 +228,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         [](DummyIndexZero &) -> rvoe<NoReturnValue> { RETOK; },
 
         [&](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
-            ERCV(write_finished_object(i, pobj.dictionary, pobj.stream.sv()));
+            ERCV(write_finished_object(i, pobj.dictionary, pobj.stream.span()));
             RETOK;
         },
 
@@ -351,7 +351,7 @@ startxref
 
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
-                                                     std::string_view stream_data) {
+                                                     std::span<std::byte> stream_data) {
     std::string buf;
     auto appender = std::back_inserter(buf);
     std::format_to(appender, "{} 0 obj\n", object_number);
@@ -361,7 +361,7 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
             buf += '\n';
         }
         buf += "stream\n";
-        buf += stream_data;
+        buf += span2sv(stream_data);
         // PDF spec says that there must always be a newline before "endstream".
         // It is not counted in the /Length key in the object dictionary.
         buf += "\nendstream\n";
@@ -400,7 +400,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
                               width_arr,
                               font_descriptor_obj,
                               tounicode_obj);
-    ERCV(write_finished_object(object_num, objbuf, ""));
+    ERCV(write_finished_object(object_num, objbuf, {}));
     RETOK;
 }
 
@@ -454,7 +454,7 @@ void PdfWriter::write_subset_font_descriptor(int32_t object_num,
                               face->bbox.yMax, // Copying what Cairo does.
                               80,              // Cairo always sets these to 80.
                               font_data_obj);
-    write_finished_object(object_num, objbuf, "");
+    write_finished_object(object_num, objbuf, {});
 }
 
 rvoe<NoReturnValue>
@@ -465,7 +465,7 @@ PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t
 >>
 )",
                             cmap.length());
-    return write_finished_object(object_num, dict, cmap);
+    return write_finished_object(object_num, dict, str2span(cmap));
 }
 
 rvoe<NoReturnValue> PdfWriter::write_pages_root() {
@@ -479,7 +479,7 @@ rvoe<NoReturnValue> PdfWriter::write_pages_root() {
         std::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
     }
     std::format_to(buf_append, "  ]\n  /Count {}\n>>\n", doc.pages.size());
-    return write_finished_object(doc.pages_object, buf, "");
+    return write_finished_object(doc.pages_object, buf, {});
 }
 
 rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
@@ -552,7 +552,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     }
     buf += ">>\n";
 
-    return write_finished_object(p.page_obj_num, buf, "");
+    return write_finished_object(p.page_obj_num, buf, {});
 }
 
 rvoe<NoReturnValue>
@@ -588,7 +588,7 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
                                    pdfstring_quote(checkbox.T),
                                    doc.form_xobjects.at(checkbox.on.id).xobj_num,
                                    doc.form_xobjects.at(checkbox.off.id).xobj_num);
-    ERCV(write_finished_object(obj_num, dict, ""));
+    ERCV(write_finished_object(obj_num, dict, {}));
     RETOK;
 }
 
@@ -719,7 +719,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         std::abort();
     }
     dict += ">>\n";
-    ERCV(write_finished_object(obj_num, dict, ""));
+    ERCV(write_finished_object(obj_num, dict, {}));
     RETOK;
 }
 
@@ -791,7 +791,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
         std::format_to(app, "  /ActualText {}\n", utf8_to_pdfutf16be(si.extra.ActualText));
     }
     dict += ">>\n";
-    ERCV(write_finished_object(obj_num, dict, ""));
+    ERCV(write_finished_object(obj_num, dict, {}));
     RETOK;
 }
 

@@ -25,11 +25,11 @@ void load_rgb_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result
     result.pixels.reserve(result.md.w * result.md.h * 3);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        unsigned char *current_row = rows[row_number];
+        std::byte *current_row = (std::byte *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 3; i += 3) {
-            result.pixels += current_row[i];
-            result.pixels += current_row[i + 1];
-            result.pixels += current_row[i + 2];
+            result.pixels.push_back(current_row[i]);
+            result.pixels.push_back(current_row[i + 1]);
+            result.pixels.push_back(current_row[i + 2]);
         }
     }
 }
@@ -44,12 +44,12 @@ void load_rgba_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &resul
     result.alpha.reserve(result.md.w * result.md.h);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        unsigned char *current_row = rows[row_number];
+        std::byte *current_row = (std::byte *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 4; i += 4) {
-            result.pixels += current_row[i];
-            result.pixels += current_row[i + 1];
-            result.pixels += current_row[i + 2];
-            result.alpha += current_row[i + 3];
+            result.pixels.push_back(current_row[i]);
+            result.pixels.push_back(current_row[i + 1]);
+            result.pixels.push_back(current_row[i + 2]);
+            result.alpha.push_back(current_row[i + 3]);
         }
     }
 }
@@ -62,9 +62,9 @@ void load_gray_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &resul
     result.pixels.reserve(result.md.w * result.md.h);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        unsigned char *current_row = rows[row_number];
+        std::byte *current_row = (std::byte *)rows[row_number];
         for(size_t i = 0; i < result.md.w; ++i) {
-            result.pixels += current_row[i];
+            result.pixels.push_back(current_row[i]);
         }
     }
 }
@@ -78,10 +78,10 @@ void load_ga_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result)
     result.pixels.reserve(result.md.w * result.md.h);
     result.alpha.reserve(result.md.w * result.md.h);
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        unsigned char *current_row = rows[row_number];
+        std::byte *current_row = (std::byte *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 2; i += 2) {
-            result.pixels += current_row[i];
-            result.alpha += current_row[i + 1];
+            result.pixels.push_back(current_row[i]);
+            result.alpha.push_back(current_row[i + 1]);
         }
     }
 }
@@ -109,7 +109,8 @@ void load_mono_png(png_struct *png_ptr,
                 current_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
-                result.pixels.push_back(~current_byte);
+                const auto negated = (unsigned char)~current_byte;
+                result.pixels.push_back(std::byte{negated});
                 current_byte = 0;
             }
         }
@@ -118,7 +119,7 @@ void load_mono_png(png_struct *png_ptr,
         if(num_padding_bits > 0) {
             current_byte <<= num_padding_bits;
         }
-        result.pixels.push_back(~current_byte);
+        result.pixels.push_back(std::byte(~current_byte));
     }
     assert(result.pixels.size() == final_size);
 }
@@ -164,8 +165,8 @@ rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
                 current_mask_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
-                result.pixels.push_back(~current_byte);
-                result.alpha.push_back(~current_mask_byte);
+                result.pixels.push_back(std::byte(~current_byte));
+                result.alpha.push_back(std::byte(~current_mask_byte));
                 current_byte = 0;
                 current_mask_byte = 255;
             }
@@ -176,8 +177,8 @@ rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
             current_byte <<= num_padding_bits;
             current_mask_byte <<= num_padding_bits;
         }
-        result.pixels.push_back(current_byte);
-        result.alpha.push_back(~current_mask_byte);
+        result.pixels.push_back(std::byte(current_byte));
+        result.alpha.push_back(std::byte(~current_mask_byte));
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha.size() == final_size);
@@ -244,7 +245,7 @@ void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
     assert(image.md.alpha_depth == 8);
     assert(image.pixels.size() % (num_color_channels + 1) == 0);
     assert(image.alpha.empty());
-    std::string colors;
+    std::vector<std::byte> colors;
     colors.reserve(image.pixels.size() * num_color_channels / (num_color_channels + 1));
     image.alpha.reserve(image.pixels.size() / (num_color_channels + 1));
     for(size_t i = 0; i < image.pixels.size(); i += (num_color_channels + 1)) {
@@ -312,14 +313,14 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     result.md.alpha_depth = bitspersample;
 
     const auto scanlinesize = TIFFScanlineSize64(tif);
-    std::string line(scanlinesize, 0);
+    std::vector<std::byte> line(scanlinesize, std::byte(0));
     result.pixels.reserve(scanlinesize * h);
     for(uint32_t row = 0; row < h; ++row) {
         if(TIFFReadScanline(tif, line.data(), row) != 1) {
             fprintf(stderr, "TIFF decoding failed.\n");
             RETERR(FileReadError);
         }
-        result.pixels += line;
+        result.pixels.insert(result.pixels.end(), line.cbegin(), line.cend());
     }
     result.md.w = w;
     result.md.h = h;
