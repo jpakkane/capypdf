@@ -15,7 +15,10 @@ void file_embed() {
     {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        auto efid = gen.embed_file("embed.txt").value();
+        EmbeddedFile ef;
+        ef.path = "embed.txt";
+        ef.pdfname = u8string::from_cstr("embed.txt").value();
+        auto efid = gen.embed_file(ef).value();
         auto fileannoid = gen.add_annotation(Annotation{FileAttachmentAnnotation{efid},
                                                         PdfRectangle{35, 95, 45, 105}})
                               .value();
@@ -66,7 +69,10 @@ void video_player() {
     {
         GenPopper genpop("mediaplayer_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        auto efid = gen.embed_file(mediafile).value();
+        EmbeddedFile ef;
+        ef.path = mediafile;
+        ef.pdfname = u8string::from_cstr(mediafile).value();
+        auto efid = gen.embed_file(ef).value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;

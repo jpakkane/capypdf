@@ -266,6 +266,24 @@ std::string pdfstring_quote(std::string_view raw_string) {
     return result;
 }
 
+std::string pdfname_quote(std::string_view raw_string) {
+    std::string result;
+    result.reserve(raw_string.size() + 10);
+    for(const char c : raw_string) {
+        switch(c) {
+        case '/':
+            result += "#2F";
+            break;
+        case '#':
+            result += "#23";
+            break;
+        default:
+            result += c;
+        }
+    }
+    return result;
+}
+
 bool is_ascii(std::string_view text) {
     for(const auto c : text) {
         auto ci = int32_t((unsigned char)c);

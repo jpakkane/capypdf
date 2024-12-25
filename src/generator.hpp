@@ -44,9 +44,7 @@ public:
     rvoe<NoReturnValue> write();
 
     rvoe<RasterImage> load_image(const std::filesystem::path &fname);
-    rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname) {
-        return pdoc.embed_file(fname);
-    }
+    rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef) { return pdoc.embed_file(ef); }
     rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname) {
         return pdoc.load_font(ft.get(), fname);
     };

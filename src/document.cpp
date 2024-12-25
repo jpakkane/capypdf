@@ -255,6 +255,25 @@ template<typename T1, typename T2> static void append_value_or_null(T1 &app, con
     }
 }
 
+struct NameProxy {
+    std::string_view name;
+    int i;
+
+    bool operator<(const NameProxy &o) const { return name < o.name; }
+};
+
+std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) {
+    std::vector<NameProxy> result;
+    result.reserve(names.size());
+    int num = 0;
+    for(const auto &n : names) {
+        result.emplace_back(NameProxy{n.ef.pdfname.sv(), num});
+        ++num;
+    }
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
 } // namespace
 
 const std::array<const char *, 4> rendering_intent_names{
@@ -616,16 +635,18 @@ void PdfDocument::pad_subset_fonts() {
 
 rvoe<int32_t> PdfDocument::create_name_dict() {
     assert(!embedded_files.empty());
+    auto sorted_names = sort_names(embedded_files);
     std::string buf = std::format(R"(<<
 /EmbeddedFiles <<
-  /Limits [ (embobj{:05}) (embojb{:05}) ]
+  /Limits [ {} {}  ]
   /Names [
 )",
-                                  0,
-                                  embedded_files.size() - 1);
+                                  pdfstring_quote(sorted_names.front().name),
+                                  pdfstring_quote(sorted_names.back().name));
     auto app = std::back_inserter(buf);
-    for(size_t i = 0; i < embedded_files.size(); ++i) {
-        std::format_to(app, "    (embobj{:06}) {} 0 R\n", i, embedded_files[i].filespec_obj);
+    for(const auto &e : sorted_names) {
+        std::format_to(
+            app, "    {} {} 0 R\n", pdfstring_quote(e.name), embedded_files[e.i].filespec_obj);
     }
     buf += "  ]\n>>\n";
     return add_object(FullPDFObject{std::move(buf), {}});
@@ -1644,13 +1665,24 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
-rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path &fname) {
-    ERC(contents, load_file(fname));
+rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
+    for(const auto &file : embedded_files) {
+        if(file.ef.pdfname == ef.pdfname) {
+            RETERR(DuplicateName);
+        }
+    }
+    ERC(contents, load_file(ef.path));
     std::string dict = std::format(R"(<<
   /Type /EmbeddedFile
   /Length {}
->>)",
+)",
                                    contents.size());
+    auto app = std::back_inserter(dict);
+    if(!ef.subtype.empty()) {
+        auto quoted = pdfname_quote(ef.subtype.sv());
+        std::format_to(app, "  /Subtype /{}\n", quoted);
+    }
+    dict += ">>\n";
     auto fileobj_id = add_object(FullPDFObject{std::move(dict), std::move(contents)});
     dict = std::format(R"(<<
   /Type /Filespec
@@ -1658,10 +1690,10 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(const std::filesystem::path
   /EF << /F {} 0 R >>
 >>
 )",
-                       pdfstring_quote(fname.filename().string()),
+                       pdfstring_quote(ef.pdfname.sv()),
                        fileobj_id);
     auto filespec_id = add_object(FullPDFObject{std::move(dict), {}});
-    embedded_files.emplace_back(EmbeddedFileObject{filespec_id, fileobj_id});
+    embedded_files.emplace_back(EmbeddedFileObject{ef, filespec_id, fileobj_id});
     return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 

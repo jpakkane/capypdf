@@ -226,7 +226,16 @@ struct OutlineData {
     std::unordered_map<int32_t, int32_t> parent;
 };
 
+struct EmbeddedFile {
+    std::filesystem::path path;
+    u8string pdfname;
+    asciistring subtype; // actually MIME
+    u8string description;
+    // bool compress;
+};
+
 struct EmbeddedFileObject {
+    EmbeddedFile ef;
     int32_t filespec_obj;
     int32_t contents_obj;
 };
@@ -432,7 +441,7 @@ public:
                                                     std::string_view partial_name);
 
     // Raw files
-    rvoe<CapyPDF_EmbeddedFileId> embed_file(const std::filesystem::path &fname);
+    rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);
 
     // Annotations.
     rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a);

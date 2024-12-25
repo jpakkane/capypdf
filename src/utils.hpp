@@ -40,6 +40,8 @@ std::string current_date_string();
 
 std::string pdfstring_quote(std::string_view raw_string);
 
+std::string pdfname_quote(std::string_view raw_string);
+
 bool is_ascii(std::string_view text);
 
 std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash = true);

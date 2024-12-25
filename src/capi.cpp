@@ -303,10 +303,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     return conv_err(rc);
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(
-    CapyPDF_Generator *gen, const char *fname, CapyPDF_EmbeddedFileId *out_ptr) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *gen,
+                                                    CapyPDF_EmbeddedFile *efile,
+                                                    CapyPDF_EmbeddedFileId *out_ptr)
+    CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->embed_file(fname);
+    auto *ef = reinterpret_cast<EmbeddedFile *>(efile);
+    auto rc = g->embed_file(*ef);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2037,6 +2040,40 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_Soft_Mask_Subtype subtype,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_NOEXCEPT {
     delete reinterpret_cast<SoftMask *>(sm);
+    RETNOERR;
+}
+
+// Embedded file
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
+                                                 CapyPDF_EmbeddedFile **out_ptr) CAPYPDF_NOEXCEPT {
+    std::filesystem::path fspath(path);
+    auto pathless_name = fspath.filename();
+    auto rc = u8string::from_cstr(pathless_name.string().c_str());
+    if(!rc) {
+        return conv_err(rc);
+    }
+    auto *eobj = new EmbeddedFile();
+    eobj->path = std::move(fspath);
+    eobj->pdfname = std::move(rc.value());
+    *out_ptr = reinterpret_cast<CapyPDF_EmbeddedFile *>(eobj);
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *efile,
+                                                         const char *subtype,
+                                                         int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto *eobj = reinterpret_cast<EmbeddedFile *>(efile);
+    auto rc = asciistring::from_cstr(subtype);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    eobj->subtype = std::move(rc.value());
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile) CAPYPDF_NOEXCEPT {
+    delete reinterpret_cast<EmbeddedFile *>(efile);
     RETNOERR;
 }
 

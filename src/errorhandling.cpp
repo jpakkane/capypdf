@@ -87,6 +87,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Incorrect shading type.",
 "Incorrect function type.",
 "Incorrect annotation type.",
+
+"Duplicated name.",
 };
 
 // clang-format on

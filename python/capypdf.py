@@ -304,7 +304,7 @@ cfunc_types = (
 ('capy_generator_add_transparency_group', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_shading_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_tiling_pattern', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_embed_file', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_load_image', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_convert_image', [ctypes.c_void_p, ctypes.c_void_p, enum_type, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
@@ -558,6 +558,10 @@ cfunc_types = (
                                      ctypes.c_double,
                                      ctypes.c_double]),
 ('capy_shading_pattern_destroy', [ctypes.c_void_p]),
+
+('capy_embedded_file_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_embedded_file_set_subtype', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_embedded_file_destroy', [ctypes.c_void_p],)
 
 )
 
@@ -1070,9 +1074,11 @@ class Generator:
         check_error(libfile.capy_generator_add_tiling_pattern(self, pattern_ctx, ctypes.pointer(pid)))
         return pid
 
-    def embed_file(self, fname):
+    def embed_file(self, efile):
+        if not isinstance(efile, EmbeddedFile):
+            raise CapyPDFException('Argument must be an EmbeddedFile object.')
         fid = EmbeddedFileId()
-        check_error(libfile.capy_generator_embed_file(self, to_bytepath(fname), ctypes.pointer(fid)))
+        check_error(libfile.capy_generator_embed_file(self, efile, ctypes.pointer(fid)))
         return fid
 
     def load_font(self, fname):
@@ -1814,3 +1820,17 @@ class ShadingPattern:
 
     def __del__(self):
         check_error(libfile.capy_shading_pattern_destroy(self))
+
+class EmbeddedFile:
+    def __init__(self, path):
+        o = ctypes.c_void_p()
+        fbytes = to_bytepath(path)
+        check_error(libfile.capy_embedded_file_new(fbytes, ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def set_subtype(self, subtype):
+        sbytes = subtype.encode('UTF-8')
+        check_error(libfile.capy_embedded_file_set_subtype(self, sbytes, len(sbytes)))
+
+    def __del__(self):
+        check_error(libfile.capy_embedded_file_destroy(self))
