@@ -160,4 +160,31 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
 
+const char *RawData::data() const {
+    if(auto *d = std::get_if<std::string>(&storage)) {
+        return d->data();
+    } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
+        return (const char *)d->data();
+    } else {
+        std::abort();
+    }
+}
+
+size_t RawData::size() const {
+    if(auto *d = std::get_if<std::string>(&storage)) {
+        return d->size();
+    } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
+        return d->size();
+    } else {
+        std::abort();
+    }
+}
+
+std::string_view RawData::sv() const { return std::string_view{data(), size()}; }
+
+std::span<std::byte> RawData::span() const {
+    auto *byteptr = (std::byte *)(data());
+    return std::span<std::byte>{byteptr, size()};
+}
+
 } // namespace capypdf::internal

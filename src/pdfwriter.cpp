@@ -233,7 +233,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
 
         [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
-            ERC(compressed, flate_compress(pobj.stream));
+            ERC(compressed, flate_compress(pobj.stream.sv()));
             std::string dict = std::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
                                            pobj.unclosed_dictionary,
                                            compressed.size());

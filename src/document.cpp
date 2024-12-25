@@ -387,7 +387,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     int32_t commands_num{-1};
     if(docprops.compress_streams) {
         commands_num = add_object(
-            DeflatePDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
+            DeflatePDFObject{std::move(unclosed_object_dict), RawData{std::move(command_stream)}});
     } else {
         std::format_to(std::back_inserter(unclosed_object_dict),
                        "  /Length {}\n>>\n",
@@ -939,7 +939,7 @@ std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
         assert(std::holds_alternative<DeflatePDFObject>(stream_obj));
         const auto &stream_data = std::get<DeflatePDFObject>(stream_obj);
-        if(stream_data.stream == contents) {
+        if(stream_data.stream.sv() == contents) {
             return CapyPDF_IccColorSpaceId{(int32_t)i};
         }
     }
@@ -961,7 +961,8 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view cont
   /N {}
 )",
                    num_channels);
-    auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), std::string{contents}});
+    auto stream_obj_id =
+        add_object(DeflatePDFObject{std::move(buf), RawData{std::string{contents}}});
     auto obj_id =
         add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
@@ -1408,7 +1409,7 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
         std::format_to(app, " {:f}", r);
     }
     buf += " ]\n";
-    return add_object(DeflatePDFObject{std::move(buf), func.code});
+    return add_object(DeflatePDFObject{std::move(buf), RawData{func.code}});
 }
 
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {

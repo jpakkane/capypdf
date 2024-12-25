@@ -14,6 +14,7 @@
 #include <functional>
 #include <variant>
 #include <iterator>
+#include <span>
 
 #include <cstdint>
 #include <cmath>
@@ -242,6 +243,21 @@ private:
     }
 
     double value;
+};
+
+class RawData {
+private:
+    std::variant<std::string, std::vector<std::byte>> storage;
+
+public:
+    explicit RawData(std::string input) : storage{std::move(input)} {};
+    explicit RawData(std::vector<std::byte> input) : storage(std::move(input)) {}
+
+    const char *data() const;
+    size_t size() const;
+
+    std::string_view sv() const;
+    std::span<std::byte> span() const;
 };
 
 // Every resource type has its own id type to avoid

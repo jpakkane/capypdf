@@ -119,7 +119,7 @@ struct FullPDFObject {
 
 struct DeflatePDFObject {
     std::string unclosed_dictionary;
-    std::string stream;
+    RawData stream;
 };
 
 struct DelayedSubsetFontData {
