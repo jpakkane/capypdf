@@ -127,25 +127,25 @@ rvoe<std::string> flate_compress(std::string_view data) {
     return compressed;
 }
 
-rvoe<std::string> load_file(const char *fname) {
+rvoe<std::string> load_file_as_string(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
-    return load_file(f);
+    return load_file_as_string(f);
 }
 
-rvoe<std::string> load_file(const std::filesystem::path &fname) {
+rvoe<std::string> load_file_as_string(const std::filesystem::path &fname) {
     if(!std::filesystem::is_regular_file(fname)) {
         RETERR(FileDoesNotExist);
     }
 
-    return load_file(fname.string().c_str());
+    return load_file_as_string(fname.string().c_str());
 }
 
-rvoe<std::string> load_file(FILE *f) {
+rvoe<std::string> load_file_as_string(FILE *f) {
     fseek(f, 0, SEEK_END);
     auto fsize = (size_t)ftell(f);
     std::string contents(fsize, '\0');
@@ -155,6 +155,19 @@ rvoe<std::string> load_file(FILE *f) {
         RETERR(FileReadError);
     }
     return contents;
+}
+
+// FIXME, these all make a copy because I was lazy.
+rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname) {
+    ERC(str, load_file_as_string(fname));
+    auto *byteptr = (std::byte *)str.data();
+    return std::vector<std::byte>{byteptr, byteptr + str.size()};
+}
+
+rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f) {
+    ERC(str, load_file_as_string(f));
+    auto *byteptr = (std::byte *)str.data();
+    return std::vector<std::byte>{byteptr, byteptr + str.size()};
 }
 
 void write_file(const char *ofname, const char *buf, size_t bufsize) {
@@ -378,6 +391,11 @@ void quote_xml_element_data_into(const u8string &content, std::string &result) {
             break;
         }
     }
+}
+
+std::span<std::byte> str2span(const std::string &s) {
+    auto *ptr = (std::byte *)s.data();
+    return std::span<std::byte>(ptr, ptr + s.size());
 }
 
 } // namespace capypdf::internal

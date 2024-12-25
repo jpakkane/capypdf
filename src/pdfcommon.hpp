@@ -250,14 +250,29 @@ private:
     std::variant<std::string, std::vector<std::byte>> storage;
 
 public:
-    explicit RawData(std::string input) : storage{std::move(input)} {};
-    explicit RawData(std::vector<std::byte> input) : storage(std::move(input)) {}
+    RawData() : storage{} {}
+    explicit RawData(std::string input);
+    explicit RawData(std::vector<std::byte> input);
+    explicit RawData(std::string_view input);
+    explicit RawData(std::span<std::byte> input);
 
     const char *data() const;
     size_t size() const;
 
     std::string_view sv() const;
     std::span<std::byte> span() const;
+
+    bool empty() const;
+    void clear();
+
+    void assign(const char *buf, size_t bufsize);
+    void assign(const std::byte *buf, size_t bufsize);
+
+    RawData &operator=(std::string input);
+    RawData &operator=(std::vector<std::byte> input);
+
+    bool operator==(std::string_view other) const;
+    bool operator==(std::span<std::byte> other) const;
 };
 
 // Every resource type has its own id type to avoid
@@ -545,7 +560,7 @@ struct RawPixelImage {
     RasterImageMetadata md;
     std::string pixels;
     std::string alpha;
-    std::string icc_profile;
+    std::vector<std::byte> icc_profile;
 };
 
 struct jpg_image {
@@ -554,8 +569,8 @@ struct jpg_image {
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
     bool invert_channels = false;
-    std::string file_contents;
-    std::string icc_profile;
+    std::vector<std::byte> file_contents;
+    std::vector<std::byte> icc_profile;
 };
 
 typedef std::variant<RawPixelImage, jpg_image> RasterImage;

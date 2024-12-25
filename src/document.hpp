@@ -114,7 +114,7 @@ struct DummyIndexZero {};
 
 struct FullPDFObject {
     std::string dictionary;
-    std::string stream;
+    RawData stream;
 };
 
 struct DeflatePDFObject {
@@ -390,7 +390,8 @@ public:
                                                  CapyPDF_FunctionId fid);
     rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
-    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::string_view contents, int32_t num_channels);
+    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> contents,
+                                                  int32_t num_channels);
 
     // Fonts
     rvoe<CapyPDF_FontId> load_font(FT_Library ft, const std::filesystem::path &fname);
@@ -487,7 +488,7 @@ private:
         return ocg_items.at(ocgid.id);
     }
 
-    std::optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::string_view contents);
+    std::optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::span<std::byte> contents);
 
     rvoe<NoReturnValue> create_catalog();
 

@@ -89,7 +89,7 @@ PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
                              const std::filesystem::path &cmyk_profile_fname) {
     PdfColorConverter conv;
     if(!rgb_profile_fname.empty()) {
-        ERC(rgb, load_file(rgb_profile_fname));
+        ERC(rgb, load_file_as_string(rgb_profile_fname));
         conv.rgb_profile_data = std::move(rgb);
         cmsHPROFILE h =
             cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
@@ -105,7 +105,7 @@ PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
         conv.rgb_profile.h = cmsCreate_sRGBProfile();
     }
     if(!gray_profile_fname.empty()) {
-        ERC(gray, load_file(gray_profile_fname));
+        ERC(gray, load_file_as_string(gray_profile_fname));
         conv.gray_profile_data = std::move(gray);
         auto h =
             cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
@@ -123,7 +123,7 @@ PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
         cmsFreeToneCurve(curve);
     }
     if(!cmyk_profile_fname.empty()) {
-        ERC(cmyk, load_file(cmyk_profile_fname));
+        ERC(cmyk, load_file_as_string(cmyk_profile_fname));
         conv.cmyk_profile_data = std::move(cmyk);
         auto h =
             cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());
@@ -283,7 +283,11 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     return converted;
 }
 
-rvoe<int> PdfColorConverter::get_num_channels(std::string_view icc_data) const {
+std::span<std::byte> PdfColorConverter::get_rgb() const { return str2span(rgb_profile_data); }
+std::span<std::byte> PdfColorConverter::get_gray() const { return str2span(gray_profile_data); }
+std::span<std::byte> PdfColorConverter::get_cmyk() const { return str2span(cmyk_profile_data); }
+
+rvoe<int> PdfColorConverter::get_num_channels(std::span<std::byte> icc_data) const {
     cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
     if(!h) {
         RETERR(InvalidICCProfile);

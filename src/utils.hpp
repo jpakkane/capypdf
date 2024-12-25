@@ -24,11 +24,15 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 rvoe<std::string> flate_compress(std::string_view data);
 
-rvoe<std::string> load_file(const char *fname);
+rvoe<std::string> load_file_as_string(const char *fname);
 
-rvoe<std::string> load_file(const std::filesystem::path &fname);
+rvoe<std::string> load_file_as_string(const std::filesystem::path &fname);
 
-rvoe<std::string> load_file(FILE *f);
+rvoe<std::string> load_file_as_string(FILE *f);
+
+rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname);
+
+rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);
 
@@ -53,5 +57,7 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
                      std::string_view indent);
 
 void quote_xml_element_data_into(const u8string &content, std::string &result);
+
+std::span<std::byte> str2span(const std::string &s);
 
 } // namespace capypdf::internal

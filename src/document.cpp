@@ -392,8 +392,8 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         std::format_to(std::back_inserter(unclosed_object_dict),
                        "  /Length {}\n>>\n",
                        command_stream.length());
-        commands_num =
-            add_object(FullPDFObject{std::move(unclosed_object_dict), std::move(command_stream)});
+        commands_num = add_object(
+            FullPDFObject{std::move(unclosed_object_dict), RawData(std::move(command_stream))});
     }
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
@@ -441,7 +441,8 @@ PdfDocument::add_page_labeling(uint32_t start_page,
 
 // Form XObjects
 void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
-    const auto xobj_num = add_object(FullPDFObject{std::move(xobj_dict), std::move(xobj_stream)});
+    const auto xobj_num =
+        add_object(FullPDFObject{std::move(xobj_dict), RawData(std::move(xobj_stream))});
 
     form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
 }
@@ -578,7 +579,7 @@ rvoe<CapyPDF_LabColorSpaceId> PdfDocument::add_lab_colorspace(const LabColorSpac
 }
 
 rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
-    ERC(contents, load_file(fname));
+    ERC(contents, load_file_as_bytes(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
         return *iccid;
@@ -931,22 +932,23 @@ int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_Type atype) {
 >>
 )",
                             stream.length());
-    return add_object(FullPDFObject{std::move(dict), std::move(stream)});
+    return add_object(FullPDFObject{std::move(dict), RawData(std::move(stream))});
 }
 
-std::optional<CapyPDF_IccColorSpaceId> PdfDocument::find_icc_profile(std::string_view contents) {
+std::optional<CapyPDF_IccColorSpaceId>
+PdfDocument::find_icc_profile(std::span<std::byte> contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
         assert(std::holds_alternative<DeflatePDFObject>(stream_obj));
         const auto &stream_data = std::get<DeflatePDFObject>(stream_obj);
-        if(stream_data.stream.sv() == contents) {
+        if(stream_data.stream == contents) {
             return CapyPDF_IccColorSpaceId{(int32_t)i};
         }
     }
     return {};
 }
 
-rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view contents,
+rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> contents,
                                                            int32_t num_channels) {
     auto existing = find_icc_profile(contents);
     if(existing) {
@@ -961,8 +963,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::string_view cont
   /N {}
 )",
                    num_channels);
-    auto stream_obj_id =
-        add_object(DeflatePDFObject{std::move(buf), RawData{std::string{contents}}});
+    auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), RawData(contents)});
     auto obj_id =
         add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
@@ -1197,10 +1198,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     buf += ">>\n";
     int32_t im_id;
     if(compression == CAPY_COMPRESSION_NONE) {
-        im_id = add_object(FullPDFObject{std::move(buf), std::move(compression_buffer)});
+        im_id = add_object(FullPDFObject{std::move(buf), RawData(std::move(compression_buffer))});
     } else {
         // FIXME. Makes a copy. Fix to grab original data instead.
-        im_id = add_object(FullPDFObject{std::move(buf), std::string{original_bytes}});
+        im_id = add_object(FullPDFObject{std::move(buf), RawData(original_bytes)});
     }
     image_info.emplace_back(ImageInfo{{w, h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
@@ -1222,7 +1223,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
                    jpg.w,
                    jpg.h,
                    jpg.depth,
-                   jpg.file_contents.length());
+                   jpg.file_contents.size());
 
     if(jpg.invert_channels) {
         assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
@@ -1260,7 +1261,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     // FIXME, add other properties too?
 
     buf += ">>\n";
-    auto im_id = add_object(FullPDFObject{std::move(buf), std::move(jpg.file_contents)});
+    auto im_id = add_object(FullPDFObject{std::move(buf), RawData(std::move(jpg.file_contents))});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
@@ -1552,7 +1553,7 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType4 &shade) {
         std::abort();
     }
     buf += "  ]\n>>\n";
-    return FullPDFObject{std::move(buf), std::move(serialized)};
+    return FullPDFObject{std::move(buf), RawData(std::move(serialized))};
 }
 
 rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType6 &shade) {
@@ -1595,7 +1596,7 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType6 &shade) {
         std::abort();
     }
     buf += "  ]\n>>\n";
-    return FullPDFObject{std::move(buf), std::move(serialized)};
+    return FullPDFObject{std::move(buf), RawData(std::move(serialized))};
 }
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
@@ -1637,7 +1638,7 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     }
     auto sc_var = ctx.serialize();
     auto &d = std::get<SerializedXObject>(sc_var);
-    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
+    auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
     return CapyPDF_PatternId{objid};
 }
 
@@ -1672,7 +1673,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
             RETERR(DuplicateName);
         }
     }
-    ERC(contents, load_file(ef.path));
+    ERC(contents, load_file_as_bytes(ef.path));
     std::string dict = std::format(R"(<<
   /Type /EmbeddedFile
   /Length {}
@@ -1684,7 +1685,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
         std::format_to(app, "  /Subtype /{}\n", quoted);
     }
     dict += ">>\n";
-    auto fileobj_id = add_object(FullPDFObject{std::move(dict), std::move(contents)});
+    auto fileobj_id = add_object(FullPDFObject{std::move(dict), RawData(std::move(contents))});
     dict = std::format(R"(<<
   /Type /Filespec
   /F {}
@@ -1758,7 +1759,7 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
     }
     auto sc_var = ctx.serialize();
     auto &d = std::get<SerializedXObject>(sc_var);
-    auto objid = add_object(FullPDFObject{std::move(d.dict), std::move(d.command_stream)});
+    auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
     transparency_groups.push_back(objid);
     return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
 }

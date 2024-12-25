@@ -909,7 +909,7 @@ rvoe<std::string> generate_font(const TrueTypeFontFile &source,
 }
 
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname) {
-    ERC(buf, load_file(fname));
+    ERC(buf, load_file_as_string(fname));
     return parse_truetype_font(std::string_view{buf.data(), buf.size()});
 }
 

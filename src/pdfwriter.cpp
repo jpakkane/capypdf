@@ -228,7 +228,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         [](DummyIndexZero &) -> rvoe<NoReturnValue> { RETOK; },
 
         [&](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
-            ERCV(write_finished_object(i, pobj.dictionary, pobj.stream));
+            ERCV(write_finished_object(i, pobj.dictionary, pobj.stream.sv()));
             RETOK;
         },
 

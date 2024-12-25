@@ -506,7 +506,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_icc_profile(CapyPDF_Generator *gen,
                                                          CapyPDF_IccColorSpaceId *out_ptr)
     CAPYPDF_NOEXCEPT {
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->add_icc_profile({buf, bufsize}, num_channels);
+    std::byte *bytebuf = (std::byte *)buf;
+    auto rc = g->add_icc_profile({bytebuf, bufsize}, num_channels);
     if(rc) {
         *out_ptr = rc.value();
     }

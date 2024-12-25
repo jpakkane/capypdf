@@ -194,7 +194,8 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
     uint32_t icc_length;
     if(png_get_iCCP(png_ptr, info_ptr, &profile_name, &compression_type, &icc, &icc_length) ==
        PNG_INFO_iCCP) {
-        image.icc_profile.assign(icc, icc + icc_length);
+        std::byte *icc_data = (std::byte *)(icc);
+        image.icc_profile = std::vector<std::byte>(icc_data, icc_data + icc_length);
     }
     const auto image_format = png_get_color_type(png_ptr, info_ptr);
     if(image_format == PNG_COLOR_TYPE_RGB_ALPHA) {
@@ -303,7 +304,8 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     // Maybe fail for this?
 
     if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
-        result.icc_profile = std::string{(const char *)icc_data, icc_count};
+        result.icc_profile = std::vector<std::byte>((const std::byte *)icc_data,
+                                                    (const std::byte *)icc_data + icc_count);
     }
 
     result.md.pixel_depth = bitspersample;
@@ -559,7 +561,8 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     JOCTET *icc_buf = nullptr;
     unsigned int icc_len;
     if(jpeg_read_icc_profile(&cinfo, &icc_buf, &icc_len)) {
-        im.icc_profile.assign(icc_buf, icc_buf + icc_len);
+        std::byte *icc_ptr = (std::byte *)(icc_buf);
+        im.icc_profile.assign(icc_ptr, icc_ptr + icc_len);
         free(icc_buf);
     }
     if(im.depth != 8) {
@@ -575,14 +578,15 @@ rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
     ERC(meta, load_jpg_metadata(f, nullptr, 0));
-    ERC(file_contents, load_file(f));
+    ERC(file_contents, load_file_as_bytes(f));
     meta.file_contents = std::move(file_contents);
     return meta;
 }
 
 rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
     ERC(meta, load_jpg_metadata(nullptr, buf, bufsize));
-    meta.file_contents = std::string(buf, buf + bufsize);
+    auto *byteptr = (const std::byte *)(buf);
+    meta.file_contents = std::vector<std::byte>(byteptr, byteptr + bufsize);
     return meta;
 }
 

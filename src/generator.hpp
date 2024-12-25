@@ -82,7 +82,7 @@ public:
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
         return pdoc.load_icc_file(fname);
     }
-    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(const std::string_view &bytes,
+    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> bytes,
                                                   uint32_t num_channels) {
         return pdoc.add_icc_profile(bytes, num_channels);
     }

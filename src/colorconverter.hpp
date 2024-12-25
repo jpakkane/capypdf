@@ -54,11 +54,11 @@ public:
                                          CapyPDF_Device_Colorspace output_format,
                                          CapyPDF_Rendering_Intent intent) const;
 
-    const std::string &get_rgb() const { return rgb_profile_data; }
-    const std::string &get_gray() const { return gray_profile_data; }
-    const std::string &get_cmyk() const { return cmyk_profile_data; }
+    std::span<std::byte> get_rgb() const;
+    std::span<std::byte> get_gray() const;
+    std::span<std::byte> get_cmyk() const;
 
-    rvoe<int> get_num_channels(std::string_view icc_data) const;
+    rvoe<int> get_num_channels(std::span<std::byte> icc_data) const;
 
     PdfColorConverter &operator=(PdfColorConverter &&o) = default;
 

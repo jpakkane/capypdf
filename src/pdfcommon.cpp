@@ -160,6 +160,16 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
 
+RawData::RawData(std::string input) : storage{std::move(input)} {};
+RawData::RawData(std::vector<std::byte> input) : storage(std::move(input)) {}
+
+RawData::RawData(std::string_view input) : storage{std::string(input)} {}
+
+RawData::RawData(std::span<std::byte> input) {
+    std::vector<std::byte> data_copy(input.data(), input.data() + input.size());
+    storage = std::move(data_copy);
+}
+
 const char *RawData::data() const {
     if(auto *d = std::get_if<std::string>(&storage)) {
         return d->data();
@@ -185,6 +195,37 @@ std::string_view RawData::sv() const { return std::string_view{data(), size()}; 
 std::span<std::byte> RawData::span() const {
     auto *byteptr = (std::byte *)(data());
     return std::span<std::byte>{byteptr, size()};
+}
+
+bool RawData::empty() const {
+    return std::visit([](const auto &d) { return d.empty(); }, storage);
+}
+
+void RawData::clear() {
+    std::visit([](auto &d) { return d.clear(); }, storage);
+}
+
+void RawData::assign(const char *buf, size_t bufsize) { storage = std::string{buf, bufsize}; }
+
+void RawData::assign(const std::byte *buf, size_t bufsize) {
+    storage = std::vector<std::byte>{buf, buf + bufsize};
+}
+
+RawData &RawData::operator=(std::string input) {
+    storage = std::move(input);
+    return *this;
+}
+
+RawData &RawData::operator=(std::vector<std::byte> input) {
+    storage = std::move(input);
+    return *this;
+}
+
+bool RawData::operator==(std::string_view other) const { return sv() == other; }
+
+bool RawData::operator==(std::span<std::byte> other) const {
+    std::string_view other_sv{(const char *)other.data(), other.size()};
+    return *this == other_sv;
 }
 
 } // namespace capypdf::internal
