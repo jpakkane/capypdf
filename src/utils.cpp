@@ -86,6 +86,29 @@ bool needs_quoting(const unsigned char c) {
     return false;
 }
 
+template<typename T> rvoe<T> do_file_load(FILE *f) {
+    if(fseek(f, 0, SEEK_END) != 0) {
+        perror(nullptr);
+        RETERR(FileReadError);
+    }
+    auto fsize = ftell(f);
+    if(fsize < 0) {
+        perror(nullptr);
+        RETERR(FileReadError);
+    }
+    T contents;
+    contents.resize(fsize);
+    if(fseek(f, 0, SEEK_SET) != 0) {
+        perror(nullptr);
+        RETERR(FileReadError);
+    }
+    if(fread(contents.data(), 1, fsize, f) != (size_t)fsize) {
+        perror(nullptr);
+        RETERR(FileReadError);
+    }
+    return contents;
+}
+
 } // namespace
 
 rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
@@ -150,29 +173,20 @@ rvoe<std::string> load_file_as_string(const std::filesystem::path &fname) {
     return load_file_as_string(fname.string().c_str());
 }
 
-rvoe<std::string> load_file_as_string(FILE *f) {
-    fseek(f, 0, SEEK_END);
-    auto fsize = (size_t)ftell(f);
-    std::string contents(fsize, '\0');
-    fseek(f, 0, SEEK_SET);
-    if(fread(contents.data(), 1, fsize, f) != fsize) {
-        perror(nullptr);
-        RETERR(FileReadError);
-    }
-    return contents;
-}
+rvoe<std::string> load_file_as_string(FILE *f) { return do_file_load<std::string>(f); }
 
-// FIXME, these all make a copy because I was lazy.
 rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname) {
-    ERC(str, load_file_as_string(fname));
-    auto *byteptr = (std::byte *)str.data();
-    return std::vector<std::byte>{byteptr, byteptr + str.size()};
+    FILE *f = fopen(fname.string().c_str(), "rb");
+    if(!f) {
+        perror(nullptr);
+        RETERR(CouldNotOpenFile);
+    }
+    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    return load_file_as_bytes(f);
 }
 
 rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f) {
-    ERC(str, load_file_as_string(f));
-    auto *byteptr = (std::byte *)str.data();
-    return std::vector<std::byte>{byteptr, byteptr + str.size()};
+    return do_file_load<std::vector<std::byte>>(f);
 }
 
 void write_file(const char *ofname, const char *buf, size_t bufsize) {
