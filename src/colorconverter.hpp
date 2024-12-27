@@ -54,9 +54,9 @@ public:
                                          CapyPDF_Device_Colorspace output_format,
                                          CapyPDF_Rendering_Intent intent) const;
 
-    std::span<std::byte> get_rgb() const;
-    std::span<std::byte> get_gray() const;
-    std::span<std::byte> get_cmyk() const;
+    std::span<std::byte> get_rgb();
+    std::span<std::byte> get_gray();
+    std::span<std::byte> get_cmyk();
 
     rvoe<int> get_num_channels(std::span<std::byte> icc_data) const;
 
@@ -72,7 +72,7 @@ private:
     LcmsHolder gray_profile;
     LcmsHolder cmyk_profile;
 
-    std::string rgb_profile_data, gray_profile_data, cmyk_profile_data;
+    std::vector<std::byte> rgb_profile_data, gray_profile_data, cmyk_profile_data;
     // FIXME, store transforms so that they don't get recreated all the time.
 };
 
