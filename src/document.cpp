@@ -612,6 +612,7 @@ void PdfDocument::pad_subset_fonts() {
         for(uint32_t i = 0; i < max_count; ++i) {
             if(subsetter.get_subset(subset_id).size() >= SPACE) {
                 padding_succeeded = true;
+                break;
             }
             auto rv = subsetter.get_glyph_subset(charcode, gindex);
             if(!rv) {
