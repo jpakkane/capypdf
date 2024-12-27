@@ -152,16 +152,16 @@ typedef std::variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
  */
 
 struct TrueTypeFontFile {
-    std::vector<std::string> glyphs;
+    std::vector<std::vector<std::byte>> glyphs;
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
     // std::vector<int32_t> loca;
     TTMaxp10 maxp;
-    std::string cvt;
-    std::string fpgm;
-    std::string prep;
-    std::string cmap;
+    std::vector<std::byte> cvt;
+    std::vector<std::byte> fpgm;
+    std::vector<std::byte> prep;
+    std::vector<std::byte> cmap;
 
     int num_directory_entries() const {
         int entries = 6;
@@ -181,23 +181,25 @@ struct TrueTypeFontFile {
     }
 };
 
-rvoe<bool> is_composite_glyph(std::string_view buf);
-rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf);
+rvoe<bool> is_composite_glyph(std::span<const std::byte> buf);
+rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
 
 rvoe<NoReturnValue>
-reassign_composite_glyph_numbers(std::string &buf,
+reassign_composite_glyph_numbers(std::vector<std::byte> &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping);
 
-rvoe<std::string> generate_font(const TrueTypeFontFile &source,
-                                const std::vector<TTGlyphs> &glyphs,
-                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+rvoe<std::vector<std::byte>>
+generate_font(const TrueTypeFontFile &source,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-rvoe<std::string> generate_font(FT_Face face,
-                                std::string_view buf,
-                                const std::vector<TTGlyphs> &glyphs,
-                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+rvoe<std::vector<std::byte>>
+generate_font(FT_Face face,
+              std::span<const std::byte> buf,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf);
+rvoe<TrueTypeFontFile> parse_truetype_font(std::span<const std::byte> buf);
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname);
 
 uint32_t font_id_for_glyph(const TTGlyphs &g);

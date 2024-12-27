@@ -23,7 +23,7 @@ const uint32_t SPACE = ' ';
 
 template<typename T> void byte_swap_inplace(T &val) { val = std::byteswap(val); }
 
-uint32_t ttf_checksum(std::string_view data) {
+uint32_t ttf_checksum(std::span<const std::byte> data) {
     uint32_t checksum = 0;
     uint32_t current;
     uint32_t offset = 0;
@@ -42,10 +42,10 @@ uint32_t ttf_checksum(std::string_view data) {
     return checksum;
 }
 
-rvoe<std::string_view> get_substring(const char *buf,
-                                     const int64_t bufsize,
-                                     const int64_t offset,
-                                     const int64_t substr_size) {
+rvoe<std::span<const std::byte>> get_substring(const char *buf,
+                                               const int64_t bufsize,
+                                               const int64_t offset,
+                                               const int64_t substr_size) {
     if(!buf) {
         RETERR(ArgIsNull);
     }
@@ -59,25 +59,26 @@ rvoe<std::string_view> get_substring(const char *buf,
         RETERR(IndexOutOfBounds);
     }
     if(substr_size == 0) {
-        return std::string_view{};
+        return std::span<const std::byte>{};
     }
-    return std::string_view(buf + offset, substr_size);
+    return std::span<const std::byte>((const std::byte *)buf + offset, substr_size);
 }
 
-rvoe<std::string_view>
-get_substring(std::string_view sv, const size_t offset, const int64_t substr_size) {
-    return get_substring(sv.data(), sv.size(), offset, substr_size);
+rvoe<std::span<const std::byte>>
+get_substring(std::span<const std::byte> sv, const size_t offset, const int64_t substr_size) {
+    return get_substring((const char *)sv.data(), sv.size(), offset, substr_size);
 }
 
 template<typename T>
 rvoe<capypdf::internal::NoReturnValue>
-safe_memcpy(T *obj, std::string_view source, const uint64_t offset) {
+safe_memcpy(T *obj, std::span<const std::byte> source, const uint64_t offset) {
     ERC(validated_area, get_substring(source, offset, sizeof(T)));
+    assert(validated_area.size() == sizeof(T));
     memcpy(obj, validated_area.data(), sizeof(T));
     return capypdf::internal::NoReturnValue{};
 }
 
-template<typename T> rvoe<T> extract(std::string_view bf, const size_t offset) {
+template<typename T> rvoe<T> extract(std::span<const std::byte> bf, const size_t offset) {
     T obj;
     ERCV(safe_memcpy(&obj, bf, offset));
     return obj;
@@ -381,7 +382,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
         fprintf(stderr, "Maxp table missing.\n");
@@ -401,7 +402,7 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::string_view bu
     return maxp;
 }
 
-rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
     auto e = find_entry(dir, "head");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -415,7 +416,7 @@ rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::string_view buf)
 }
 
 rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
-                                     std::string_view buf,
+                                     std::span<const std::byte> buf,
                                      uint16_t index_to_loc_format,
                                      uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
@@ -447,7 +448,7 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
     return offsets;
 }
 
-rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf) {
+rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -469,7 +470,7 @@ rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, std::string_view buf)
 }
 
 rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
-                       std::string_view buf,
+                       std::span<const std::byte> buf,
                        uint16_t num_glyphs,
                        uint16_t num_hmetrics) {
     auto e = find_entry(dir, "hmtx");
@@ -498,11 +499,11 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-rvoe<std::vector<std::string>> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                           std::string_view buf,
-                                           uint16_t num_glyphs,
-                                           const std::vector<int32_t> &loca) {
-    std::vector<std::string> glyph_data;
+rvoe<std::vector<std::vector<std::byte>>> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                                      std::span<const std::byte> buf,
+                                                      uint16_t num_glyphs,
+                                                      const std::vector<int32_t> &loca) {
+    std::vector<std::vector<std::byte>> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -510,21 +511,22 @@ rvoe<std::vector<std::string>> load_glyphs(const std::vector<TTDirEntry> &dir,
     if(e->offset > buf.size()) {
         RETERR(MalformedFontFile);
     }
-    auto glyf_start = std::string_view(buf).substr(e->offset);
+    auto glyf_start = buf.subspan(e->offset);
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
         ERC(sstr, get_substring(glyf_start, data_off, data_size));
-        glyph_data.emplace_back(std::move(sstr));
+        glyph_data.emplace_back(sstr.data(), sstr.data() + sstr.size());
     }
     return glyph_data;
 }
 
-rvoe<std::string>
-load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const char *tag) {
+rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
+                                            std::span<const std::byte> buf,
+                                            const char *tag) {
     auto e = find_entry(dir, tag);
     if(!e) {
-        return "";
+        return std::vector<std::byte>{};
     }
     if(e->offset > buf.size()) {
         RETERR(IndexOutOfBounds);
@@ -537,14 +539,14 @@ load_raw_table(const std::vector<TTDirEntry> &dir, std::string_view buf, const c
     if(end_offset <= e->offset) {
         RETERR(IndexOutOfBounds);
     }
-    return std::string(buf.data() + e->offset, buf.data() + end_offset);
+    return std::vector<std::byte>(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-rvoe<std::vector<std::string>>
+rvoe<std::vector<std::vector<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    std::vector<std::string> subset;
+    std::vector<std::vector<std::byte>> subset;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
@@ -594,28 +596,37 @@ TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &
     return subset;
 }
 
-template<typename T> void append_bytes(std::string &s, const T &val) {
+template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) {
     if constexpr(std::is_same_v<T, std::string_view>) {
-        s += val;
+        s.insert(s.end(), val.cbegin(), val.cend());
     } else if constexpr(std::is_same_v<T, std::string>) {
-        s += val;
+        s.insert(s.end(), val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::span<std::byte>>) {
+        s.insert(s.end(), val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::span<const std::byte>>) {
+        s.insert(s.end(), val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {
+        s.insert(s.end(), val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::vector<const std::byte>>) {
+        s.insert(s.end(), val.cbegin(), val.cend());
     } else {
-        s.append((char *)&val, (char *)&val + sizeof(val));
+        s.insert(s.end(), (std::byte *)&val, (std::byte *)&val + sizeof(val));
     }
 }
 
-TTDirEntry write_raw_table(std::string &odata, const char *tag, std::string_view bytes) {
+TTDirEntry
+write_raw_table(std::vector<std::byte> &odata, const char *tag, std::span<const std::byte> bytes) {
     TTDirEntry e;
     e.set_tag(tag);
     e.offset = odata.size();
-    e.length = bytes.length();
+    e.length = bytes.size();
     e.checksum = 0;
     append_bytes(odata, bytes);
     return e;
 }
 
-std::string serialize_font(TrueTypeFontFile &tf) {
-    std::string odata;
+std::vector<std::byte> serialize_font(TrueTypeFontFile &tf) {
+    std::vector<std::byte> odata;
     odata.reserve(1024 * 1024);
     TTDirEntry e;
     TTOffsetTable off;
@@ -646,16 +657,16 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     // const auto start_of_head = odata.length(); // For checksum adjustment.
     tf.head.swap_endian();
     const auto head_offset = odata.size();
-    directory.push_back(
-        write_raw_table(odata, "head", std::string_view((char *)&tf.head, sizeof(tf.head))));
+    directory.push_back(write_raw_table(
+        odata, "head", std::span<const std::byte>((const std::byte *)&tf.head, sizeof(tf.head))));
 
     tf.hhea.swap_endian();
-    directory.push_back(
-        write_raw_table(odata, "hhea", std::string_view((char *)&tf.hhea, sizeof(tf.hhea))));
+    directory.push_back(write_raw_table(
+        odata, "hhea", std::span<const std::byte>((const std::byte *)&tf.hhea, sizeof(tf.hhea))));
 
     tf.maxp.swap_endian();
-    directory.push_back(
-        write_raw_table(odata, "maxp", std::string_view((char *)&tf.maxp, sizeof(tf.maxp))));
+    directory.push_back(write_raw_table(
+        odata, "maxp", std::span<const std::byte>((const std::byte *)&tf.maxp, sizeof(tf.maxp))));
     // glyph time
     std::vector<int32_t> loca;
     size_t glyphs_start = odata.size();
@@ -692,10 +703,10 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     e.length = odata.size() - e.offset;
     directory.push_back(e);
     assert(directory.size() == (size_t)tf.num_directory_entries());
-    char *directory_start = odata.data() + sizeof(TTOffsetTable);
-    std::string_view full_view(odata);
+    std::byte *directory_start = odata.data() + sizeof(TTOffsetTable);
+    std::span<std::byte> full_view(odata.data(), odata.size());
     for(int i = 0; i < (int)directory.size(); ++i) {
-        e.checksum = ttf_checksum(full_view.substr(e.offset, e.length));
+        e.checksum = ttf_checksum(full_view.subspan(e.offset, e.length));
         directory[i].swap_endian();
         memcpy(directory_start + i * sizeof(TTDirEntry), &directory[i], sizeof(TTDirEntry));
     }
@@ -710,7 +721,7 @@ std::string serialize_font(TrueTypeFontFile &tf) {
     return odata;
 }
 
-std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
+std::vector<std::byte> gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     TTEncodingSubtable0 glyphencoding;
     glyphencoding.format = 0;
     glyphencoding.language = 0;
@@ -734,7 +745,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     glyphencoding.swap_endian();
     cmap_head.swap_endian();
 
-    std::string buf;
+    std::vector<std::byte> buf;
     append_bytes(buf, cmap_head);
     append_bytes(buf, enc);
     append_bytes(buf, glyphencoding);
@@ -742,7 +753,7 @@ std::string gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     return buf;
 }
 
-rvoe<int16_t> num_contours(std::string_view buf) {
+rvoe<int16_t> num_contours(std::span<const std::byte> buf) {
     ERC(num_contours, extract<int16_t>(buf, 0));
     byte_swap_inplace(num_contours);
     return num_contours;
@@ -750,7 +761,7 @@ rvoe<int16_t> num_contours(std::string_view buf) {
 
 } // namespace
 
-rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
+rvoe<TrueTypeFontFile> parse_truetype_font(std::span<const std::byte> buf) {
     TrueTypeFontFile tf;
     if(buf.size() < sizeof(TTOffsetTable)) {
         RETERR(MalformedFontFile);
@@ -761,11 +772,11 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     for(int i = 0; i < off.num_tables; ++i) {
         ERC(e, extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
-        if(e.offset + e.length > buf.length()) {
+        if(e.offset + e.length > buf.size()) {
             RETERR(IndexOutOfBounds);
         }
 #ifndef CAPYFUZZING
-        auto checksum = ttf_checksum(std::string_view(buf.data() + e.offset, e.length));
+        auto checksum = ttf_checksum(std::span<const std::byte>(buf.data() + e.offset, e.length));
         (void)checksum;
 #endif
         directory.emplace_back(std::move(e));
@@ -875,20 +886,22 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::string_view buf) {
     return tf;
 }
 
-rvoe<std::string> generate_font(std::string_view buf,
-                                const std::vector<TTGlyphs> &glyphs,
-                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+rvoe<std::vector<std::byte>>
+generate_font(std::span<const std::byte> buf,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     ERC(source, parse_truetype_font(buf));
     return generate_font(source, glyphs, comp_mapping);
 }
 
-rvoe<std::string> generate_font(const TrueTypeFontFile &source,
-                                const std::vector<TTGlyphs> &glyphs,
-                                const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+rvoe<std::vector<std::byte>>
+generate_font(const TrueTypeFontFile &source,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
-    dest.glyphs = subglyphs;
+    dest.glyphs = std::move(subglyphs);
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
@@ -909,19 +922,24 @@ rvoe<std::string> generate_font(const TrueTypeFontFile &source,
 }
 
 rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname) {
-    ERC(buf, load_file_as_string(fname));
-    return parse_truetype_font(std::string_view{buf.data(), buf.size()});
+    ERC(buf, load_file_as_bytes(fname));
+    return parse_truetype_font(std::span<std::byte>{buf.data(), buf.size()});
 }
 
-rvoe<bool> is_composite_glyph(std::string_view buf) {
+rvoe<bool> is_composite_glyph(std::span<const std::byte> buf) {
     ERC(numc, num_contours(buf));
     return numc < 0;
 }
 
-rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
+rvoe<bool> is_composite_glyph(const std::vector<std::byte> &buf) {
+    std::span<std::byte> sp((std::byte *)buf.data(), (std::byte *)buf.data() + buf.size());
+    return is_composite_glyph(sp);
+}
+
+rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf) {
     std::vector<uint32_t> subglyphs;
     assert(num_contours(buf).value() < 0);
-    std::string_view composite_data = std::string_view(buf).substr(5 * sizeof(int16_t));
+    auto composite_data = std::span<const std::byte>(buf).subspan(5 * sizeof(int16_t));
     int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
@@ -945,11 +963,11 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::string_view buf) {
 }
 
 rvoe<NoReturnValue>
-reassign_composite_glyph_numbers(std::string &buf,
+reassign_composite_glyph_numbers(std::vector<std::byte> &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
 
-    std::string_view composite_data = std::string_view(buf).substr(header_size);
+    auto composite_data = std::span<const std::byte>(buf.data(), header_size);
     int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
