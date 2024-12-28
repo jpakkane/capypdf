@@ -683,13 +683,21 @@ public:
     void add_page_labeling(uint32_t start_page,
                            std::optional<CapyPDF_Page_Label_Number_Style> style,
                            const char *prefix,
+                           int32_t strsize,
                            std::optional<uint32_t> page_num) {
         CAPY_CPP_CHECK(capy_generator_add_page_labeling(*this,
                                                         start_page,
                                                         style ? &*style : nullptr,
                                                         prefix,
-                                                        -1,
+                                                        strsize,
                                                         page_num ? &(*page_num) : nullptr));
+    }
+    template<ByteSequence T>
+    void add_page_labeling(uint32_t start_page,
+                           std::optional<CapyPDF_Page_Label_Number_Style> style,
+                           const T &bseq,
+                           std::optional<uint32_t> page_num) {
+        add_page_labeling(start_page, style, bseq.data, bseq.size(), page_num);
     }
 
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}
