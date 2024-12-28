@@ -24,6 +24,23 @@ affect the object that was committed.
 
 In more technical terms the data model is append only.
 
+## Strings in the C API
+
+All functions that take strings also take a length argument like so:
+
+```c
+void capy_something(const char *str, int32_t strsize);
+```
+
+This `strsize` argument can either be set to the length of the string
+array (in bytes) or the value `-1`. The latter means that the string
+pointed to is zero terminated in the usual C way.
+
+Strings may _not_ have embedded zero characters.
+
+Filenames do not take a length argument, they are always zero
+terminated.
+
 ## Creating PDF/A document
 
 First you need to specify the PDF/A type.
