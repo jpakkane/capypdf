@@ -292,6 +292,7 @@ cfunc_types = (
 ('capy_document_properties_set_pdfa', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_document_properties_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_document_properties_set_metadata_xml', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 
 ('capy_page_properties_new', [ctypes.c_void_p]),
 ('capy_page_properties_destroy', [ctypes.c_void_p]),
@@ -696,6 +697,9 @@ class DocumentProperties:
         tagint = 1 if is_tagged else 0
         check_error(libfile.capy_document_properties_set_tagged(self, tagint))
 
+    def set_metadata_xml(self, xmldata):
+        xmlbytes = xmldata.encode('UTF-8')
+        check_error(libfile.capy_document_properties_set_metadata_xml(self, xmlbytes, len(xmlbytes)))
 
 class PageProperties:
     def __init__(self):

@@ -467,6 +467,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
     CapyPDF_DocumentProperties *docprops, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentProperties *docprops,
                                                               int32_t is_tagged) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
+    CapyPDF_DocumentProperties *docprops, const char *rdf_xml, int32_t strsize) CAPYPDF_NOEXCEPT;
 
 // Page properties.
 CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)

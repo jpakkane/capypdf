@@ -353,8 +353,9 @@ rvoe<NoReturnValue> PdfDocument::init() {
         }
         create_output_intent();
     }
-    if(auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype)) {
-        pdfa_md_object = add_pdfa_metadata_object(*aptr);
+    if(!docprops.metadata_xml.empty() ||
+       std::holds_alternative<CapyPDF_PDFA_Type>(docprops.subtype)) {
+        document_md_object = add_document_metadata_object();
     }
     RETOK;
 }
@@ -773,8 +774,8 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         buf += "    /D << /BaseState /ON >>\n";
         buf += "  >>\n";
     }
-    if(pdfa_md_object) {
-        std::format_to(app, "  /Metadata {} 0 R\n", *pdfa_md_object);
+    if(document_md_object) {
+        std::format_to(app, "  /Metadata {} 0 R\n", *document_md_object);
     }
     buf += ">>\n";
     add_object(FullPDFObject{buf, {}});
@@ -923,17 +924,26 @@ void PdfDocument::create_structure_root_dict() {
     structure_root_object = add_object(FullPDFObject{buf, {}});
 }
 
-int32_t PdfDocument::add_pdfa_metadata_object(CapyPDF_PDFA_Type atype) {
-    auto stream = std::format(
-        pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(atype), pdfa_conformance.at(atype));
-    auto dict = std::format(R"(<<
+int32_t PdfDocument::add_document_metadata_object() {
+    constexpr const char *objtemplate = R"(<<
   /Type /Metadata
   /Subtype /XML
   /Length {}
->>
-)",
-                            stream.length());
-    return add_object(FullPDFObject{std::move(dict), RawData(std::move(stream))});
+>>;
+)";
+    if(docprops.metadata_xml.empty()) {
+        auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
+        if(!aptr) {
+            std::abort();
+        }
+        auto stream = std::format(
+            pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
+        auto dict = std::format(objtemplate, stream.length());
+        return add_object(FullPDFObject{std::move(dict), RawData(std::move(stream))});
+    } else {
+        auto dict = std::format(objtemplate, docprops.metadata_xml.length());
+        return add_object(FullPDFObject{std::move(dict), RawData(docprops.metadata_xml.sv())});
+    }
 }
 
 std::optional<CapyPDF_IccColorSpaceId>

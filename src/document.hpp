@@ -190,6 +190,7 @@ struct DocumentProperties {
     CapyPDF_Device_Colorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
     std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
+    u8string metadata_xml;
     u8string intent_condition_identifier;
     bool compress_streams = false;
 };
@@ -508,7 +509,7 @@ private:
 
     rvoe<NoReturnValue> generate_info_object();
     void pad_subset_fonts();
-    int32_t add_pdfa_metadata_object(CapyPDF_PDFA_Type atype);
+    int32_t add_document_metadata_object();
 
     rvoe<NoReturnValue> validate_format(const RawPixelImage &ri) const;
 
@@ -557,7 +558,7 @@ private:
     std::optional<int32_t> output_intent_object;
     std::optional<int32_t> structure_root_object;
     std::optional<int32_t> structure_parent_tree_object;
-    std::optional<int32_t> pdfa_md_object;
+    std::optional<int32_t> document_md_object;
     int32_t pages_object;
     bool write_attempted = false;
 };

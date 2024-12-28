@@ -158,16 +158,16 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops,
                                             CapyPDF_Device_Colorspace cs,
                                             const char *profile_path) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
-        metadata->prof.rgb_profile_file = profile_path;
+        dp->prof.rgb_profile_file = profile_path;
         break;
     case CAPY_DEVICE_CS_GRAY:
-        metadata->prof.gray_profile_file = profile_path;
+        dp->prof.gray_profile_file = profile_path;
         break;
     case CAPY_DEVICE_CS_CMYK:
-        metadata->prof.cmyk_profile_file = profile_path;
+        dp->prof.cmyk_profile_file = profile_path;
         break;
     }
     RETNOERR;
@@ -175,8 +175,8 @@ capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
     CapyPDF_DocumentProperties *docprops, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
-    metadata->output_colorspace = cs;
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    dp->output_colorspace = cs;
     RETNOERR;
 }
 
@@ -184,44 +184,55 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_document_properties_set_output_intent(CapyPDF_DocumentProperties *docprops,
                                            const char *identifier,
                                            int32_t strsize) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
     auto rc = validate_utf8(identifier, strsize);
     if(!rc) {
         return conv_err(rc.error());
     }
-    metadata->intent_condition_identifier = std::move(rc.value());
+    dp->intent_condition_identifier = std::move(rc.value());
     RETNOERR;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
-    metadata->subtype = xtype;
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    dp->subtype = xtype;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
-    metadata->subtype = atype;
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    dp->subtype = atype;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
     CapyPDF_DocumentProperties *docprops, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
     auto props = reinterpret_cast<const PageProperties *>(prop);
     if(!props->mediabox) {
         return conv_err(ErrorCode::MissingMediabox);
     }
-    metadata->default_page_properties = *props;
+    dp->default_page_properties = *props;
     RETNOERR;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentProperties *docprops,
                                                               int32_t is_tagged) CAPYPDF_NOEXCEPT {
     CHECK_BOOLEAN(is_tagged);
-    auto metadata = reinterpret_cast<DocumentProperties *>(docprops);
-    metadata->is_tagged = is_tagged;
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    dp->is_tagged = is_tagged;
+    RETNOERR;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
+    CapyPDF_DocumentProperties *docprops, const char *rdf_xml, int32_t strsize) CAPYPDF_NOEXCEPT {
+    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto rx = validate_utf8(rdf_xml, strsize);
+    if(!rx) {
+        return conv_err(rx.error());
+    }
+    dp->metadata_xml = std::move(rx.value());
     RETNOERR;
 }
 

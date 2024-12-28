@@ -163,6 +163,7 @@ public:
     }
 
     bool empty() const { return buf.empty(); }
+    size_t length() const { return buf.length(); }
 
     CodepointIterator begin() const {
         return CodepointIterator((const unsigned char *)buf.c_str());
