@@ -1289,7 +1289,7 @@ class TestPDFCreation(unittest.TestCase):
             psid = gen.add_graphics_state(pstate)
 
             with gen.page_draw_context() as page:
-                ctx = capypdf.TransparencyGroupDrawContext(gen, 0, 0, 200, 200)
+                ctx = gen.transparency_group_context(0, 0, 200, 200)
                 ctx.set_transparency_group_properties(tr_props)
 
                 # Transformation tests to locality of the transparency group's drawing context
@@ -1380,7 +1380,7 @@ class TestPDFCreation(unittest.TestCase):
             poid = gen.add_shading_pattern(po)
 
             # Paint a soft mask for the alpha channel
-            ctx = capypdf.TransparencyGroupDrawContext(gen, 0, 0, 200, 200)
+            ctx = gen.transparency_group_context(0, 0, 200, 200)
             fillpattern = capypdf.Color()
             fillpattern.set_pattern(poid)
             ctx.set_nonstroke(fillpattern)

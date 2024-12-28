@@ -1051,6 +1051,9 @@ class Generator:
     def page_draw_context(self):
         return DrawContext(self)
 
+    def transparency_group_context(self, left, bottom, right, top):
+        return TransparencyGroupDrawContext(self, left, bottom, right, top)
+
     def create_tiling_pattern_context(self, l, b, r, t):
         return ColorPatternDrawContext(self, l, b, r, t)
 
