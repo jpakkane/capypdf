@@ -679,41 +679,54 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
 }
 
 rvoe<int32_t> PdfDocument::create_AF_dict() {
-    std::string buf = "[\n";
-    auto app = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_array(1);
     for(const auto &e : embedded_files) {
-        buf += "  <<\n";
-        buf += "    /Type /Filespec\n";
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/Filespec");
         if(!e.ef.description.empty()) {
-            std::format_to(app, "    /Desc {}\n", u8str2u8textstring(e.ef.description));
+            fmt.add_token("/Desc");
+            fmt.add_token(u8str2u8textstring(e.ef.description));
         }
-        buf += "    /AFRelationship /Data\n";
+        fmt.add_token_pair("/AFRelationship", "/Data");
         // Yes, these two are the same. For BW reasons I guess?
-        std::format_to(app, "    /F {}\n", u8str2filespec(e.ef.pdfname));
-        std::format_to(app, "    /UF {}\n", u8str2filespec(e.ef.pdfname));
-        buf += "    /EF <<\n";
-        std::format_to(app, "      /F {}\n", e.contents_obj);
-        std::format_to(app, "      /UF {}\n", e.contents_obj);
-        buf += "    >>\n";
-        buf += "  >>\n";
+        fmt.add_token("/F");
+        fmt.add_token(u8str2filespec(e.ef.pdfname));
+        fmt.add_token("/UF");
+        fmt.add_token(u8str2filespec(e.ef.pdfname));
+        fmt.add_token("/EF");
+        {
+            fmt.begin_dict();
+            fmt.add_token("/F");
+            fmt.add_object_ref(e.contents_obj);
+            fmt.add_token("/UF");
+            fmt.add_object_ref(e.contents_obj);
+            fmt.end_dict();
+        }
+        fmt.end_dict();
     }
-    buf += "]\n";
-    return add_object(FullPDFObject{std::move(buf), {}});
+    fmt.end_array();
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
-    std::string buf = "<< /Nums [\n";
-    auto app = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token("/Nums");
+    fmt.begin_array();
+
     for(size_t i = 0; i < structure_parent_tree_items.size(); ++i) {
         const auto &entry = structure_parent_tree_items[i];
-        std::format_to(app, "  {} [\n", i);
+        fmt.add_token(i);
+        fmt.begin_array(1);
         for(const auto &sitem : entry) {
-            std::format_to(app, "    {} 0 R\n", structure_items.at(sitem.id).obj_id);
+            fmt.add_object_ref(structure_items.at(sitem.id).obj_id);
         }
-        buf += "  ]\n";
+        fmt.end_array();
     }
-    buf += "] >>\n";
-    return add_object(FullPDFObject{std::move(buf), {}});
+    fmt.end_array();
+    fmt.end_dict();
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,

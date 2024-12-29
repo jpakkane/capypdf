@@ -47,7 +47,7 @@ void ObjectFormatter::do_push(ContainerType ctype) {
     stack.push(FormatStash{ctype, state});
     state.indent += "  ";
     state.num_entries = 0;
-    buf += ctype == ContainerType::Dictionary ? "<<\n" : "[\n";
+    buf += ctype == ContainerType::Dictionary ? "<<\n" : "[";
 }
 
 void ObjectFormatter::add_token_pair(const char *t1, const char *t2) {
@@ -82,6 +82,12 @@ void ObjectFormatter::add_token(uint32_t number) {
 void ObjectFormatter::add_token(double number) {
     check_indent();
     std::format_to(app, "{:f}", number);
+    added_item();
+}
+
+void ObjectFormatter::add_token(size_t number) {
+    check_indent();
+    std::format_to(app, "{}", number);
     added_item();
 }
 
