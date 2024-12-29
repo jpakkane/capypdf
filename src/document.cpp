@@ -655,6 +655,29 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
     return add_object(FullPDFObject{std::move(buf), {}});
 }
 
+rvoe<int32_t> PdfDocument::create_AF_dict() {
+    std::string buf = "[\n";
+    auto app = std::back_inserter(buf);
+    for(const auto &e : embedded_files) {
+        buf += "  <<\n";
+        buf += "    /Type /Filespec\n";
+        if(!e.ef.description.empty()) {
+            std::format_to(app, "    /Desc {}\n", u8str2u8textstring(e.ef.description));
+        }
+        buf += "    /AFRelationship /Data\n";
+        // Yes, these two are the same. For BW reasons I guess?
+        std::format_to(app, "    /F {}\n", u8str2filespec(e.ef.pdfname));
+        std::format_to(app, "    /UF {}\n", u8str2filespec(e.ef.pdfname));
+        buf += "    /EF <<\n";
+        std::format_to(app, "      /F {}\n", e.contents_obj);
+        std::format_to(app, "      /UF {}\n", e.contents_obj);
+        buf += "    >>\n";
+        buf += "  >>\n";
+    }
+    buf += "]\n";
+    return add_object(FullPDFObject{std::move(buf), {}});
+}
+
 rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
     std::string buf = "<< /Nums [\n";
     auto app = std::back_inserter(buf);
@@ -690,10 +713,13 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::string outline;
     std::string name;
     std::string structure;
+    std::string AF;
 
     if(!embedded_files.empty()) {
         ERC(names, create_name_dict());
         name = std::format("  /Names {} 0 R\n", names);
+        ERC(afnum, create_AF_dict());
+        AF = std::format("  /AF {} 0 R\n", afnum);
     }
     if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
@@ -740,6 +766,9 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     }
     if(!name.empty()) {
         buf += name;
+    }
+    if(!AF.empty()) {
+        buf += AF;
     }
     if(!structure.empty()) {
         buf += structure;

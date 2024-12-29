@@ -298,6 +298,59 @@ std::string pdfstring_quote(std::string_view raw_string) {
     return result;
 }
 
+std::string u8str2u8textstring(const u8string &str) { return u8str2u8textstring(str.sv()); }
+
+// PDF 2.0 spec 7.9.2.2
+std::string u8str2u8textstring(std::string_view u8string) {
+    std::string result;
+    result.reserve(u8string.size() + 10);
+    result.push_back('(');
+    result.push_back(char(239));
+    result.push_back(char(187));
+    result.push_back(char(191));
+    for(const char c : u8string) {
+        switch(c) {
+        case '(':
+        case ')':
+        case '\\':
+            result.push_back('\\');
+            break;
+        default:
+            break;
+        }
+        result.push_back(c);
+    }
+    result.push_back(')');
+    return result;
+}
+
+std::string u8str2filespec(const u8string &str) {
+    std::string result;
+    const char escaped_slash[4] = {'\\', '\\', '/', 0};
+    result.reserve(str.size() + 10);
+    result.push_back('(');
+    result.push_back(char(239));
+    result.push_back(char(187));
+    result.push_back(char(191));
+    for(const char c : str.sv()) {
+        switch(c) {
+        case '(':
+        case ')':
+        case '\\':
+            result.push_back('\\');
+            break;
+        case '/':
+            result += escaped_slash;
+            break;
+        default:
+            break;
+        }
+        result.push_back(c);
+    }
+    result.push_back(')');
+    return result;
+}
+
 std::string pdfname_quote(std::string_view raw_string) {
     std::string result;
     result.reserve(raw_string.size() + 10);

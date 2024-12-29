@@ -495,6 +495,7 @@ private:
 
     void create_output_intent();
     rvoe<int32_t> create_name_dict();
+    rvoe<int32_t> create_AF_dict();
     rvoe<int32_t> create_outlines();
     void create_structure_root_dict();
 

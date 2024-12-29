@@ -45,6 +45,11 @@ std::string current_date_string();
 
 std::string pdfstring_quote(std::string_view raw_string);
 
+// UTF-8 strings were added in PDF 2.0.
+std::string u8str2u8textstring(std::string_view u8string);
+std::string u8str2u8textstring(const u8string &str);
+std::string u8str2filespec(const u8string &str);
+
 std::string pdfname_quote(std::string_view raw_string);
 
 bool is_ascii(std::string_view text);
