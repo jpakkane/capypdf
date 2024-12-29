@@ -3,6 +3,7 @@
 
 #include <pdfwriter.hpp>
 #include <utils.hpp>
+#include <objectformatter.hpp>
 
 #include <format>
 #include <ft2build.h>
@@ -121,6 +122,22 @@ rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGly
     }
     arr += "]";
     return arr;
+}
+
+void serialize_time(ObjectFormatter &fmt, const char *key, double timepoint) {
+    //  /B << /S /T /T << /S /S /V {:f} >> >>
+    fmt.add_token(key);
+    fmt.begin_dict();
+    fmt.add_token_pair("/S", "/T");
+    fmt.add_token("/T");
+    {
+        fmt.begin_dict();
+        fmt.add_token_pair("/S", "/S");
+        fmt.add_token("/V");
+        fmt.add_token(timepoint);
+        fmt.end_dict();
+    }
+    fmt.end_dict();
 }
 
 } // namespace
@@ -597,129 +614,160 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     // It is ok for an annotation not to be used.
 
     assert(annotation.a.rect);
-    std::string dict = std::format(R"(<<
-  /Type /Annot
-  /Rect [ {:f} {:f} {:f} {:f} ]
-  /F {}
-)",
-                                   annotation.a.rect->x1,
-                                   annotation.a.rect->y1,
-                                   annotation.a.rect->x2,
-                                   annotation.a.rect->y2,
-                                   (int)annotation.a.flags);
-    auto app = std::back_inserter(dict);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Annot");
+    fmt.add_token("/Rect");
+    {
+        fmt.begin_array();
+        fmt.add_token(annotation.a.rect->x1);
+        fmt.add_token(annotation.a.rect->y1);
+        fmt.add_token(annotation.a.rect->x2);
+        fmt.add_token(annotation.a.rect->y2);
+        fmt.end_array();
+    }
+    fmt.add_token("/F");
+    fmt.add_token((int)annotation.a.flags);
+
     if(loc != doc.annotation_use.end()) {
-        std::format_to(app, "  /P {} 0 R\n", loc->second);
+        fmt.add_token("/P");
+        fmt.add_object_ref(loc->second);
     }
     if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
-        std::format_to(app,
-                       R"(  /Subtype /Text
-  /Contents {}
-)",
-                       utf8_to_pdfutf16be(ta->content));
+        fmt.add_token_pair("/Subtype", "/Text");
+        fmt.add_token("/Contents");
+        fmt.add_token(utf8_to_pdfutf16be(ta->content));
     } else if(auto faa = std::get_if<FileAttachmentAnnotation>(&annotation.a.sub)) {
-        std::format_to(app,
-                       R"(  /Subtype /FileAttachment
-  /FS {} 0 R
-)",
-                       doc.get(faa->fileid).filespec_obj);
+        fmt.add_token_pair("/Subtype", "/FileAttachment");
+        fmt.add_token("/FS");
+        fmt.add_object_ref(doc.get(faa->fileid).filespec_obj);
     } else if(auto linkobj = std::get_if<LinkAnnotation>(&annotation.a.sub)) {
-        std::format_to(app, "  /Subtype /Link\n");
+        fmt.add_token_pair("/Subtype", "/Link");
         if(linkobj->URI) {
             assert(!linkobj->Dest);
             auto uri_as_str = pdfstring_quote(linkobj->URI->sv());
-            std::format_to(app,
-                           R"(  /A <<
-    /S /URI
-    /URI {}
-)",
-                           uri_as_str);
+            fmt.add_token("/A");
+            fmt.begin_dict();
+            fmt.add_token_pair("/S", "/URI");
+            fmt.add_token("/URI");
+            fmt.add_token(uri_as_str);
+            fmt.end_dict();
         } else if(linkobj->Dest) {
-            dict += "  ";
             const auto physical_page = linkobj->Dest->page;
             if(physical_page < 0 || physical_page >= (int32_t)doc.pages.size()) {
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = doc.pages.at(physical_page).page_obj_num;
-            serialize_destination(dict, linkobj->Dest.value(), page_object_number, "  ");
+            serialize_destination(fmt, linkobj->Dest.value(), page_object_number);
         }
-        dict += "  >>\n";
+
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
         int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {
-            std::format_to(app,
-                           R"(  /Subtype /Screen
-  /A <<
-    /Type /Action
-    /S /Rendition
-    /OP 0
-    /AN {} 0 R
-    /R <<
-      /Type /Rendition
-      /S /MR
-      /C <<
-        /Type /MediaClip
-        /CT ({})
-        /S /MCD
-        /D {} 0 R
-        /P << /TF (TEMPALWAYS) >>
-      >>
-    >>
-  >>
-)",
-                           obj_num,
-                           sa->mimetype,
-                           media_filespec);
+            fmt.add_token_pair("/Subtype", "/Screen");
+            fmt.add_token("/A");
+            {
+                fmt.begin_dict();
+                fmt.add_token_pair("/Type", "/Action");
+                fmt.add_token_pair("/S", "/Rendition");
+                fmt.add_token_pair("/OP", "0");
+                fmt.add_token("/AN");
+                fmt.add_object_ref(obj_num);
+                fmt.add_token("/R");
+                {
+                    fmt.begin_dict();
+                    fmt.add_token_pair("/Type", "/Rendition");
+                    fmt.add_token_pair("/S", "/MR");
+                    fmt.add_token("/C");
+                    {
+                        fmt.begin_dict();
+                        fmt.add_token_pair("/Type", "/MediaClip");
+                        fmt.add_token("/CT");
+                        fmt.add_pdfstring(sa->mimetype);
+                        fmt.add_token_pair("/S", "/MCD");
+                        fmt.add_token("/D");
+                        fmt.add_object_ref(media_filespec);
+                        fmt.add_token("/P");
+                        {
+                            fmt.begin_dict();
+                            fmt.add_token_pair("/TF", "(TEMPALWAYS)");
+                            fmt.end_dict();
+                        }
+                        fmt.end_dict();
+                    }
+                    fmt.end_dict();
+                }
+                fmt.end_dict();
+            }
         } else {
             // NOTE! This should work but does not. Acrobat reader will error
             // out if there are any entries in the MH dictionary, regardless whether they
             // are time or frame dictionaries.
-            std::format_to(app,
-                           R"(  /Subtype /Screen
-  /A <<
-    /Type /Action
-    /S /Rendition
-    /OP 0
-    /AN {} 0 R
-    /R <<
-      /Type /Rendition
-      /S /MR
-      /C <<
-        /Type /MediaClip
-        /S /MCS
-        /D <<
-          /Type /MediaClip
-          /CT ({})
-          /S /MCD
-          /D {} 0 R
-          /P << /TF (TEMPALWAYS) >>
-        >>
-        /MH <<
-          /B << /S /T /T << /S /S /V {:f} >> >>
-          /E << /S /T /T << /S /S /V {:f} >> >>
-        >>
-      >>
-    >>
-  >>
-)",
-                           obj_num,
-                           sa->mimetype,
-                           media_filespec,
-                           sa->times->starttime,
-                           sa->times->endtime);
+            fmt.add_token_pair("/Subtype", "/Screen");
+            fmt.add_token("/A");
+            {
+                fmt.begin_dict();
+                fmt.add_token_pair("/Type", "/Action");
+                fmt.add_token_pair("/S", "/Rendition");
+                fmt.add_token_pair("/OP", "0");
+                fmt.add_token("/AN");
+                fmt.add_object_ref(obj_num);
+                fmt.add_token("/R");
+                {
+                    fmt.begin_dict();
+                    fmt.add_token_pair("/Type", "/Rendition");
+                    fmt.add_token_pair("/S", "/MR");
+                    fmt.add_token("/C");
+                    {
+                        fmt.begin_dict();
+                        fmt.add_token_pair("/Type", "/MediaClip");
+                        fmt.add_token_pair("/S", "/MCS");
+                        fmt.add_token("/D");
+                        {
+                            fmt.begin_dict();
+                            fmt.add_token_pair("/Type", "/MediaClip");
+                            fmt.add_token("/CT");
+                            fmt.add_pdfstring(sa->mimetype);
+                            fmt.add_token_pair("/S", "/MCD");
+                            fmt.add_token("/D");
+                            fmt.add_object_ref(media_filespec);
+                            fmt.add_token("/P");
+                            {
+                                fmt.begin_dict();
+                                fmt.add_token_pair("/TF", "(TEMPALWAYS");
+                                fmt.end_dict();
+                            }
+                            fmt.end_dict();
+                        }
+                        fmt.add_token("/MH");
+                        {
+                            fmt.begin_dict();
+                            serialize_time(fmt, "/B", sa->times->starttime);
+                            serialize_time(fmt, "/E", sa->times->endtime);
+                            fmt.end_dict();
+                        }
+                    }
+                    fmt.end_dict();
+                }
+                fmt.end_dict();
+            }
+            fmt.end_dict();
         }
-    } else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
-        std::format_to(app,
-                       R"(  /Subtype /PrinterMark
-  /AP << /N {} 0 R >>
-)",
-                       doc.form_xobjects.at(pma->appearance.id).xobj_num);
+    }
+
+    else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
+        fmt.add_token_pair("/Subtype", "/PrinterMark");
+        fmt.add_token("/AP");
+        fmt.begin_dict();
+        fmt.add_token("/N");
+        fmt.add_object_ref(doc.form_xobjects.at(pma->appearance.id).xobj_num);
+        fmt.end_dict();
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
         std::abort();
     }
-    dict += ">>\n";
-    ERCV(write_finished_object(obj_num, dict, {}));
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
 }
 

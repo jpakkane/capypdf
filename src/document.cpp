@@ -248,11 +248,11 @@ void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) 
     }
 }
 
-template<typename T1, typename T2> static void append_value_or_null(T1 &app, const T2 &val) {
+template<typename T1, typename T2> static void append_value_or_null(T1 &fmt, const T2 &val) {
     if(val) {
-        std::format_to(app, "{:f} ", val.value());
+        fmt.add_token(val.value());
     } else {
-        std::format_to(app, "{} ", "null");
+        fmt.add_token("null");
     }
 }
 
@@ -284,27 +284,29 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
-rvoe<NoReturnValue> serialize_destination(std::string &oitem,
-                                          const Destination &dest,
-                                          int32_t page_object_number,
-                                          std::string_view indent) {
-    auto app = std::back_inserter(oitem);
-    std::format_to(app, "/Dest [ {} 0 R\n", page_object_number);
+rvoe<NoReturnValue>
+serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t page_object_number) {
+    fmt.add_token("/Dest");
+    fmt.begin_array();
+    fmt.add_object_ref(page_object_number);
     if(auto xyz = std::get_if<DestinationXYZ>(&dest.loc)) {
-        std::format_to(app, "{}/XYZ ", indent);
-        append_value_or_null(app, xyz->x);
-        append_value_or_null(app, xyz->y);
-        append_value_or_null(app, xyz->z);
-        oitem += '\n';
+        fmt.add_token("/XYZ");
+        append_value_or_null(fmt, xyz->x);
+        append_value_or_null(fmt, xyz->y);
+        append_value_or_null(fmt, xyz->z);
     } else if(std::holds_alternative<DestinationFit>(dest.loc)) {
-        std::format_to(app, "{}/Fit\n", indent);
+        fmt.add_token("/Fit");
     } else if(auto r = std::get_if<DestinationFitR>(&dest.loc)) {
-        std::format_to(app, "{}/FitR {} {} {} {}\n", indent, r->left, r->bottom, r->right, r->top);
+        fmt.add_token("/FitR");
+        fmt.add_token(r->left);
+        fmt.add_token(r->bottom);
+        fmt.add_token(r->right);
+        fmt.add_token(r->top);
     } else {
         fprintf(stderr, "No link target specified.\n");
         std::abort();
     }
-    std::format_to(app, "{}]\n", indent);
+    fmt.end_array();
     RETOK;
 }
 
@@ -866,22 +868,21 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 }
 
 void PdfDocument::create_output_intent() {
-    std::string buf;
     assert(output_profile);
+    ObjectFormatter fmt;
+
     assert(!std::holds_alternative<std::monostate>(docprops.subtype));
     const char *gts =
         std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
-    buf = std::format(R"(<<
-  /Type /OutputIntent
-  /S {}
-  /OutputConditionIdentifier {}
-  /DestOutputProfile {} 0 R
->>
-)",
-                      gts,
-                      utf8_to_pdfutf16be(docprops.intent_condition_identifier),
-                      get(*output_profile).stream_num);
-    output_intent_object = add_object(FullPDFObject{buf, {}});
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "OutputIntent");
+    fmt.add_token_pair("/S", gts);
+    fmt.add_token("/OutputConditionIdentifier");
+    fmt.add_token(utf8_to_pdfutf16be(docprops.intent_condition_identifier));
+    fmt.add_token("/DestOutputProfile");
+    fmt.add_object_ref(get(*output_profile).stream_num);
+    fmt.end_dict();
+    output_intent_object = add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<int32_t> PdfDocument::create_outlines() {
@@ -892,11 +893,10 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         auto titlestr = utf8_to_pdfutf16be(cur_obj.title);
         auto parent_id = outlines.parent.at(cur_id);
         const auto &siblings = outlines.children.at(parent_id);
-        std::string oitem = std::format(R"(<<
-  /Title {}
-)",
-                                        titlestr);
-        auto app = std::back_inserter(oitem);
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token("/Title");
+        fmt.add_token(titlestr);
         if(cur_obj.dest) {
             const auto &dest = cur_obj.dest.value();
             const auto physical_page = dest.page;
@@ -904,8 +904,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = pages.at(physical_page).page_obj_num;
-            oitem += "  ";
-            serialize_destination(oitem, dest, page_object_number, "  ");
+            serialize_destination(fmt, dest, page_object_number);
         }
         if(siblings.size() > 1) {
             auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
@@ -913,40 +912,42 @@ rvoe<int32_t> PdfDocument::create_outlines() {
             if(loc != siblings.begin()) {
                 auto prevloc = loc;
                 --prevloc;
-                std::format_to(app, "  /Prev {} 0 R\n", first_obj_num + *prevloc);
+                fmt.add_token("/Prev");
+                fmt.add_object_ref(first_obj_num + *prevloc);
             }
             auto nextloc = loc;
             nextloc++;
             if(nextloc != siblings.end()) {
-                std::format_to(app, "  /Next {} 0 R\n", first_obj_num + *nextloc);
+                fmt.add_token("/Next");
+                fmt.add_token(first_obj_num + *nextloc);
             }
         }
         auto childs = outlines.children.find(cur_id);
         if(childs != outlines.children.end()) {
             const auto &children = childs->second;
-            std::format_to(app, "  /First {} 0 R\n", first_obj_num + children.front());
-            std::format_to(app, "  /Last {} 0 R\n", first_obj_num + children.back());
-            std::format_to(app, "  /Count {}\n", -(int32_t)children.size());
+            fmt.add_token("/First");
+            fmt.add_object_ref(first_obj_num + children.front());
+            fmt.add_token("/Last");
+            fmt.add_object_ref(first_obj_num + children.back());
+            fmt.add_token("/Count");
+            fmt.add_token(-(int32_t)children.size());
         }
-        /*
-        if(node_counts[cur_id] > 0) {
-            std::format_to(app, "  /Count {}\n", -node_counts[cur_id]);
-        }*/
-        std::format_to(app,
-                       "  /Parent {} 0 R\n",
-                       parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
+        fmt.add_token("/Parent");
+        fmt.add_object_ref(parent_id >= 0 ? first_obj_num + parent_id : catalog_obj_num);
         if(cur_obj.F != 0) {
-            std::format_to(app, "  /F {}\n", cur_obj.F);
+            fmt.add_token("/F");
+            fmt.add_token(cur_obj.F);
         }
         if(cur_obj.C) {
-            std::format_to(app,
-                           "  /C [ {:f} {:f} {:f} ]\n",
-                           cur_obj.C.value().r.v(),
-                           cur_obj.C.value().g.v(),
-                           cur_obj.C.value().b.v());
+            fmt.add_token("/C");
+            fmt.begin_array();
+            fmt.add_token(cur_obj.C.value().r.v());
+            fmt.add_token(cur_obj.C.value().g.v());
+            fmt.add_token(cur_obj.C.value().b.v());
+            fmt.end_array();
         }
-        oitem += ">>\n";
-        add_object(FullPDFObject{std::move(oitem), {}});
+        fmt.end_dict();
+        add_object(FullPDFObject{fmt.steal(), {}});
     }
     const auto &top_level = outlines.children.at(-1);
     std::string buf = std::format(R"(<<

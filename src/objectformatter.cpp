@@ -32,6 +32,7 @@ void ObjectFormatter::do_pop(ContainerType ctype) {
     }
     if(stack.top().type != ctype) {
         fprintf(stderr, "Pop type mismatch.\n");
+        std::abort();
     }
     state = std::move(stack.top().params);
     stack.pop();

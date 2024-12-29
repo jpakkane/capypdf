@@ -63,7 +63,7 @@ void video_player() {
     std::optional<ClipTimes> subplay;
 #else
     const char *mediafile = "samplevideo.mp4";
-    const char *mimetype = "video/mp4";
+    asciistring mimetype = asciistring::from_cstr("video/mp4").value();
     std::optional<ClipTimes> subplay = ClipTimes{14 * 60 + 26, 14 * 60 + 32};
 #endif
     {

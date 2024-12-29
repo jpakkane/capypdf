@@ -8,6 +8,7 @@
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <colorconverter.hpp>
+#include <objectformatter.hpp>
 
 #include <string_view>
 #include <vector>
@@ -269,7 +270,7 @@ struct ClipTimes {
 
 struct ScreenAnnotation {
     CapyPDF_EmbeddedFileId mediafile;
-    std::string mimetype;
+    asciistring mimetype;
     std::optional<ClipTimes> times;
 };
 
@@ -351,10 +352,8 @@ struct ShadingInfo {
 typedef std::variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
 // Not really the best place for this but it'll do for now.
-rvoe<NoReturnValue> serialize_destination(std::string &oitem,
-                                          const Destination &dest,
-                                          int32_t page_object_number,
-                                          std::string_view indent);
+rvoe<NoReturnValue>
+serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t page_object_number);
 
 class PdfDocument {
 public:
