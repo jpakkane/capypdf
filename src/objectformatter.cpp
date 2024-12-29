@@ -13,54 +13,41 @@ ObjectFormatter::ObjectFormatter(std::string_view base_indent)
     : state{std::string{base_indent}, 0, 0}, app{std::back_inserter(buf)} {}
 
 void ObjectFormatter::begin_array(int32_t max_element) {
-    check_indent();
-    stack.push(FormatStash{ContainerType::Array, state});
-    state.indent += "  ";
-    state.num_entries = 0;
+    do_push(ContainerType::Array);
     state.array_elems_per_line = max_element;
-    buf += "[\n";
-}
-
-void ObjectFormatter::end_array() {
-    if(stack.empty()) {
-        fprintf(stderr, "Stack underrun\n");
-        std::abort();
-    }
-    if(stack.top().type != ContainerType::Array) {
-        fprintf(stderr, "Was expecting array.\n");
-    }
-    state = std::move(stack.top().params);
-    stack.pop();
-    if(!buf.empty() && buf.back() == '\n') {
-        buf += state.indent;
-    }
-    buf += "]";
-    added_item();
 }
 
 void ObjectFormatter::begin_dict() {
-    check_indent();
-    stack.push(FormatStash{ContainerType::Dictionary, state});
-    state.indent += "  ";
-    state.num_entries = 0;
-    buf += "<<\n";
+    do_push(ContainerType::Dictionary);
+    state.array_elems_per_line = 0;
 }
 
-void ObjectFormatter::end_dict() {
+void ObjectFormatter::end_array() { do_pop(ContainerType::Array); }
+void ObjectFormatter::end_dict() { do_pop(ContainerType::Dictionary); }
+
+void ObjectFormatter::do_pop(ContainerType ctype) {
     if(stack.empty()) {
         fprintf(stderr, "Stack underrun\n");
         std::abort();
     }
-    if(stack.top().type != ContainerType::Dictionary) {
-        fprintf(stderr, "Was expecting dictionary.\n");
+    if(stack.top().type != ctype) {
+        fprintf(stderr, "Pop type mismatch.\n");
     }
     state = std::move(stack.top().params);
     stack.pop();
     if(!buf.empty() && buf.back() == '\n') {
         buf += state.indent;
     }
-    buf += ">>";
+    buf += ctype == ContainerType::Dictionary ? ">>" : "]";
     added_item();
+}
+
+void ObjectFormatter::do_push(ContainerType ctype) {
+    check_indent();
+    stack.push(FormatStash{ctype, state});
+    state.indent += "  ";
+    state.num_entries = 0;
+    buf += ctype == ContainerType::Dictionary ? "<<\n" : "[\n";
 }
 
 void ObjectFormatter::add_token_pair(const char *t1, const char *t2) {

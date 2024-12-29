@@ -31,8 +31,8 @@ public:
     explicit ObjectFormatter(std::string_view base_indent = {});
 
     void begin_array(int32_t array_elems_per_line = 10000);
-    void end_array();
     void begin_dict();
+    void end_array();
     void end_dict();
 
     void add_token_pair(const char *t1, const char *t2);
@@ -54,6 +54,9 @@ public:
 private:
     void added_item();
     void check_indent();
+
+    void do_pop(ContainerType ctype);
+    void do_push(ContainerType ctype);
 
     FormatState state;
     std::stack<FormatStash, std::vector<FormatStash>> stack;

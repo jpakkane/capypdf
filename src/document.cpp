@@ -790,15 +790,15 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     }
     if(names_object) {
         fmt.add_token("/Names");
-        fmt.add_token(*names_object);
+        fmt.add_object_ref(*names_object);
     }
     if(AF_object) {
         fmt.add_token("/AF");
-        fmt.add_token(*AF_object);
+        fmt.add_object_ref(*AF_object);
     }
     if(structure_object) {
         fmt.add_token("/StructTreeRoot");
-        fmt.add_token(*structure_object);
+        fmt.add_object_ref(*structure_object);
     }
     if(!docprops.lang.empty()) {
         fmt.add_token("/Lang");
