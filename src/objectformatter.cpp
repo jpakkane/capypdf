@@ -2,8 +2,12 @@
 // Copyright 2024 Jussi Pakkanen
 
 #include <objectformatter.hpp>
+#include <pdfcommon.hpp>
+
 #include <format>
 #include <cassert>
+
+namespace capypdf::internal {
 
 ObjectFormatter::ObjectFormatter(std::string_view base_indent)
     : state{std::string{base_indent}, 0, 0}, app{std::back_inserter(buf)} {}
@@ -59,6 +63,11 @@ void ObjectFormatter::end_dict() {
     added_item();
 }
 
+void ObjectFormatter::add_token_pair(const char *t1, const char *t2) {
+    add_token(t1);
+    add_token(t2);
+}
+
 void ObjectFormatter::add_token(const char *raw_text) {
     check_indent();
     buf += raw_text;
@@ -101,6 +110,11 @@ void ObjectFormatter::check_indent() {
     }
 }
 
+void ObjectFormatter::add_pdfstring(const asciistring &str) {
+    // FIXME: add quoting for special characters.
+    std::format_to(app, "({})", str.c_str());
+}
+
 void ObjectFormatter::added_item() {
     ++state.num_entries;
     if(stack.empty()) {
@@ -132,3 +146,5 @@ std::string ObjectFormatter::steal() {
     }
     return std::move(buf);
 }
+
+} // namespace capypdf::internal

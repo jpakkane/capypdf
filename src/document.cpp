@@ -560,23 +560,35 @@ rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &nam
 }
 
 rvoe<CapyPDF_LabColorSpaceId> PdfDocument::add_lab_colorspace(const LabColorSpace &lab) {
-    std::string buf = std::format(
-        R"([ /Lab
-  <<
-    /WhitePoint [ {:f} {:f} {:f} ]
-    /Range [ {:f} {:f} {:f} {:f} ]
-  >>
-]
-)",
-        lab.xw,
-        lab.yw,
-        lab.zw,
-        lab.amin,
-        lab.amax,
-        lab.bmin,
-        lab.bmax);
+    ObjectFormatter fmt;
+    fmt.begin_array();
+    fmt.add_token("/Lab");
+    {
+        fmt.begin_dict();
 
-    add_object(FullPDFObject{std::move(buf), {}});
+        fmt.add_token("/WhitePoint");
+        {
+            fmt.begin_array();
+            fmt.add_token(lab.xw);
+            fmt.add_token(lab.yw);
+            fmt.add_token(lab.zw);
+            fmt.end_array();
+        }
+
+        fmt.add_token("/Range");
+        {
+            fmt.begin_array();
+            fmt.add_token(lab.amin);
+            fmt.add_token(lab.amax);
+            fmt.add_token(lab.bmin);
+            fmt.add_token(lab.bmax);
+            fmt.end_array();
+        }
+        fmt.end_dict();
+    }
+    fmt.end_array();
+
+    add_object(FullPDFObject{fmt.steal(), {}});
     return CapyPDF_LabColorSpaceId{(int32_t)document_objects.size() - 1};
 }
 
@@ -719,106 +731,124 @@ rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
 }
 
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
-    std::string buf;
-    auto app = std::back_inserter(buf);
-    std::string outline;
-    std::string name;
-    std::string structure;
-    std::string AF;
+    ObjectFormatter fmt;
+    std::optional<int32_t> outline_object;
+    std::optional<int32_t> structure_object;
+    std::optional<int32_t> AF_object;
+    std::optional<int32_t> names_object;
+
+    fmt.begin_dict();
 
     if(!embedded_files.empty()) {
         ERC(names, create_name_dict());
-        name = std::format("  /Names {} 0 R\n", names);
+        names_object = names;
         ERC(afnum, create_AF_dict());
-        AF = std::format("  /AF {} 0 R\n", afnum);
+        AF_object = afnum;
     }
     if(!outlines.items.empty()) {
         ERC(outlines, create_outlines());
-        outline = std::format("  /Outlines {} 0 R\n", outlines);
+        outline_object = outlines;
     }
     if(!structure_items.empty()) {
         ERC(treeid, create_structure_parent_tree());
         structure_parent_tree_object = treeid;
         create_structure_root_dict();
-        structure = std::format("  /StructTreeRoot {} 0 R\n", *structure_root_object);
+        structure_object = *structure_root_object;
     }
-    std::format_to(app,
-                   R"(<<
-  /Type /Catalog
-  /Pages {} 0 R
-)",
-                   pages_object);
+    fmt.add_token_pair("/Type", "/Catalog");
+    fmt.add_token("/Pages");
+    fmt.add_object_ref(pages_object);
 
     if(!page_labels.empty()) {
-        buf += R"(  /PageLabels
-    << /Nums [
-)";
+        fmt.add_token("PageLabels");
+        fmt.begin_dict();
+        fmt.add_token("/Nums");
+        fmt.begin_array(2);
         for(const auto &page_label : page_labels) {
-            std::format_to(app, R"(      {} <<)", page_label.start_page);
+            fmt.add_token(page_label.start_page);
+            fmt.begin_dict();
             if(page_label.style) {
-                std::format_to(app, "        /S {}\n", page_label_types.at(*page_label.style));
+                fmt.add_token("/S");
+                fmt.add_token(page_label_types.at(*page_label.style));
             }
             if(page_label.prefix) {
-                std::format_to(
-                    app, "        /P {}\n", utf8_to_pdfutf16be(*page_label.prefix).c_str());
+                fmt.add_token("/P");
+                fmt.add_token(utf8_to_pdfutf16be(*page_label.prefix).c_str());
             }
             if(page_label.start_num) {
-                std::format_to(app, "        /St {}\n", *page_label.start_num);
+                fmt.add_token("/St");
+                fmt.add_token(*page_label.start_num);
             }
-            buf += R"(>>
-)";
+            fmt.end_dict();
         }
-        buf += R"(    ]
-  >>
-)";
+        fmt.end_array();
+        fmt.end_dict();
     }
-    if(!outline.empty()) {
-        buf += outline;
+    if(outline_object) {
+        fmt.add_token("/Outlines");
+        fmt.add_token(*outline_object);
     }
-    if(!name.empty()) {
-        buf += name;
+    if(names_object) {
+        fmt.add_token("/Names");
+        fmt.add_token(*names_object);
     }
-    if(!AF.empty()) {
-        buf += AF;
+    if(AF_object) {
+        fmt.add_token("/AF");
+        fmt.add_token(*AF_object);
     }
-    if(!structure.empty()) {
-        buf += structure;
+    if(structure_object) {
+        fmt.add_token("/StructTreeRoot");
+        fmt.add_token(*structure_object);
     }
     if(!docprops.lang.empty()) {
-        std::format_to(app, "  /Lang ({})\n", docprops.lang.c_str());
+        fmt.add_token("/Lang");
+        fmt.add_pdfstring(docprops.lang);
     }
     if(docprops.is_tagged) {
-        std::format_to(app, "  /MarkInfo << /Marked true >>\n");
+        fmt.add_token("/MarkInfo");
+        fmt.begin_dict();
+        fmt.add_token_pair("/Marked", "true");
+        fmt.end_dict();
     }
     if(output_intent_object) {
-        std::format_to(app, "  /OutputIntents [ {} 0 R ]\n", *output_intent_object);
+        fmt.add_token("/OutputIntents");
+        fmt.begin_array();
+        fmt.add_object_ref(*output_intent_object);
+        fmt.end_array();
     }
     if(!form_use.empty()) {
-        buf += R"(  /AcroForm <<
-    /Fields [
-)";
+        fmt.add_token("/AcroForm");
+        fmt.begin_dict();
+        fmt.add_token("/Fields");
+        fmt.begin_array(1);
         for(const auto &i : form_widgets) {
-            std::format_to(app, "      {} 0 R\n", i);
+            fmt.add_object_ref(i);
         }
-        buf += "      ]\n  >>\n";
-        buf += "  /NeedAppearances true\n";
+        fmt.end_array();
+        fmt.end_dict();
+        fmt.add_token_pair("/NeedAppearances", "true");
     }
     if(!ocg_items.empty()) {
-        buf += R"(  /OCProperties <<
-    /OCGs [
-)";
+        fmt.add_token("/OCProperties");
+        fmt.begin_dict();
+        fmt.add_token("/OCGs");
+        fmt.begin_array(1);
         for(const auto &o : ocg_items) {
-            std::format_to(app, "      {} 0 R\n", o);
+            fmt.add_object_ref(o);
         }
-        buf += "    ]\n";
-        buf += "    /D << /BaseState /ON >>\n";
-        buf += "  >>\n";
+        fmt.end_array();
+        fmt.add_token("/D");
+        fmt.begin_dict();
+        fmt.add_token_pair("/BaseState", "/ON");
+        fmt.end_dict();
+        fmt.end_dict();
     }
     if(document_md_object) {
-        std::format_to(app, "  /Metadata {} 0 R\n", *document_md_object);
+        fmt.add_token("/Metadata");
+        fmt.add_object_ref(*document_md_object);
     }
-    buf += ">>\n";
-    add_object(FullPDFObject{buf, {}});
+    fmt.end_dict();
+    add_object(FullPDFObject{fmt.steal(), {}});
     RETOK;
 }
 

@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+namespace capypdf::internal {
+
 enum class ContainerType { Array, Dictionary };
 
 struct FormatState {
@@ -21,6 +23,9 @@ struct FormatStash {
     FormatState params;
 };
 
+class u8string;
+class asciistring;
+
 class ObjectFormatter {
 public:
     explicit ObjectFormatter(std::string_view base_indent = {});
@@ -30,12 +35,16 @@ public:
     void begin_dict();
     void end_dict();
 
+    void add_token_pair(const char *t1, const char *t2);
+
     void add_token(const char *raw_text);
     void add_token(std::string_view raw_text);
     void add_token(int32_t number);
     void add_token(uint32_t number);
     void add_token(double number);
+
     void add_object_ref(int32_t onum);
+    void add_pdfstring(const asciistring &str);
 
     std::string steal();
 
@@ -51,3 +60,5 @@ private:
     std::string buf;
     std::back_insert_iterator<std::string> app;
 };
+
+} // namespace capypdf::internal
