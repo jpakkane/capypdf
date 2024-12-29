@@ -697,7 +697,7 @@ public:
                            std::optional<CapyPDF_Page_Label_Number_Style> style,
                            const T &bseq,
                            std::optional<uint32_t> page_num) {
-        add_page_labeling(start_page, style, bseq.data, bseq.size(), page_num);
+        add_page_labeling(start_page, style, bseq.data(), bseq.size(), page_num);
     }
 
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}
