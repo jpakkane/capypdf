@@ -31,8 +31,10 @@ public:
     void end_dict();
 
     void add_token(const char *raw_text);
+    void add_token(std::string_view raw_text);
     void add_token(int32_t number);
     void add_token(uint32_t number);
+    void add_token(double number);
     void add_object_ref(int32_t onum);
 
     std::string steal();

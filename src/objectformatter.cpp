@@ -2,7 +2,6 @@
 // Copyright 2024 Jussi Pakkanen
 
 #include <objectformatter.hpp>
-#include <print>
 #include <format>
 #include <cassert>
 
@@ -66,6 +65,12 @@ void ObjectFormatter::add_token(const char *raw_text) {
     added_item();
 }
 
+void ObjectFormatter::add_token(std::string_view raw_text) {
+    check_indent();
+    buf += raw_text;
+    added_item();
+}
+
 void ObjectFormatter::add_token(int32_t number) {
     check_indent();
     std::format_to(app, "{}", number);
@@ -75,6 +80,12 @@ void ObjectFormatter::add_token(int32_t number) {
 void ObjectFormatter::add_token(uint32_t number) {
     check_indent();
     std::format_to(app, "{}", number);
+    added_item();
+}
+
+void ObjectFormatter::add_token(double number) {
+    check_indent();
+    std::format_to(app, "{:f}", number);
     added_item();
 }
 
@@ -120,29 +131,4 @@ std::string ObjectFormatter::steal() {
         buf += '\n';
     }
     return std::move(buf);
-}
-
-int main() {
-    ObjectFormatter f("-> ");
-    f.begin_dict();
-    f.add_token("/Key");
-    f.add_token("(value)");
-    f.add_token("/Key2");
-    f.begin_array(2);
-    f.add_token("one");
-    f.add_token("two");
-    f.add_token("three");
-    f.begin_dict();
-    f.add_token("/Subkey");
-    f.add_object_ref(42);
-    f.end_dict();
-    f.add_token("five");
-    f.add_token("six");
-    f.end_array();
-    f.add_token("/Key3");
-    f.add_token(444);
-    f.end_dict();
-    auto s = f.steal();
-    std::println("Got this:\n{}", s);
-    return 0;
 }

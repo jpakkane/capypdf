@@ -19,6 +19,7 @@ capypdf_lib = shared_library('capypdf',
   'capi.cpp',
   'errorhandling.cpp',
   'pdfwriter.cpp',
+  'objectformatter.cpp',
   include_directories: [pubinc],
   #link_args: ['-static-libstdc++'],
   cpp_args: cpp_args,
@@ -60,5 +61,3 @@ else
       dependencies: [capypdf_internal_dep]
     )
 endif
-
-executable('objectformatter', 'objectformatter.cpp')

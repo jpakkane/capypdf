@@ -4,6 +4,7 @@
 #include <document.hpp>
 #include <utils.hpp>
 #include <drawcontext.hpp>
+#include <objectformatter.hpp>
 
 #include <cassert>
 #include <array>
@@ -638,21 +639,31 @@ void PdfDocument::pad_subset_fonts() {
 
 rvoe<int32_t> PdfDocument::create_name_dict() {
     assert(!embedded_files.empty());
+    ObjectFormatter fmt;
     auto sorted_names = sort_names(embedded_files);
-    std::string buf = std::format(R"(<<
-/EmbeddedFiles <<
-  /Limits [ {} {}  ]
-  /Names [
-)",
-                                  pdfstring_quote(sorted_names.front().name),
-                                  pdfstring_quote(sorted_names.back().name));
-    auto app = std::back_inserter(buf);
+
+    fmt.begin_dict();
+    fmt.add_token("/EmbeddedFiles");
+    fmt.begin_dict();
+    fmt.add_token("/Limits");
+
+    fmt.begin_array(2);
+    fmt.add_token(pdfstring_quote(sorted_names.front().name));
+    fmt.add_token(pdfstring_quote(sorted_names.back().name));
+    fmt.end_array();
+
+    fmt.add_token("/Names");
+
+    fmt.begin_array(2);
     for(const auto &e : sorted_names) {
-        std::format_to(
-            app, "    {} {} 0 R\n", pdfstring_quote(e.name), embedded_files[e.i].filespec_obj);
+        fmt.add_token(pdfstring_quote(e.name));
+        fmt.add_object_ref(embedded_files[e.i].filespec_obj);
     }
-    buf += "  ]\n>>\n";
-    return add_object(FullPDFObject{std::move(buf), {}});
+    fmt.end_array();
+
+    fmt.end_dict();
+    fmt.end_dict();
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<int32_t> PdfDocument::create_AF_dict() {
