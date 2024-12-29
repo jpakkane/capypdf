@@ -60,3 +60,5 @@ else
       dependencies: [capypdf_internal_dep]
     )
 endif
+
+executable('objectformatter', 'objectformatter.cpp')
