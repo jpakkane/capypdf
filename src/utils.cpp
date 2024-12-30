@@ -418,34 +418,6 @@ std::string create_trailer_id() {
     return msg;
 }
 
-void serialize_trans(std::back_insert_iterator<std::string> buf_append,
-                     const Transition &t,
-                     std::string_view indent) {
-    std::format_to(buf_append, "{}/Trans <<\n", indent);
-    if(t.type) {
-        std::format_to(buf_append, "{}  /S {}\n", indent, transition_names.at((int32_t)*t.type));
-    }
-    if(t.duration) {
-        std::format_to(buf_append, "{}  /D {:f}\n", indent, *t.duration);
-    }
-    if(t.Dm) {
-        std::format_to(buf_append, "{}  /Dm {}\n", indent, *t.Dm == CAPY_TR_DIM_H ? "/H" : "/V");
-    }
-    if(t.Di) {
-        std::format_to(buf_append, "{}  /Di {}\n", indent, *t.Di);
-    }
-    if(t.M) {
-        std::format_to(buf_append, "{}  /M {}\n", indent, *t.M == CAPY_TR_M_I ? "/I" : "/O");
-    }
-    if(t.SS) {
-        std::format_to(buf_append, "{}  /SS {:f}\n", indent, *t.SS);
-    }
-    if(t.B) {
-        std::format_to(buf_append, "{}  /B {}\n", indent, *t.B ? "true" : "false");
-    }
-    std::format_to(buf_append, "{}>>\n", indent);
-}
-
 void serialize_trans(ObjectFormatter &fmt, const Transition &t) {
     fmt.add_token("/Trans");
     fmt.begin_dict();

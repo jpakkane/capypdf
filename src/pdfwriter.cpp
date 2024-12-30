@@ -54,6 +54,18 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
+void write_rectangle(ObjectFormatter &fmt, const char *boxname, const PdfRectangle &box) {
+    std::string slashname = "/";
+    slashname += boxname;
+    fmt.add_token(slashname);
+    fmt.begin_array();
+    fmt.add_token(box.x1);
+    fmt.add_token(box.y1);
+    fmt.add_token(box.x2);
+    fmt.add_token(box.y2);
+    fmt.end_array();
+}
+
 void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &box) {
     std::format_to(
         appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
@@ -500,76 +512,75 @@ rvoe<NoReturnValue> PdfWriter::write_pages_root() {
 }
 
 rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
-    std::string buf;
-
-    auto buf_append = std::back_inserter(buf);
+    ObjectFormatter fmt;
     auto &p = doc.pages.at(dp.page_num);
-    std::format_to(buf_append,
-                   R"(<<
-  /Type /Page
-  /Parent {} 0 R
-  /LastModified {}
-)",
-                   doc.pages_object,
-                   current_date_string());
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Page");
+    fmt.add_token("/Parent");
+    fmt.add_object_ref(doc.pages_object);
+    fmt.add_token("/LastModified");
+    fmt.add_token(current_date_string());
     if(dp.custom_props.transparency_props) {
-        buf += "  /Group ";
-        dp.custom_props.transparency_props->serialize(buf_append, "  ");
+        fmt.add_token("/Group");
+        dp.custom_props.transparency_props->serialize(fmt);
     } else if(doc.docprops.default_page_properties.transparency_props) {
-        buf += "  /Group ";
-        doc.docprops.default_page_properties.transparency_props->serialize(buf_append, "  ");
+        fmt.add_token("/Group");
+        doc.docprops.default_page_properties.transparency_props->serialize(fmt);
     }
     PageProperties current_props = doc.docprops.default_page_properties.merge_with(dp.custom_props);
-    write_rectangle(buf_append, "MediaBox", *current_props.mediabox);
+    write_rectangle(fmt, "MediaBox", *current_props.mediabox);
 
     if(current_props.cropbox) {
-        write_rectangle(buf_append, "CropBox", *current_props.cropbox);
+        write_rectangle(fmt, "CropBox", *current_props.cropbox);
     }
     if(current_props.bleedbox) {
-        write_rectangle(buf_append, "BleedBox", *current_props.bleedbox);
+        write_rectangle(fmt, "BleedBox", *current_props.bleedbox);
     }
     if(current_props.trimbox) {
-        write_rectangle(buf_append, "TrimBox", *current_props.trimbox);
+        write_rectangle(fmt, "TrimBox", *current_props.trimbox);
     }
     if(current_props.artbox) {
-        write_rectangle(buf_append, "ArtBox", *current_props.artbox);
+        write_rectangle(fmt, "ArtBox", *current_props.artbox);
     }
     if(dp.structparents) {
-        std::format_to(buf_append, "  /StructParents {}\n", dp.structparents.value());
+        fmt.add_token("/StructParents");
+        fmt.add_token(dp.structparents.value());
     }
 
     if(current_props.user_unit) {
-        std::format_to(buf_append, "  /UserUnit {:f}\n", *current_props.user_unit);
+        fmt.add_token("/UserUnit");
+        fmt.add_token(*current_props.user_unit);
     }
 
-    std::format_to(buf_append,
-                   R"(  /Contents {} 0 R
-  /Resources {} 0 R
-)",
-                   p.commands_obj_num,
-                   p.resource_obj_num);
+    fmt.add_token("/Contents");
+    fmt.add_object_ref(p.commands_obj_num);
+    fmt.add_token("/Resources");
+    fmt.add_object_ref(p.resource_obj_num);
 
     if(!dp.used_form_widgets.empty() || !dp.used_annotations.empty()) {
-        buf += "  /Annots [\n";
+        fmt.add_token("/Annots");
+        fmt.begin_array(1);
+
         for(const auto &a : dp.used_form_widgets) {
-            std::format_to(buf_append, "    {} 0 R\n", doc.form_widgets.at(a.id));
+            fmt.add_object_ref(doc.form_widgets.at(a.id));
         }
         for(const auto &a : dp.used_annotations) {
-            std::format_to(buf_append, "    {} 0 R\n", doc.annotations.at(a.id));
+            fmt.add_object_ref(doc.annotations.at(a.id));
         }
-        buf += "  ]\n";
+        fmt.end_array();
     }
     if(dp.transition) {
         const auto &t = *dp.transition;
-        serialize_trans(buf_append, t, "  ");
+        serialize_trans(fmt, t);
     }
 
     if(dp.subnav_root) {
-        std::format_to(buf_append, "  /PresSteps {} 0 R\n", dp.subnav_root.value());
+        fmt.add_token("/PresSteps");
+        fmt.add_object_ref(dp.subnav_root.value());
     }
-    buf += ">>\n";
+    fmt.end_dict();
 
-    return write_finished_object(p.page_obj_num, buf, {});
+    return write_finished_object(p.page_obj_num, fmt.steal(), {});
 }
 
 rvoe<NoReturnValue>

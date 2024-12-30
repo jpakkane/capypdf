@@ -61,11 +61,6 @@ std::string create_trailer_id();
 class ObjectFormatter;
 void serialize_trans(ObjectFormatter &fmt, const Transition &t);
 
-// Delete this.
-void serialize_trans(std::back_insert_iterator<std::string> buf_append,
-                     const Transition &t,
-                     std::string_view indent);
-
 void quote_xml_element_data_into(const u8string &content, std::string &result);
 
 std::span<std::byte> str2span(const std::string &s);

@@ -56,6 +56,8 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf::internal {
 
+class ObjectFormatter;
+
 extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
 extern const std::array<const char *, 3> colorspace_names;
 extern const std::array<const char *, 4> rendering_intent_names;
@@ -533,6 +535,8 @@ struct TransparencyGroupProperties {
     std::optional<bool> I;
     std::optional<bool> K;
 
+    void serialize(ObjectFormatter &fmt) const;
+    // Delete this.
     void serialize(std::back_insert_iterator<std::string> &app, const char *indent) const;
 };
 

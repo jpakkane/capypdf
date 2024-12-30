@@ -2,6 +2,7 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <pdfcommon.hpp>
+#include <objectformatter.hpp>
 #include <utils.hpp>
 #include <cassert>
 
@@ -83,6 +84,26 @@ const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_typ
     "Artifact",
     // clang-format on
 };
+
+void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Group");
+    fmt.add_token_pair("/S", "/Transparency");
+
+    if(CS) {
+        fmt.add_token("/CS");
+        fmt.add_token(colorspace_names.at((int)CS.value()));
+    }
+    if(I) {
+        fmt.add_token("/I");
+        fmt.add_token(I.value() ? "true" : "false");
+    }
+    if(K) {
+        fmt.add_token("/K");
+        fmt.add_token(K.value() ? "true" : "false");
+    }
+    fmt.end_dict();
+}
 
 void TransparencyGroupProperties::serialize(std::back_insert_iterator<std::string> &app,
                                             const char *indent) const {
