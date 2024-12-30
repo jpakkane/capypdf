@@ -58,6 +58,10 @@ std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash = true);
 
 std::string create_trailer_id();
 
+class ObjectFormatter;
+void serialize_trans(ObjectFormatter &fmt, const Transition &t);
+
+// Delete this.
 void serialize_trans(std::back_insert_iterator<std::string> buf_append,
                      const Transition &t,
                      std::string_view indent);

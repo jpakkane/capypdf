@@ -455,80 +455,103 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
     assert(!subnav.empty());
     const int32_t root_obj = document_objects.size();
     {
-        std::string rootbuf{
-            R"(<<
-  /Type /NavNode
-  /NA <<
-    /S /SetOCGState
-    /State [ /OFF
-)"};
-        auto rootapp = std::back_inserter(rootbuf);
-        for(const auto &i : subnav) {
-            std::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/NavNode");
+        fmt.add_token("/NA");
+        {
+            fmt.begin_dict();
+            fmt.add_token_pair("/S", "/SetOCGState");
+            fmt.add_token("/State");
+            fmt.begin_array(1);
+            fmt.add_token("/OFF");
+            for(const auto &i : subnav) {
+                fmt.add_object_ref(ocg_object_number(i.id));
+            }
+            fmt.end_array();
+            fmt.end_dict();
         }
-        rootbuf += "    ]\n  >>\n";
-        std::format_to(rootapp, "  /Next {} 0 R\n", root_obj + 1);
-        rootbuf += R"(  /PA <<
-    /S /SetOCGState
-    /State [ /ON
-)";
-        for(const auto &i : subnav) {
-            std::format_to(rootapp, "      {} 0 R\n", ocg_object_number(i.id));
+        fmt.add_token("/Next");
+        fmt.add_object_ref(root_obj + 1);
+        fmt.add_token("/PA");
+        {
+            fmt.begin_dict();
+            fmt.add_token_pair("/S", "/SetOCGState");
+            fmt.add_token("/State");
+            fmt.begin_array(1);
+            fmt.add_token("/ON");
+            for(const auto &i : subnav) {
+                fmt.add_object_ref(ocg_object_number(i.id));
+            }
+            fmt.end_array();
+            fmt.end_dict();
         }
-        rootbuf += "    ]\n  >>\n";
-        std::format_to(rootapp, "  /Prev {} 0 R\n>>\n", root_obj + 1 + subnav.size());
+        fmt.add_token("/Prev");
+        fmt.add_object_ref(root_obj + 1 + subnav.size());
+        fmt.end_dict();
 
-        add_object(FullPDFObject{std::move(rootbuf), {}});
+        add_object(FullPDFObject{fmt.steal(), {}});
     }
     int32_t first_obj = document_objects.size();
 
     for(size_t i = 0; i < subnav.size(); ++i) {
         const auto &sn = subnav[i];
-        std::string buf = R"(<<
-  /Type /NavNode
-)";
-        auto app = std::back_inserter(buf);
-        buf += "  /NA  <<\n";
-        std::format_to(app,
-                       R"(    /S /SetOCGState
-    /State [ /ON {} 0 R ]
-)",
-                       ocg_object_number(sn.id));
-        if(sn.tr) {
-            buf += R"(    /Next <<
-      /S /Trans
-)";
-            serialize_trans(app, *sn.tr, "      ");
-            buf += "    >>\n";
-        }
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/NavNode");
+        fmt.add_token("/NA");
+        {
+            fmt.begin_dict();
+            fmt.add_token_pair("/S", "/SetOCGState");
+            fmt.add_token("/State");
+            fmt.begin_array(1);
+            fmt.add_token("/ON");
+            fmt.add_object_ref(ocg_object_number(sn.id));
+            fmt.end_array();
+            if(sn.tr) {
+                fmt.add_token("/Next");
+                fmt.begin_dict();
+                fmt.add_token_pair("/S", "/Trans");
+                serialize_trans(fmt, *sn.tr);
+                fmt.end_dict();
+            }
 
-        buf += "  >>\n";
-        std::format_to(app, "  /Next {} 0 R\n", first_obj + i + 1);
-        if(i > 0) {
-            std::format_to(app,
-                           R"(  /PA <<
-    /S /SetOCGState
-    /State [ /OFF {} 0 R ]
-  >>
-)",
-                           ocg_object_number(subnav[i - 1].id));
-            std::format_to(app, "  /Prev {} 0 R\n", first_obj + i - 1);
+            fmt.end_dict();
         }
-        buf += ">>\n";
-        add_object(FullPDFObject{std::move(buf), {}});
+        fmt.add_token("/Next");
+        fmt.add_object_ref(first_obj + i + 1);
+        if(i > 0) {
+            fmt.add_token("/PA");
+            fmt.begin_dict();
+            fmt.add_token_pair("/S", "/SetOCGState");
+            fmt.add_token("/State");
+            fmt.begin_array(1);
+            fmt.add_token("/OFF");
+            fmt.add_object_ref(ocg_object_number(subnav[i - 1].id));
+            fmt.end_array();
+            fmt.end_dict();
+            fmt.add_token("/Prev");
+            fmt.add_object_ref(first_obj + i - 1);
+        }
+        fmt.end_dict();
+        add_object(FullPDFObject{fmt.steal(), {}});
     }
-    add_object(FullPDFObject{std::format(R"(<<
-  /Type /NavNode
-  /PA <<
-    /S /SetOCGState
-    /State [ /OFF {} 0 R ]
-  >>
-  /Prev {} 0 R
->>
-)",
-                                         ocg_object_number(subnav.back().id),
-                                         first_obj + subnav.size() - 1),
-                             {}});
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/NavNode");
+    fmt.add_token("/PA");
+    fmt.begin_dict();
+    fmt.add_token_pair("/S", "/SetOCGState");
+    fmt.add_token("/State");
+    fmt.begin_array(1);
+    fmt.add_token("/OFF");
+    fmt.add_object_ref(ocg_object_number(subnav.back().id));
+    fmt.end_array();
+    fmt.end_dict();
+    fmt.add_token("/Prev");
+    fmt.add_object_ref(first_obj + subnav.size() - 1);
+    fmt.end_dict();
+    add_object(FullPDFObject{fmt.steal(), {}});
     return root_obj;
 }
 

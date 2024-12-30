@@ -2,6 +2,7 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <utils.hpp>
+#include <objectformatter.hpp>
 #include <zlib.h>
 #include <cassert>
 #include <cstring>
@@ -443,6 +444,40 @@ void serialize_trans(std::back_insert_iterator<std::string> buf_append,
         std::format_to(buf_append, "{}  /B {}\n", indent, *t.B ? "true" : "false");
     }
     std::format_to(buf_append, "{}>>\n", indent);
+}
+
+void serialize_trans(ObjectFormatter &fmt, const Transition &t) {
+    fmt.add_token("/Trans");
+    fmt.begin_dict();
+    if(t.type) {
+        fmt.add_token("/S");
+        fmt.add_token(transition_names.at((int32_t)*t.type));
+    }
+    if(t.duration) {
+        fmt.add_token("/D");
+        fmt.add_token(*t.duration);
+    }
+    if(t.Dm) {
+        fmt.add_token("/Dm");
+        fmt.add_token(*t.Dm == CAPY_TR_DIM_H ? "/H" : "/V");
+    }
+    if(t.Di) {
+        fmt.add_token("/Di");
+        fmt.add_token(*t.Di);
+    }
+    if(t.M) {
+        fmt.add_token("/M");
+        fmt.add_token(*t.M == CAPY_TR_M_I ? "/I" : "/O");
+    }
+    if(t.SS) {
+        fmt.add_token("/SS");
+        fmt.add_token(*t.SS);
+    }
+    if(t.B) {
+        fmt.add_token("/B");
+        fmt.add_token(*t.B ? "true" : "false");
+    }
+    fmt.end_dict();
 }
 
 void quote_xml_element_data_into(const u8string &content, std::string &result) {
