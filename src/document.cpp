@@ -1009,17 +1009,14 @@ void PdfDocument::create_structure_root_dict() {
     fmt.begin_array();
     fmt.add_object_ref(structure_items[rootobj->id].obj_id);
     fmt.end_array();
-    fmt.add_token("/ParentTree");
-    fmt.add_object_ref(structure_parent_tree_object.value());
-    fmt.add_token("/ParentTreeNextKey");
-    fmt.add_token(structure_parent_tree_items.size());
+    fmt.add_token_pair("/ParentTree", structure_parent_tree_object.value());
+    fmt.add_token_pair("/ParentTreeNextKey", structure_parent_tree_items.size());
     if(!rolemap.empty()) {
         fmt.add_token("/RoleMap");
         fmt.begin_dict();
         buf += "  /RoleMap <<\n";
         for(const auto &i : rolemap) {
-            fmt.add_token(bytes2pdfstringliteral(i.name));
-            fmt.add_token(structure_type_names.at(i.builtin));
+            fmt.add_token_pair(bytes2pdfstringliteral(i.name), structure_type_names.at(i.builtin));
         }
         fmt.end_dict();
     }
@@ -1028,12 +1025,10 @@ void PdfDocument::create_structure_root_dict() {
 }
 
 int32_t PdfDocument::add_document_metadata_object() {
-    constexpr const char *objtemplate = R"(<<
-  /Type /Metadata
-  /Subtype /XML
-  /Length {}
->>;
-)";
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Metadata");
+    fmt.add_token_pair("(Subtype", "/XML");
     if(docprops.metadata_xml.empty()) {
         auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
         if(!aptr) {
@@ -1041,11 +1036,11 @@ int32_t PdfDocument::add_document_metadata_object() {
         }
         auto stream = std::format(
             pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
-        auto dict = std::format(objtemplate, stream.length());
-        return add_object(FullPDFObject{std::move(dict), RawData(std::move(stream))});
+        fmt.add_token_pair("/Length", stream.length());
+        return add_object(FullPDFObject{fmt.steal(), RawData(std::move(stream))});
     } else {
-        auto dict = std::format(objtemplate, docprops.metadata_xml.length());
-        return add_object(FullPDFObject{std::move(dict), RawData(docprops.metadata_xml.sv())});
+        fmt.add_token_pair("/Length", docprops.metadata_xml.length());
+        return add_object(FullPDFObject{fmt.steal(), RawData(docprops.metadata_xml.sv())});
     }
 }
 
@@ -1053,10 +1048,17 @@ std::optional<CapyPDF_IccColorSpaceId>
 PdfDocument::find_icc_profile(std::span<std::byte> contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
-        assert(std::holds_alternative<DeflatePDFObject>(stream_obj));
-        const auto &stream_data = std::get<DeflatePDFObject>(stream_obj);
-        if(stream_data.stream == contents) {
-            return CapyPDF_IccColorSpaceId{(int32_t)i};
+        if(const auto stream_data = std::get_if<DeflatePDFObject>(&stream_obj)) {
+            if(stream_data->stream == contents) {
+                return CapyPDF_IccColorSpaceId{(int32_t)i};
+            }
+        } else if(const auto stream_data = std::get_if<DeflatePDFObject2>(&stream_obj)) {
+            if(stream_data->stream == contents) {
+                return CapyPDF_IccColorSpaceId{(int32_t)i};
+            }
+        } else {
+            fprintf(stderr, "Bad type for icc profile dnta.\n");
+            std::abort();
         }
     }
     return {};
@@ -1071,13 +1073,10 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> 
     if(contents.empty()) {
         return CapyPDF_IccColorSpaceId{-1};
     }
-    std::string buf;
-    std::format_to(std::back_inserter(buf),
-                   R"(<<
-  /N {}
-)",
-                   num_channels);
-    auto stream_obj_id = add_object(DeflatePDFObject{std::move(buf), RawData(contents)});
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/N", num_channels);
+    auto stream_obj_id = add_object(DeflatePDFObject2{std::move(fmt), RawData(contents)});
     auto obj_id =
         add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});

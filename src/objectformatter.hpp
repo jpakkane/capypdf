@@ -30,12 +30,30 @@ class ObjectFormatter {
 public:
     explicit ObjectFormatter(std::string_view base_indent = {});
 
+    ObjectFormatter(const ObjectFormatter &o) = delete;
+    ObjectFormatter(ObjectFormatter &&o)
+        : state{std::move(o.state)}, stack{std::move(o.stack)}, buf{std::move(o.buf)},
+          app{std::back_inserter(buf)} {}
+
+    ObjectFormatter &operator=(ObjectFormatter &&o) {
+        state = std::move(o.state);
+        stack = std::move(o.stack);
+        buf = std::move(o.buf);
+        app = std::back_inserter(buf);
+        return *this;
+    }
+    ObjectFormatter &operator=(const ObjectFormatter &o) = delete;
+
     void begin_array(int32_t array_elems_per_line = 10000);
     void begin_dict();
     void end_array();
     void end_dict();
 
     void add_token_pair(const char *t1, const char *t2);
+    template<typename T> void add_token_pair(std::string_view key, T &&vtype) {
+        add_token(key);
+        add_token(vtype);
+    }
 
     void add_token(const char *raw_text);
     void add_token(std::string_view raw_text);
