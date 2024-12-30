@@ -55,9 +55,7 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
 }
 
 void write_rectangle(ObjectFormatter &fmt, const char *boxname, const PdfRectangle &box) {
-    std::string slashname = "/";
-    slashname += boxname;
-    fmt.add_token(slashname);
+    fmt.add_token_with_slash(boxname);
     fmt.begin_array();
     fmt.add_token(box.x1);
     fmt.add_token(box.y1);

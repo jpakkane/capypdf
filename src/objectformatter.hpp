@@ -44,6 +44,7 @@ public:
     void add_token(size_t number);
     void add_token(double number);
 
+    void add_token_with_slash(const char *name);
     void add_object_ref(int32_t onum);
     void add_pdfstring(const asciistring &str);
 

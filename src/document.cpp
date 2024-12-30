@@ -568,19 +568,14 @@ rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &nam
     if(!std::holds_alternative<FunctionType4>(f4.original)) {
         RETERR(IncorrectFunctionType);
     }
-    std::string buf;
-    std::format_to(std::back_inserter(buf),
-                   R"([
-  /Separation
-    /{}
-    {}
-    {} 0 R
-]
-)",
-                   name.c_str(),
-                   colorspace_names.at((int)cs),
-                   f4.object_number);
-    separation_objects.push_back(add_object(FullPDFObject{buf, {}}));
+    ObjectFormatter fmt;
+    fmt.begin_array();
+    fmt.add_token("/Separation");
+    fmt.add_token_with_slash(name.c_str());
+    fmt.add_token(colorspace_names.at((int)cs));
+    fmt.add_object_ref(f4.object_number);
+    fmt.end_array();
+    separation_objects.push_back(add_object(FullPDFObject{fmt.steal(), {}}));
     return CapyPDF_SeparationId{(int32_t)separation_objects.size() - 1};
 }
 
@@ -973,25 +968,25 @@ rvoe<int32_t> PdfDocument::create_outlines() {
         add_object(FullPDFObject{fmt.steal(), {}});
     }
     const auto &top_level = outlines.children.at(-1);
-    std::string buf = std::format(R"(<<
-  /Type /Outlines
-  /First {} 0 R
-  /Last {} 0 R
-  /Count {}
->>
-)",
-                                  first_obj_num + top_level.front(),
-                                  first_obj_num + top_level.back(),
-                                  outlines.children.at(-1).size());
+
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Outlines");
+    fmt.add_token("/First");
+    fmt.add_object_ref(first_obj_num + top_level.front());
+    fmt.add_token("/Last");
+    fmt.add_object_ref(first_obj_num + top_level.back());
+    fmt.add_token("/Count");
+    fmt.add_token(outlines.children.at(-1).size());
+    fmt.end_dict();
 
     assert(catalog_obj_num == (int32_t)document_objects.size());
     // FIXME: add output intents here. PDF spec 14.11.5
-    return add_object(FullPDFObject{std::move(buf), {}});
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 void PdfDocument::create_structure_root_dict() {
     std::string buf;
-    auto app = std::back_inserter(buf);
     std::optional<CapyPDF_StructureItemId> rootobj;
 
     if(!structure_parent_tree_object) {
@@ -1007,28 +1002,29 @@ void PdfDocument::create_structure_root_dict() {
     }
     assert(rootobj);
     // /ParentTree
-    std::format_to(app,
-                   R"(<<
-  /Type /StructTreeRoot
-  /K [ {} 0 R ]
-  /ParentTree {} 0 R
-  /ParentTreeNextKey {}
-)",
-                   structure_items[rootobj->id].obj_id,
-                   structure_parent_tree_object.value(),
-                   structure_parent_tree_items.size());
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/StructTreeRoot");
+    fmt.add_token("/K");
+    fmt.begin_array();
+    fmt.add_object_ref(structure_items[rootobj->id].obj_id);
+    fmt.end_array();
+    fmt.add_token("/ParentTree");
+    fmt.add_object_ref(structure_parent_tree_object.value());
+    fmt.add_token("/ParentTreeNextKey");
+    fmt.add_token(structure_parent_tree_items.size());
     if(!rolemap.empty()) {
+        fmt.add_token("/RoleMap");
+        fmt.begin_dict();
         buf += "  /RoleMap <<\n";
         for(const auto &i : rolemap) {
-            std::format_to(app,
-                           "    {} /{}\n",
-                           bytes2pdfstringliteral(i.name),
-                           structure_type_names.at(i.builtin));
+            fmt.add_token(bytes2pdfstringliteral(i.name));
+            fmt.add_token(structure_type_names.at(i.builtin));
         }
-        buf += "  >>\n";
+        fmt.end_dict();
     }
-    buf += ">>\n";
-    structure_root_object = add_object(FullPDFObject{buf, {}});
+    fmt.end_dict();
+    structure_root_object = add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 int32_t PdfDocument::add_document_metadata_object() {
