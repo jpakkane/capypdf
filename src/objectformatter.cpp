@@ -98,6 +98,12 @@ void ObjectFormatter::add_token_with_slash(const char *name) {
     std::format_to(app, "/{}", name);
 }
 
+void ObjectFormatter::add_token_with_slash(std::string_view name) {
+    check_indent();
+    assert(name[0] != '/');
+    std::format_to(app, "/{}", name);
+}
+
 void ObjectFormatter::add_object_ref(int32_t onum) {
     check_indent();
     std::format_to(app, "{} 0 R", onum);

@@ -78,20 +78,20 @@ FT_Error guarded_face_close(FT_Face face) {
 }
 
 const std::array<const char *, 14> font_names{
-    "Times-Roman",
-    "Helvetica",
-    "Courier",
-    "Symbol",
-    "Times-Roman-Bold",
-    "Helvetica-Bold",
-    "Courier-Bold",
-    "ZapfDingbats",
-    "Times-Italic",
-    "Helvetica-Oblique",
-    "Courier-Oblique",
-    "Times-BoldItalic",
-    "Helvetica-BoldOblique",
-    "Courier-BoldOblique",
+    "/Times-Roman",
+    "/Helvetica",
+    "/Courier",
+    "/Symbol",
+    "/Times-Roman-Bold",
+    "/Helvetica-Bold",
+    "/Courier-Bold",
+    "/ZapfDingbats",
+    "/Times-Italic",
+    "/Helvetica-Oblique",
+    "/Courier-Oblique",
+    "/Times-BoldItalic",
+    "/Helvetica-BoldOblique",
+    "/Courier-BoldOblique",
 };
 
 const std::array<const char *, 16> blend_mode_names{
@@ -1128,16 +1128,13 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
     if(it != builtin_fonts.end()) {
         return it->second;
     }
-    std::string font_dict;
-    std::format_to(std::back_inserter(font_dict),
-                   R"(<<
-  /Type /Font
-  /Subtype /Type1
-  /BaseFont /{}
->>
-)",
-                   font_names[font]);
-    font_objects.push_back(FontInfo{-1, -1, add_object(FullPDFObject{font_dict, {}}), size_t(-1)});
+    ObjectFormatter fmt;
+    fmt.add_token_pair("/Type", "/Font");
+    fmt.add_token_pair("/Subtype", "/Type1");
+    fmt.add_token_pair("/BaseFont", font_names[font]);
+    fmt.end_dict();
+    font_objects.push_back(
+        FontInfo{-1, -1, add_object(FullPDFObject{fmt.steal(), {}}), size_t(-1)});
     auto fontid = CapyPDF_FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
@@ -1253,7 +1250,6 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
                                                     const ImagePDFProperties &params,
                                                     std::span<std::byte> original_bytes,
                                                     CapyPDF_Compression compression) {
-    std::string buf;
     std::vector<std::byte> compression_buffer;
     std::span<std::byte> compressed_bytes;
     switch(compression) {
@@ -1268,82 +1264,71 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
         break;
     }
 
-    auto app = std::back_inserter(buf);
-    std::format_to(app,
-                   R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /Width {}
-  /Height {}
-  /BitsPerComponent {}
-  /Length {}
-  /Filter /FlateDecode
-)",
-                   w,
-                   h,
-                   bits_per_component,
-                   compressed_bytes.size());
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/XObject");
+    fmt.add_token_pair("/Subtype", "/Image");
+    fmt.add_token_pair("/Width", w);
+    fmt.add_token_pair("/Height", h);
+    fmt.add_token_pair("/BitsPerComponent", bits_per_component);
+    fmt.add_token_pair("/Length", compressed_bytes.size());
+    fmt.add_token_pair("/Filter", "/FlateDecode");
 
     // Auto means don't specify the interpolation
     if(params.interp == CAPY_INTERPOLATION_PIXELATED) {
-        buf += "  /Interpolate false\n";
+        fmt.add_token_pair("/Interpolate", "false");
     } else if(params.interp == CAPY_INTERPOLATION_SMOOTH) {
-        buf += "  /Interpolate true\n";
+        fmt.add_token_pair("/Interpolate", "true");
     }
 
     // An image may only have ImageMask or ColorSpace key, not both.
     if(params.as_mask) {
-        buf += "  /ImageMask true\n";
+        fmt.add_token_pair("/ImageMask", " true");
     } else {
         if(auto cs = std::get_if<CapyPDF_Image_Colorspace>(&colorspace)) {
-            std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(*cs));
+            fmt.add_token_pair("/ColorSpace", colorspace_names.at(*cs));
         } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
             const auto icc_obj = get(*icc).object_num;
-            std::format_to(app, "  /ColorSpace {} 0 R\n", icc_obj);
+            fmt.add_token("/ColorSpace");
+            fmt.add_object_ref(icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");
             std::abort();
         }
     }
     if(smask_id) {
-        std::format_to(app, "  /SMask {} 0 R\n", smask_id.value());
+        fmt.add_token("/SMask");
+        fmt.add_object_ref(smask_id.value());
     }
-    buf += ">>\n";
+    fmt.end_dict();
     int32_t im_id;
     if(compression == CAPY_COMPRESSION_NONE) {
-        im_id = add_object(FullPDFObject{std::move(buf), RawData(std::move(compression_buffer))});
+        im_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(compression_buffer))});
     } else {
         // FIXME. Makes a copy. Fix to grab original data instead.
-        im_id = add_object(FullPDFObject{std::move(buf), RawData(original_bytes)});
+        im_id = add_object(FullPDFObject{fmt.steal(), RawData(original_bytes)});
     }
     image_info.emplace_back(ImageInfo{{w, h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProperties &props) {
-    std::string buf;
-    auto app = std::back_inserter(buf);
-    std::format_to(app,
-                   R"(<<
-  /Type /XObject
-  /Subtype /Image
-  /Width {}
-  /Height {}
-  /BitsPerComponent {}
-  /Length {}
-  /Filter /DCTDecode
-)",
-                   jpg.w,
-                   jpg.h,
-                   jpg.depth,
-                   jpg.file_contents.size());
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/XObjedt");
+    fmt.add_token_pair("/Subtype", "/Image");
+    fmt.add_token_pair("/Width", jpg.w);
+    fmt.add_token_pair("/Height", jpg.h);
+    fmt.add_token_pair("/BitsPerComponent", jpg.depth);
+    fmt.add_token_pair("/Length", jpg.file_contents.size());
+    fmt.add_token_pair("/Filter", "/DCTDecode");
 
     if(jpg.invert_channels) {
         assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
-        buf += "  /Decode [1 0 1 0 1 0 1 0]\n";
+        fmt.add_token_pair("/Decode", "[1 0 1 0 1 0 1 0]");
     }
     if(jpg.icc_profile.empty()) {
-        std::format_to(app, "  /ColorSpace {}\n", colorspace_names.at(jpg.cs));
+        fmt.add_token_pair("/ColorSpace", colorspace_names.at(jpg.cs));
     } else {
         int32_t expected_channels;
         switch(jpg.cs) {
@@ -1363,18 +1348,19 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
         // Note: the profile is now stored twice in the output file.
         // Once as a PDF object an a second time in the embedded image file.
         ERC(icc, add_icc_profile(jpg.icc_profile, expected_channels));
-        std::format_to(app, "  /ColorSpace {} 0 R\n", icc_profiles.at(icc.id).object_num);
+        fmt.add_token("/ColorSpace");
+        fmt.add_object_ref(icc_profiles.at(icc.id).object_num);
     }
     // Auto means don't specify the interpolation
     if(props.interp == CAPY_INTERPOLATION_PIXELATED) {
-        buf += "  /Interpolate false\n";
+        fmt.add_token_pair("/Interpolate", "false");
     } else if(props.interp == CAPY_INTERPOLATION_SMOOTH) {
-        buf += "  /Interpolate true\n";
+        fmt.add_token_pair("/Interpolate", "true");
     }
     // FIXME, add other properties too?
 
-    buf += ">>\n";
-    auto im_id = add_object(FullPDFObject{std::move(buf), RawData(std::move(jpg.file_contents))});
+    fmt.end_dict();
+    auto im_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(jpg.file_contents))});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
