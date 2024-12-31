@@ -1556,155 +1556,144 @@ rvoe<FullPDFObject> PdfDocument::serialize_shading(const PdfShading &shade) {
 
 rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType2 &shade) {
     const int shadingtype = 2;
-    auto buf = std::format(
-        R"(<<
-  /ShadingType {}
-  /ColorSpace {}
-  /Coords [ {:f} {:f} {:f} {:f} ]
-  /Function {} 0 R
-)",
-        shadingtype,
-        colorspace_names.at((int)shade.colorspace),
-        shade.x0,
-        shade.y0,
-        shade.x1,
-        shade.y1,
-        functions.at(shade.function.id).object_number);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/ShadingType", shadingtype);
+    fmt.add_token_pair("/ColorSpace", colorspace_names.at((int)shade.colorspace));
+    fmt.add_token("/Coords");
+    fmt.begin_array();
+    fmt.add_token(shade.x0);
+    fmt.add_token(shade.y0);
+    fmt.add_token(shade.x1);
+    fmt.add_token(shade.y1);
+    fmt.end_array();
+    fmt.add_token("/Function");
+    fmt.add_object_ref(functions.at(shade.function.id).object_number);
     if(shade.extend) {
-        auto app = std::back_inserter(buf);
-        std::format_to(app,
-                       "  /Extend [ {} {} ]\n",
-                       shade.extend->starting ? "true" : "false",
-                       shade.extend->ending ? "true" : "false");
+        fmt.add_token("/Extend");
+        fmt.begin_array();
+        fmt.add_token(shade.extend->starting ? "true" : "false");
+        fmt.add_token(shade.extend->ending ? "true" : "false");
+        fmt.end_array();
     }
     if(shade.domain) {
-        auto app = std::back_inserter(buf);
-        std::format_to(
-            app, "  /Domain [ {:f} {:f} ]\n", shade.domain->starting, shade.domain->ending);
+        fmt.add_token("/Domain");
+        fmt.begin_array();
+        fmt.add_token(shade.domain->starting);
+        fmt.add_token(shade.domain->ending);
+        fmt.end_array();
     }
-    buf += ">>\n";
-    return FullPDFObject{std::move(buf), {}};
+    fmt.end_dict();
+    return FullPDFObject{fmt.steal(), {}};
 }
 
 rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType3 &shade) {
     const int shadingtype = 3;
-    auto buf = std::format(
-        R"(<<
-  /ShadingType {}
-  /ColorSpace {}
-  /Coords [ {:f} {:f} {:f} {:f} {:f} {:f} ]
-  /Function {} 0 R
-)",
-        shadingtype,
-        colorspace_names.at((int)shade.colorspace),
-        shade.x0,
-        shade.y0,
-        shade.r0,
-        shade.x1,
-        shade.y1,
-        shade.r1,
-        functions.at(shade.function.id).object_number);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/ShadingType", shadingtype);
+    fmt.add_token_pair("/ColorSpace", colorspace_names.at((int)shade.colorspace));
+    fmt.add_token("/Coords");
+    fmt.begin_array();
+    fmt.add_token(shade.x0);
+    fmt.add_token(shade.y0);
+    fmt.add_token(shade.r0);
+    fmt.add_token(shade.x1);
+    fmt.add_token(shade.y1);
+    fmt.add_token(shade.r1);
+    fmt.end_array();
+    fmt.add_token("/Function");
+    fmt.add_object_ref(functions.at(shade.function.id).object_number);
     if(shade.extend) {
-        auto app = std::back_inserter(buf);
-        std::format_to(app,
-                       "  /Extend [ {} {} ]\n",
-                       shade.extend->starting ? "true" : "false",
-                       shade.extend->ending ? "true" : "false");
+        fmt.add_token("/Extend");
+        fmt.begin_array();
+        fmt.add_token(shade.extend->starting ? "true" : "false");
+        fmt.add_token(shade.extend->ending ? "true" : "false");
+        fmt.end_array();
     }
     if(shade.domain) {
-        auto app = std::back_inserter(buf);
-        std::format_to(
-            app, "  /Domain [ {:f} {:f} ]\n", shade.domain->starting, shade.domain->ending);
+        fmt.add_token("/Domain");
+        fmt.begin_array();
+        fmt.add_token(shade.domain->starting);
+        fmt.add_token(shade.domain->ending);
+        fmt.end_array();
     }
-    buf += ">>\n";
-
-    return FullPDFObject{std::move(buf), {}};
+    fmt.end_dict();
+    return FullPDFObject{fmt.steal(), {}};
 }
 
 rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType4 &shade) {
     const int shadingtype = 4;
     ERC(serialized, serialize_shade4(shade));
-    std::string buf = std::format(
-        R"(<<
-  /ShadingType {}
-  /ColorSpace {}
-  /BitsPerCoordinate 32
-  /BitsPerComponent 16
-  /BitsPerFlag 8
-  /Length {}
-  /Decode [
-    {:f} {:f}
-    {:f} {:f}
-)",
-        shadingtype,
-        colorspace_names.at((int)shade.colorspace),
-        serialized.length(),
-        shade.minx,
-        shade.maxx,
-        shade.miny,
-        shade.maxy);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/ShadingType", shadingtype);
+    fmt.add_token_pair("/ColorSpace", colorspace_names.at((int)shade.colorspace));
+    fmt.add_token_pair("/BitsPerCoordinate", 32);
+    fmt.add_token_pair("/BitsPerComponent", 16);
+    fmt.add_token_pair("/BitsPerFlag", 8);
+    fmt.add_token_pair("/Length", serialized.length());
+    fmt.add_token("/Decode");
+    fmt.begin_array(2);
+    fmt.add_token(shade.minx);
+    fmt.add_token(shade.maxx);
+    fmt.add_token(shade.miny);
+    fmt.add_token(shade.maxy);
     if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
-        buf += R"(    0 1
-    0 1
-    0 1
-)";
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
     } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
-        buf += "  0 1\n";
+        fmt.add_token_pair("0", "1");
     } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
-        buf += R"(    0 1
-    0 1
-    0 1
-    0 1
-)";
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
         std::abort();
     }
-    buf += "  ]\n>>\n";
-    return FullPDFObject{std::move(buf), RawData(std::move(serialized))};
+    fmt.end_array();
+    fmt.end_dict();
+    return FullPDFObject{fmt.steal(), RawData(std::move(serialized))};
 }
 
 rvoe<FullPDFObject> PdfDocument::serialize_shading(const ShadingType6 &shade) {
     const int shadingtype = 6;
     ERC(serialized, serialize_shade6(shade));
-    std::string buf = std::format(
-        R"(<<
-  /ShadingType {}
-  /ColorSpace {}
-  /BitsPerCoordinate 32
-  /BitsPerComponent 16
-  /BitsPerFlag 8
-  /Length {}
-  /Decode [
-    {:f} {:f}
-    {:f} {:f}
-)",
-        shadingtype,
-        colorspace_names.at((int)shade.colorspace),
-        serialized.length(),
-        shade.minx,
-        shade.maxx,
-        shade.miny,
-        shade.maxy);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/ShadingType", shadingtype);
+    fmt.add_token_pair("/ColorSpace", colorspace_names.at((int)shade.colorspace));
+    fmt.add_token_pair("/BitsPerCoordinate", 32);
+    fmt.add_token_pair("/BitsPerComponent", 16);
+    fmt.add_token_pair("/BitsPerFlag", 8);
+    fmt.add_token_pair("/Length", serialized.length());
+    fmt.add_token("/Decode");
+    fmt.begin_array(2);
+    fmt.add_token(shade.minx);
+    fmt.add_token(shade.maxx);
+    fmt.add_token(shade.miny);
+    fmt.add_token(shade.maxy);
     if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
-        buf += R"(    0 1
-    0 1
-    0 1
-)";
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
     } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
-        buf += "  0 1\n";
+        fmt.add_token_pair("0", "1");
     } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
-        buf += R"(    0 1
-    0 1
-    0 1
-    0 1
-)";
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
+        fmt.add_token_pair("0", "1");
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
         std::abort();
     }
-    buf += "  ]\n>>\n";
-    return FullPDFObject{std::move(buf), RawData(std::move(serialized))};
+    fmt.end_array();
+    fmt.end_dict();
+    return FullPDFObject{fmt.steal(), RawData(std::move(serialized))};
 }
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {

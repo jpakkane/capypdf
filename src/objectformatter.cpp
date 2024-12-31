@@ -48,7 +48,7 @@ void ObjectFormatter::do_push(ContainerType ctype) {
     stack.push(FormatStash{ctype, state});
     state.indent += "  ";
     state.num_entries = 0;
-    buf += ctype == ContainerType::Dictionary ? "<<\n" : "[";
+    buf += ctype == ContainerType::Dictionary ? "<<\n" : "[\n";
 }
 
 void ObjectFormatter::add_token_pair(const char *t1, const char *t2) {
