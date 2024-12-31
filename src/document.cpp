@@ -95,22 +95,22 @@ const std::array<const char *, 14> font_names{
 };
 
 const std::array<const char *, 16> blend_mode_names{
-    "Normal",
-    "Multiply",
-    "Screen",
-    "Overlay",
-    "Darken",
-    "Lighten",
-    "ColorDodge",
-    "ColorBurn",
-    "HardLight",
-    "SoftLight",
-    "Difference",
-    "Exclusion",
-    "Hue",
-    "Saturation",
-    "Color",
-    "Luminosity",
+    "/Normal",
+    "/Multiply",
+    "/Screen",
+    "/Overlay",
+    "/Darken",
+    "/Lighten",
+    "/ColorDodge",
+    "/ColorBurn",
+    "/HardLight",
+    "/SoftLight",
+    "/Difference",
+    "/Exclusion",
+    "/Hue",
+    "/Saturation",
+    "/Color",
+    "/Luminosity",
 };
 
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
@@ -235,13 +235,18 @@ int32_t num_channels_for(const CapyPDF_Image_Colorspace cs) {
     std::abort();
 }
 
-void color2numbers(std::back_insert_iterator<std::string> &app, const Color &c) {
+void color2numbers(ObjectFormatter &fmt, const Color &c) {
     if(auto *rgb = std::get_if<DeviceRGBColor>(&c)) {
-        std::format_to(app, "{} {} {}", rgb->r.v(), rgb->g.v(), rgb->b.v());
+        fmt.add_token(rgb->r.v());
+        fmt.add_token(rgb->g.v());
+        fmt.add_token(rgb->b.v());
     } else if(auto *gray = std::get_if<DeviceGrayColor>(&c)) {
-        std::format_to(app, "{}", gray->v.v());
+        fmt.add_token(gray->v.v());
     } else if(auto *cmyk = std::get_if<DeviceCMYKColor>(&c)) {
-        std::format_to(app, "{} {} {} {}", cmyk->c.v(), cmyk->m.v(), cmyk->y.v(), cmyk->k.v());
+        fmt.add_token(cmyk->c.v());
+        fmt.add_token(cmyk->m.v());
+        fmt.add_token(cmyk->y.v());
+        fmt.add_token(cmyk->k.v());
     } else {
         fprintf(stderr, "Colorspace not supported yet.\n");
         std::abort();
@@ -1367,63 +1372,61 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
 
 rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsState &state) {
     const int32_t id = (int32_t)document_objects.size();
-    std::string buf{
-        R"(<<
-  /Type /ExtGState
-)"};
-    auto resource_appender = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/ExtGState");
     if(state.LW) {
-        std::format_to(resource_appender, "  /LW {:f}\n", *state.LW);
+        fmt.add_token_pair("/LW", *state.LW);
     }
     if(state.LC) {
-        std::format_to(resource_appender, "  /LC {}\n", (int)*state.LC);
+        fmt.add_token_pair("/LC", (int)*state.LC);
     }
     if(state.LJ) {
-        std::format_to(resource_appender, "  /LJ {}\n", (int)*state.LJ);
+        fmt.add_token_pair("/LJ", (int)*state.LJ);
     }
     if(state.ML) {
-        std::format_to(resource_appender, "  /ML {:f}\n", *state.ML);
+        fmt.add_token_pair("/ML", *state.ML);
     }
     if(state.RI) {
-        std::format_to(
-            resource_appender, "  /RenderingIntent /{}\n", rendering_intent_names.at(*state.RI));
+        fmt.add_token_pair("/RenderingIntent", rendering_intent_names.at(*state.RI));
     }
     if(state.OP) {
-        std::format_to(resource_appender, "  /OP {}\n", *state.OP ? "true" : "false");
+        fmt.add_token_pair("/OP", *state.OP ? "true" : "false");
     }
     if(state.op) {
-        std::format_to(resource_appender, "  /op {}\n", *state.op ? "true" : "false");
+        fmt.add_token_pair("/op2", *state.op ? "true" : "false");
     }
     if(state.OPM) {
-        std::format_to(resource_appender, "  /OPM {}\n", *state.OPM);
+        fmt.add_token_pair("/OPM", *state.OPM);
     }
     if(state.FL) {
-        std::format_to(resource_appender, "  /FL {:f}\n", *state.FL);
+        fmt.add_token_pair("/FL", *state.FL);
     }
     if(state.SM) {
-        std::format_to(resource_appender, "  /SM {:f}\n", *state.SM);
+        fmt.add_token_pair("/SM", *state.SM);
     }
     if(state.BM) {
-        std::format_to(resource_appender, "  /BM /{}\n", blend_mode_names.at(*state.BM));
+        fmt.add_token_pair("/BM", blend_mode_names.at(*state.BM));
     }
     if(state.SMask) {
         auto objnum = soft_masks.at(state.SMask->id);
-        std::format_to(resource_appender, "  /SMask {} 0 R\n", objnum);
+        fmt.add_token("/SMask");
+        fmt.add_object_ref(objnum);
     }
     if(state.CA) {
-        std::format_to(resource_appender, "  /CA {:f}\n", state.CA->v());
+        fmt.add_token_pair("/CA", state.CA->v());
     }
     if(state.ca) {
-        std::format_to(resource_appender, "  /ca {:f}\n", state.ca->v());
+        fmt.add_token_pair("/ca", state.ca->v());
     }
     if(state.AIS) {
-        std::format_to(resource_appender, "  /AIS {}\n", *state.AIS ? "true" : "false");
+        fmt.add_token_pair("/AIS {}", *state.AIS ? "true" : "false");
     }
     if(state.TK) {
-        std::format_to(resource_appender, "  /TK {}\n", *state.TK ? "true" : "false");
+        fmt.add_token_pair("/TK", *state.TK ? "true" : "false");
     }
-    buf += ">>\n";
-    add_object(FullPDFObject{std::move(buf), {}});
+    fmt.end_dict();
+    add_object(FullPDFObject{fmt.steal(), {}});
     return CapyPDF_GraphicsStateId{id};
 }
 
@@ -1432,29 +1435,29 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType2 &func) {
     if(func.C0.index() != func.C1.index()) {
         RETERR(ColorspaceMismatch);
     }
-    std::string buf = std::format(
-        R"(<<
-  /FunctionType {}
-  /N {}
-)",
-        functiontype,
-        func.n);
-    auto resource_appender = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/FunctionType", functiontype);
+    fmt.add_token_pair("/N", func.n);
+    fmt.add_token("/Domain");
+    fmt.begin_array();
 
-    buf += "  /Domain [ ";
     for(const auto d : func.domain) {
-        std::format_to(resource_appender, "{} ", d);
+        fmt.add_token(d);
     }
-    buf += "]\n";
-    buf += "  /C0 [ ";
-    color2numbers(resource_appender, func.C0);
-    buf += "]\n";
-    buf += "  /C1 [ ";
-    color2numbers(resource_appender, func.C1);
-    buf += "]\n";
-    buf += ">>\n";
+    fmt.end_array();
 
-    return add_object(FullPDFObject{std::move(buf), {}});
+    fmt.add_token("/C0");
+    fmt.begin_array();
+    color2numbers(fmt, func.C0);
+    fmt.end_array();
+    fmt.add_token("/C1");
+    fmt.begin_array();
+    color2numbers(fmt, func.C1);
+    fmt.end_array();
+    fmt.end_dict();
+
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<int32_t> PdfDocument::serialize_function(const FunctionType3 &func) {
@@ -1462,54 +1465,60 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType3 &func) {
     if(!func.functions.size()) {
         RETERR(EmptyFunctionList);
     }
-    std::string buf = std::format(
-        R"(<<
-  /FunctionType {}
-)",
-        functiontype);
-    auto resource_appender = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/FunctionType", functiontype);
 
-    buf += "  /Domain [ ";
+    fmt.add_token("/Domain");
+    fmt.begin_array();
     for(const auto d : func.domain) {
-        std::format_to(resource_appender, "{} ", d);
+        fmt.add_token(d);
     }
-    buf += "]\n";
+    fmt.end_array();
 
-    buf += "  /Functions [ ";
+    fmt.add_token("/Functions");
+    fmt.begin_array();
     for(const auto f : func.functions) {
-        std::format_to(resource_appender, "{} 0 R ", functions.at(f.id).object_number);
+        fmt.add_object_ref(functions.at(f.id).object_number);
     }
-    buf += "]\n";
+    fmt.end_array();
 
-    buf += "  /Bounds [ ";
+    fmt.add_token("/Bounds");
+    fmt.begin_array();
     for(const auto b : func.bounds) {
-        std::format_to(resource_appender, "{} ", b);
+        fmt.add_token(b);
     }
-    buf += "]\n";
+    fmt.end_array();
 
-    buf += "  /Encode [ ";
+    fmt.add_token("/Encode");
+    fmt.begin_array();
     for(const auto e : func.encode) {
-        std::format_to(resource_appender, "{} ", e);
+        fmt.add_token(e);
     }
-    buf += "]\n";
+    fmt.end_array();
 
-    buf += ">>\n";
+    fmt.end_dict();
 
-    return add_object(FullPDFObject{std::move(buf), {}});
+    return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
 rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
-    std::string buf{"<<\n  /FunctionType 4\n  /Domain ["};
-    auto app = std::back_inserter(buf);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/FunctionType", 4);
+    fmt.add_token("/Domain");
+    fmt.begin_array();
     for(const auto d : func.domain) {
-        std::format_to(app, " {:f}", d);
+        fmt.add_token(d);
     }
-    buf += " ]\n  /Range [";
+    fmt.end_array();
+    fmt.add_token("/Range");
+    fmt.begin_array();
     for(const auto r : func.range) {
-        std::format_to(app, " {:f}", r);
+        fmt.add_token(r);
     }
-    buf += " ]\n";
-    return add_object(DeflatePDFObject{std::move(buf), RawData{func.code}});
+    fmt.end_array();
+    return add_object(DeflatePDFObject2{std::move(fmt), RawData{func.code}});
 }
 
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
