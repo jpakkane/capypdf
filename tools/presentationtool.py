@@ -278,7 +278,7 @@ class Demopresentation:
             h = w / imw * imh
             ctx.translate((self.w-w)/2, (usable_h-h)/2 + self.footerh)
             ctx.scale(w, h)
-            ctx.draw_image(imid)
+            ctx.cmd_Do(imid)
 
     def render_splash_page(self, ctx, p):
         subtrnode = p.get('subtransition', None)
@@ -326,7 +326,7 @@ class Demopresentation:
             scaled_w = w/h*self.h
             ctx.translate((self.w-scaled_w)/2, 0)
             ctx.scale(scaled_w, self.h)
-            ctx.draw_image(iid)
+            ctx.cmd_Do(iid)
 
     def create(self):
         for page in self.doc['pages']:

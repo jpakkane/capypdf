@@ -967,7 +967,7 @@ reassign_composite_glyph_numbers(std::vector<std::byte> &buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
 
-    auto composite_data = std::span<const std::byte>(buf.data(), header_size);
+    auto composite_data = std::span<const std::byte>(buf).subspan(header_size);
     int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
