@@ -1120,6 +1120,7 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
         return it->second;
     }
     ObjectFormatter fmt;
+    fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
     fmt.add_token_pair("/Subtype", "/Type1");
     fmt.add_token_pair("/BaseFont", font_names[font]);

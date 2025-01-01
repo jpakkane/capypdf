@@ -593,33 +593,48 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
         std::abort();
     }
 
-    std::string dict = std::format(R"(<<
-  /Type /Annot
-  /Subtype /Widget
-  /Rect [ {:f} {:f} {:f} {:f} ]
-  /FT /Btn
-  /P {} 0 R
-  /T {}
-  /V /Off
-  /MK<</CA(8)>>
-  /AP <<
-    /N <<
-      /Yes {} 0 R
-      /Off {} 0 R
-    >>
-  >>
-  /AS /Off
->>
-)",
-                                   checkbox.rect.x,
-                                   checkbox.rect.y,
-                                   checkbox.rect.w,
-                                   checkbox.rect.h,
-                                   loc->second,
-                                   pdfstring_quote(checkbox.T),
-                                   doc.form_xobjects.at(checkbox.on.id).xobj_num,
-                                   doc.form_xobjects.at(checkbox.off.id).xobj_num);
-    ERCV(write_finished_object(obj_num, dict, {}));
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Annot");
+    fmt.add_token_pair("/Subtype", "/Widget");
+    fmt.add_token("/Rect");
+    {
+        fmt.begin_array();
+        fmt.add_token(checkbox.rect.x);
+        fmt.add_token(checkbox.rect.y);
+        fmt.add_token(checkbox.rect.w);
+        fmt.add_token(checkbox.rect.h);
+        fmt.end_array();
+    }
+    fmt.add_token_pair("/FT", "/Btn");
+    fmt.add_token("/P");
+    fmt.add_object_ref(loc->second);
+    fmt.add_token("/T");
+    fmt.add_token(pdfstring_quote(checkbox.T));
+    fmt.add_token_pair("/V", "/Off");
+    fmt.add_token_pair("/MK", "<</CA(8)>>");
+    {
+        fmt.add_token("/AP");
+        fmt.begin_dict();
+        fmt.add_token("/N");
+        {
+            fmt.begin_dict();
+            fmt.add_token("/N");
+            {
+                fmt.begin_dict();
+                fmt.add_token("/Yes");
+                fmt.add_object_ref(doc.form_xobjects.at(checkbox.on.id).xobj_num);
+                fmt.add_token("/Off");
+                fmt.add_object_ref(doc.form_xobjects.at(checkbox.off.id).xobj_num);
+                fmt.end_dict();
+            }
+            fmt.end_dict();
+        }
+        fmt.end_dict();
+        fmt.add_token_pair("/AS", "/Off");
+    }
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
 }
 
@@ -804,56 +819,57 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
             }
         }
     }
-    std::string dict = R"(<<
-  /Type /StructElem
-)";
-    auto app = std::back_inserter(dict);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/StructElem");
     if(auto bi = std::get_if<CapyPDF_Structure_Type>(&si.stype)) {
-        std::format_to(app,
-                       R"(  /S /{}
-)",
-                       structure_type_names.at(*bi));
+        fmt.add_token("/S");
+        fmt.add_token_with_slash(structure_type_names.at(*bi));
     } else if(auto ri = std::get_if<CapyPDF_RoleId>(&si.stype)) {
         const auto &role = *ri;
-        std::format_to(app, "  /S {}\n", bytes2pdfstringliteral(doc.rolemap.at(role.id).name));
+        fmt.add_token_pair("/S", bytes2pdfstringliteral(doc.rolemap.at(role.id).name));
     } else {
         fprintf(stderr, "UNREACHABLE.\n");
         std::abort();
     }
-    std::format_to(app, "  /P {} 0 R\n", parent_object);
+    fmt.add_token("/P");
+    fmt.add_object_ref(parent_object);
 
     if(!children.empty()) {
-        dict += "  /K [\n";
+        fmt.add_token("/K");
+        fmt.begin_array(1);
+
         for(const auto &c : children) {
-            std::format_to(app, "    {} 0 R\n", doc.structure_items.at(c.id).obj_id);
+            fmt.add_object_ref(doc.structure_items.at(c.id).obj_id);
         }
-        dict += "  ]\n";
+        fmt.end_array();
     } else {
         // FIXME. Maybe not correct? Assumes that a struct item
         // either has children or is used on a page. Not both.
         const auto it = doc.structure_use.find(dsi.sid);
         if(it != doc.structure_use.end()) {
             const auto &[page_num, mcid_num] = it->second;
-            std::format_to(app, "  /Pg {} 0 R\n", doc.pages.at(page_num).page_obj_num);
-            std::format_to(app, "  /K {}\n", mcid_num);
+            fmt.add_token("/Pg");
+            fmt.add_object_ref(doc.pages.at(page_num).page_obj_num);
+            fmt.add_token_pair("/K", mcid_num);
         }
     }
 
     // Extra elements.
     if(!si.extra.T.empty()) {
-        std::format_to(app, "  /T {}\n", utf8_to_pdfutf16be(si.extra.T));
+        fmt.add_token_pair("/T", utf8_to_pdfutf16be(si.extra.T));
     }
     if(!si.extra.Lang.empty()) {
-        std::format_to(app, "  /Lang {}\n", pdfstring_quote(si.extra.Lang.sv()));
+        fmt.add_token_pair("/Lang", pdfstring_quote(si.extra.Lang.sv()));
     }
     if(!si.extra.Alt.empty()) {
-        std::format_to(app, "  /Alt {}\n", utf8_to_pdfutf16be(si.extra.Alt));
+        fmt.add_token_pair("/Alt", utf8_to_pdfutf16be(si.extra.Alt));
     }
     if(!si.extra.ActualText.empty()) {
-        std::format_to(app, "  /ActualText {}\n", utf8_to_pdfutf16be(si.extra.ActualText));
+        fmt.add_token_pair("/ActualText", utf8_to_pdfutf16be(si.extra.ActualText));
     }
-    dict += ">>\n";
-    ERCV(write_finished_object(obj_num, dict, {}));
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
 }
 
