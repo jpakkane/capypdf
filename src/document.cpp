@@ -991,7 +991,6 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 }
 
 void PdfDocument::create_structure_root_dict() {
-    std::string buf;
     std::optional<CapyPDF_StructureItemId> rootobj;
 
     if(!structure_parent_tree_object) {
@@ -1019,7 +1018,6 @@ void PdfDocument::create_structure_root_dict() {
     if(!rolemap.empty()) {
         fmt.add_token("/RoleMap");
         fmt.begin_dict();
-        buf += "  /RoleMap <<\n";
         for(const auto &i : rolemap) {
             fmt.add_token_pair(bytes2pdfstringliteral(i.name), structure_type_names.at(i.builtin));
         }
@@ -1703,24 +1701,25 @@ rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
 }
 
 rvoe<CapyPDF_PatternId> PdfDocument::add_shading_pattern(const ShadingPattern &shp) {
-    std::string buf = R"(<<
-  /Type /Pattern
-  /PatternType 2
-)";
-    auto app = std::back_inserter(buf);
-    std::format_to(app, "  /Shading {} 0 R\n", shadings.at(shp.sid.id).object_number);
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Pattern");
+    fmt.add_token_pair("/PatternType", "2");
+    fmt.add_token("/Shading");
+    fmt.add_object_ref(shadings.at(shp.sid.id).object_number);
     if(shp.m) {
-        std::format_to(app,
-                       "  /Matrix [ {:f} {:f} {:f} {:f} {:f} {:f} ]\n",
-                       shp.m->a,
-                       shp.m->b,
-                       shp.m->c,
-                       shp.m->d,
-                       shp.m->e,
-                       shp.m->f);
+        fmt.add_token("/Matrix");
+        fmt.begin_array();
+        fmt.add_token(shp.m->a);
+        fmt.add_token(shp.m->b);
+        fmt.add_token(shp.m->c);
+        fmt.add_token(shp.m->d);
+        fmt.add_token(shp.m->e);
+        fmt.add_token(shp.m->f);
+        fmt.end_array();
     }
-    buf += ">>\n";
-    return CapyPDF_PatternId{add_object(FullPDFObject{std::move(buf), {}})};
+    fmt.end_dict();
+    return CapyPDF_PatternId{add_object(FullPDFObject{fmt.steal(), {}})};
 }
 
 rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
@@ -1771,28 +1770,34 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
         }
     }
     ERC(contents, load_file_as_bytes(ef.path));
-    std::string dict = std::format(R"(<<
-  /Type /EmbeddedFile
-  /Length {}
-)",
-                                   contents.size());
-    auto app = std::back_inserter(dict);
-    if(!ef.subtype.empty()) {
-        auto quoted = pdfname_quote(ef.subtype.sv());
-        std::format_to(app, "  /Subtype /{}\n", quoted);
+    int32_t fileobj_id;
+    {
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/EmbeddedFile");
+        fmt.add_token_pair("/Length", contents.size());
+        if(!ef.subtype.empty()) {
+            auto quoted = pdfname_quote(ef.subtype.sv());
+            fmt.add_token_pair("/Subtype", quoted);
+        }
+        fmt.end_dict();
+        fileobj_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(contents))});
     }
-    dict += ">>\n";
-    auto fileobj_id = add_object(FullPDFObject{std::move(dict), RawData(std::move(contents))});
-    dict = std::format(R"(<<
-  /Type /Filespec
-  /F {}
-  /EF << /F {} 0 R >>
->>
-)",
-                       pdfstring_quote(ef.pdfname.sv()),
-                       fileobj_id);
-    auto filespec_id = add_object(FullPDFObject{std::move(dict), {}});
-    embedded_files.emplace_back(EmbeddedFileObject{ef, filespec_id, fileobj_id});
+
+    {
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/Filespec");
+        fmt.add_token_pair("/F", pdfstring_quote(ef.pdfname.sv()));
+        fmt.add_token("/EF");
+        fmt.begin_dict();
+        fmt.add_token("/F");
+        fmt.add_object_ref(fileobj_id);
+        fmt.end_dict();
+        fmt.end_dict();
+        auto filespec_id = add_object(FullPDFObject{fmt.steal(), {}});
+        embedded_files.emplace_back(EmbeddedFileObject{ef, filespec_id, fileobj_id});
+    }
     return CapyPDF_EmbeddedFileId{(int32_t)embedded_files.size() - 1};
 }
 
@@ -1836,13 +1841,12 @@ PdfDocument::add_structure_item(const CapyPDF_RoleId role,
 
 rvoe<CapyPDF_OptionalContentGroupId>
 PdfDocument::add_optional_content_group(const OptionalContentGroup &g) {
-    auto id = add_object(FullPDFObject{std::format(R"(<<
-  /Type /OCG
-  /Name {}
->>
-)",
-                                                   pdfstring_quote(g.name)),
-                                       {}});
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/OCG");
+    fmt.add_token_pair("/Name", pdfstring_quote(g.name));
+    fmt.end_dict();
+    auto id = add_object(FullPDFObject{fmt.steal(), {}});
     ocg_items.push_back(id);
     return CapyPDF_OptionalContentGroupId{(int32_t)ocg_items.size() - 1};
 }
@@ -1862,16 +1866,14 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
 }
 
 rvoe<CapyPDF_SoftMaskId> PdfDocument::add_soft_mask(const SoftMask &sm) {
-    auto id =
-        add_object(FullPDFObject{std::format(R"(<<
-  /Type /Mask
-  /S /{}
-  /G {} 0 R
->>
-)",
-                                             sm.S == CAPY_SOFT_MASK_ALPHA ? "Alpha" : "Luminosity",
-                                             transparency_groups.at(sm.G.id)),
-                                 {}});
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Mask");
+    fmt.add_token_pair("/S", sm.S == CAPY_SOFT_MASK_ALPHA ? "/Alpha" : "/Luminosity");
+    fmt.add_token("/G");
+    fmt.add_object_ref(transparency_groups.at(sm.G.id));
+    fmt.end_dict();
+    auto id = add_object(FullPDFObject{fmt.steal(), {}});
     soft_masks.push_back(id);
     return CapyPDF_SoftMaskId{(int32_t)soft_masks.size() - 1};
 }
