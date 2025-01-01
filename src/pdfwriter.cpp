@@ -285,10 +285,10 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
 
         [&](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
-            write_subset_font_descriptor(i,
-                                         doc.fonts.at(ssfontd.fid.id).fontdata,
-                                         ssfontd.subfont_data_obj,
-                                         ssfontd.subset_num);
+            ERCV(write_subset_font_descriptor(i,
+                                              doc.fonts.at(ssfontd.fid.id).fontdata,
+                                              ssfontd.subfont_data_obj,
+                                              ssfontd.subset_num));
             RETOK;
         },
 
@@ -366,25 +366,27 @@ rvoe<NoReturnValue> PdfWriter ::write_trailer(int64_t xref_offset) {
     const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
     auto documentid = create_trailer_id();
-    std::format_to(std::back_inserter(buf),
-                   R"(trailer
-<<
-  /Size {}
-  /Root {} 0 R
-  /Info {} 0 R
-  /ID [{}{}]
->>
-startxref
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Size", doc.document_objects.size());
+    fmt.add_token("/Root");
+    fmt.add_object_ref(root);
+    fmt.add_token("/Info");
+    fmt.add_object_ref(info);
+    fmt.add_token("/ID");
+    fmt.begin_array();
+    fmt.add_token(documentid);
+    fmt.add_token(documentid);
+    fmt.end_array();
+    fmt.end_dict();
+    auto ending = std::format(R"(startxref
 {}
 %%EOF
 )",
-                   doc.document_objects.size(),
-                   root,
-                   info,
-                   documentid,
-                   documentid,
-                   xref_offset);
-    return write_bytes(buf);
+                              xref_offset);
+    ERCV(write_bytes("trailer\n"));
+    ERCV(write_bytes(fmt.steal()));
+    return write_bytes(ending);
 }
 
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
@@ -421,24 +423,22 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
     ERC(width_arr, build_subset_width_array(face, subset_glyphs));
-    auto objbuf = std::format(R"(<<
-  /Type /Font
-  /Subtype /TrueType
-  /BaseFont /{}
-  /FirstChar {}
-  /LastChar {}
-  /Widths {}
-  /FontDescriptor {} 0 R
-  /ToUnicode {} 0 R
->>
-)",
-                              subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset),
-                              start_char,
-                              end_char,
-                              width_arr,
-                              font_descriptor_obj,
-                              tounicode_obj);
-    ERCV(write_finished_object(object_num, objbuf, {}));
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Font");
+    fmt.add_token_pair("/Subtype", "/TrueType");
+    fmt.add_token("/BaseFont");
+    fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
+    fmt.add_token_pair("/FirstChar", start_char);
+    fmt.add_token_pair("/LastChar", end_char);
+    fmt.add_token_pair("/Widths", width_arr);
+    fmt.add_token("/FontDescriptor");
+    fmt.add_object_ref(font_descriptor_obj);
+    fmt.add_token("/ToUnicode");
+    fmt.add_object_ref(tounicode_obj);
+    fmt.end_dict();
+
+    ERCV(write_finished_object(object_num, fmt.steal(), {}));
     RETOK;
 }
 
@@ -448,76 +448,70 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
     ERC(subset_font, font.subsets.generate_subset(font.fontdata.fontdata, ssfont.subset_id));
 
     ERC(compressed_bytes, flate_compress(subset_font));
-    std::string dictbuf = std::format(R"(<<
-  /Length {}
-  /Length1 {}
-  /Filter /FlateDecode
->>
-)",
-                                      compressed_bytes.size(),
-                                      subset_font.size());
-    ERCV(write_finished_object(object_num, dictbuf, compressed_bytes));
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Length", compressed_bytes.size());
+    fmt.add_token_pair("/Length1", subset_font.size());
+    fmt.add_token_pair("/Filter", "/FlateDecode");
+    fmt.end_dict();
+    ERCV(write_finished_object(object_num, fmt.steal(), compressed_bytes));
     RETOK;
 }
 
-void PdfWriter::write_subset_font_descriptor(int32_t object_num,
-                                             const TtfFont &font,
-                                             int32_t font_data_obj,
-                                             int32_t subset_number) {
+rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
+                                                            const TtfFont &font,
+                                                            int32_t font_data_obj,
+                                                            int32_t subset_number) {
     auto face = font.face.get();
     const uint32_t fflags = 4;
-    auto objbuf = std::format(R"(<<
-  /Type /FontDescriptor
-  /FontName /{}
-  /Flags {}
-  /FontBBox [ {} {} {} {} ]
-  /ItalicAngle {}
-  /Ascent {}
-  /Descent {}
-  /CapHeight {}
-  /StemV {}
-  /FontFile2 {} 0 R
->>
-)",
-                              subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset_number),
-                              // face->family_name,
-                              fflags,
-                              face->bbox.xMin,
-                              face->bbox.yMin,
-                              face->bbox.xMax,
-                              face->bbox.yMax,
-                              0,               // Cairo always sets this to zero.
-                              0,               // face->ascender,
-                              0,               // face->descender,
-                              face->bbox.yMax, // Copying what Cairo does.
-                              80,              // Cairo always sets these to 80.
-                              font_data_obj);
-    write_finished_object(object_num, objbuf, {});
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/FontDescriptor");
+    fmt.add_token("/FontName");
+    fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset_number));
+    fmt.add_token_pair("/Flags", fflags);
+    fmt.add_token("/FontBBox");
+    fmt.begin_array();
+    fmt.add_token((int)face->bbox.xMin);
+    fmt.add_token((int)face->bbox.yMin);
+    fmt.add_token((int)face->bbox.xMax);
+    fmt.add_token((int)face->bbox.yMax);
+    fmt.end_array();
+    fmt.add_token_pair("/ItalicAngle", "0");                // Cairo always sets this to zero.
+    fmt.add_token_pair("/Ascent", "0");                     // face->ascender
+    fmt.add_token_pair("/Descent", "0");                    // face->descender
+    fmt.add_token_pair("/CapHeight", (int)face->bbox.yMax); // Copying what Cairo does.
+    fmt.add_token_pair("/StemV", 80);                       // Cairo always sets these to 80.
+    fmt.add_token("/FontFile2");
+    fmt.add_object_ref(font_data_obj);
+    fmt.end_dict();
+    return write_finished_object(object_num, fmt.steal(), {});
 }
 
 rvoe<NoReturnValue>
 PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
     auto cmap = create_subset_cmap(font.subsets.get_subset(subset_number));
-    auto dict = std::format(R"(<<
-  /Length {}
->>
-)",
-                            cmap.length());
-    return write_finished_object(object_num, dict, str2span(cmap));
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Length", cmap.length());
+    fmt.end_dict();
+    return write_finished_object(object_num, fmt.steal(), str2span(cmap));
 }
 
 rvoe<NoReturnValue> PdfWriter::write_pages_root() {
-    std::string buf;
-    auto buf_append = std::back_inserter(buf);
-    buf = std::format(R"(<<
-  /Type /Pages
-  /Kids [
-)");
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Pages");
+    fmt.add_token("/Kids");
+    fmt.begin_array(1);
+
     for(const auto &i : doc.pages) {
-        std::format_to(buf_append, "    {} 0 R\n", i.page_obj_num);
+        fmt.add_object_ref(i.page_obj_num);
     }
-    std::format_to(buf_append, "  ]\n  /Count {}\n>>\n", doc.pages.size());
-    return write_finished_object(doc.pages_object, buf, {});
+    fmt.end_array();
+    fmt.add_token_pair("/Count", doc.pages.size());
+    fmt.end_dict();
+    return write_finished_object(doc.pages_object, fmt.steal(), {});
 }
 
 rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {

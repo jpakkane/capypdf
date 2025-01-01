@@ -32,10 +32,10 @@ private:
                                               std::span<std::byte> stream_data);
     rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
                                                const DelayedSubsetFontData &ssfont);
-    void write_subset_font_descriptor(int32_t object_num,
-                                      const TtfFont &font,
-                                      int32_t font_data_obj,
-                                      int32_t subset_number);
+    rvoe<NoReturnValue> write_subset_font_descriptor(int32_t object_num,
+                                                     const TtfFont &font,
+                                                     int32_t font_data_obj,
+                                                     int32_t subset_number);
     rvoe<NoReturnValue>
     write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
     rvoe<NoReturnValue> write_subset_font(int32_t object_num,
