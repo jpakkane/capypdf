@@ -1087,42 +1087,30 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> 
 }
 
 rvoe<NoReturnValue> PdfDocument::generate_info_object() {
-    FullPDFObject obj_data;
-    obj_data.dictionary = "<<\n";
+    ObjectFormatter fmt;
+    fmt.begin_dict();
     if(!docprops.title.empty()) {
-        obj_data.dictionary += "  /Title ";
-        auto titlestr = utf8_to_pdfutf16be(docprops.title);
-        obj_data.dictionary += titlestr;
-        obj_data.dictionary += "\n";
+        fmt.add_token_pair("/Title ", utf8_to_pdfutf16be(docprops.title));
     }
     if(!docprops.author.empty()) {
-        obj_data.dictionary += "  /Author ";
-        auto authorstr = utf8_to_pdfutf16be(docprops.author);
-        obj_data.dictionary += authorstr;
-        obj_data.dictionary += "\n";
+        fmt.add_token_pair("/Author ", utf8_to_pdfutf16be(docprops.author));
     }
     if(!docprops.creator.empty()) {
-        obj_data.dictionary += "  /Creator ";
-        auto creatorstr = utf8_to_pdfutf16be(docprops.creator);
-        obj_data.dictionary += creatorstr;
-        obj_data.dictionary += "\n";
+        fmt.add_token_pair("/Creator ", utf8_to_pdfutf16be(docprops.creator));
     }
     const auto current_date = current_date_string();
-    obj_data.dictionary += "  /Producer (CapyPDF " CAPYPDF_VERSION_STR ")\n";
-    obj_data.dictionary += "  /CreationDate ";
-    obj_data.dictionary += current_date;
-    obj_data.dictionary += '\n';
-    obj_data.dictionary += "  /ModDate ";
-    obj_data.dictionary += current_date;
-    obj_data.dictionary += '\n';
-    obj_data.dictionary += "  /Trapped /False\n";
+    fmt.add_token_pair("/Producer", "(CapyPDF " CAPYPDF_VERSION_STR ")");
+    fmt.add_token_pair("/CreationDate", current_date);
+    fmt.add_token_pair("/ModDate", current_date);
+    fmt.add_token_pair("/Trapped", "/False");
     if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&docprops.subtype)) {
-        obj_data.dictionary += "  /GTS_PDFXVersion (";
-        obj_data.dictionary += pdfx_names.at(*xptr);
-        obj_data.dictionary += ")\n";
+        std::string parname("(");
+        parname += pdfx_names.at(*xptr);
+        parname += ")\n";
+        fmt.add_token_pair("/GTS_PDFXVersion", parname);
     }
-    obj_data.dictionary += ">>\n";
-    add_object(std::move(obj_data));
+    fmt.end_dict();
+    add_object(FullPDFObject{fmt.steal(), {}});
     RETOK;
 }
 
