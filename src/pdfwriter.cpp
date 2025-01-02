@@ -261,15 +261,6 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
 
         [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
             ERC(compressed, flate_compress(pobj.stream.sv()));
-            std::string dict = std::format("{}  /Filter /FlateDecode\n  /Length {}\n>>\n",
-                                           pobj.unclosed_dictionary,
-                                           compressed.size());
-            ERCV(write_finished_object(i, dict, compressed));
-            RETOK;
-        },
-
-        [&](const DeflatePDFObject2 &pobj) -> rvoe<NoReturnValue> {
-            ERC(compressed, flate_compress(pobj.stream.sv()));
             // FIXME, not great.
             ObjectFormatter &fmt = const_cast<ObjectFormatter &>(pobj.unclosed_dictionary);
             fmt.add_token_pair("/Filter", "/FlateDecode");

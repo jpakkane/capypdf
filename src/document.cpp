@@ -369,7 +369,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
-                                          std::string unclosed_object_dict,
+                                          ObjectFormatter fmt,
                                           std::string command_stream,
                                           const PageProperties &custom_props,
                                           const std::unordered_set<CapyPDF_FormWidgetId> &fws,
@@ -395,14 +395,12 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
     int32_t commands_num{-1};
     if(docprops.compress_streams) {
-        commands_num = add_object(
-            DeflatePDFObject{std::move(unclosed_object_dict), RawData{std::move(command_stream)}});
+        commands_num =
+            add_object(DeflatePDFObject{std::move(fmt), RawData{std::move(command_stream)}});
     } else {
-        std::format_to(std::back_inserter(unclosed_object_dict),
-                       "  /Length {}\n>>\n",
-                       command_stream.length());
-        commands_num = add_object(
-            FullPDFObject{std::move(unclosed_object_dict), RawData(std::move(command_stream))});
+        fmt.add_token_pair("/Length", command_stream.length());
+        fmt.end_dict();
+        commands_num = add_object(FullPDFObject{fmt.steal(), RawData(std::move(command_stream))});
     }
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
@@ -1055,10 +1053,6 @@ PdfDocument::find_icc_profile(std::span<std::byte> contents) {
             if(stream_data->stream == contents) {
                 return CapyPDF_IccColorSpaceId{(int32_t)i};
             }
-        } else if(const auto stream_data = std::get_if<DeflatePDFObject2>(&stream_obj)) {
-            if(stream_data->stream == contents) {
-                return CapyPDF_IccColorSpaceId{(int32_t)i};
-            }
         } else {
             fprintf(stderr, "Bad type for icc profile dnta.\n");
             std::abort();
@@ -1079,7 +1073,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> 
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/N", num_channels);
-    auto stream_obj_id = add_object(DeflatePDFObject2{std::move(fmt), RawData(contents)});
+    auto stream_obj_id = add_object(DeflatePDFObject{std::move(fmt), RawData(contents)});
     auto obj_id =
         add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
@@ -1505,7 +1499,7 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
         fmt.add_token(r);
     }
     fmt.end_array();
-    return add_object(DeflatePDFObject2{std::move(fmt), RawData{func.code}});
+    return add_object(DeflatePDFObject{std::move(fmt), RawData{func.code}});
 }
 
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {

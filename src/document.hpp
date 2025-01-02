@@ -118,13 +118,7 @@ struct FullPDFObject {
     RawData stream;
 };
 
-// FIXME, delete this once formatter refactor is done.
 struct DeflatePDFObject {
-    std::string unclosed_dictionary;
-    RawData stream;
-};
-
-struct DeflatePDFObject2 {
     ObjectFormatter unclosed_dictionary;
     RawData stream;
 };
@@ -329,7 +323,6 @@ struct StructureUsage {
 typedef std::variant<DummyIndexZero,
                      FullPDFObject,
                      DeflatePDFObject,
-                     DeflatePDFObject2,
                      DelayedSubsetFontData,
                      DelayedSubsetFontDescriptor,
                      DelayedSubsetCMap,
@@ -374,7 +367,7 @@ public:
 
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_dict,
-                                 std::string unclosed_object_dict,
+                                 ObjectFormatter fmt,
                                  std::string command_stream,
                                  const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
