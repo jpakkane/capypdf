@@ -105,21 +105,6 @@ void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
     fmt.end_dict();
 }
 
-void TransparencyGroupProperties::serialize(std::back_insert_iterator<std::string> &app,
-                                            const char *indent) const {
-    std::format_to(app, "<<\n{}  /Type /Group\n{}  /S /Transparency\n", indent, indent);
-    if(CS) {
-        std::format_to(app, "{}  /CS {}\n", indent, colorspace_names.at((int)CS.value()));
-    }
-    if(I) {
-        std::format_to(app, "{}  /I {}\n", indent, I.value() ? "true" : "false");
-    }
-    if(K) {
-        std::format_to(app, "{}  /K {}\n", indent, K.value() ? "true" : "false");
-    }
-    std::format_to(app, "{}>>\n", indent);
-}
-
 rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
     return asciistring::from_view(std::string_view(cstr));
 }

@@ -536,8 +536,6 @@ struct TransparencyGroupProperties {
     std::optional<bool> K;
 
     void serialize(ObjectFormatter &fmt) const;
-    // Delete this.
-    void serialize(std::back_insert_iterator<std::string> &app, const char *indent) const;
 };
 
 struct SoftMask {
