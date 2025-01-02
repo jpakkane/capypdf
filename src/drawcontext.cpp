@@ -18,9 +18,16 @@ namespace capypdf::internal {
 
 namespace {
 
-void write_matrix(std::back_insert_iterator<std::string> &app, const PdfMatrix &gm) {
-    std::format_to(
-        app, "  /Matrix [ {:f} {:f} {:f} {:f} {:f} {:f} ]\n", gm.a, gm.b, gm.c, gm.d, gm.e, gm.f);
+void write_matrix(ObjectFormatter &fmt, const PdfMatrix &gm) {
+    fmt.add_token("/Matrix");
+    fmt.begin_array();
+    fmt.add_token(gm.a);
+    fmt.add_token(gm.b);
+    fmt.add_token(gm.c);
+    fmt.add_token(gm.d);
+    fmt.add_token(gm.e);
+    fmt.add_token(gm.f);
+    fmt.end_array();
 }
 
 } // namespace
@@ -36,78 +43,80 @@ PdfDrawContext::PdfDrawContext(PdfDocument *doc,
 PdfDrawContext::~PdfDrawContext() {}
 
 DCSerialization PdfDrawContext::serialize() {
-    auto resource_dict = build_resource_dict();
     if(context_type == CAPY_DC_FORM_XOBJECT) {
-        std::string dict = std::format(
-            R"(<<
-  /Type /XObject
-  /Subtype /Form
-  /BBox [ {:f} {:f} {:f} {:f} ]
-  /Resources {}
-  /Length {}
-)",
-            bbox.x1,
-            bbox.y1,
-            bbox.x2,
-            bbox.y2,
-            resource_dict,
-            commands.size());
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/XObject");
+        fmt.add_token_pair("/Subtype", "/Form");
+        fmt.add_token("/BBox");
+        fmt.begin_array();
+        fmt.add_token(bbox.x1);
+        fmt.add_token(bbox.y1);
+        fmt.add_token(bbox.x2);
+        fmt.add_token(bbox.y2);
+        fmt.end_array();
+        fmt.add_token("/Resources");
+        build_resource_dict(fmt);
+        fmt.add_token_pair("/Length", commands.size());
         if(group_matrix) {
-            auto app = std::back_inserter(dict);
-            write_matrix(app, group_matrix.value());
+            write_matrix(fmt, group_matrix.value());
         }
-        dict += ">>\n";
-        return SerializedXObject{std::move(dict), commands};
+        fmt.end_dict();
+        return SerializedXObject{fmt.steal(), commands};
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
-        std::string dict = R"(<<
-  /Type /XObject
-  /Subtype /Form
-)";
-        auto app = std::back_inserter(dict);
-        std::format_to(
-            app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", bbox.x1, bbox.y1, bbox.x2, bbox.y2);
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/XObject");
+        fmt.add_token_pair("/Subtype", "/Form");
+        fmt.add_token("/BBox");
+        fmt.begin_array();
+        fmt.add_token(bbox.x1);
+        fmt.add_token(bbox.y1);
+        fmt.add_token(bbox.x2);
+        fmt.add_token(bbox.y2);
+        fmt.end_array();
         if(custom_props.transparency_props) {
-            dict += "  /Group ";
-            custom_props.transparency_props->serialize(app, "  ");
+            fmt.add_token("/Group");
+            custom_props.transparency_props->serialize(fmt);
         }
         if(group_matrix) {
-            write_matrix(app, group_matrix.value());
+            write_matrix(fmt, group_matrix.value());
         }
-        std::format_to(app,
-                       R"(  /Resources {}
-  /Length {}
->>
-)",
-                       resource_dict,
-                       commands.size());
-        return SerializedXObject{std::move(dict), commands};
+        fmt.add_token("/Resources");
+        build_resource_dict(fmt);
+        fmt.add_token_pair("/Length", commands.size());
+        fmt.end_dict();
+        return SerializedXObject{fmt.steal(), commands};
     } else if(context_type == CAPY_DC_COLOR_TILING) {
-        std::string dict = R"(<<
-  /Type /Pattern
-  /PatternType 1
-  /PaintType 1
-  /TilingType 1
-)";
-        auto app = std::back_inserter(dict);
-        std::format_to(
-            app, "  /BBox [ {:f} {:f} {:f} {:f} ]\n", bbox.x1, bbox.y1, bbox.x2, bbox.y2);
+        ObjectFormatter fmt;
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/Pattern");
+        fmt.add_token_pair("/PatternType", "1");
+        fmt.add_token_pair("/PaintType", "1");
+        fmt.add_token_pair("/TilingType", "1");
+        fmt.add_token("/BBox");
+        fmt.begin_array();
+        fmt.add_token(bbox.x1);
+        fmt.add_token(bbox.y1);
+        fmt.add_token(bbox.x2);
+        fmt.add_token(bbox.y2);
+        fmt.end_array();
         if(group_matrix) {
-            write_matrix(app, group_matrix.value());
+            write_matrix(fmt, group_matrix.value());
         }
-        std::format_to(app, "  /XStep {:f}\n", get_w());
-        std::format_to(app, "  /YStep {:f}\n", get_h());
-        std::format_to(app,
-                       R"(  /Resources {}
-  /Length {}
->>
-)",
-                       resource_dict,
-                       commands.size());
-        return SerializedXObject{std::move(dict), commands};
+        fmt.add_token_pair("/XStep", get_w());
+        fmt.add_token_pair("/YStep", get_h());
+        fmt.add_token("/Resources");
+        build_resource_dict(fmt);
+        fmt.add_token_pair("/Length", commands.size());
+        fmt.end_dict();
+        return SerializedXObject{fmt.steal(), commands};
     } else {
         assert(!group_matrix);
         SerializedBasicContext sc;
-        sc.resource_dict = std::move(resource_dict);
+        ObjectFormatter fmt;
+        build_resource_dict(fmt);
+        sc.resource_dict = fmt.steal();
         sc.command_stream = commands;
         return DCSerialization{std::move(sc)};
     }
@@ -135,8 +144,7 @@ void PdfDrawContext::clear() {
     group_matrix.reset();
 }
 
-std::string PdfDrawContext::build_resource_dict() {
-    ObjectFormatter fmt;
+void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
     fmt.begin_dict();
     std::string scratch;
     if(!used_images.empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
@@ -238,7 +246,6 @@ std::string PdfDrawContext::build_resource_dict() {
         fmt.end_dict();
     }
     fmt.end_dict();
-    return fmt.steal();
 }
 
 rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {

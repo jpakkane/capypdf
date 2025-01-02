@@ -211,7 +211,7 @@ public:
     CapyPDF_Draw_Context_Type draw_context_type() const { return context_type; }
     PdfDocument &get_doc() { return *doc; }
 
-    std::string build_resource_dict();
+    void build_resource_dict(ObjectFormatter &fmt);
     std::string_view get_command_stream() { return commands; }
 
     double get_w() const { return bbox.x2 - bbox.x1; }
