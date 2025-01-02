@@ -108,7 +108,6 @@ DCSerialization PdfDrawContext::serialize() {
         assert(!group_matrix);
         SerializedBasicContext sc;
         sc.resource_dict = std::move(resource_dict);
-        sc.unclosed_object_dict = "<<\n";
         sc.command_stream = commands;
         return DCSerialization{std::move(sc)};
     }

@@ -44,7 +44,6 @@ struct GstatePopper {
 
 struct SerializedBasicContext {
     std::string resource_dict;
-    std::string unclosed_object_dict;
     std::string command_stream;
 };
 
