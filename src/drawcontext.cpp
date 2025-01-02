@@ -136,86 +136,109 @@ void PdfDrawContext::clear() {
 }
 
 std::string PdfDrawContext::build_resource_dict() {
-    std::string resources;
-    auto resource_appender = std::back_inserter(resources);
-    resources = "<<\n";
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    std::string scratch;
     if(!used_images.empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
-        resources += "  /XObject <<\n";
+        fmt.add_token("/XObject");
+        fmt.begin_dict();
         if(!used_images.empty()) {
             for(const auto &i : used_images) {
-                std::format_to(resource_appender, "    /Image{} {} 0 R\n", i, i);
+                scratch = std::format("/Image{}", i);
+                fmt.add_token(scratch);
+                fmt.add_object_ref(i);
             }
         }
         if(!used_form_xobjects.empty()) {
             for(const auto &fx : used_form_xobjects) {
-                std::format_to(resource_appender, "    /FXO{} {} 0 R\n", fx, fx);
+                scratch = std::format("/FXO{}", fx);
+                fmt.add_token(scratch);
+                fmt.add_object_ref(fx);
             }
         }
         if(!used_trgroups.empty()) {
             for(const auto &tg : used_trgroups) {
                 auto objnum = doc->transparency_groups.at(tg.id);
-                std::format_to(resource_appender, "    /TG{} {} 0 R\n", objnum, objnum);
+                scratch = std::format("/TG{}", objnum);
+                fmt.add_token(scratch);
+                fmt.add_object_ref(objnum);
             }
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_fonts.empty() || !used_subset_fonts.empty()) {
-        resources += "  /Font <<\n";
+        fmt.add_token("/Font");
+        fmt.begin_dict();
         for(const auto &i : used_fonts) {
-            std::format_to(resource_appender, "    /Font{} {} 0 R\n", i, i);
+            scratch = std::format("/Font{}", i);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(i);
         }
         for(const auto &i : used_subset_fonts) {
             const auto &bob = doc->get(i.fid);
-            std::format_to(resource_appender,
-                           "    /SFont{}-{} {} 0 R\n",
-                           bob.font_obj,
-                           i.subset_id,
-                           bob.font_obj);
+            scratch = std::format("/SFont{}-{}", bob.font_obj, i.subset_id);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(bob.font_obj);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_colorspaces.empty() || uses_all_colorspace) {
-        resources += "  /ColorSpace <<\n";
+        fmt.add_token("/ColorSpace");
+        fmt.begin_dict();
         if(uses_all_colorspace) {
-            std::format_to(resource_appender, "    /All {} 0 R\n", doc->separation_objects.at(0));
+            fmt.add_token("/All");
+            fmt.add_object_ref(doc->separation_objects.at(0));
         }
         for(const auto &i : used_colorspaces) {
-            std::format_to(resource_appender, "    /CSpace{} {} 0 R\n", i, i);
+            scratch = std::format("/CSpace{}", i);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(i);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_gstates.empty()) {
-        resources += "  /ExtGState <<\n";
+        fmt.add_token("/ExtGState");
+        fmt.begin_dict();
         for(const auto &s : used_gstates) {
-            std::format_to(resource_appender, "    /GS{} {} 0 R \n", s, s);
+            scratch = std::format("/GS{}", s);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(s);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_shadings.empty()) {
-        resources += "  /Shading <<\n";
+        fmt.add_token("/Shading");
+        fmt.begin_dict();
         for(const auto &s : used_shadings) {
-            std::format_to(
-                resource_appender, "    /SH{} {} 0 R\n", s, doc->shadings.at(s).object_number);
+            scratch = std::format("/SH{}", s);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(doc->shadings.at(s).object_number);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_patterns.empty()) {
-        resources += "  /Pattern <<\n";
+        fmt.add_token("/Pattern");
+        fmt.begin_dict();
         for(const auto &s : used_patterns) {
-            std::format_to(resource_appender, "    /Pattern-{} {} 0 R\n", s, s);
+            scratch = std::format("/Pattern-{}", s);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(s);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
     if(!used_ocgs.empty()) {
-        resources += "  /Properties <<\n";
+        fmt.add_token("/Properties");
+        fmt.begin_dict();
         for(const auto &ocg : used_ocgs) {
             auto objnum = doc->ocg_object_number(ocg);
-            std::format_to(resource_appender, "    /oc{} {} 0 R\n", objnum, objnum);
+            scratch = std::format("/oc{}", objnum);
+            fmt.add_token(scratch);
+            fmt.add_object_ref(objnum);
         }
-        resources += "  >>\n";
+        fmt.end_dict();
     }
-    resources += ">>\n";
-    return resources;
+    fmt.end_dict();
+    return fmt.steal();
 }
 
 rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
