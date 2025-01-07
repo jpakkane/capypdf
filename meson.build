@@ -12,6 +12,9 @@ cdata.set('CAPYPDF_VERSION_MINOR', varr[1])
 cdata.set('CAPYPDF_VERSION_MICRO', varr[2])
 soversion = 0
 
+add_project_arguments('-D_GLIBCXX_ASSERTIONS', '-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST',
+  language: 'cpp')
+
 header_install_subdir = 'capypdf-@0@'.format(soversion)
 
 png_dep = dependency('libpng')
