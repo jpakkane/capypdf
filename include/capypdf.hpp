@@ -246,8 +246,15 @@ class Text : public CapyC<CapyPDF_Text> {
 public:
     Text() = delete;
 
-    void render_text(const char *utf8_text) {
-        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text, -1));
+    void render_text(const char *utf8_text, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text, strsize));
+    }
+    template<ByteSequence T> void render_text(const T &text) {
+        render_text(text.data(), text.size());
+    }
+
+    void cmd_BDC(CapyPDF_StructureItemId sid) {
+        CAPY_CPP_CHECK(capy_text_cmd_BDC_builtin(*this, sid));
     }
 
     void cmd_Tc(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tc(*this, spacing)); }
@@ -273,6 +280,8 @@ public:
     void cmd_Tw(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tw(*this, spacing)); }
 
     void cmd_Tstar() { CAPY_CPP_CHECK(capy_text_cmd_Tstar(*this)); }
+
+    void cmd_EMC() { CAPY_CPP_CHECK(capy_text_cmd_EMC(*this)); }
 
 private:
     explicit Text(CapyPDF_Text *text) { _d.reset(text); }
@@ -518,6 +527,9 @@ public:
     void cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
         CAPY_CPP_CHECK(capy_dc_cmd_BDC_ocg(*this, ocgid));
     }
+    void cmd_BDC(CapyPDF_StructureItemId sid) {
+        CAPY_CPP_CHECK(capy_dc_cmd_BDC_builtin(*this, sid));
+    }
 
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
         CAPY_CPP_CHECK(capy_dc_cmd_c(*this, x1, y1, x2, y2, x3, y3));
@@ -585,8 +597,17 @@ public:
         CAPY_CPP_CHECK(capy_dc_set_group_matrix(*this, a, b, c, d, e, f));
     }
 
-    void render_text(const char *text, CapyPDF_FontId fid, double point_size, double x, double y) {
-        CAPY_CPP_CHECK(capy_dc_render_text(*this, text, -1, fid, point_size, x, y));
+    void render_text(const char *text,
+                     int32_t strsize,
+                     CapyPDF_FontId fid,
+                     double point_size,
+                     double x,
+                     double y) {
+        CAPY_CPP_CHECK(capy_dc_render_text(*this, text, strsize, fid, point_size, x, y));
+    }
+    template<ByteSequence T>
+    void render_text(const T &buf, CapyPDF_FontId fid, double point_size, double x, double y) {
+        CAPY_CPP_CHECK(capy_dc_render_text(*this, buf.data(), buf.size(), fid, point_size, x, y));
     }
 
     Text text_new() {
@@ -702,6 +723,14 @@ public:
 
     void add_page(DrawContext &dc){CAPY_CPP_CHECK(capy_generator_add_page(*this, dc))}
 
+    CapyPDF_StructureItemId add_structure_item(const CapyPDF_Structure_Type stype,
+                                               const CapyPDF_StructureItemId *parent,
+                                               CapyPDF_StructItemExtraData *extra) {
+        CapyPDF_StructureItemId sid;
+        CAPY_CPP_CHECK(capy_generator_add_structure_item(*this, stype, parent, extra, &sid));
+        return sid;
+    }
+
     CapyPDF_FontId load_font(const char *fname) {
         CapyPDF_FontId fid;
         CAPY_CPP_CHECK(capy_generator_load_font(*this, fname, &fid));
@@ -810,6 +839,15 @@ public:
         return smid;
     }
 
+    double text_width(const char *u8txt, int32_t strsize, CapyPDF_FontId font, double pointsize) {
+        double result;
+        CAPY_CPP_CHECK(capy_generator_text_width(*this, u8txt, strsize, font, pointsize, &result));
+        return result;
+    }
+    template<ByteSequence T>
+    double text_width(const T &str, CapyPDF_FontId font, double pointsize) {
+        return text_width(str.data(), str.size(), font, pointsize);
+    }
     void write() { CAPY_CPP_CHECK(capy_generator_write(*this)); }
 };
 

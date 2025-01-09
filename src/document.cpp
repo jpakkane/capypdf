@@ -1038,9 +1038,11 @@ int32_t PdfDocument::add_document_metadata_object() {
         auto stream = std::format(
             pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
         fmt.add_token_pair("/Length", stream.length());
+        fmt.end_dict();
         return add_object(FullPDFObject{fmt.steal(), RawData(std::move(stream))});
     } else {
         fmt.add_token_pair("/Length", docprops.metadata_xml.length());
+        fmt.end_dict();
         return add_object(FullPDFObject{fmt.steal(), RawData(docprops.metadata_xml.sv())});
     }
 }

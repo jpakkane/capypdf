@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
-#include <generator.hpp>
-#include <pdftext.hpp>
-#include <pdfcommon.hpp>
+#include <capypdf.hpp>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <algorithm>
 
 #define CHCK(command)                                                                              \
     {                                                                                              \
         auto rc = command;                                                                         \
         if(!rc) {                                                                                  \
-            fprintf(stderr, "%s\n", error_text(rc.error()));                                       \
+            fprintf(stderr, "%s\n", capy_error_message(rc.error()));                               \
             std::abort();                                                                          \
         }                                                                                          \
     }
@@ -110,103 +109,85 @@ const std::vector<std::string> column2{
     "Purus in massa tempor nec feugiat nisl pretium",
 };
 
-const auto title = capypdf::internal::u8string::from_cstr("Title McTitleface").value();
-const auto author = capypdf::internal::u8string::from_cstr("Author McAuthorface").value();
-const auto email = capypdf::internal::u8string::from_cstr("author@servermcserverface.com").value();
+const std::string title = "Title McTitleface";
+const std::string author = "Author McAuthorface";
+const std::string email = "author@servermcserverface.com";
 
 double cm2pt(double cm) { return cm * 28.346; }
 // double pt2cm(double pt) { return pt / 28.346; }
 
-int num_spaces(const std::string_view s) { return std::count(s.begin(), s.end(), ' '); }
-
-double text_width(const std::string_view s,
-                  capypdf::internal::PdfGen &gen,
-                  CapyPDF_FontId fid,
-                  double pointsize) {
-    double total_w = 0;
-    for(const char c : s) {
-        // ASCII FTW!
-        const auto w = *gen.glyph_advance(fid, pointsize, c);
-        total_w += w;
-    }
-    return total_w;
-}
+template<typename T> int num_spaces(const T &s) { return std::count(s.begin(), s.end(), ' '); }
 
 const double midx = cm2pt(21.0 / 2);
 
 } // namespace
 
-using namespace capypdf::internal;
-
 void render_column(const std::vector<std::string> &text_lines,
-                   PdfGen &gen,
-                   PdfDrawContext &ctx,
+                   capypdf::Generator &gen,
+                   capypdf::DrawContext &ctx,
                    CapyPDF_FontId textfont,
                    double textsize,
                    double leading,
                    double column_left,
                    double column_top) {
     const double target_width = cm2pt(8);
-    auto textobj = PdfText(&ctx);
-    CHCK(textobj.cmd_Tf(textfont, textsize));
-    CHCK(textobj.cmd_Td(column_left, column_top));
-    CHCK(textobj.cmd_TL(leading));
-    CHCK(textobj.cmd_BDC(
-        gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, document_root_item, {}).value()));
+    auto textobj = ctx.text_new();
+    textobj.cmd_Tf(textfont, textsize);
+    textobj.cmd_Td(column_left, column_top);
+    textobj.cmd_TL(leading);
+    // textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, &document_root_item, nullptr));
     for(size_t i = 0; i < text_lines.size(); ++i) {
-        const auto l = u8string::from_cstr(text_lines[i]).value();
+        const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
-            CHCK(textobj.cmd_Tw(0));
-            CHCK(textobj.render_text(l));
-            CHCK(textobj.cmd_Tstar());
+            textobj.cmd_Tw(0);
+            textobj.render_text(l);
+            textobj.cmd_Tstar();
         } else {
             if(!l.empty()) {
-                double total_w = text_width(l.sv(), gen, textfont, textsize);
+                double total_w = gen.text_width(l, textfont, textsize);
                 const double extra_w = target_width - total_w;
-                const int ns = num_spaces(l.sv());
+                const int ns = num_spaces(l);
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
-                CHCK(textobj.cmd_Tw(word_spacing));
-                CHCK(textobj.render_text(l));
+                textobj.cmd_Tw(word_spacing);
+                textobj.render_text(l);
             } else {
-                CHCK(textobj.cmd_EMC());
-                CHCK(textobj.cmd_BDC(
-                    gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, document_root_item, {}).value()));
+                // textobj.cmd_EMC();
+                //  textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P,
+                //  &document_root_item, nullptr));
             }
-            CHCK(textobj.cmd_Tstar());
+            textobj.cmd_Tstar();
         }
     }
-    CHCK(textobj.cmd_EMC());
-    CHCK(ctx.render_text(textobj));
+    // textobj.cmd_EMC();
+    ctx.render_text_obj(textobj);
 }
 
-void draw_headings(PdfGen &gen, PdfDrawContext &ctx) {
-    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf").value();
-    auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf").value();
+void draw_headings(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
+    auto titlefont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf");
+    auto authorfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf");
     const double titley = cm2pt(29 - 2.5);
     const double authory = cm2pt(29 - 3.5);
     const double titlesize = 28;
     const double authorsize = 18;
 
-    auto title_item =
-        gen.add_structure_item(CAPY_STRUCTURE_TYPE_H1, document_root_item, {}).value();
-    CHCK(ctx.cmd_BDC(title_item));
-    CHCK(ctx.render_text(title,
-                         titlefont,
-                         titlesize,
-                         midx - text_width(title.sv(), gen, titlefont, titlesize) / 2,
-                         titley));
-    CHCK(ctx.cmd_EMC());
-    CHCK(ctx.cmd_BDC(
-        gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, document_root_item, {}).value()));
-    CHCK(ctx.render_text(author,
-                         authorfont,
-                         authorsize,
-                         midx - text_width(author.sv(), gen, authorfont, authorsize) / 2,
-                         authory));
-    CHCK(ctx.cmd_EMC());
+    auto title_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_H1, &document_root_item, {});
+    // ctx.cmd_BDC(title_item);
+    ctx.render_text(title,
+                    titlefont,
+                    titlesize,
+                    midx - gen.text_width(title, titlefont, titlesize) / 2,
+                    titley);
+    // ctx.cmd_EMC();
+    //  ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, &document_root_item, {}));
+    ctx.render_text(author,
+                    authorfont,
+                    authorsize,
+                    midx - gen.text_width(author, authorfont, authorsize) / 2,
+                    authory);
+    // ctx.cmd_EMC();
 }
 
-void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
+void draw_maintext(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
     const double pagenumy = cm2pt(2);
     const double column1_top = cm2pt(29 - 6);
     const double column1_left = cm2pt(2);
@@ -217,49 +198,49 @@ void draw_maintext(PdfGen &gen, PdfDrawContext &ctx) {
     std::unordered_map<std::string, std::string> attribs;
     attribs["Type"] = "Pagination";
     std::optional<std::unordered_map<std::string, std::string>> attrib_par{std::move(attribs)};
-    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf").value();
+    auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    CHCK(ctx.cmd_BDC(asciistring::from_cstr("Artifact").value(), {}, attrib_par));
-    CHCK(ctx.render_text(u8string::from_cstr("1").value(),
-                         textfont,
-                         textsize,
-                         midx - text_width("1", gen, textfont, textsize) / 2,
-                         pagenumy));
-    CHCK(ctx.cmd_EMC());
+    //    ctx.cmd_BDC("Artifact", -1, {}, attrib_par);
+    ctx.render_text("1",
+                    1,
+                    textfont,
+                    textsize,
+                    midx - gen.text_width("1", -1, textfont, textsize) / 2,
+                    pagenumy);
+    // ctx.cmd_EMC();
 }
 
-void draw_email(PdfGen &gen, PdfDrawContext &ctx) {
-    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
+void draw_email(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
+    auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
-    CHCK(ctx.cmd_BDC(
-        gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, document_root_item, {}).value()));
-    CHCK(ctx.render_text(email,
-                         emailfont,
-                         emailsize,
-                         midx - text_width(email.sv(), gen, emailfont, emailsize) / 2,
-                         emaily));
-    CHCK(ctx.cmd_EMC());
+    // ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, &document_root_item, nullptr));
+    ctx.render_text(email,
+                    emailfont,
+                    emailsize,
+                    midx - gen.text_width(email, emailfont, emailsize) / 2,
+                    emaily);
+    // ctx.cmd_EMC();
 }
 
 int create_doc() {
-    DocumentProperties opts;
-    opts.is_tagged = true;
-    opts.lang = asciistring::from_cstr("en-US").value();
-    opts.subtype = CAPY_PDFA_2b;
-    opts.prof.rgb_profile_file = "/usr/share/color/icc/ghostscript/srgb.icc";
-    opts.intent_condition_identifier = u8string::from_cstr("sRGB IEC61966-2.1").value();
-    GenPopper genpop("loremipsum.pdf", opts);
-    PdfGen &gen = *genpop.g;
+    capypdf::DocumentProperties opts;
+    opts.set_tagged(true);
+    opts.set_language("en-US");
+    opts.set_pdfa(CAPY_PDFA_2b);
+    opts.set_device_profile(CAPY_DEVICE_CS_RGB, "/usr/share/color/icc/ghostscript/srgb.icc");
+    opts.set_output_intent("sRGB IEC61966-2.1");
+    capypdf::Generator gen{"loremipsum.pdf", opts};
 
-    auto ctxguard = gen.guarded_page_context();
-    auto &ctx = ctxguard.ctx;
+    auto ctx = gen.new_page_context();
 
-    document_root_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_DOCUMENT, {}, {}).value();
+    document_root_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_DOCUMENT, {}, {});
     draw_headings(gen, ctx);
     draw_email(gen, ctx);
     draw_maintext(gen, ctx);
+    gen.add_page(ctx);
+    gen.write();
     return 0;
 }
 

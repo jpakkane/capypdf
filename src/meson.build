@@ -58,6 +58,6 @@ else
     )
 
     executable('loremipsum', 'loremipsum.cpp',
-      dependencies: [capypdf_internal_dep]
+      dependencies: [capypdf_dep]
     )
 endif

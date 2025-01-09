@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     capypdf::Generator gen(argv[2], dp);
     auto fontid = gen.load_font(argv[1]);
     auto ctx = gen.new_page_context();
-    ctx.render_text(argv[3], fontid, 12, 10, 100);
+    ctx.render_text(argv[3], -1, fontid, 12, 10, 100);
     gen.add_page(ctx);
     gen.write();
 
