@@ -1029,7 +1029,7 @@ int32_t PdfDocument::add_document_metadata_object() {
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Metadata");
-    fmt.add_token_pair("(Subtype", "/XML");
+    fmt.add_token_pair("/Subtype", "/XML");
     if(docprops.metadata_xml.empty()) {
         auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
         if(!aptr) {
