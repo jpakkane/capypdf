@@ -224,7 +224,7 @@ void draw_email(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
     // ctx.cmd_EMC();
 }
 
-int create_doc() {
+void create_doc() {
     capypdf::DocumentProperties opts;
     opts.set_tagged(true);
     opts.set_language("en-US");
@@ -241,13 +241,16 @@ int create_doc() {
     draw_maintext(gen, ctx);
     gen.add_page(ctx);
     gen.write();
-    return 0;
 }
 
-int main() {
-    try {
-        return create_doc();
-    } catch(const std::exception &e) {
-        fprintf(stderr, "Failed: %s\n", e.what());
+int main(int argc, char **argv) {
+    int num_rounds = 1000;
+    if(argc > 1) {
+        num_rounds = atoi(argv[1]);
     }
+    for(int i = 0; i < num_rounds; ++i) {
+        unlink("loremipsum.pdf");
+        create_doc();
+    }
+    return 0;
 }

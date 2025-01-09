@@ -56,8 +56,4 @@ else
     executable('fembedtest', 'fembedtest.cpp',
       dependencies: [capypdf_internal_dep]
     )
-
-    executable('loremipsum', 'loremipsum.cpp',
-      dependencies: [capypdf_dep]
-    )
 endif

@@ -32,6 +32,7 @@ if get_option('devtools')
   subdir('devtools')
 endif
 subdir('python')
+subdir('benchmark')
 subdir('test')
 
 pkg_mod = import('pkgconfig')
