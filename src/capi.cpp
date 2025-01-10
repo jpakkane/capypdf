@@ -89,7 +89,29 @@ handle_exception() {
 #define API_BOUNDARY_END
 #endif
 
+ShadingPoint conv_shpoint(const double *coords, const Color *color) {
+    ShadingPoint sp;
+    sp.c = *color;
+    sp.p.x = coords[0];
+    sp.p.y = coords[1];
+    return sp;
+}
+
+template<typename T> void grab_coons_data(T &patch, const double *coords, const Color **colors) {
+    for(int i = 0; i < (int)patch.p.size(); ++i) {
+        patch.p[i].x = coords[2 * i];
+        patch.p[i].y = coords[2 * i + 1];
+    }
+    for(int i = 0; i < (int)patch.c.size(); ++i) {
+        patch.c[i] = *colors[i];
+    }
+}
+
 } // namespace
+
+struct RasterImageBuilder {
+    RawPixelImage i;
+};
 
 CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -1854,10 +1876,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
 
 // Raster images.
 
-struct RasterImageBuilder {
-    RawPixelImage i;
-};
-
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_new(CapyPDF_RasterImageBuilder **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2105,14 +2123,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Device_Colorspace cs,
     API_BOUNDARY_END;
 }
 
-static ShadingPoint conv_shpoint(const double *coords, const Color *color) {
-    ShadingPoint sp;
-    sp.c = *color;
-    sp.p.x = coords[0];
-    sp.p.y = coords[1];
-    return sp;
-}
-
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
     CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2171,17 +2181,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Device_Colorspace cs,
     }});
     RETNOERR;
     API_BOUNDARY_END;
-}
-
-template<typename T>
-static void grab_coons_data(T &patch, const double *coords, const Color **colors) {
-    for(int i = 0; i < (int)patch.p.size(); ++i) {
-        patch.p[i].x = coords[2 * i];
-        patch.p[i].y = coords[2 * i + 1];
-    }
-    for(int i = 0; i < (int)patch.c.size(); ++i) {
-        patch.c[i] = *colors[i];
-    }
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
