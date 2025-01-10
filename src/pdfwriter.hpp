@@ -51,6 +51,8 @@ private:
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 
     PdfDocument &doc;
+    // This is for convenience so that the file argument does not need to be passed around all the
+    // time.
     FILE *ofile = nullptr;
 };
 

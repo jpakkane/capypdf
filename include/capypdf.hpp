@@ -12,11 +12,20 @@
 #include <stdexcept>
 #include <string_view>
 
+// FIXME: use the correct define for MSVC.
+#if defined(_MSC_VER) or defined(__cpp_exceptions)
+#define CAPY_ERROR_HAPPENED(error_string) throw PdfException(error_string)
+#else
+#define CAPY_ERROR_HAPPENED(error_string)                                                          \
+    fprintf(stderr, "CapyPDF error: %s\n", error_string);                                          \
+    std::abort()
+#endif
+
 #define CAPY_CPP_CHECK(funccall)                                                                   \
     {                                                                                              \
         auto rc = funccall;                                                                        \
         if(rc != 0) {                                                                              \
-            throw PdfException(capy_error_message(rc));                                            \
+            CAPY_ERROR_HAPPENED(capy_error_message(rc));                                           \
         }                                                                                          \
     }
 
@@ -408,7 +417,7 @@ public:
                  uint32_t num_coords,
                  CapyPDF_FunctionId func) {
         if(num_coords != 6) {
-            throw PdfException("Coords array must hold exactly 6 doubles");
+            CAPY_ERROR_HAPPENED("Coords array must hold exactly 6 doubles");
         }
         CapyPDF_Shading *sd;
         CAPY_CPP_CHECK(capy_type3_shading_new(cs, coords, func, &sd));
@@ -433,10 +442,10 @@ public:
     }
     void add_triangle(double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
         if(num_coords != 6) {
-            throw PdfException("Coords must have exactly 6 doubles.");
+            CAPY_ERROR_HAPPENED("Coords must have exactly 6 doubles.");
         }
         if(num_colors != 3) {
-            throw PdfException("Triangle patch must have exactly 3 colors");
+            CAPY_ERROR_HAPPENED("Triangle patch must have exactly 3 colors");
         }
         CapyPDF_Color *c_colors[3];
         for(uint32_t i = 0; i < 3; i++) {
@@ -447,10 +456,10 @@ public:
     }
     void extend(uint32_t flag, double *coords, uint32_t num_coords, Color &color) {
         if(flag != 1 and flag != 2) {
-            throw PdfException("Bad flag value");
+            CAPY_ERROR_HAPPENED("Bad flag value");
         }
         if(num_coords != 2) {
-            throw PdfException("Coords must have exactly 2 doubles");
+            CAPY_ERROR_HAPPENED("Coords must have exactly 2 doubles");
         }
         CAPY_CPP_CHECK(capy_type4_shading_extend(*this, flag, coords, color));
     }
@@ -467,10 +476,10 @@ public:
     }
     void add_patch(double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
         if(num_coords != 24) {
-            throw PdfException("Coords must have exactly 24 doubles.");
+            CAPY_ERROR_HAPPENED("Coords must have exactly 24 doubles.");
         }
         if(num_colors != 4) {
-            throw PdfException("Shading patch must have exactly 4 colors");
+            CAPY_ERROR_HAPPENED("Shading patch must have exactly 4 colors");
         }
         CapyPDF_Color *c_colors[4];
         for(uint32_t i = 0; i < 4; i++) {
@@ -482,13 +491,13 @@ public:
     void
     extend(uint32_t flag, double *coords, uint32_t num_coords, Color *colors, uint32_t num_colors) {
         if(flag != 1 and flag != 2) {
-            throw PdfException("Bad flag value");
+            CAPY_ERROR_HAPPENED("Bad flag value");
         }
         if(num_coords != 16) {
-            throw PdfException("Coords must have exactly 2 doubles");
+            CAPY_ERROR_HAPPENED("Coords must have exactly 2 doubles");
         }
         if(num_colors != 2) {
-            throw PdfException("Shading extension must have exactly 2 colors");
+            CAPY_ERROR_HAPPENED("Shading extension must have exactly 2 colors");
         }
         CapyPDF_Color *c_colors[2];
         for(uint32_t i = 0; i < 2; i++) {
