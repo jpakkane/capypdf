@@ -97,10 +97,10 @@ const char *error_text(ErrorCode ec) noexcept;
 
 [[noreturn]] void printandabort(ErrorCode ec) noexcept;
 
-#define ABORTIF(ec)                                                                                \
-    if(ec != ErrorCode::NoError) {                                                                 \
-        printandabort(ec);                                                                         \
-    }
+#define RETERR(code) return std::unexpected(ErrorCode::code)
+
+#define RETOK                                                                                      \
+    return NoReturnValue {}
 
 // Return value or error.
 // Would be nice to tag  [[nodiscard]] but it does not seem to be possible.
@@ -110,29 +110,19 @@ struct NoReturnValue {};
 
 } // namespace capypdf::internal
 
-#define CHECK_BOOLEAN(b)                                                                           \
-    if(b < 0 || b > 1) {                                                                           \
-        return conv_err(ErrorCode::BadBoolean);                                                    \
-    }
-
-#define CHECK_COLORCOMPONENT(c)                                                                    \
-    if(c < 0 || c > 1) {                                                                           \
-        return ErrorCode::ColorOutOfRange;                                                         \
-    }
-
 #define CHECK_INDEXNESS(ind, container)                                                            \
     if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
-        return std::unexpected{ErrorCode::BadId};                                                  \
+        RETERR(BadId);                                                                             \
     }
 
 #define CHECK_INDEXNESS_V(ind, container)                                                          \
     if((ind < 0) || ((size_t)ind >= container.size())) {                                           \
-        return std::unexpected(ErrorCode::BadId);                                                  \
+        RETERR(BadId);                                                                             \
     }
 
 #define CHECK_ENUM(v, max_enum_val)                                                                \
     if((int)v < 0 || ((int)v > (int)max_enum_val)) {                                               \
-        return std::unexpected{ErrorCode::BadEnum};                                                \
+        RETERR(BadEnum);                                                                           \
     }
 
 #define ERC(varname, func)                                                                         \
@@ -151,8 +141,3 @@ struct NoReturnValue {};
             return std::unexpected(placeholder_name_variant.error());                              \
         }                                                                                          \
     }
-
-#define RETERR(code) return std::unexpected(ErrorCode::code)
-
-#define RETOK                                                                                      \
-    return NoReturnValue {}

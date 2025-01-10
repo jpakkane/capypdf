@@ -14,6 +14,11 @@
         return conv_err(ErrorCode::ArgIsNull);                                                     \
     }
 
+#define CHECK_BOOLEAN(b)                                                                           \
+    if(b < 0 || b > 1) {                                                                           \
+        return conv_err(ErrorCode::BadBoolean);                                                    \
+    }
+
 using namespace capypdf::internal;
 
 namespace {
