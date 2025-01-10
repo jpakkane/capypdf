@@ -10,7 +10,6 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
-#include <string_view>
 
 // FIXME: use the correct define for MSVC.
 #if defined(_MSC_VER) or defined(__cpp_exceptions)
@@ -752,16 +751,14 @@ public:
         return cpid;
     }
 
-    // It is arguable whether this should a string_view or a span.
-    CapyPDF_IccColorSpaceId add_icc_profile(std::string_view bytes, int32_t num_channels) {
-        return add_icc_profile(bytes.data(), bytes.size(), num_channels);
-    }
-
     CapyPDF_IccColorSpaceId
     add_icc_profile(const char *bytes, uint64_t bufsize, int32_t num_channels) {
         CapyPDF_IccColorSpaceId cpid;
         CAPY_CPP_CHECK(capy_generator_add_icc_profile(*this, bytes, bufsize, num_channels, &cpid));
         return cpid;
+    }
+    template<ByteSequence T> void add_icc_profile(const T &buf, int32_t num_channels) {
+        add_icc_profile(buf.data(), buf.size(), num_channels);
     }
 
     CapyPDF_FunctionId add_function(Type2Function &fn) {
