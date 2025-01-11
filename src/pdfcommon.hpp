@@ -604,3 +604,15 @@ struct Destination {
 };
 
 } // namespace capypdf::internal
+
+template<> struct std::hash<capypdf::internal::asciistring> {
+    std::size_t operator()(const capypdf::internal::asciistring &astr) const noexcept {
+        return std::hash<std::string_view>{}(astr.sv());
+    }
+};
+
+template<> struct std::hash<capypdf::internal::u8string> {
+    std::size_t operator()(const capypdf::internal::u8string &u8str) const noexcept {
+        return std::hash<std::string_view>{}(u8str.sv());
+    }
+};
