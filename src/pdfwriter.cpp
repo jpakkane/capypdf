@@ -171,19 +171,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     }
     std::unique_ptr<FILE, int (*)(FILE *)> fcloser(out_file, fclose);
 
-#if defined(_MSC_VER) or defined(__cpp_exceptions)
-    try {
-        ERCV(write_to_file(out_file));
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        RETERR(DynamicError);
-    } catch(...) {
-        fprintf(stderr, "Unexpected error.\n");
-        RETERR(DynamicError);
-    }
-#else
     ERCV(write_to_file(out_file));
-#endif
     if(fflush(out_file) != 0) {
         perror(nullptr);
         RETERR(DynamicError);

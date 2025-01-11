@@ -238,7 +238,7 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
     } else {
         RETERR(UnsupportedFormat);
     }
-    return image;
+    return RasterImage(std::move(image));
 }
 
 void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
@@ -358,7 +358,7 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     default:
         RETERR(UnsupportedTIFF);
     }
-    return result;
+    return RasterImage(std::move(result));
 }
 
 struct TifBuf {
@@ -605,7 +605,8 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
         return load_tif_file(fname);
     }
     if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
-        return load_jpg_file(fname);
+        ERC(jpeg_image, load_jpg_file(fname));
+        return RasterImage(std::move(jpeg_image));
     }
 
     // If the input file was created with `tmpfile` or something similar, it might
@@ -615,7 +616,7 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
         return rc;
     }
     if(auto rc = load_jpg_file(fname)) {
-        return rc;
+        return RasterImage{std::move(*rc)};
     }
     auto rc = load_tif_file(fname);
     if(!rc) {
@@ -641,7 +642,8 @@ rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
         return load_tif_from_memory(buf, bufsize);
     }
     if((unsigned char)v[0] == 0xff && (unsigned char)v[1] == 0xd8 && (unsigned char)v[2] == 0xff) {
-        return load_jpg_from_memory(buf, bufsize);
+        ERC(jpegfile, load_jpg_from_memory(buf, bufsize));
+        return RasterImage{std::move(jpegfile)};
     }
     RETERR(UnsupportedFormat);
 }

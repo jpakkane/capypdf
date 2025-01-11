@@ -987,11 +987,8 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const TJ_arg &tJ) -> rvoe<NoReturnValue> {
-            auto rc = serialize_charsequence(
-                tJ.elements, serialisation, current_font, current_subset, current_pointsize);
-            if(!rc) {
-                return std::unexpected(rc.error());
-            }
+            ERCV((serialize_charsequence(
+                tJ.elements, serialisation, current_font, current_subset, current_pointsize)));
             RETOK;
         },
 

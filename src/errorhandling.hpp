@@ -97,6 +97,41 @@ const char *error_text(ErrorCode ec) noexcept;
 
 [[noreturn]] void printandabort(ErrorCode ec) noexcept;
 
+#if defined(CAPY_USE_EXCEPTIONS)
+// All errors throw exceptions
+
+template<typename T> struct rvoe {
+    T v;
+
+    rvoe(const T &in) : v{in} {}
+    rvoe(T &&in) : v{std::move(in)} {}
+
+    T &&value() { return std::move(v); }
+    operator bool() const { return true; }
+    T *operator->() { return &v; }
+    const T *operator->() const { return &v; }
+    T &operator*() { return v; }
+    const T &operator*() const { return v; }
+
+    ErrorCode error() const { return ErrorCode::NoError; }
+};
+
+#define RETERR(code) throw(ErrorCode::code)
+
+#define RETOK                                                                                      \
+    return NoReturnValue {}
+
+#define ERC(varname, func)                                                                         \
+    auto varname##_shell = func;                                                                   \
+    auto &varname = varname##_shell.v;
+
+// For void.
+
+#define ERCV(func) func
+
+#else
+// All errors are returned as std::unexpecteds and propagated manually.
+
 #define RETERR(code) return std::unexpected(ErrorCode::code)
 
 #define RETOK                                                                                      \
@@ -105,6 +140,25 @@ const char *error_text(ErrorCode ec) noexcept;
 // Return value or error.
 // Would be nice to tag  [[nodiscard]] but it does not seem to be possible.
 template<typename T> using rvoe = std::expected<T, ErrorCode>;
+
+#define ERC(varname, func)                                                                         \
+    auto varname##_variant = func;                                                                 \
+    if(!(varname##_variant)) {                                                                     \
+        return std::unexpected(varname##_variant.error());                                         \
+    }                                                                                              \
+    auto &varname = varname##_variant.value();
+
+// For void.
+
+#define ERCV(func)                                                                                 \
+    {                                                                                              \
+        auto placeholder_name_variant = func;                                                      \
+        if(!(placeholder_name_variant)) {                                                          \
+            return std::unexpected(placeholder_name_variant.error());                              \
+        }                                                                                          \
+    }
+
+#endif
 
 struct NoReturnValue {};
 
@@ -123,21 +177,4 @@ struct NoReturnValue {};
 #define CHECK_ENUM(v, max_enum_val)                                                                \
     if((int)v < 0 || ((int)v > (int)max_enum_val)) {                                               \
         RETERR(BadEnum);                                                                           \
-    }
-
-#define ERC(varname, func)                                                                         \
-    auto varname##_variant = func;                                                                 \
-    if(!(varname##_variant)) {                                                                     \
-        return std::unexpected(varname##_variant.error());                                         \
-    }                                                                                              \
-    auto &varname = varname##_variant.value();
-
-// For void.
-
-#define ERCV(func)                                                                                 \
-    {                                                                                              \
-        auto placeholder_name_variant = func;                                                      \
-        if(!(placeholder_name_variant)) {                                                          \
-            return std::unexpected(placeholder_name_variant.error());                              \
-        }                                                                                          \
     }
