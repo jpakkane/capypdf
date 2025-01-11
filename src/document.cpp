@@ -625,7 +625,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::
     return add_icc_profile(contents, num_channels);
 }
 
-void PdfDocument::pad_subset_fonts() {
+rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
     const uint32_t SPACE = ' ';
     const uint32_t max_count = 100;
 
@@ -651,11 +651,7 @@ void PdfDocument::pad_subset_fonts() {
                 padding_succeeded = true;
                 break;
             }
-            auto rv = subsetter.get_glyph_subset(charcode, gindex);
-            if(!rv) {
-                // fprintf(stderr, "Bad!\n");
-                // std::abort();
-            }
+            ERCV(subsetter.get_glyph_subset(charcode, gindex));
             charcode = FT_Get_Next_Char(face, charcode, &gindex);
         }
         if(!padding_succeeded) {
@@ -670,6 +666,7 @@ void PdfDocument::pad_subset_fonts() {
         assert(std::holds_alternative<RegularGlyph>(space_glyph));
         assert(std::get<RegularGlyph>(space_glyph).unicode_codepoint == SPACE);
     }
+    return NoReturnValue{};
 }
 
 rvoe<int32_t> PdfDocument::create_name_dict() {

@@ -238,7 +238,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(FILE *output_file) {
 rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
     ERCV(write_header());
     ERCV(doc.create_catalog());
-    doc.pad_subset_fonts();
+    ERCV(doc.pad_subset_fonts());
     ERC(object_offsets, write_objects());
     const int64_t xref_offset = ftell(ofile);
     ERCV(write_cross_reference_table(object_offsets));

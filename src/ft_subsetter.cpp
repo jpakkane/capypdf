@@ -927,6 +927,9 @@ rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path 
 }
 
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf) {
+    if(buf.empty()) {
+        return false;
+    }
     ERC(numc, num_contours(buf));
     return numc < 0;
 }
