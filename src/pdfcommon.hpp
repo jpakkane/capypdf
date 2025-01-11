@@ -141,6 +141,8 @@ public:
     asciistring &operator=(asciistring &&o) = default;
     asciistring &operator=(const asciistring &o) = default;
 
+    bool operator==(const asciistring &o) const = default;
+
 private:
     explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
     std::string buf;
@@ -602,6 +604,8 @@ struct Destination {
     int32_t page;
     DestinationType loc;
 };
+
+typedef std::unordered_map<asciistring, asciistring> BDCTags;
 
 } // namespace capypdf::internal
 

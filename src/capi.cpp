@@ -2640,6 +2640,40 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_new(CapyPDF_BDCTags **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = reinterpret_cast<CapyPDF_BDCTags *>(new BDCTags());
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_add_tag(CapyPDF_BDCTags *tags,
+                                                const char *key,
+                                                int32_t keylen,
+                                                const char *value,
+                                                int32_t valuelen) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *bt = reinterpret_cast<BDCTags *>(tags);
+    auto akey = validate_ascii(key, keylen);
+    auto avalue = validate_ascii(value, valuelen);
+    if(!akey) {
+        return conv_err(akey.error());
+    }
+    if(!avalue) {
+        return conv_err(avalue.error());
+    }
+    (*bt)[akey.value()] = avalue.value();
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_destroy(CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete reinterpret_cast<BDCTags *>(tags);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 // Error handling.
 
 const char *capy_error_message(CapyPDF_EC error_code) CAPYPDF_NOEXCEPT {

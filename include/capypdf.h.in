@@ -355,6 +355,7 @@ typedef struct _capyPDF_Outline CapyPDF_Outline;
 typedef struct _capyPDF_ShadingPattern CapyPDF_ShadingPattern;
 typedef struct _capyPDF_SoftMask CapyPDF_SoftMask;
 typedef struct _capyPDF_EmbeddedFile CapyPDF_EmbeddedFile;
+typedef struct _capyPDF_BDCTags CapyPDF_BDCTags;
 
 typedef int32_t CapyPDF_EC;
 
@@ -1089,6 +1090,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
                                                          const char *subtype,
                                                          int32_t strsize) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile) CAPYPDF_NOEXCEPT;
+
+// tags
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_new(CapyPDF_BDCTags **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_add_tag(CapyPDF_BDCTags *tags,
+                                                const char *key,
+                                                int32_t keylen,
+                                                const char *value,
+                                                int32_t valuelen) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_destroy(CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT;
 
 // Error
 
