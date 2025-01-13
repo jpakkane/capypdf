@@ -207,7 +207,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
 rvoe<NoReturnValue> PdfWriter::write_to_file(FILE *output_file) {
     assert(ofile == nullptr);
     ofile = output_file;
-#if defined(_MSC_VER) or defined(__cpp_exceptions)
+#if defined(__cpp_exceptions)
     try {
         auto rc = write_to_file_impl();
         ofile = nullptr;

@@ -11,8 +11,7 @@
 #include <optional>
 #include <stdexcept>
 
-// FIXME: use the correct define for MSVC.
-#if defined(_MSC_VER) or defined(__cpp_exceptions)
+#if defined(__cpp_exceptions)
 #define CAPY_ERROR_HAPPENED(error_string) throw PdfException(error_string)
 #else
 #define CAPY_ERROR_HAPPENED(error_string)                                                          \

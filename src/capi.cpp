@@ -57,7 +57,7 @@ rvoe<u8string> validate_utf8(const char *buf, int32_t strsize) {
     }
 }
 
-#if defined(_MSC_VER) or defined(__cpp_exceptions)
+#if defined(__cpp_exceptions)
 #define API_BOUNDARY_START try {
 #define API_BOUNDARY_END                                                                           \
     }                                                                                              \
