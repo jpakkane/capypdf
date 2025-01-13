@@ -3,6 +3,7 @@
 
 #include <capypdf.hpp>
 #include <stdio.h>
+#include <string>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
