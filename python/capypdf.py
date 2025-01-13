@@ -406,7 +406,7 @@ cfunc_types = (
 ('capy_text_sequence_destroy', [ctypes.c_void_p]),
 
 ('capy_text_destroy', [ctypes.c_void_p]),
-('capy_text_cmd_BDC_builtin', [ctypes.c_void_p, StructureItemId]),
+('capy_text_cmd_BDC_builtin', [ctypes.c_void_p, StructureItemId, ctypes.c_void_p]),
 ('capy_text_cmd_EMC', [ctypes.c_void_p]),
 ('capy_text_cmd_Tc', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Td', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
@@ -747,7 +747,8 @@ class DrawContextBase:
     def cmd_BDC_builtin(self, structid):
         if not isinstance(structid, StructureItemId):
             raise CapyPDFException('Argument must be a structure item ID.')
-        check_error(libfile.capy_dc_cmd_BDC_builtin(self, structid))
+        tags = None # FIXME
+        check_error(libfile.capy_dc_cmd_BDC_builtin(self, structid, tags))
         return MarkedContextManager(self)
 
     def cmd_BMC(self, tag):
@@ -1304,7 +1305,8 @@ class Text:
         check_error(libfile.capy_text_set_stroke(self, color))
 
     def cmd_BDC_builtin(self, struct_id):
-        check_error(libfile.capy_text_cmd_BDC_builtin(self, struct_id))
+        tags = None # FIXME
+        check_error(libfile.capy_text_cmd_BDC_builtin(self, struct_id, tags))
         return MarkedContextManager(self)
 
     def cmd_EMC(self):

@@ -293,10 +293,9 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
-    const asciistring &name,
-    std::optional<CapyPDF_StructureItemId> sid,
-    const std::optional<std::unordered_map<std::string, std::string>> &attributes) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
+                                            std::optional<CapyPDF_StructureItemId> sid,
+                                            const BDCTags *attributes) {
     if(!sid && !attributes) {
         fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
         std::abort();
@@ -308,9 +307,9 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
         std::format_to(cmd_appender, "{}  /MCID {}\n", ind, MCID_id);
     }
     if(attributes) {
-        for(const auto &[key, value] : attributes.value()) {
+        for(const auto &[key, value] : *attributes) {
             // FIXME: validate value contents properly.
-            std::format_to(cmd_appender, "{}  /{} ({})\n", ind, key, value);
+            std::format_to(cmd_appender, "{}  /{} ({})\n", ind, key.c_str(), value.c_str());
         }
     }
     std::format_to(cmd_appender, "{}>>\n", ind);
@@ -320,15 +319,16 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
+                                            const BDCTags *attributes) {
     const auto &itemtype = doc->structure_items.at(sid.id).stype;
     if(auto builtin = std::get_if<CapyPDF_Structure_Type>(&itemtype)) {
         ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
-        return cmd_BDC(astr, sid, {});
+        return cmd_BDC(astr, sid, attributes);
     } else if(auto role = std::get_if<CapyPDF_RoleId>(&itemtype)) {
         auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name, false);
         ERC(astr, asciistring::from_cstr(quoted.c_str()));
-        return cmd_BDC(astr, sid, {});
+        return cmd_BDC(astr, sid, attributes);
     } else {
         std::abort();
     }

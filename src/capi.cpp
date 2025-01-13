@@ -852,11 +852,28 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx) CAPYPDF_NO
     API_BOUNDARY_END;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_builtin(
-    CapyPDF_DrawContext *ctx, CapyPDF_StructureItemId structid) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_builtin(CapyPDF_DrawContext *ctx,
+                                                  CapyPDF_StructureItemId structid,
+                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    return conv_err(dc->cmd_BDC(structid));
+    auto t = reinterpret_cast<const BDCTags *>(tags);
+    return conv_err(dc->cmd_BDC(structid, t));
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_testing(CapyPDF_DrawContext *ctx,
+                                                  const char *name,
+                                                  int32_t namelen,
+                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    auto t = reinterpret_cast<const BDCTags *>(tags);
+    auto astr = validate_ascii(name, namelen);
+    if(!astr) {
+        return conv_err(astr.error());
+    }
+    return conv_err(dc->cmd_BDC(astr.value(), {}, t));
     API_BOUNDARY_END;
 }
 

@@ -87,12 +87,10 @@ public:
     rvoe<NoReturnValue> cmd_B();
     rvoe<NoReturnValue> cmd_bstar();
     rvoe<NoReturnValue> cmd_Bstar();
-    rvoe<NoReturnValue>
-    cmd_BDC(const asciistring &name,
-            std::optional<CapyPDF_StructureItemId> sid,
-            const std::optional<std::unordered_map<std::string, std::string>> &attributes);
-    // FIXME, needs an argument to specify extra dict.
-    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid);
+    rvoe<NoReturnValue> cmd_BDC(const asciistring &name,
+                                std::optional<CapyPDF_StructureItemId> sid,
+                                const BDCTags *attributes);
+    rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid, const BDCTags *attributes);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
     rvoe<NoReturnValue> cmd_BMC(std::string_view tag);
     rvoe<NoReturnValue> cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);

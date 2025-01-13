@@ -78,6 +78,8 @@ struct CapyCTypeDeleter {
             rc = capy_soft_mask_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Generator>) {
             rc = capy_generator_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_BDCTags>) {
+            rc = capy_bdc_tags_destroy(cobj);
         } else {
             static_assert(std::is_same_v<T, CapyPDF_DocumentProperties>, "Unknown C object type.");
         }
@@ -91,6 +93,21 @@ protected:
     operator const T *() const { return _d.get(); }
 
     std::unique_ptr<T, CapyCTypeDeleter> _d;
+};
+
+class BDCTags : public CapyC<CapyPDF_BDCTags> {
+public:
+    friend class DrawContext;
+
+    BDCTags() {
+        CapyPDF_BDCTags *tags;
+        CAPY_CPP_CHECK(capy_bdc_tags_new(&tags));
+        _d.reset(tags);
+    }
+
+    void add_tag(const char *key, int32_t keylen, const char *value, int32_t valuelen) {
+        CAPY_CPP_CHECK(capy_bdc_tags_add_tag(*this, key, keylen, value, valuelen));
+    }
 };
 
 class TransparencyGroupProperties : public CapyC<CapyPDF_TransparencyGroupProperties> {
@@ -535,8 +552,20 @@ public:
     void cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
         CAPY_CPP_CHECK(capy_dc_cmd_BDC_ocg(*this, ocgid));
     }
-    void cmd_BDC(CapyPDF_StructureItemId sid) {
-        CAPY_CPP_CHECK(capy_dc_cmd_BDC_builtin(*this, sid));
+    void cmd_BDC(CapyPDF_StructureItemId sid, const BDCTags *tags = nullptr) {
+        if(tags) {
+            CAPY_CPP_CHECK(capy_dc_cmd_BDC_builtin(*this, sid, *tags));
+        } else {
+            CAPY_CPP_CHECK(capy_dc_cmd_BDC_builtin(*this, sid, nullptr));
+        }
+    }
+
+    void cmd_BDC_testing(const char *name, int32_t namelen, BDCTags *tags) {
+        if(tags) {
+            CAPY_CPP_CHECK(capy_dc_cmd_BDC_testing(*this, name, namelen, *tags));
+        } else {
+            CAPY_CPP_CHECK(capy_dc_cmd_BDC_testing(*this, name, namelen, nullptr));
+        }
     }
 
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {

@@ -4,7 +4,6 @@
 #include <capypdf.hpp>
 #include <vector>
 #include <string>
-#include <unordered_map>
 #include <algorithm>
 
 #define CHCK(command)                                                                              \
@@ -135,7 +134,7 @@ void render_column(const std::vector<std::string> &text_lines,
     textobj.cmd_Tf(textfont, textsize);
     textobj.cmd_Td(column_left, column_top);
     textobj.cmd_TL(leading);
-    // textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, &document_root_item, nullptr));
+    textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, &document_root_item, nullptr));
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
@@ -151,14 +150,14 @@ void render_column(const std::vector<std::string> &text_lines,
                 textobj.cmd_Tw(word_spacing);
                 textobj.render_text(l);
             } else {
-                // textobj.cmd_EMC();
-                //  textobj.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_P,
-                //  &document_root_item, nullptr));
+                textobj.cmd_EMC();
+                textobj.cmd_BDC(
+                    gen.add_structure_item(CAPY_STRUCTURE_TYPE_P, &document_root_item, nullptr));
             }
             textobj.cmd_Tstar();
         }
     }
-    // textobj.cmd_EMC();
+    textobj.cmd_EMC();
     ctx.render_text_obj(textobj);
 }
 
@@ -171,20 +170,20 @@ void draw_headings(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
     const double authorsize = 18;
 
     auto title_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_H1, &document_root_item, {});
-    // ctx.cmd_BDC(title_item);
+    ctx.cmd_BDC(title_item);
     ctx.render_text(title,
                     titlefont,
                     titlesize,
                     midx - gen.text_width(title, titlefont, titlesize) / 2,
                     titley);
-    // ctx.cmd_EMC();
-    //  ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, &document_root_item, {}));
+    ctx.cmd_EMC();
+    ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H2, &document_root_item, {}));
     ctx.render_text(author,
                     authorfont,
                     authorsize,
                     midx - gen.text_width(author, authorfont, authorsize) / 2,
                     authory);
-    // ctx.cmd_EMC();
+    ctx.cmd_EMC();
 }
 
 void draw_maintext(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
@@ -195,33 +194,32 @@ void draw_maintext(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
     const double column2_left = cm2pt(21 - 2 - 8);
     const double leading = 15;
     const double textsize = 10;
-    std::unordered_map<std::string, std::string> attribs;
-    attribs["Type"] = "Pagination";
-    std::optional<std::unordered_map<std::string, std::string>> attrib_par{std::move(attribs)};
+    capypdf::BDCTags tags;
+    tags.add_tag("Type", -1, "Pagination", -1);
     auto textfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf");
     render_column(column1, gen, ctx, textfont, textsize, leading, column1_left, column1_top);
     render_column(column2, gen, ctx, textfont, textsize, leading, column2_left, column2_top);
-    //    ctx.cmd_BDC("Artifact", -1, {}, attrib_par);
+    ctx.cmd_BDC_testing("Artifact", -1, &tags);
     ctx.render_text("1",
                     1,
                     textfont,
                     textsize,
                     midx - gen.text_width("1", -1, textfont, textsize) / 2,
                     pagenumy);
-    // ctx.cmd_EMC();
+    ctx.cmd_EMC();
 }
 
 void draw_email(capypdf::Generator &gen, capypdf::DrawContext &ctx) {
     auto emailfont = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
     const double emailsize = 16;
     const double emaily = cm2pt(29 - 4.3);
-    // ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, &document_root_item, nullptr));
+    ctx.cmd_BDC(gen.add_structure_item(CAPY_STRUCTURE_TYPE_H3, &document_root_item, nullptr));
     ctx.render_text(email,
                     emailfont,
                     emailsize,
                     midx - gen.text_width(email, emailfont, emailsize) / 2,
                     emaily);
-    // ctx.cmd_EMC();
+    ctx.cmd_EMC();
 }
 
 void create_doc() {
