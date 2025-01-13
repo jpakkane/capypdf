@@ -615,7 +615,7 @@ public:
     }
     template<ByteSequence T>
     void render_text(const T &buf, CapyPDF_FontId fid, double point_size, double x, double y) {
-        CAPY_CPP_CHECK(capy_dc_render_text(*this, buf.data(), buf.size(), fid, point_size, x, y));
+        render_text(buf.data(), buf.size(), fid, point_size, x, y);
     }
 
     Text text_new() {
