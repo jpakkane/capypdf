@@ -785,8 +785,9 @@ public:
         CAPY_CPP_CHECK(capy_generator_add_icc_profile(*this, bytes, bufsize, num_channels, &cpid));
         return cpid;
     }
-    template<ByteSequence T> void add_icc_profile(const T &buf, int32_t num_channels) {
-        add_icc_profile(buf.data(), buf.size(), num_channels);
+    template<ByteSequence T>
+    CapyPDF_IccColorSpaceId add_icc_profile(const T &buf, int32_t num_channels) {
+        return add_icc_profile(buf.data(), buf.size(), num_channels);
     }
 
     CapyPDF_FunctionId add_function(Type2Function &fn) {
