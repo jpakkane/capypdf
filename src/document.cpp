@@ -663,6 +663,7 @@ rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
         subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
         assert(subsetter.get_subset(subset_id).size() > SPACE);
         const auto &space_glyph = subsetter.get_subset(subset_id).at(SPACE);
+        (void)space_glyph;
         assert(std::holds_alternative<RegularGlyph>(space_glyph));
         assert(std::get<RegularGlyph>(space_glyph).unicode_codepoint == SPACE);
     }

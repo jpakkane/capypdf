@@ -95,8 +95,6 @@ enum class ErrorCode : int32_t {
 
 const char *error_text(ErrorCode ec) noexcept;
 
-[[noreturn]] void printandabort(ErrorCode ec) noexcept;
-
 #if defined(CAPY_USE_EXCEPTIONS)
 // All errors throw exceptions
 

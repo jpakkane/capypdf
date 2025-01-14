@@ -103,9 +103,4 @@ const char *error_text(ErrorCode ec) noexcept {
     return error_texts[index];
 }
 
-[[noreturn]] void abortif(ErrorCode ec) noexcept {
-    fprintf(stderr, "%s\n", error_text(ec));
-    std::abort();
-}
-
 } // namespace capypdf::internal
