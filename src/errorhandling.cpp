@@ -91,6 +91,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Duplicated name.",
 "String must not have an embedded null character.",
 "Buffer size argument is invalid.",
+"MMaping file to memory failed.",
 };
 
 // clang-format on
