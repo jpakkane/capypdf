@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <pdfcommon.hpp>
 #include <errorhandling.hpp>
+#include <mmapper.hpp>
 
 #include <string>
 #include <string_view>
@@ -151,8 +152,11 @@ typedef std::variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
  * prep
  */
 
+typedef std::variant<std::monostate, MMapper, std::span<std::byte>> DataSource;
+
 struct TrueTypeFontFile {
-    std::vector<std::vector<std::byte>> glyphs;
+    DataSource original_data;
+    std::vector<std::span<std::byte>> glyphs; // Points original_data.
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
@@ -181,11 +185,14 @@ struct TrueTypeFontFile {
     }
 };
 
+rvoe<std::span<std::byte>> span_of_source(const DataSource &s);
+rvoe<std::string_view> view_of_source(const DataSource &s);
+
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf);
 rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
 
 rvoe<NoReturnValue>
-reassign_composite_glyph_numbers(std::vector<std::byte> &buf,
+reassign_composite_glyph_numbers(std::span<std::byte> buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping);
 
 rvoe<std::vector<std::byte>>
@@ -199,8 +206,8 @@ generate_font(FT_Face face,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-rvoe<TrueTypeFontFile> parse_truetype_font(std::span<const std::byte> buf);
-rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname);
+rvoe<TrueTypeFontFile> parse_font_file(DataSource original_data);
+rvoe<TrueTypeFontFile> load_and_parse_font_file(const std::filesystem::path &fname);
 
 uint32_t font_id_for_glyph(const TTGlyphs &g);
 

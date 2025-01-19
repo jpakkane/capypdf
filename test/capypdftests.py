@@ -22,7 +22,7 @@ icc_dir = source_root / 'icc'
 sys.path.append(str(source_root / 'python'))
 
 noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
-
+noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
 sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import capypdf

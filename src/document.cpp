@@ -1873,7 +1873,7 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 }
 
 rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
-    ERC(fontdata, load_and_parse_truetype_font(fname));
+    ERC(fontdata, load_and_parse_font_file(fname));
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 fname,
                 std::move(fontdata)};

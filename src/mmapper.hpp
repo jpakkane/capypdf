@@ -16,7 +16,8 @@ class MMapperPrivate;
 class MMapper {
 public:
     explicit MMapper(MMapperPrivate *priv);
-    MMapper(MMapper &&o) = default;
+    MMapper(MMapper &&o);
+    ;
     ~MMapper();
 
     std::span<std::byte> span() const;

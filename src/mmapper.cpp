@@ -60,6 +60,8 @@ MMapper::MMapper(MMapperPrivate *priv) : d{priv} {}
 
 MMapper::~MMapper() = default;
 
+MMapper::MMapper(MMapper &&o) = default;
+
 std::span<std::byte> MMapper::span() const { return d->span(); }
 
 std::string_view MMapper::sv() const { return d->sv(); }

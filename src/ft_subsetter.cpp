@@ -345,6 +345,19 @@ struct TTPost {
     }
 };
 
+struct TTCHeader {
+    char tag[4];
+    uint16_t major;
+    uint16_t minor;
+    uint32_t num_fonts;
+
+    void swap_endian() {
+        byte_swap_inplace(major);
+        byte_swap_inplace(minor);
+        byte_swap_inplace(num_fonts);
+    }
+};
+
 #pragma pack(pop, r1)
 
 static_assert(sizeof(TTDirEntry) == 4 * 4);
@@ -499,11 +512,11 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-rvoe<std::vector<std::vector<std::byte>>> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                                      std::span<const std::byte> buf,
-                                                      uint16_t num_glyphs,
-                                                      const std::vector<int32_t> &loca) {
-    std::vector<std::vector<std::byte>> glyph_data;
+rvoe<std::vector<std::span<std::byte>>> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                                    std::span<std::byte> buf,
+                                                    uint16_t num_glyphs,
+                                                    const std::vector<int32_t> &loca) {
+    std::vector<std::span<std::byte>> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -515,8 +528,7 @@ rvoe<std::vector<std::vector<std::byte>>> load_glyphs(const std::vector<TTDirEnt
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
-        ERC(sstr, get_substring(glyf_start, data_off, data_size));
-        glyph_data.emplace_back(sstr.data(), sstr.data() + sstr.size());
+        glyph_data.push_back(glyf_start.subspan(data_off, data_size));
     }
     return glyph_data;
 }
@@ -542,11 +554,11 @@ rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
     return std::vector<std::byte>(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-rvoe<std::vector<std::vector<std::byte>>>
+rvoe<std::vector<std::span<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    std::vector<std::vector<std::byte>> subset;
+    std::vector<std::span<std::byte>> subset;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
@@ -761,50 +773,52 @@ rvoe<int16_t> num_contours(std::span<const std::byte> buf) {
 
 } // namespace
 
-rvoe<TrueTypeFontFile> parse_truetype_font(std::span<const std::byte> buf) {
-    TrueTypeFontFile tf;
-    if(buf.size() < sizeof(TTOffsetTable)) {
+rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing) {
+    TrueTypeFontFile tf{std::move(backing)};
+    auto original_data = std::get<MMapper>(tf.original_data).span();
+    if(original_data.size() < sizeof(TTOffsetTable)) {
         RETERR(MalformedFontFile);
     }
-    ERC(off, extract<TTOffsetTable>(buf, 0));
+    ERC(off, extract<TTOffsetTable>(original_data, 0));
     off.swap_endian();
     std::vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
-        ERC(e, extract<TTDirEntry>(buf, sizeof(off) + i * sizeof(TTDirEntry)));
+        ERC(e, extract<TTDirEntry>(original_data, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
-        if(e.offset + e.length > buf.size()) {
+        if(e.offset + e.length > original_data.size()) {
             RETERR(IndexOutOfBounds);
         }
 #ifndef CAPYFUZZING
-        auto checksum = ttf_checksum(std::span<const std::byte>(buf.data() + e.offset, e.length));
+        auto checksum =
+            ttf_checksum(std::span<const std::byte>(original_data.data() + e.offset, e.length));
         (void)checksum;
 #endif
         directory.emplace_back(std::move(e));
     }
-    ERC(head, load_head(directory, buf));
+    ERC(head, load_head(directory, original_data));
     tf.head = head;
-    ERC(maxp, load_maxp(directory, buf));
+    ERC(maxp, load_maxp(directory, original_data));
     tf.maxp = maxp;
 #ifdef CAPYFUZZING
     if(tf.maxp.num_glyphs > 1024) {
         RETERR(MalformedFontFile);
     }
 #endif
-    ERC(loca, load_loca(directory, buf, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
-    ERC(hhea, load_hhea(directory, buf))
+    ERC(loca, load_loca(directory, original_data, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
+    ERC(hhea, load_hhea(directory, original_data))
     tf.hhea = hhea;
-    ERC(hmtx, load_hmtx(directory, buf, tf.maxp.num_glyphs, tf.hhea.num_hmetrics))
+    ERC(hmtx, load_hmtx(directory, original_data, tf.maxp.num_glyphs, tf.hhea.num_hmetrics))
     tf.hmtx = hmtx;
-    ERC(glyphs, load_glyphs(directory, buf, tf.maxp.num_glyphs, loca))
+    ERC(glyphs, load_glyphs(directory, original_data, tf.maxp.num_glyphs, loca))
     tf.glyphs = glyphs;
 
-    ERC(cvt, load_raw_table(directory, buf, "cvt "));
+    ERC(cvt, load_raw_table(directory, original_data, "cvt "));
     tf.cvt = cvt;
-    ERC(fpgm, load_raw_table(directory, buf, "fpgm"));
+    ERC(fpgm, load_raw_table(directory, original_data, "fpgm"));
     tf.fpgm = fpgm;
-    ERC(prep, load_raw_table(directory, buf, "prep"))
+    ERC(prep, load_raw_table(directory, original_data, "prep"))
     tf.prep = prep;
-    ERC(cmap, load_raw_table(directory, buf, "cmap"));
+    ERC(cmap, load_raw_table(directory, original_data, "cmap"));
     ERC(cmap_head, extract<TTCmapHeader>(cmap, 0));
     cmap_head.swap_endian();
     for(uint16_t table_num = 0; table_num < cmap_head.num_tables; ++table_num) {
@@ -886,12 +900,57 @@ rvoe<TrueTypeFontFile> parse_truetype_font(std::span<const std::byte> buf) {
     return tf;
 }
 
+rvoe<std::span<std::byte>> span_of_source(const DataSource &s) {
+    if(auto *mm = std::get_if<MMapper>(&s)) {
+        return mm->span();
+    }
+    if(auto *sp = std::get_if<std::span<std::byte>>(&s)) {
+        return *sp;
+    }
+    fprintf(stderr, "Tried to use an empty datasource for font data.\n");
+    std::abort();
+}
+
+rvoe<std::string_view> view_of_source(const DataSource &s) {
+    if(auto *mm = std::get_if<MMapper>(&s)) {
+        return mm->sv();
+    }
+    if(auto *sv = std::get_if<std::span<std::byte>>(&s)) {
+        return span2sv(*sv);
+    }
+    fprintf(stderr, "Tried to use an empty datasource for font data.\n");
+    std::abort();
+}
+
+rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing) {
+    ERC(original_data, span_of_source(backing));
+    ERC(header, extract<TTCHeader>(original_data, 0));
+    header.swap_endian();
+    std::vector<uint32_t> offsets;
+    offsets.reserve(header.num_fonts);
+    for(uint32_t i = 0; i < header.num_fonts; ++i) {
+        ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
+        offsets.push_back(std::byteswap(off));
+    }
+    RETERR(FileReadError);
+}
+
+rvoe<TrueTypeFontFile> parse_font_file(DataSource backing) {
+    ERC(view, view_of_source(backing));
+    if(view.starts_with("ttcf")) {
+        return parse_ttc_file(std::move(backing));
+    }
+    return parse_truetype_file(std::move(backing));
+}
+
 rvoe<std::vector<std::byte>>
 generate_font(std::span<const std::byte> buf,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    ERC(source, parse_truetype_font(buf));
-    return generate_font(source, glyphs, comp_mapping);
+    // ERC(source, parse_truetype_font(buf));
+    // return generate_font(source, glyphs, comp_mapping);
+    fprintf(stderr, "Not implemented.\n");
+    std::abort();
 }
 
 rvoe<std::vector<std::byte>>
@@ -921,9 +980,9 @@ generate_font(const TrueTypeFontFile &source,
     return bytes;
 }
 
-rvoe<TrueTypeFontFile> load_and_parse_truetype_font(const std::filesystem::path &fname) {
-    ERC(buf, load_file_as_bytes(fname));
-    return parse_truetype_font(std::span<std::byte>{buf.data(), buf.size()});
+rvoe<TrueTypeFontFile> load_and_parse_font_file(const std::filesystem::path &fname) {
+    ERC(mmapdata, mmap_file(fname.string().c_str()));
+    return parse_font_file(std::move(mmapdata));
 }
 
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf) {
@@ -966,11 +1025,11 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf) 
 }
 
 rvoe<NoReturnValue>
-reassign_composite_glyph_numbers(std::vector<std::byte> &buf,
+reassign_composite_glyph_numbers(std::span<std::byte> buf,
                                  const std::unordered_map<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
 
-    auto composite_data = std::span<const std::byte>(buf).subspan(header_size);
+    auto composite_data = buf.subspan(header_size);
     int64_t composite_offset = 0;
     const uint16_t MORE_COMPONENTS = 0x20;
     const uint16_t ARGS_ARE_WORDS = 0x01;
