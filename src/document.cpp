@@ -1873,11 +1873,10 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 }
 
 rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
-    ERC(fontdata, load_and_parse_font_file(fname));
+    FT_Face face;
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 fname,
-                std::move(fontdata)};
-    FT_Face face;
+                {}};
     auto error = FT_New_Face(ft, fname.string().c_str(), 0, &face);
     if(error) {
         // By default Freetype is compiled without
@@ -1885,11 +1884,13 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
         RETERR(FreeTypeError);
     }
     ttf.face.reset(face);
-
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
         RETERR(UnsupportedFormat);
     }
+    ERC(fontdata, load_and_parse_font_file(fname));
+    ttf.fontdata = std::move(fontdata);
+
     if(strcmp(font_format,
               "TrueType")) { // != 0 &&
                              // strcmp(font_format,

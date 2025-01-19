@@ -225,6 +225,11 @@ struct TTClassRangeRecord {
     }
 };
 
+void TTMaxp05::swap_endian() {
+    byte_swap_inplace(version);
+    byte_swap_inplace(num_glyphs);
+}
+
 void TTMaxp10::swap_endian() {
     byte_swap_inplace(version);
     byte_swap_inplace(num_glyphs);
@@ -376,6 +381,18 @@ struct SubsetFont {
     }
 };
 
+uint16_t TTMaxp::num_glyphs() const {
+    return std::visit([](const auto &d) { return d.num_glyphs; }, data);
+}
+
+void TTMaxp::set_num_glyphs(uint16_t glyph_count) {
+    std::visit([glyph_count](auto &d) { d.num_glyphs = glyph_count; }, data);
+}
+
+void TTMaxp::swap_endian() {
+    std::visit([](auto &d) { d.swap_endian(); }, data);
+}
+
 namespace {
 
 /*
@@ -395,7 +412,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
+rvoe<TTMaxp> load_maxp(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
         fprintf(stderr, "Maxp table missing.\n");
@@ -404,15 +421,19 @@ rvoe<TTMaxp10> load_maxp(const std::vector<TTDirEntry> &dir, std::span<const std
     uint32_t version;
     ERCV(safe_memcpy(&version, buf, e->offset));
     byte_swap_inplace(version);
-    if(version != 1 << 16) {
-        RETERR(UnsupportedFormat);
+    if(version == 1 << 16) {
+        if(e->length < sizeof(TTMaxp10)) {
+            RETERR(MalformedFontFile);
+        }
+        ERC(maxp, extract<TTMaxp10>(buf, e->offset));
+        maxp.swap_endian();
+        return TTMaxp{maxp};
+    } else if(version == 0x00005000) {
+        ERC(maxp, extract<TTMaxp05>(buf, e->offset));
+        maxp.swap_endian();
+        return TTMaxp{maxp};
     }
-    if(e->length < sizeof(TTMaxp10)) {
-        RETERR(MalformedFontFile);
-    }
-    ERC(maxp, extract<TTMaxp10>(buf, e->offset));
-    maxp.swap_endian();
-    return maxp;
+    RETERR(UnsupportedFormat);
 }
 
 rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
@@ -434,7 +455,8 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
                                      uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
     if(!loca) {
-        RETERR(MalformedFontFile);
+        // Truetype collection files do not seem to contain loca entries.
+        return std::vector<int32_t>{};
     }
     std::vector<int32_t> offsets;
     offsets.reserve(num_glyphs);
@@ -519,7 +541,8 @@ rvoe<std::vector<std::span<std::byte>>> load_glyphs(const std::vector<TTDirEntry
     std::vector<std::span<std::byte>> glyph_data;
     auto e = find_entry(dir, "glyf");
     if(!e) {
-        RETERR(MalformedFontFile);
+        // This is probably a ttc file that uses CFF glyph data.
+        return std::vector<std::span<std::byte>>{};
     }
     if(e->offset > buf.size()) {
         RETERR(MalformedFontFile);
@@ -586,7 +609,7 @@ subset_glyphs(const TrueTypeFontFile &source,
 TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + source.hmtx.left_side_bearings.size() ==
-           source.maxp.num_glyphs);
+           source.maxp.num_glyphs());
     assert(!source.hmtx.longhor.empty());
     for(const auto &g : glyphs) {
         const auto gid = font_id_for_glyph(g);
@@ -771,19 +794,18 @@ rvoe<int16_t> num_contours(std::span<const std::byte> buf) {
     return num_contours;
 }
 
-} // namespace
-
-rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing) {
+rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset = 0) {
     TrueTypeFontFile tf{std::move(backing)};
-    auto original_data = std::get<MMapper>(tf.original_data).span();
-    if(original_data.size() < sizeof(TTOffsetTable)) {
+    ERC(original_data, span_of_source(tf.original_data));
+    auto header_span = original_data.subspan(header_offset);
+    if(header_span.size() < sizeof(TTOffsetTable)) {
         RETERR(MalformedFontFile);
     }
-    ERC(off, extract<TTOffsetTable>(original_data, 0));
+    ERC(off, extract<TTOffsetTable>(header_span, 0));
     off.swap_endian();
     std::vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
-        ERC(e, extract<TTDirEntry>(original_data, sizeof(off) + i * sizeof(TTDirEntry)));
+        ERC(e, extract<TTDirEntry>(header_span, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
         if(e.offset + e.length > original_data.size()) {
             RETERR(IndexOutOfBounds);
@@ -804,12 +826,13 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing) {
         RETERR(MalformedFontFile);
     }
 #endif
-    ERC(loca, load_loca(directory, original_data, tf.head.index_to_loc_format, tf.maxp.num_glyphs));
+    ERC(loca,
+        load_loca(directory, original_data, tf.head.index_to_loc_format, tf.maxp.num_glyphs()));
     ERC(hhea, load_hhea(directory, original_data))
     tf.hhea = hhea;
-    ERC(hmtx, load_hmtx(directory, original_data, tf.maxp.num_glyphs, tf.hhea.num_hmetrics))
+    ERC(hmtx, load_hmtx(directory, original_data, tf.maxp.num_glyphs(), tf.hhea.num_hmetrics))
     tf.hmtx = hmtx;
-    ERC(glyphs, load_glyphs(directory, original_data, tf.maxp.num_glyphs, loca))
+    ERC(glyphs, load_glyphs(directory, original_data, tf.maxp.num_glyphs(), loca))
     tf.glyphs = glyphs;
 
     ERC(cvt, load_raw_table(directory, original_data, "cvt "));
@@ -900,6 +923,8 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing) {
     return tf;
 }
 
+} // namespace
+
 rvoe<std::span<std::byte>> span_of_source(const DataSource &s) {
     if(auto *mm = std::get_if<MMapper>(&s)) {
         return mm->span();
@@ -932,6 +957,8 @@ rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
         offsets.push_back(std::byteswap(off));
     }
+    ERC(sspan, span_of_source(backing));
+    ERC(blub, parse_truetype_file(sspan, offsets[0]));
     RETERR(FileReadError);
 }
 
@@ -967,7 +994,7 @@ generate_font(const TrueTypeFontFile &source,
     dest.head.checksum_adjustment = 0;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
-    dest.maxp.num_glyphs = dest.glyphs.size();
+    dest.maxp.set_num_glyphs(dest.glyphs.size());
     dest.hmtx = subset_hmtx(source, glyphs);
     dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
     dest.head.index_to_loc_format = 1;

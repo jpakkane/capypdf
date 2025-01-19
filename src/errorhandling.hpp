@@ -131,7 +131,10 @@ template<typename T> struct rvoe {
 #else
 // All errors are returned as std::unexpecteds and propagated manually.
 
-#define RETERR(code) return std::unexpected(ErrorCode::code)
+// This error exists solely so you can put a breakpoint in it.
+inline std::unexpected<ErrorCode> create_error(ErrorCode code) { return std::unexpected(code); }
+
+#define RETERR(code) return create_error(ErrorCode::code)
 
 #define RETOK                                                                                      \
     return NoReturnValue {}

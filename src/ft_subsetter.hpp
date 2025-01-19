@@ -73,6 +73,13 @@ struct TTHhea {
     void swap_endian();
 };
 
+struct TTMaxp05 {
+    uint32_t version;
+    uint16_t num_glyphs;
+
+    void swap_endian();
+};
+
 struct TTMaxp10 {
     uint32_t version;
     uint16_t num_glyphs;
@@ -94,6 +101,20 @@ struct TTMaxp10 {
 };
 
 #pragma pack(pop, r1)
+
+class TTMaxp {
+public:
+    TTMaxp() : data{TTMaxp10{}} {}
+    explicit TTMaxp(const TTMaxp05 &t) : data{t} {}
+    explicit TTMaxp(const TTMaxp10 &t) : data{t} {}
+
+    uint16_t num_glyphs() const;
+    void set_num_glyphs(uint16_t glyph_count);
+    void swap_endian();
+
+private:
+    std::variant<TTMaxp05, TTMaxp10> data;
+};
 
 typedef std::variant<uint8_t, int16_t> CoordInfo;
 
@@ -161,7 +182,7 @@ struct TrueTypeFontFile {
     TTHhea hhea;
     TTHmtx hmtx;
     // std::vector<int32_t> loca;
-    TTMaxp10 maxp;
+    TTMaxp maxp;
     std::vector<std::byte> cvt;
     std::vector<std::byte> fpgm;
     std::vector<std::byte> prep;

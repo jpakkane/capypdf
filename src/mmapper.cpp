@@ -62,6 +62,8 @@ MMapper::~MMapper() = default;
 
 MMapper::MMapper(MMapper &&o) = default;
 
+MMapper &MMapper::operator=(MMapper &&o) = default;
+
 std::span<std::byte> MMapper::span() const { return d->span(); }
 
 std::string_view MMapper::sv() const { return d->sv(); }
