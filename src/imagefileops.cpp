@@ -610,19 +610,28 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     }
 
     // If the input file was created with `tmpfile` or something similar, it might
-    // not even have an extension at all. Try to open it with all decoders because
-    // there is not much else we can do.
-    if(auto rc = load_png_file(fname)) {
-        return rc;
+    // not even have an extension at all.
+    const size_t bufsize = 10;
+    char buf[bufsize];
+    buf[0] = 0;
+    FILE *f = fopen(fname.string().c_str(), "rb");
+    auto rc = fread(buf, 1, bufsize, f);
+    fclose(f);
+    if(rc != bufsize) {
+        RETERR(UnsupportedFormat);
     }
-    if(auto rc = load_jpg_file(fname)) {
-        return RasterImage{std::move(*rc)};
+    std::string_view v(buf, buf + bufsize);
+    if(v.starts_with(".PNG")) {
+        return load_png_file(fname);
     }
-    auto rc = load_tif_file(fname);
-    if(!rc) {
-        fprintf(stderr, "Unsupported image file format: %s\n", fname.string().c_str());
+    if(v.starts_with("II*") || v.starts_with("MM")) {
+        return load_tif_file(fname);
     }
-    return rc;
+    if((unsigned char)v[0] == 0xff && (unsigned char)v[1] == 0xd8 && (unsigned char)v[2] == 0xff) {
+        ERC(jpegfile, load_jpg_file(fname));
+        return RasterImage{std::move(jpegfile)};
+    }
+    RETERR(UnsupportedFormat);
 }
 
 rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
