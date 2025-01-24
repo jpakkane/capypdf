@@ -58,6 +58,10 @@ struct PdfTokenBoolean {
     bool value;
 };
 
+struct PdfStreamData {
+    std::string stream;
+};
+
 struct PdfTokenEndObj {};
 
 struct PdfTokenFinished {};
@@ -78,6 +82,7 @@ typedef std::variant<PdfTokenDictStart,
                      PdfTokenReal,
                      PdfTokenBoolean,
                      PdfTokenError,
+                     PdfStreamData,
                      PdfTokenFinished>
     PdfToken;
 
@@ -149,6 +154,7 @@ private:
 
     std::optional<size_t> parse_dict();
     std::optional<size_t> parse_array();
+    std::string stream;
 
     template<typename T> std::optional<T> accept() {
         if(!std::holds_alternative<T>(pending)) {

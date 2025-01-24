@@ -184,8 +184,13 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
     } else if(xref.find("xref\r\n") == 0) {
         data_in = xref.data() + 6;
     } else {
-        printf("Xref table is not valid.\n");
-        return {};
+        PdfParser p(xref);
+        auto obj = p.parse();
+        if(!obj) {
+            printf("Xref table is not valid.\n");
+            return {};
+        }
+        std::abort();
     }
     char *tmp;
     const long first_obj = strtol(data_in, &tmp, 10);

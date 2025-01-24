@@ -17,18 +17,21 @@
 
 #include <format>
 
+#include <cassert>
+
 namespace {
 
-const std::regex whitespace{R"(^\s)"};
+const std::regex whitespace{R"(^\s+)"};
 const std::regex dictstart{R"(^<<)"};
 const std::regex dictend{R"(^>>)"};
 const std::regex arraystart{R"(^\[)"};
 const std::regex arrayend{R"(^\])"};
 const std::regex objname{R"(^(\d+)\s+(\d+)\s+obj)"};
 const std::regex objref{R"((^\d+)\s+(\d+)\s+R)"};
-const std::regex stringlit{R"(^/([a-zA-Z][-a-zA-Z0-9+]+))"};
+const std::regex stringlit{R"(^/([a-zA-Z][-a-zA-Z0-9+]*))"};
 const std::regex stringobj{R"(^\()"};
 const std::regex endobj{R"(^endobj)"};
+const std::regex streamdef{R"(^stream\n)"};
 const std::regex number{R"(^-?\d+)"};
 const std::regex real{R"(^(-?\d+\.\d+))"};
 const std::regex hexstr{R"(^<([0-9a-fA-F]+)>)"};
@@ -121,6 +124,15 @@ PdfToken PdfLexer::next() {
         } else if(std::regex_search(text.c_str() + offset, m, arrayend)) {
             offset += m.length();
             return PdfTokenArrayEnd{};
+        } else if(std::regex_search(text.c_str() + offset, m, streamdef)) {
+            auto start_point = offset + m.length();
+            auto end_point = text.find("\nendstream", start_point);
+            assert(end_point != std::string::npos);
+
+            std::string sdata = text.substr(start_point, end_point - start_point);
+            offset = end_point + 10;
+            auto bob = text.substr(offset);
+            return PdfStreamData{std::move(sdata)};
         } else if(std::regex_search(text.c_str() + offset, m, stringlit)) {
             std::string name(text.c_str() + offset + 1, m.length(1));
             offset += m.length();
@@ -178,8 +190,11 @@ std::optional<PdfObjectDefinition> PdfParser::parse() {
     if(!robj) {
         return {};
     }
-    accept<PdfTokenEndObj>();
-    if(!std::holds_alternative<PdfTokenFinished>(pending)) {
+    if(auto streamval = accept<PdfStreamData>()) {
+        stream = std::move(streamval.value().stream);
+    }
+    auto endval = accept<PdfTokenEndObj>();
+    if(!endval) {
         return {};
     }
     objdef.root = std::move(*robj);
