@@ -16,6 +16,8 @@ capypdf_lib = shared_library('capypdf',
   'colorconverter.cpp',
   'fontsubsetter.cpp',
   'ft_subsetter.cpp',
+  'cffsubsetter.cpp',
+  'bitfiddling.cpp',
   'capi.cpp',
   'errorhandling.cpp',
   'pdfwriter.cpp',
@@ -47,6 +49,11 @@ if get_option('fuzzing')
 else
     executable('fontgen',
       'fontgen.cpp',
+      dependencies: capypdf_internal_dep,
+    )
+
+    executable('cfftest',
+      'cfftest.cpp',
       dependencies: capypdf_internal_dep,
     )
 
