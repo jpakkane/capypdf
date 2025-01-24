@@ -139,6 +139,7 @@ struct PdfObjectDefinition {
     int64_t version = -1;
     std::vector<PdfArray> arrays;
     std::vector<PdfDict> dicts;
+    std::string stream;
     PdfValueElement root;
 };
 
@@ -154,7 +155,6 @@ private:
 
     std::optional<size_t> parse_dict();
     std::optional<size_t> parse_array();
-    std::string stream;
 
     template<typename T> std::optional<T> accept() {
         if(!std::holds_alternative<T>(pending)) {

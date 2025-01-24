@@ -176,6 +176,65 @@ BinaryData load_binary_data(std::string_view data) {
     return bd;
 }
 
+struct XRefStreamEntry {
+    size_t f1;
+    size_t f2;
+    size_t f3;
+};
+
+size_t fuf(const char *data, int size) {
+    if(size == 1) {
+        return (unsigned char)data[0];
+    }
+    if(size == 2) {
+        return std::byteswap(((uint16_t *)(data))[0]);
+    }
+    if(size == 4) {
+        return std::byteswap(((uint32_t *)(data))[0]);
+    }
+    if(size == 8) {
+        return std::byteswap(((uint64_t *)(data))[0]);
+    }
+    std::abort();
+}
+
+XRefStreamEntry unpack_entry(const char *data, const std::array<int, 3> &W) {
+    XRefStreamEntry r;
+    r.f1 = fuf(data, W[0]);
+    data += W[0];
+    r.f2 = fuf(data, W[1]);
+    data += W[1];
+    r.f3 = fuf(data, W[2]);
+    data += W[2];
+    return r;
+}
+
+std::optional<std::vector<XrefEntry>> parse_xref_stream(std::string_view data,
+                                                        const std::array<int, 3> &W) {
+    std::vector<XrefEntry> refs;
+    const auto entry_size = W[0] + W[1] + W[2];
+    assert(entry_size > 0);
+    assert(data.size() % entry_size == 0);
+    const auto num_xrefs = data.size() / entry_size;
+    for(int i = 0; i < num_xrefs; ++i) {
+        const char *current = data.data() + i * entry_size;
+        auto raw_entry = unpack_entry(current, W);
+        switch(raw_entry.f1) {
+        case 0:
+            assert(raw_entry.f2 == 0);
+            break;
+        case 1:
+            refs.emplace_back(XrefEntry{(int32_t)raw_entry.f3, raw_entry.f2, {}});
+            break;
+        case 2:
+            break; // FIXME
+        default:
+            std::abort();
+        }
+    }
+    return refs;
+}
+
 std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
     std::vector<XrefEntry> refs;
     const char *data_in;
@@ -190,6 +249,9 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
             printf("Xref table is not valid.\n");
             return {};
         }
+        auto inflated = inflate(obj->stream);
+        std::array<int, 3> W{1, 2, 2}; // FIXME
+        return parse_xref_stream(inflated, W);
         std::abort();
     }
     char *tmp;

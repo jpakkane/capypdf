@@ -191,7 +191,7 @@ std::optional<PdfObjectDefinition> PdfParser::parse() {
         return {};
     }
     if(auto streamval = accept<PdfStreamData>()) {
-        stream = std::move(streamval.value().stream);
+        objdef.stream = std::move(streamval.value().stream);
     }
     auto endval = accept<PdfTokenEndObj>();
     if(!endval) {
