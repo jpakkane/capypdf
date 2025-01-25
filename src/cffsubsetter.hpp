@@ -21,6 +21,14 @@ struct CFFHeader {
 struct CFFont {
     CFFHeader header;
     std::vector<std::span<std::byte>> name;
+    std::vector<std::span<std::byte>> top_dict;
+    std::vector<std::span<std::byte>> string;
+    std::vector<std::span<std::byte>> global_subr;
+};
+
+struct CFFDict {
+    std::vector<int32_t> operand;
+    uint16_t opr; // "operator" is a reserved word
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
