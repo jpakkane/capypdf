@@ -5,6 +5,7 @@
 
 #include "errorhandling.hpp"
 #include <filesystem>
+#include <vector>
 
 #include <cstdint>
 
@@ -19,6 +20,7 @@ struct CFFHeader {
 
 struct CFFont {
     CFFHeader header;
+    std::vector<std::span<std::byte>> name;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
