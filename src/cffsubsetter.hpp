@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <vector>
 
+#include <span>
 #include <cstdint>
 
 namespace capypdf::internal {
