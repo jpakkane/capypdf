@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
-#include <bitfiddling.hpp>
 #include <ft_subsetter.hpp>
+#include <bitfiddling.hpp>
 #include <fontsubsetter.hpp>
+#include <cffsubsetter.hpp>
 #include <utils.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -492,26 +493,49 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-rvoe<std::vector<std::span<std::byte>>> load_glyphs(const std::vector<TTDirEntry> &dir,
-                                                    std::span<std::byte> buf,
-                                                    uint16_t num_glyphs,
-                                                    const std::vector<int32_t> &loca) {
+rvoe<std::vector<std::span<std::byte>>> load_GLYF_glyphs(uint32_t offset,
+                                                         std::span<std::byte> buf,
+                                                         uint16_t num_glyphs,
+                                                         const std::vector<int32_t> &loca) {
     std::vector<std::span<std::byte>> glyph_data;
-    auto e = find_entry(dir, "glyf");
-    if(!e) {
-        // This is probably a ttc file that uses CFF glyph data.
-        return std::vector<std::span<std::byte>>{};
-    }
-    if(e->offset > buf.size()) {
-        RETERR(MalformedFontFile);
-    }
-    auto glyf_start = buf.subspan(e->offset);
+    auto glyf_start = buf.subspan(offset);
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
         glyph_data.push_back(glyf_start.subspan(data_off, data_size));
     }
     return glyph_data;
+}
+
+rvoe<std::vector<std::span<std::byte>>> load_CFF_glyphs(uint32_t offset,
+                                                        std::span<std::byte> buf,
+                                                        uint16_t num_glyphs,
+                                                        const std::vector<int32_t> &loca) {
+    std::vector<std::span<std::byte>> glyph_data;
+    auto cff_span = buf.subspan(offset);
+    ERC(cff, parse_cff_span(cff_span))
+    return glyph_data;
+}
+
+rvoe<std::vector<std::span<std::byte>>> load_glyphs(const std::vector<TTDirEntry> &dir,
+                                                    std::span<std::byte> buf,
+                                                    uint16_t num_glyphs,
+                                                    const std::vector<int32_t> &loca) {
+    auto e = find_entry(dir, "glyf");
+    if(e) {
+        if(e->offset > buf.size()) {
+            RETERR(MalformedFontFile);
+        }
+        return load_GLYF_glyphs(e->offset, buf, num_glyphs, loca);
+    }
+    e = find_entry(dir, "CFF ");
+    if(e) {
+        if(e->offset > buf.size()) {
+            RETERR(MalformedFontFile);
+        }
+        return load_CFF_glyphs(e->offset, buf, num_glyphs, loca);
+    }
+    RETERR(UnsupportedFormat);
 }
 
 rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
@@ -915,8 +939,9 @@ rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
         offsets.push_back(std::byteswap(off));
     }
-    ERC(sspan, span_of_source(backing));
-    ERC(blub, parse_truetype_file(sspan, offsets[0]));
+    for(const auto &o : offsets) {
+        ERC(blub, parse_truetype_file(original_data, o));
+    }
     RETERR(FileReadError);
 }
 

@@ -19,19 +19,22 @@ struct CFFHeader {
     uint8_t offsize;
 };
 
-struct CFFont {
-    CFFHeader header;
-    std::vector<std::span<std::byte>> name;
-    std::vector<std::span<std::byte>> top_dict;
-    std::vector<std::span<std::byte>> string;
-    std::vector<std::span<std::byte>> global_subr;
-};
-
 struct CFFDict {
     std::vector<int32_t> operand;
     uint16_t opr; // "operator" is a reserved word
 };
 
+struct CFFont {
+    CFFHeader header;
+    std::vector<std::span<std::byte>> name;
+    std::vector<std::span<std::byte>> top_dict_data;
+    std::vector<CFFDict> top_dict;
+    std::vector<std::span<std::byte>> string;
+    std::vector<std::span<std::byte>> global_subr;
+    std::vector<std::span<std::byte>> char_strings;
+};
+
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
+rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan);
 
 } // namespace capypdf::internal

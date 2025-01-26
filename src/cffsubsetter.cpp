@@ -117,12 +117,19 @@ rvoe<std::vector<CFFDict>> unpack_dictionary(std::span<std::byte> dataspan) {
     return dict;
 }
 
+const CFFDict *find_command(const CFFont &f, uint8_t op) {
+    for(size_t i = 0; i < f.top_dict.size(); ++i) {
+        if(f.top_dict[i].opr == op) {
+            return &f.top_dict[i];
+        }
+    }
+    return nullptr;
+}
+
 } // namespace
 
-rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
+rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     CFFont f;
-    ERC(data, load_file_as_bytes(fname));
-    auto dataspan = std::span<std::byte>(data);
     ERC(h, extract<CFFHeader>(dataspan, 0));
     if(h.major != 1) {
         RETERR(UnsupportedFormat);
@@ -132,20 +139,38 @@ rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
     }
     f.header = h;
     assert(f.header.hdrsize == 4);
-    assert(f.header.offsize == 3);
+    assert(f.header.offsize > 0 || f.header.offsize < 5);
     size_t offset = f.header.hdrsize;
     ERC(name_index, load_index(dataspan, offset));
     f.name = std::move(name_index);
     ERC(topdict_index, load_index(dataspan, offset));
-    f.top_dict = std::move(topdict_index);
+    f.top_dict_data = std::move(topdict_index);
+    ERC(tc, unpack_dictionary(f.top_dict_data.front()));
+    f.top_dict = std::move(tc);
     ERC(string_index, load_index(dataspan, offset));
     f.string = std::move(string_index);
     ERC(glsub_index, load_index(dataspan, offset));
     f.global_subr = std::move(glsub_index);
 
-    auto res = unpack_dictionary(f.top_dict.front()).value();
-
+    const uint8_t CharStringsOperator = 17;
+    auto *cse = find_command(f, CharStringsOperator);
+    if(!cse) {
+        RETERR(UnsupportedFormat);
+    }
+    if(cse->operand.size() != 1) {
+        RETERR(UnsupportedFormat);
+    }
+    offset = cse->operand.front();
+    ERC(cstring, load_index(dataspan, offset));
+    f.char_strings = std::move(cstring);
     return f;
+}
+
+rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
+    ERC(data, load_file_as_bytes(fname));
+    auto dataspan = std::span<std::byte>(data);
+    // FIXME, the data is lost here so spans to it become invalid.
+    return parse_cff_span(dataspan);
 }
 
 } // namespace capypdf::internal
