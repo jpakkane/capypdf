@@ -119,7 +119,7 @@ rvoe<std::vector<CFFDict>> unpack_dictionary(std::span<std::byte> dataspan) {
     return dict;
 }
 
-const CFFDict *find_command(const CFFont &f, uint8_t op) {
+const CFFDict *find_command(const CFFont &f, uint16_t op) {
     for(size_t i = 0; i < f.top_dict.size(); ++i) {
         if(f.top_dict[i].opr == op) {
             return &f.top_dict[i];
@@ -204,6 +204,26 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     }
     assert(cste->operand.size() == 1);
     auto charsets = unpack_charsets(dataspan.subspan(cste->operand[0]));
+
+    const uint8_t PrivateOperator = 18;
+    auto *priv = find_command(f, PrivateOperator);
+    if(priv) {
+        offset = priv->operand[0];
+        ERC(pdata, load_index(dataspan, offset));
+        ERC(pdict, unpack_dictionary(pdata.front()));
+    }
+
+    const uint16_t FDArrayOperator = 0xc24;
+    const uint16_t FDSelectOperator = 0xc25;
+    auto *fda = find_command(f, FDArrayOperator);
+    auto *fds = find_command(f, FDSelectOperator);
+    if(!fda) {
+        RETERR(UnsupportedFormat);
+    }
+    if(!fds) {
+        RETERR(UnsupportedFormat);
+    }
+
     return f;
 }
 
