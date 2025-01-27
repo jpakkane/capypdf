@@ -177,7 +177,12 @@ typedef std::variant<std::monostate, MMapper, std::span<std::byte>> DataSource;
 
 struct TrueTypeFontFile {
     DataSource original_data;
-    std::vector<std::span<std::byte>> glyphs; // Points original_data.
+
+    // A font has hundreds or thousands of glyphs, of which a
+    // typical PDF file uses only a subset. Reading all of them
+    // into their own vectors would have a lot of memory overhead.
+    // Thus we point to the original data instead.
+    std::vector<std::span<std::byte>> glyphs;
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;

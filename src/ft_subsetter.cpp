@@ -559,17 +559,21 @@ rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
     return std::vector<std::byte>(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-rvoe<std::vector<std::span<std::byte>>>
+rvoe<std::vector<std::vector<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    std::vector<std::span<std::byte>> subset;
+    // This does not use spans. Create a copy of all data
+    // because we need to modify it before writing it
+    // out to disk.
+    std::vector<std::vector<std::byte>> subset;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
         uint32_t gid = font_id_for_glyph(g);
         assert(gid < source.glyphs.size());
-        subset.push_back(source.glyphs[gid]);
+        const auto &current_glyph = source.glyphs[gid];
+        subset.emplace_back(std::vector<std::byte>(current_glyph.begin(), current_glyph.end()));
         if(!subset.back().empty()) {
             ERC(num_contours, extract<int16_t>(subset.back(), 0));
             byte_swap_inplace(num_contours);
@@ -580,10 +584,12 @@ subset_glyphs(const TrueTypeFontFile &source,
     }
     // Glyph ID 32 _must_ be the space character. Pad empty things until done.
     if(subset.size() < SPACE + 1) {
+        const auto &pad_glyph = source.glyphs[0];
         while(subset.size() < SPACE) {
-            subset.emplace_back(source.glyphs[0]);
+            subset.emplace_back(std::vector<std::byte>(pad_glyph.begin(), pad_glyph.end()));
         }
-        subset.emplace_back(source.glyphs.at(SPACE));
+        const auto &space_glyph = source.glyphs.at(SPACE);
+        subset.emplace_back(std::vector<std::byte>(space_glyph.begin(), space_glyph.end()));
     }
     return subset;
 }
@@ -642,7 +648,8 @@ write_raw_table(std::vector<std::byte> &odata, const char *tag, std::span<const 
     return e;
 }
 
-std::vector<std::byte> serialize_font(TrueTypeFontFile &tf) {
+std::vector<std::byte> serialize_font(TrueTypeFontFile &tf,
+                                      const std::vector<std::vector<std::byte>> &subglyphs) {
     std::vector<std::byte> odata;
     odata.reserve(1024 * 1024);
     TTDirEntry e;
@@ -687,7 +694,9 @@ std::vector<std::byte> serialize_font(TrueTypeFontFile &tf) {
     // glyph time
     std::vector<int32_t> loca;
     size_t glyphs_start = odata.size();
-    for(const auto &g : tf.glyphs) {
+    // All new glyph data should be in the "subglyphs" parameter.
+    assert(tf.glyphs.empty());
+    for(const auto &g : subglyphs) {
         const auto offset = (int32_t)(odata.size() - glyphs_start);
         loca.push_back(offset);
         append_bytes(odata, g);
@@ -970,14 +979,13 @@ generate_font(const TrueTypeFontFile &source,
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
-    dest.glyphs = std::move(subglyphs);
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
     dest.head.checksum_adjustment = 0;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
-    dest.maxp.set_num_glyphs(dest.glyphs.size());
+    dest.maxp.set_num_glyphs(subglyphs.size());
     dest.hmtx = subset_hmtx(source, glyphs);
     dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
     dest.head.index_to_loc_format = 1;
@@ -986,7 +994,7 @@ generate_font(const TrueTypeFontFile &source,
     dest.prep = source.prep;
     dest.cmap = gen_cmap(glyphs);
 
-    auto bytes = serialize_font(dest);
+    auto bytes = serialize_font(dest, subglyphs);
     return bytes;
 }
 

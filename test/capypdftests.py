@@ -249,6 +249,28 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_TJ(ks)
                 ctx.render_text_obj(t)
 
+    @cleanup('fonthandling.pdf')
+    # Regression test for crasher.
+    def test_fonthandling(self, ofilename):
+        w = 200
+        h = 200
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            font = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                t = ctx.text_new()
+                ks = capypdf.TextSequence()
+                t.cmd_Tf(font, 24.0)
+                t.cmd_Td(10.0, 120.0)
+                ks.append_raw_glyph(50, 79)
+                ks.append_raw_glyph(1966, 102)
+                t.cmd_TJ(ks)
+                ctx.render_text_obj(t)
+
+
     @validate_image('python_shaping', 200, 200)
     def test_shaping(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
