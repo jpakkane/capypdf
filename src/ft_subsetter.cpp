@@ -619,7 +619,7 @@ template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) 
     } else if constexpr(std::is_same_v<T, std::string>) {
         s.insert(s.end(), val.cbegin(), val.cend());
     } else if constexpr(std::is_same_v<T, std::span<std::byte>>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
+        s.insert(s.end(), val.begin(), val.end());
     } else if constexpr(std::is_same_v<T, std::span<const std::byte>>) {
         s.insert(s.end(), val.begin(), val.end());
     } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {

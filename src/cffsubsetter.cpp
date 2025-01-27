@@ -5,6 +5,8 @@
 #include <bitfiddling.hpp>
 #include <utils.hpp>
 
+#include <bit>
+
 namespace capypdf::internal {
 
 namespace {
