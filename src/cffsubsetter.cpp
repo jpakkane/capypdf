@@ -128,6 +128,30 @@ const CFFDict *find_command(const CFFont &f, uint8_t op) {
     return nullptr;
 }
 
+rvoe<std::vector<uint16_t>> unpack_charsets(std::span<std::byte> dataspan) {
+    std::vector<uint16_t> charset;
+    size_t offset = 0;
+    const auto format = (uint8_t)dataspan[offset++];
+    if(format == 0) {
+        RETERR(UnsupportedFormat);
+    } else if(format == 1) {
+        RETERR(UnsupportedFormat);
+    } else {
+        ERC(first, extract<uint16_t>(dataspan, offset));
+        first = std::byteswap(first);
+        offset += 2;
+        ERC(nleft, extract<uint16_t>(dataspan, offset));
+        nleft = std::byteswap(nleft);
+        offset += 2;
+        charset.push_back(first);
+        for(size_t i = 0; i < nleft; ++i) {
+            charset.push_back(first + i + 1);
+        }
+        // Loop until finished?
+        return charset;
+    }
+}
+
 } // namespace
 
 rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
@@ -165,6 +189,21 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     offset = cse->operand.front();
     ERC(cstring, load_index(dataspan, offset));
     f.char_strings = std::move(cstring);
+
+    const uint8_t EncodingOperator = 16;
+    auto *ence = find_command(f, EncodingOperator);
+    if(ence) {
+        // Not a CID font.
+        // Ignore for not, hopefully forever.
+        std::abort();
+    }
+    const uint8_t CharsetOperator = 15;
+    auto *cste = find_command(f, CharsetOperator);
+    if(!cste) {
+        RETERR(UnsupportedFormat);
+    }
+    assert(cste->operand.size() == 1);
+    auto charsets = unpack_charsets(dataspan.subspan(cste->operand[0]));
     return f;
 }
 
