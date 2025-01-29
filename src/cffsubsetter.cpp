@@ -35,8 +35,12 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
 }
 
 rvoe<std::vector<std::span<std::byte>>> load_index(std::span<std::byte> dataspan, size_t &offset) {
+    std::vector<std::span<std::byte>> entries;
     ERC(cnt, extract<uint16_t>(dataspan, offset));
     const uint16_t count = std::byteswap(cnt);
+    if(count == 0) {
+        return entries;
+    }
     offset += sizeof(uint16_t);
     ERC(offSize, extract<uint8_t>(dataspan, offset));
     ++offset;
@@ -53,7 +57,6 @@ rvoe<std::vector<std::span<std::byte>>> load_index(std::span<std::byte> dataspan
         offset += offSize;
     }
     --offset;
-    std::vector<std::span<std::byte>> entries;
     entries.reserve(count);
 
     for(uint16_t i = 0; i < count; ++i) {
@@ -203,7 +206,8 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
         RETERR(UnsupportedFormat);
     }
     assert(cste->operand.size() == 1);
-    auto charsets = unpack_charsets(dataspan.subspan(cste->operand[0]));
+    ERC(charsets, unpack_charsets(dataspan.subspan(cste->operand[0])));
+    f.charsets = std::move(charsets);
 
     const uint8_t PrivateOperator = 18;
     auto *priv = find_command(f, PrivateOperator);
@@ -211,6 +215,7 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
         offset = priv->operand[0];
         ERC(pdata, load_index(dataspan, offset));
         ERC(pdict, unpack_dictionary(pdata.front()));
+        f.pdict = std::move(pdict);
     }
 
     const uint16_t FDArrayOperator = 0xc24;
@@ -223,6 +228,15 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     if(!fds) {
         RETERR(UnsupportedFormat);
     }
+    offset = fda->operand[0];
+    ERC(fdastr, load_index(dataspan, offset))
+    for(const auto dstr : fdastr) {
+        ERC(dict, unpack_dictionary(dstr));
+        f.fontdict.emplace_back(std::move(dict));
+    }
+    offset = fds->operand[0];
+    ERC(fdsstr, load_index(dataspan, offset))
+    f.fdselect = std::move(fdsstr);
 
     return f;
 }

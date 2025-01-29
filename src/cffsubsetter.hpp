@@ -32,6 +32,10 @@ struct CFFont {
     std::vector<std::span<std::byte>> string;
     std::vector<std::span<std::byte>> global_subr;
     std::vector<std::span<std::byte>> char_strings;
+    std::vector<uint16_t> charsets;
+    std::vector<CFFDict> pdict;
+    std::vector<std::vector<CFFDict>> fontdict;
+    std::vector<std::span<std::byte>> fdselect;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
