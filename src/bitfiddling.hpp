@@ -31,4 +31,10 @@ template<typename T> rvoe<T> extract(std::span<const std::byte> bf, const size_t
     return obj;
 }
 
+template<typename T> rvoe<T> extract_and_swap(std::span<const std::byte> bf, const size_t offset) {
+    T obj;
+    ERCV(safe_memcpy(&obj, bf, offset));
+    return std::byteswap(obj);
+}
+
 } // namespace capypdf::internal

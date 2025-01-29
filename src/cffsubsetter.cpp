@@ -11,6 +11,8 @@ namespace capypdf::internal {
 
 namespace {
 
+const int32_t NUM_STANDARD_STRINGS = 390;
+
 rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, uint8_t offSize) {
     if(dataspan.size_bytes() <= offset + offSize) {
         RETERR(IndexOutOfBounds);
@@ -37,7 +39,7 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
 rvoe<std::vector<std::span<std::byte>>> load_index(std::span<std::byte> dataspan, size_t &offset) {
     std::vector<std::span<std::byte>> entries;
     ERC(cnt, extract<uint16_t>(dataspan, offset));
-    const uint16_t count = std::byteswap(cnt);
+    const uint32_t count = std::byteswap(cnt);
     if(count == 0) {
         return entries;
     }
@@ -47,7 +49,7 @@ rvoe<std::vector<std::span<std::byte>>> load_index(std::span<std::byte> dataspan
     std::vector<size_t> offsets;
     offsets.reserve(count + 1);
     assert(offSize <= 5);
-    for(uint16_t i = 0; i <= count; ++i) {
+    for(uint32_t i = 0; i <= count; ++i) {
         ERC(c, extract_index_offset(dataspan, offset, offSize));
         assert(c > 0);
         if(!offsets.empty()) {
@@ -131,8 +133,8 @@ const CFFDict *find_command(const CFFont &f, uint16_t op) {
     return nullptr;
 }
 
-rvoe<std::vector<uint16_t>> unpack_charsets(std::span<std::byte> dataspan) {
-    std::vector<uint16_t> charset;
+rvoe<std::vector<CharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) {
+    std::vector<CharsetRange2> charset;
     size_t offset = 0;
     const auto format = (uint8_t)dataspan[offset++];
     if(format == 0) {
@@ -140,22 +142,70 @@ rvoe<std::vector<uint16_t>> unpack_charsets(std::span<std::byte> dataspan) {
     } else if(format == 1) {
         RETERR(UnsupportedFormat);
     } else {
-        ERC(first, extract<uint16_t>(dataspan, offset));
-        first = std::byteswap(first);
-        offset += 2;
-        ERC(nleft, extract<uint16_t>(dataspan, offset));
-        nleft = std::byteswap(nleft);
-        offset += 2;
-        charset.push_back(first);
-        for(size_t i = 0; i < nleft; ++i) {
-            charset.push_back(first + i + 1);
-        }
-        // Loop until finished?
+        ERC(rng, extract<CharsetRange2>(dataspan, offset));
+        rng.swap_endian();
+        charset.push_back(rng);
         return charset;
     }
 }
 
+rvoe<std::vector<SelectRange3>> unpack_fdselect(std::span<std::byte> dataspan) {
+    size_t offset = 0;
+    const uint8_t format = (uint8_t)dataspan[offset++];
+    assert(format == 3);
+    ERC(nRg, extract_and_swap<uint16_t>(dataspan, offset));
+    const uint32_t nRanges = nRg;
+    offset += sizeof(uint16_t);
+    std::vector<SelectRange3> ranges;
+    ranges.reserve(nRanges);
+    for(int32_t i = 0; i < nRanges; ++i) {
+        ERC(range, extract<SelectRange3>(dataspan, offset));
+        offset += sizeof(range);
+        range.swap_endian();
+        ranges.push_back(range);
+    }
+    ERC(sentinel, extract_and_swap<uint16_t>(dataspan, offset));
+    // sentinel should match number of glyphs in the font.
+    return ranges;
+}
+
+void print_string(const CFFont &cff, int32_t string_number) {
+    if(string_number < NUM_STANDARD_STRINGS) {
+        printf("<standard string %d>\n", string_number);
+    } else {
+        const uint32_t strindex = string_number - NUM_STANDARD_STRINGS;
+        auto sv = span2sv(cff.string.at(strindex));
+        std::string tmp{sv};
+        printf("%s\n", tmp.c_str());
+    }
+}
+
+void print_string_for_operator(const CFFont &cff, uint16_t op) {
+    auto *tmp = find_command(cff, op);
+    assert(tmp->operand.size() == 1);
+    print_string(cff, tmp->operand[0]);
+}
+
+void print_info(const CFFont &cff) {
+    const uint8_t FullNameOperator = 2;
+    printf("Font name: ");
+    print_string_for_operator(cff, FullNameOperator);
+    const uint8_t FamilyNameOperator = 3;
+    printf("Family name: ");
+    print_string_for_operator(cff, FamilyNameOperator);
+    const uint8_t WeightOperator = 4;
+    printf("Weight: ");
+    print_string_for_operator(cff, WeightOperator);
+}
+
 } // namespace
+
+void SelectRange3::swap_endian() { first = std::byteswap(first); }
+
+void CharsetRange2::swap_endian() {
+    first = std::byteswap(first);
+    nLeft = std::byteswap(nLeft);
+}
 
 rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     CFFont f;
@@ -180,6 +230,8 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
     f.string = std::move(string_index);
     ERC(glsub_index, load_index(dataspan, offset));
     f.global_subr = std::move(glsub_index);
+
+    print_info(f);
 
     const uint8_t CharStringsOperator = 17;
     auto *cse = find_command(f, CharStringsOperator);
@@ -235,7 +287,7 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
         f.fontdict.emplace_back(std::move(dict));
     }
     offset = fds->operand[0];
-    ERC(fdsstr, load_index(dataspan, offset))
+    ERC(fdsstr, unpack_fdselect(dataspan.subspan(fds->operand[0])));
     f.fdselect = std::move(fdsstr);
 
     return f;
