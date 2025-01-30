@@ -7,6 +7,41 @@
 
 #include <bit>
 
+// clang-format off
+
+/*
+ * A subset CFF font created from Noto Serif CJK with one glyph contains the following:
+ *
+ * Subset top dict entries
+
+ * 3102  1e ROS
+ * 1     notice
+ * 2     fullname
+ * 3     familyname
+ * 4     weight
+ * 5     fontbbox
+ * 3103  1f CIDFontVersion
+ * 3106  20 CIDFontRevision
+ * 3108  22 CIDCount
+ * 3109  25 FDSelect
+ * 15    charset
+ * 17    charstrings
+ * 3075  03 UnderlinePosition
+ *
+ * Strings:
+ *
+ * Adobe
+ * Identity
+ * Copyright 2014-2021 Adobe (http://www.adobe.com/). Noto is a trademark of Google Inc.
+ * Noto Sans CJK JP Regular
+ * Noto Sans CJK JP
+ * NotoSansCJKjp-Regular-Generic
+ * NotoSansCJKjp-Regular-Ideographs
+ *
+ */
+
+// clang-format on
+
 namespace capypdf::internal {
 
 namespace {
@@ -133,8 +168,8 @@ const CFFDict *find_command(const CFFont &f, uint16_t op) {
     return nullptr;
 }
 
-rvoe<std::vector<CharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) {
-    std::vector<CharsetRange2> charset;
+rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) {
+    std::vector<CFFCharsetRange2> charset;
     size_t offset = 0;
     const auto format = (uint8_t)dataspan[offset++];
     if(format == 0) {
@@ -142,30 +177,40 @@ rvoe<std::vector<CharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) 
     } else if(format == 1) {
         RETERR(UnsupportedFormat);
     } else {
-        ERC(rng, extract<CharsetRange2>(dataspan, offset));
+        ERC(rng, extract<CFFCharsetRange2>(dataspan, offset));
         rng.swap_endian();
         charset.push_back(rng);
         return charset;
     }
 }
 
-rvoe<std::vector<SelectRange3>> unpack_fdselect(std::span<std::byte> dataspan) {
+rvoe<std::vector<CFFSelectRange3>> unpack_fdselect(std::span<std::byte> dataspan,
+                                                   uint32_t num_glyphs) {
+    std::vector<CFFSelectRange3> ranges;
     size_t offset = 0;
     const uint8_t format = (uint8_t)dataspan[offset++];
-    assert(format == 3);
-    ERC(nRg, extract_and_swap<uint16_t>(dataspan, offset));
-    const uint32_t nRanges = nRg;
-    offset += sizeof(uint16_t);
-    std::vector<SelectRange3> ranges;
-    ranges.reserve(nRanges);
-    for(int32_t i = 0; i < nRanges; ++i) {
-        ERC(range, extract<SelectRange3>(dataspan, offset));
-        offset += sizeof(range);
-        range.swap_endian();
-        ranges.push_back(range);
+    if(format == 0) {
+        std::vector<std::byte> selector_array{dataspan.begin() + offset,
+                                              dataspan.begin() + offset + num_glyphs};
+        // FIXME. OR maybe not. This seems to be used in generated
+        // subset fonts only.
+        return ranges;
+    } else if(format == 3) {
+        ERC(nRg, extract_and_swap<uint16_t>(dataspan, offset));
+        const uint32_t nRanges = nRg;
+        offset += sizeof(uint16_t);
+        ranges.reserve(nRanges);
+        for(uint32_t i = 0; i < nRanges; ++i) {
+            ERC(range, extract<CFFSelectRange3>(dataspan, offset));
+            offset += sizeof(range);
+            range.swap_endian();
+            ranges.push_back(range);
+        }
+        ERC(sentinel, extract_and_swap<uint16_t>(dataspan, offset));
+        if(sentinel != num_glyphs) {
+            RETERR(MalformedFontFile);
+        }
     }
-    ERC(sentinel, extract_and_swap<uint16_t>(dataspan, offset));
-    // sentinel should match number of glyphs in the font.
     return ranges;
 }
 
@@ -200,15 +245,17 @@ void print_info(const CFFont &cff) {
 
 } // namespace
 
-void SelectRange3::swap_endian() { first = std::byteswap(first); }
+void CFFSelectRange3::swap_endian() { first = std::byteswap(first); }
 
-void CharsetRange2::swap_endian() {
+void CFFCharsetRange2::swap_endian() {
     first = std::byteswap(first);
     nLeft = std::byteswap(nLeft);
 }
 
-rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
+rvoe<CFFont> parse_cff_data(DataSource source) {
     CFFont f;
+    f.original_data = std::move(source);
+    ERC(dataspan, span_of_source(f.original_data));
     ERC(h, extract<CFFHeader>(dataspan, 0));
     if(h.major != 1) {
         RETERR(UnsupportedFormat);
@@ -287,17 +334,15 @@ rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan) {
         f.fontdict.emplace_back(std::move(dict));
     }
     offset = fds->operand[0];
-    ERC(fdsstr, unpack_fdselect(dataspan.subspan(fds->operand[0])));
+    ERC(fdsstr, unpack_fdselect(dataspan.subspan(fds->operand[0]), f.char_strings.size()));
     f.fdselect = std::move(fdsstr);
 
     return f;
 }
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
-    ERC(data, load_file_as_bytes(fname));
-    auto dataspan = std::span<std::byte>(data);
-    // FIXME, the data is lost here so spans to it become invalid.
-    return parse_cff_span(dataspan);
+    ERC(source, mmap_file(fname.string().c_str()));
+    return parse_cff_data(std::move(source));
 }
 
 } // namespace capypdf::internal

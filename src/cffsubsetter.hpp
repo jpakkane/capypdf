@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "errorhandling.hpp"
+#include <errorhandling.hpp>
+#include <mmapper.hpp>
 #include <filesystem>
 #include <vector>
 
@@ -26,14 +27,14 @@ struct CFFDict {
 
 #pragma pack(push, r1, 1)
 
-struct SelectRange3 {
+struct CFFSelectRange3 {
     uint16_t first;
     uint8_t fd;
 
     void swap_endian();
 };
 
-struct CharsetRange2 {
+struct CFFCharsetRange2 {
     uint16_t first;
     uint16_t nLeft;
 
@@ -43,6 +44,7 @@ struct CharsetRange2 {
 #pragma pack(pop, r1)
 
 struct CFFont {
+    DataSource original_data;
     CFFHeader header;
     std::vector<std::span<std::byte>> name;
     std::vector<std::span<std::byte>> top_dict_data;
@@ -50,13 +52,13 @@ struct CFFont {
     std::vector<std::span<std::byte>> string;
     std::vector<std::span<std::byte>> global_subr;
     std::vector<std::span<std::byte>> char_strings;
-    std::vector<CharsetRange2> charsets;
+    std::vector<CFFCharsetRange2> charsets;
     std::vector<CFFDict> pdict;
     std::vector<std::vector<CFFDict>> fontdict;
-    std::vector<SelectRange3> fdselect;
+    std::vector<CFFSelectRange3> fdselect;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
-rvoe<CFFont> parse_cff_span(std::span<std::byte> dataspan);
+rvoe<CFFont> parse_cff_data(DataSource original_data);
 
 } // namespace capypdf::internal

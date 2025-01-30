@@ -8,6 +8,8 @@
 #include <memory>
 #include <span>
 #include <string_view>
+#include <variant>
+#include <vector>
 
 namespace capypdf::internal {
 
@@ -30,6 +32,12 @@ public:
 private:
     std::unique_ptr<MMapperPrivate> d;
 };
+
+typedef std::variant<std::monostate, MMapper, std::vector<std::byte>, std::span<std::byte>>
+    DataSource;
+
+rvoe<std::span<std::byte>> span_of_source(const DataSource &s);
+rvoe<std::string_view> view_of_source(const DataSource &s);
 
 rvoe<MMapper> mmap_file(const char *fname);
 

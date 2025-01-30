@@ -7,8 +7,8 @@
 #include <pdfcommon.hpp>
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
+#include <cffsubsetter.hpp>
 
-#include <string>
 #include <string_view>
 #include <vector>
 #include <variant>
@@ -173,8 +173,6 @@ typedef std::variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
  * prep
  */
 
-typedef std::variant<std::monostate, MMapper, std::span<std::byte>> DataSource;
-
 struct TrueTypeFontFile {
     DataSource original_data;
 
@@ -183,6 +181,10 @@ struct TrueTypeFontFile {
     // into their own vectors would have a lot of memory overhead.
     // Thus we point to the original data instead.
     std::vector<std::span<std::byte>> glyphs;
+    // A TrueType file can be just a container for a
+    // CFF file. Note that if it has cff glyphs then it should
+    // not have "glyf" glyphs from above.
+    std::optional<CFFont> cff;
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
@@ -211,8 +213,12 @@ struct TrueTypeFontFile {
     }
 };
 
-rvoe<std::span<std::byte>> span_of_source(const DataSource &s);
-rvoe<std::string_view> view_of_source(const DataSource &s);
+struct TrueTypeCollection {
+    DataSource original_data;
+    std::vector<TrueTypeFontFile> entries;
+};
+
+typedef std::variant<TrueTypeFontFile, TrueTypeCollection, CFFont> FontData;
 
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf);
 rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
@@ -232,8 +238,8 @@ generate_font(FT_Face face,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-rvoe<TrueTypeFontFile> parse_font_file(DataSource original_data);
-rvoe<TrueTypeFontFile> load_and_parse_font_file(const std::filesystem::path &fname);
+rvoe<FontData> parse_font_file(DataSource original_data);
+rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname);
 
 uint32_t font_id_for_glyph(const TTGlyphs &g);
 

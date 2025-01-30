@@ -1889,7 +1889,8 @@ rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem
         RETERR(UnsupportedFormat);
     }
     ERC(fontdata, load_and_parse_font_file(fname));
-    ttf.fontdata = std::move(fontdata);
+    assert(std::holds_alternative<TrueTypeFontFile>(fontdata));
+    ttf.fontdata = std::move(std::get<TrueTypeFontFile>(fontdata));
 
     if(strcmp(font_format,
               "TrueType")) { // != 0 &&

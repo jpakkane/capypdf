@@ -2,6 +2,7 @@
 // Copyright 2025 Jussi Pakkanen
 
 #include <mmapper.hpp>
+#include <utils.hpp>
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -123,4 +124,32 @@ rvoe<MMapper> mmap_file(const char *fname) {
 }
 
 #endif
+
+rvoe<std::span<std::byte>> span_of_source(const DataSource &s) {
+    if(auto *mm = std::get_if<MMapper>(&s)) {
+        return mm->span();
+    }
+    if(auto *sv = std::get_if<std::vector<std::byte>>(&s)) {
+        auto *tmp = const_cast<std::vector<std::byte> *>(sv);
+        // FIXME, should be properly const.
+        return std::span<std::byte>(*tmp);
+    }
+    if(auto *sp = std::get_if<std::span<std::byte>>(&s)) {
+        return *sp;
+    }
+    fprintf(stderr, "Tried to use an empty datasource for font data.\n");
+    std::abort();
+}
+
+rvoe<std::string_view> view_of_source(const DataSource &s) {
+    if(auto *mm = std::get_if<MMapper>(&s)) {
+        return mm->sv();
+    }
+    if(auto *sv = std::get_if<std::span<std::byte>>(&s)) {
+        return span2sv(*sv);
+    }
+    fprintf(stderr, "Tried to use an empty datasource for font data.\n");
+    std::abort();
+}
+
 } // namespace capypdf::internal
