@@ -4,6 +4,8 @@
 #include <span>
 #include <vector>
 #include <string_view>
+#include <bit>
+#include <string>
 
 #include <cstring>
 #include <cassert>
