@@ -159,9 +159,9 @@ rvoe<std::vector<CFFDict>> unpack_dictionary(std::span<std::byte> dataspan) {
     return dict;
 }
 
-const CFFDict *find_command(const CFFont &f, uint16_t op) {
+const CFFDict *find_command(const CFFont &f, DictOperator op) {
     for(size_t i = 0; i < f.top_dict.size(); ++i) {
-        if(f.top_dict[i].opr == op) {
+        if(f.top_dict[i].opr == (uint16_t)op) {
             return &f.top_dict[i];
         }
     }
@@ -225,22 +225,19 @@ void print_string(const CFFont &cff, int32_t string_number) {
     }
 }
 
-void print_string_for_operator(const CFFont &cff, uint16_t op) {
+void print_string_for_operator(const CFFont &cff, DictOperator op) {
     auto *tmp = find_command(cff, op);
     assert(tmp->operand.size() == 1);
     print_string(cff, tmp->operand[0]);
 }
 
 void print_info(const CFFont &cff) {
-    const uint8_t FullNameOperator = 2;
     printf("Font name: ");
-    print_string_for_operator(cff, FullNameOperator);
-    const uint8_t FamilyNameOperator = 3;
+    print_string_for_operator(cff, DictOperator::FullName);
     printf("Family name: ");
-    print_string_for_operator(cff, FamilyNameOperator);
-    const uint8_t WeightOperator = 4;
+    print_string_for_operator(cff, DictOperator::FamilyName);
     printf("Weight: ");
-    print_string_for_operator(cff, WeightOperator);
+    print_string_for_operator(cff, DictOperator::Weight);
 }
 
 } // namespace
@@ -280,8 +277,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
 
     print_info(f);
 
-    const uint8_t CharStringsOperator = 17;
-    auto *cse = find_command(f, CharStringsOperator);
+    auto *cse = find_command(f, DictOperator::CharStrings);
     if(!cse) {
         RETERR(UnsupportedFormat);
     }
@@ -292,15 +288,13 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     ERC(cstring, load_index(dataspan, offset));
     f.char_strings = std::move(cstring);
 
-    const uint8_t EncodingOperator = 16;
-    auto *ence = find_command(f, EncodingOperator);
+    auto *ence = find_command(f, DictOperator::Encoding);
     if(ence) {
         // Not a CID font.
         // Ignore for not, hopefully forever.
         std::abort();
     }
-    const uint8_t CharsetOperator = 15;
-    auto *cste = find_command(f, CharsetOperator);
+    auto *cste = find_command(f, DictOperator::Charset);
     if(!cste) {
         RETERR(UnsupportedFormat);
     }
@@ -308,8 +302,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     ERC(charsets, unpack_charsets(dataspan.subspan(cste->operand[0])));
     f.charsets = std::move(charsets);
 
-    const uint8_t PrivateOperator = 18;
-    auto *priv = find_command(f, PrivateOperator);
+    auto *priv = find_command(f, DictOperator::Private);
     if(priv) {
         offset = priv->operand[0];
         ERC(pdata, load_index(dataspan, offset));
@@ -317,10 +310,8 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         f.pdict = std::move(pdict);
     }
 
-    const uint16_t FDArrayOperator = 0xc24;
-    const uint16_t FDSelectOperator = 0xc25;
-    auto *fda = find_command(f, FDArrayOperator);
-    auto *fds = find_command(f, FDSelectOperator);
+    auto *fda = find_command(f, DictOperator::FDArray);
+    auto *fds = find_command(f, DictOperator::FDSelect);
     if(!fda) {
         RETERR(UnsupportedFormat);
     }
@@ -343,6 +334,30 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
     ERC(source, mmap_file(fname.string().c_str()));
     return parse_cff_data(std::move(source));
+}
+
+CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
+    : source{source}, sub{sub} {
+    output.reserve(100 * 1024);
+}
+
+void CFFWriter::create() {
+    uint8_t header[4] = {1, 0, 4, 4};
+    output.assign((std::byte *)header, (std::byte *)header + 4);
+}
+
+void CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
+    swap_and_append_bytes<uint16_t>(output, entries.size());
+    output.push_back(std::byte{4});
+    uint32_t offset = 1;
+    for(const auto &e : entries) {
+        swap_and_append_bytes(output, offset);
+        offset += e.size_bytes();
+    }
+    swap_and_append_bytes(output, offset);
+    for(const auto &e : entries) {
+        append_bytes(output, e);
+    }
 }
 
 } // namespace capypdf::internal

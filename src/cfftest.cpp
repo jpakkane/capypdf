@@ -9,7 +9,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Is bad\n");
         return 1;
     }
-    std::filesystem::path fontfile(argv[1]);
+    std::filesystem::path fontfile(true ? "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc"
+                                        : argv[1]);
     auto ext = fontfile.extension();
     if(ext == ".cff") {
         auto cff = capypdf::internal::parse_cff_file(fontfile).value();

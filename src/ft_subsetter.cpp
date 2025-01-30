@@ -596,24 +596,6 @@ TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &
     return subset;
 }
 
-template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) {
-    if constexpr(std::is_same_v<T, std::string_view>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::string>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::span<std::byte>>) {
-        s.insert(s.end(), val.begin(), val.end());
-    } else if constexpr(std::is_same_v<T, std::span<const std::byte>>) {
-        s.insert(s.end(), val.begin(), val.end());
-    } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::vector<const std::byte>>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else {
-        s.insert(s.end(), (std::byte *)&val, (std::byte *)&val + sizeof(val));
-    }
-}
-
 TTDirEntry
 write_raw_table(std::vector<std::byte> &odata, const char *tag, std::span<const std::byte> bytes) {
     TTDirEntry e;

@@ -13,6 +13,28 @@
 
 namespace capypdf::internal {
 
+enum class DictOperator : uint16_t {
+    Version,
+    Notice,
+    FullName,
+    FamilyName,
+    Weight,
+    FontBBox,
+    Charset = 15,
+    Encoding = 16,
+    CharStrings = 17,
+    Private = 18,
+    UnderlinePosition = 0x0c03,
+    FontMatrix = 0x0c07,
+    ROS = 0x0c1e,
+    CIDFontVersion = 0x0c1f,
+    CIDFontRevision = 0x0c20,
+    CIDFontType = 0x0c21,
+    CIDCount = 0x0c22,
+    FDArray = 0x0c24,
+    FDSelect = 0x0c25,
+};
+
 struct CFFHeader {
     uint8_t major;
     uint8_t minor;
@@ -60,5 +82,27 @@ struct CFFont {
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
 rvoe<CFFont> parse_cff_data(DataSource original_data);
+
+struct SubsetGlyphs {
+    uint32_t codepoint; // unicode
+    uint16_t gid;
+};
+
+class CFFWriter {
+public:
+    CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub);
+
+    void create();
+
+    std::vector<std::byte> steal() { return output; }
+
+private:
+    void append_index(const std::vector<std::span<std::byte>> &entries);
+
+    const CFFont &source;
+    const std::vector<SubsetGlyphs> &sub;
+
+    std::vector<std::byte> output;
+};
 
 } // namespace capypdf::internal
