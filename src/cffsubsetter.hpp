@@ -44,7 +44,7 @@ struct CFFHeader {
 
 struct CFFDict {
     std::vector<int32_t> operand;
-    uint16_t opr; // "operator" is a reserved word
+    DictOperator opr; // "operator" is a reserved word
 };
 
 #pragma pack(push, r1, 1)
@@ -88,16 +88,29 @@ struct SubsetGlyphs {
     uint16_t gid;
 };
 
+class CFFDictWriter {
+public:
+    void append_command(const std::vector<int32_t> operands, DictOperator op);
+
+    std::vector<std::byte> steal() { return std::move(output); }
+
+private:
+    std::vector<std::byte> output;
+};
+
 class CFFWriter {
 public:
     CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub);
 
     void create();
 
-    std::vector<std::byte> steal() { return output; }
+    std::vector<std::byte> steal() { return std::move(output); }
 
 private:
     void append_index(const std::vector<std::span<std::byte>> &entries);
+
+    void create_topdict();
+    void copy_dict_item(CFFDictWriter &w, DictOperator op);
 
     const CFFont &source;
     const std::vector<SubsetGlyphs> &sub;

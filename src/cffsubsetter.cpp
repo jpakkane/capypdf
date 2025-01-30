@@ -119,7 +119,7 @@ rvoe<std::vector<CFFDict>> unpack_dictionary(std::span<std::byte> dataspan) {
                 const int32_t b1 = (uint8_t)dataspan[offset++];
                 unpacked_operator = b0 << 8 | b1;
             }
-            dict.emplace_back(std::move(operands), unpacked_operator);
+            dict.emplace_back(std::move(operands), (DictOperator)unpacked_operator);
             operands.clear();
         } else if((b0 >= 28 && b0 <= 30) || (b0 >= 32 && b0 <= 254)) {
             // Is an operand.
@@ -161,7 +161,7 @@ rvoe<std::vector<CFFDict>> unpack_dictionary(std::span<std::byte> dataspan) {
 
 const CFFDict *find_command(const CFFont &f, DictOperator op) {
     for(size_t i = 0; i < f.top_dict.size(); ++i) {
-        if(f.top_dict[i].opr == (uint16_t)op) {
+        if(f.top_dict[i].opr == op) {
             return &f.top_dict[i];
         }
     }
@@ -336,6 +336,17 @@ rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
     return parse_cff_data(std::move(source));
 }
 
+void CFFDictWriter::append_command(const std::vector<int32_t> operands, DictOperator op) {
+    for(const auto o : operands) {
+        output.push_back(std::byte{29});
+        swap_and_append_bytes(output, o);
+    }
+    if((uint16_t)op > 0xFF) {
+        output.push_back(std::byte{0xc});
+    }
+    output.push_back(std::byte((uint16_t)op & 0xFF));
+}
+
 CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
     : source{source}, sub{sub} {
     output.reserve(100 * 1024);
@@ -344,6 +355,44 @@ CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
 void CFFWriter::create() {
     uint8_t header[4] = {1, 0, 4, 4};
     output.assign((std::byte *)header, (std::byte *)header + 4);
+    append_index(source.name);
+
+    create_topdict();
+    append_index(source.string);
+    append_index(source.global_subr);
+
+    // encodings
+    // charsets
+    // fdselect
+    // charstrings
+    // fontdict
+    // private
+    // local subr
+}
+
+void CFFWriter::create_topdict() {
+    CFFDictWriter topdict;
+
+    copy_dict_item(topdict, DictOperator::ROS);
+    copy_dict_item(topdict, DictOperator::Notice);
+    copy_dict_item(topdict, DictOperator::FullName);
+    copy_dict_item(topdict, DictOperator::FamilyName);
+    copy_dict_item(topdict, DictOperator::Weight);
+    copy_dict_item(topdict, DictOperator::FontBBox);
+    copy_dict_item(topdict, DictOperator::CIDFontVersion);
+    copy_dict_item(topdict, DictOperator::CIDFontRevision);
+    copy_dict_item(topdict, DictOperator::CIDCount);
+    copy_dict_item(topdict, DictOperator::FDSelect);    // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::Charset);     // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::CharStrings); // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::UnderlinePosition);
+    auto td = topdict.steal();
+    output.insert(output.end(), td.cbegin(), td.cend());
+}
+
+void CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {
+    auto *e = find_command(source, DictOperator::ROS);
+    w.append_command(e->operand, e->opr);
 }
 
 void CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
