@@ -2,6 +2,8 @@
 
 #include <errorhandling.hpp>
 #include <span>
+#include <vector>
+#include <string_view>
 
 #include <cstring>
 #include <cassert>
