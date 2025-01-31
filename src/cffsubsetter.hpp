@@ -20,20 +20,61 @@ enum class DictOperator : uint16_t {
     FamilyName,
     Weight,
     FontBBox,
-    Charset = 15,
-    Encoding = 16,
-    CharStrings = 17,
-    Private = 18,
-    UnderlinePosition = 0x0c03,
-    FontMatrix = 0x0c07,
+    BlueValues,
+    OtherBlues,
+    FamilyBlues,
+    FamilyOtherBlues,
+    StdHW,
+    StdVW,
+    Escape,
+    UniqueID,
+    XUID,
+    Charset,
+    Encoding,
+    CharStrings,
+    Private,
+    Subrs,
+    DefaultWidthX,
+    NominalWidthX,
+
+    Copyright = 0x0c00,
+    IsFixedPitch,
+    ItalicAngle,
+    UnderlinePosition,
+    UnderlineThickness,
+    PaintType,
+    CharstringType,
+    FontMatrix,
+    StrokeWidth,
+    BlueScale,
+    BlueShift,
+    BlueFuzz,
+    StemSnapH,
+    StemSnapV,
+    ForceBold,
+
+    LanguageGroup = 0xc11,
+    ExpansionFactor,
+    InitialRandomSeed,
+    SyntheticBase,
+    PostScript,
+    BaseFontName,
+    BaseFontBlend,
+
     ROS = 0x0c1e,
-    CIDFontVersion = 0x0c1f,
-    CIDFontRevision = 0x0c20,
-    CIDFontType = 0x0c21,
-    CIDCount = 0x0c22,
-    FDArray = 0x0c24,
-    FDSelect = 0x0c25,
+    CIDFontVersion,
+    CIDFontRevision,
+    CIDFontType,
+    CIDCount,
+    UIDBase,
+    FDArray,
+    FDSelect,
+    FontName,
 };
+
+static_assert((uint16_t)DictOperator::NominalWidthX == 0x15);
+static_assert((uint16_t)DictOperator::ForceBold == 0xc0e);
+static_assert((uint16_t)DictOperator::FontName == 0xc26);
 
 struct CFFHeader {
     uint8_t major;
@@ -78,6 +119,8 @@ struct CFFont {
     std::vector<CFFDict> pdict;
     std::vector<std::vector<CFFDict>> fontdict;
     std::vector<CFFSelectRange3> fdselect;
+
+    uint16_t get_fontdict_id(uint16_t glyph_id) const;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
@@ -108,6 +151,10 @@ public:
 
 private:
     void append_index(const std::vector<std::span<std::byte>> &entries);
+    void append_index(const std::vector<std::vector<std::byte>> &entries);
+    void append_charset();
+    void append_charstrings();
+    void append_fdthings();
 
     void create_topdict();
     void copy_dict_item(CFFDictWriter &w, DictOperator op);

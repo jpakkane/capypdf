@@ -331,6 +331,20 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     return f;
 }
 
+uint16_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
+    assert(!fdselect.empty());
+    for(size_t i = 0; i < fdselect.size(); ++i) {
+        if(fdselect[i].first == glyph_id) {
+            return i;
+        }
+        if(fdselect[i].first > glyph_id) {
+            assert(i > 0);
+            return i - 1;
+        }
+    }
+    return fdselect.size() - 1;
+}
+
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
     ERC(source, mmap_file(fname.string().c_str()));
     return parse_cff_data(std::move(source));
@@ -360,14 +374,39 @@ void CFFWriter::create() {
     create_topdict();
     append_index(source.string);
     append_index(source.global_subr);
+    append_charset();
+    append_charstrings();
+    append_fdthings();
 
     // encodings
-    // charsets
-    // fdselect
-    // charstrings
-    // fontdict
     // private
     // local subr
+}
+
+void CFFWriter::append_fdthings() {
+    std::vector<std::vector<std::byte>> fontdicts;
+    for(const auto &s : sub) {
+        auto source_id = source.get_fontdict_id(s.gid);
+        const auto &source_dict = source.fontdict.at(source_id);
+        CFFDictWriter w;
+        for(const auto &entry : source_dict) {
+            w.append_command(entry.operand, entry.opr);
+        }
+        fontdicts.emplace_back(w.steal());
+    }
+    append_index(fontdicts);
+
+    // Now fdselect
+    if(sub.size() >= 256) {
+        fprintf(stderr, "More than 255 glyphs not yet supported.\n");
+        std::abort();
+    }
+    // To get started use format 0, which is super easy, barely an inconvenience.
+    // Need to be changed to v3 or something.
+    output.push_back(std::byte(0));
+    for(uint8_t i = 0; i < sub.size(); ++i) {
+        output.push_back(std::byte(i));
+    }
 }
 
 void CFFWriter::create_topdict() {
@@ -382,9 +421,10 @@ void CFFWriter::create_topdict() {
     copy_dict_item(topdict, DictOperator::CIDFontVersion);
     copy_dict_item(topdict, DictOperator::CIDFontRevision);
     copy_dict_item(topdict, DictOperator::CIDCount);
-    copy_dict_item(topdict, DictOperator::FDSelect);    // FIXME, offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::Charset);     // FIXME, offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::CharStrings); // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::FDSelect); // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::Charset);  // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict,
+                   DictOperator::CharStrings); // FIXME, offset needs to be fixed in post.
     copy_dict_item(topdict, DictOperator::UnderlinePosition);
     auto td = topdict.steal();
     output.insert(output.end(), td.cbegin(), td.cend());
@@ -407,6 +447,31 @@ void CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
     for(const auto &e : entries) {
         append_bytes(output, e);
     }
+}
+
+void CFFWriter::append_index(const std::vector<std::vector<std::byte>> &entries) {
+    std::vector<std::span<std::byte>> converter;
+    converter.reserve(entries.size());
+    for(const auto &e : entries) {
+        converter.emplace_back((std::byte *)e.data(), e.size());
+    }
+    append_index(converter);
+}
+
+void CFFWriter::append_charset() {
+    output.emplace_back(std::byte(0));
+    for(uint16_t i = 1; i < sub.size(); ++i) {
+        swap_and_append_bytes(output, i);
+    }
+}
+
+void CFFWriter::append_charstrings() {
+    std::vector<std::span<std::byte>> subdata;
+    subdata.reserve(sub.size());
+    for(const auto &subglyph : sub) {
+        subdata.push_back(source.char_strings.at(subglyph.gid));
+    }
+    append_index(subdata);
 }
 
 } // namespace capypdf::internal
