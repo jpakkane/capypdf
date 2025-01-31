@@ -351,14 +351,15 @@ rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
 }
 
 void CFFDictWriter::append_command(const std::vector<int32_t> operands, DictOperator op) {
-    for(const auto o : operands) {
-        output.push_back(std::byte{29});
-        swap_and_append_bytes(output, o);
+    o.offsets.push_back(o.output.size());
+    for(const auto opr : operands) {
+        o.output.push_back(std::byte{29});
+        swap_and_append_bytes(o.output, opr);
     }
     if((uint16_t)op > 0xFF) {
-        output.push_back(std::byte{0xc});
+        o.output.push_back(std::byte{0xc});
     }
-    output.push_back(std::byte((uint16_t)op & 0xFF));
+    o.output.push_back(std::byte((uint16_t)op & 0xFF));
 }
 
 CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
@@ -374,7 +375,9 @@ void CFFWriter::create() {
     create_topdict();
     append_index(source.string);
     append_index(source.global_subr);
+    fixups.charsets.value = output.size();
     append_charset();
+    fixups.charstrings.value = output.size();
     append_charstrings();
     append_fdthings();
 
@@ -392,11 +395,14 @@ void CFFWriter::append_fdthings() {
         for(const auto &entry : source_dict) {
             w.append_command(entry.operand, entry.opr);
         }
-        fontdicts.emplace_back(w.steal());
+        auto serialization = w.steal();
+        fontdicts.emplace_back(std::move(serialization.output));
     }
+    fixups.fontdict.value = output.size();
     append_index(fontdicts);
 
     // Now fdselect
+    fixups.fdselect.value = output.size();
     if(sub.size() >= 256) {
         fprintf(stderr, "More than 255 glyphs not yet supported.\n");
         std::abort();
@@ -407,6 +413,21 @@ void CFFWriter::append_fdthings() {
     for(uint8_t i = 0; i < sub.size(); ++i) {
         output.push_back(std::byte(i));
     }
+}
+
+void CFFWriter::patch_offsets() {
+    write_fix(fixups.charsets);
+    write_fix(fixups.charstrings);
+    write_fix(fixups.fdselect);
+    write_fix(fixups.fontdict);
+}
+
+void CFFWriter::write_fix(const OffsetPatch &p) {
+    assert(p.offset != (uint32_t)-1);
+    assert(p.value != (uint32_t)-1);
+    const uint32_t value = std::byteswap(p.value);
+    assert(p.offset + sizeof(uint32_t) < output.size());
+    memcpy(output.data() + p.offset, &value, sizeof(uint32_t));
 }
 
 void CFFWriter::create_topdict() {
@@ -421,13 +442,17 @@ void CFFWriter::create_topdict() {
     copy_dict_item(topdict, DictOperator::CIDFontVersion);
     copy_dict_item(topdict, DictOperator::CIDFontRevision);
     copy_dict_item(topdict, DictOperator::CIDCount);
-    copy_dict_item(topdict, DictOperator::FDSelect); // FIXME, offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::Charset);  // FIXME, offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::FDSelect); // offset needs to be fixed in post.
+    copy_dict_item(topdict, DictOperator::Charset);  // offset needs to be fixed in post.
     copy_dict_item(topdict,
-                   DictOperator::CharStrings); // FIXME, offset needs to be fixed in post.
+                   DictOperator::CharStrings); // offset needs to be fixed in post.
     copy_dict_item(topdict, DictOperator::UnderlinePosition);
-    auto td = topdict.steal();
-    output.insert(output.end(), td.cbegin(), td.cend());
+    auto serialization = topdict.steal();
+    fixups.fdselect.offset = serialization.offsets.at(9) + 1 + output.size();
+    fixups.charsets.offset = serialization.offsets.at(10) + 1 + output.size();
+    fixups.charstrings.offset = serialization.offsets.at(11) + 1 + output.size();
+
+    output.insert(output.end(), serialization.output.cbegin(), serialization.output.cend());
 }
 
 void CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {

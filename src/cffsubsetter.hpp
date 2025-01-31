@@ -131,14 +131,31 @@ struct SubsetGlyphs {
     uint16_t gid;
 };
 
+struct OffsetPatch {
+    uint32_t offset = -1;
+    uint32_t value = -1;
+};
+
+struct Fixups {
+    OffsetPatch charsets;
+    OffsetPatch fdselect;
+    OffsetPatch charstrings;
+    OffsetPatch fontdict;
+};
+
+struct DictOutput {
+    std::vector<std::byte> output;
+    std::vector<uint16_t> offsets;
+};
+
 class CFFDictWriter {
 public:
     void append_command(const std::vector<int32_t> operands, DictOperator op);
 
-    std::vector<std::byte> steal() { return std::move(output); }
+    DictOutput steal() { return std::move(o); }
 
 private:
-    std::vector<std::byte> output;
+    DictOutput o;
 };
 
 class CFFWriter {
@@ -159,10 +176,13 @@ private:
     void create_topdict();
     void copy_dict_item(CFFDictWriter &w, DictOperator op);
 
+    void patch_offsets();
+    void write_fix(const OffsetPatch &p);
+
     const CFFont &source;
     const std::vector<SubsetGlyphs> &sub;
-
     std::vector<std::byte> output;
+    Fixups fixups;
 };
 
 } // namespace capypdf::internal
