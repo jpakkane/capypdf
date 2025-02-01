@@ -23,6 +23,7 @@
  * 3103  1f CIDFontVersion
  * 3106  20 CIDFontRevision
  * 3108  22 CIDCount
+ * 3109  24 FDArray
  * 3109  25 FDSelect
  * 15    charset
  * 17    charstrings
@@ -381,9 +382,10 @@ void CFFWriter::create() {
     append_charstrings();
     append_fdthings();
 
-    // encodings
-    // private
-    // local subr
+    patch_offsets();
+    //  encodings
+    //  private
+    //  local subr
 }
 
 void CFFWriter::append_fdthings() {
@@ -398,7 +400,7 @@ void CFFWriter::append_fdthings() {
         auto serialization = w.steal();
         fontdicts.emplace_back(std::move(serialization.output));
     }
-    fixups.fontdict.value = output.size();
+    fixups.fdarray.value = output.size();
     append_index(fontdicts);
 
     // Now fdselect
@@ -419,7 +421,7 @@ void CFFWriter::patch_offsets() {
     write_fix(fixups.charsets);
     write_fix(fixups.charstrings);
     write_fix(fixups.fdselect);
-    write_fix(fixups.fontdict);
+    write_fix(fixups.fdarray);
 }
 
 void CFFWriter::write_fix(const OffsetPatch &p) {
@@ -440,29 +442,50 @@ void CFFWriter::create_topdict() {
     copy_dict_item(topdict, DictOperator::Weight);
     copy_dict_item(topdict, DictOperator::FontBBox);
     copy_dict_item(topdict, DictOperator::CIDFontVersion);
-    copy_dict_item(topdict, DictOperator::CIDFontRevision);
+    // copy_dict_item(topdict, DictOperator::CIDFontRevision);
     copy_dict_item(topdict, DictOperator::CIDCount);
+    copy_dict_item(topdict, DictOperator::FDArray);  // offset needs to be fixed in post.
     copy_dict_item(topdict, DictOperator::FDSelect); // offset needs to be fixed in post.
     copy_dict_item(topdict, DictOperator::Charset);  // offset needs to be fixed in post.
     copy_dict_item(topdict,
                    DictOperator::CharStrings); // offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::UnderlinePosition);
+    // copy_dict_item(topdict, DictOperator::UnderlinePosition);
     auto serialization = topdict.steal();
-    fixups.fdselect.offset = serialization.offsets.at(9) + 1 + output.size();
-    fixups.charsets.offset = serialization.offsets.at(10) + 1 + output.size();
-    fixups.charstrings.offset = serialization.offsets.at(11) + 1 + output.size();
+    std::vector<std::vector<std::byte>> wrapper{std::move(serialization.output)};
+    auto offsets = append_index(wrapper);
+    assert(offsets.size() == 1);
+    const auto dict_start = offsets.front();
+    fixups.fdarray.offset = serialization.offsets.at(8) + 1 + dict_start;
+    fixups.fdselect.offset = serialization.offsets.at(9) + 1 + dict_start;
+    fixups.charsets.offset = serialization.offsets.at(10) + 1 + dict_start;
+    fixups.charstrings.offset = serialization.offsets.at(11) + 1 + dict_start;
 
-    output.insert(output.end(), serialization.output.cbegin(), serialization.output.cend());
+    /*
+    uint32_t sanity_check_be;
+    memcpy(&sanity_check_be, output.data() + fixups.fdarray.offset, sizeof(sanity_check_be));
+    const auto written_value = std::byteswap(sanity_check_be);
+    const auto original_value = find_command(source, DictOperator::FDArray)->operand.front();
+    const auto original_swapped = std::byteswap(original_value);
+    auto loc = std::search(output.begin(),
+                           output.end(),
+                           (std::byte *)&original_swapped,
+                           (std::byte *)&original_swapped + 4);
+    assert(loc != output.end());
+    const auto real_offset = std::distance(output.begin(), loc);
+    assert(written_value == original_value);
+    */
 }
 
 void CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {
-    auto *e = find_command(source, DictOperator::ROS);
+    auto *e = find_command(source, op);
+    assert(e);
     w.append_command(e->operand, e->opr);
 }
 
-void CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
+std::vector<uint32_t> CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
     swap_and_append_bytes<uint16_t>(output, entries.size());
     output.push_back(std::byte{4});
+    std::vector<uint32_t> offsets;
     uint32_t offset = 1;
     for(const auto &e : entries) {
         swap_and_append_bytes(output, offset);
@@ -470,17 +493,19 @@ void CFFWriter::append_index(const std::vector<std::span<std::byte>> &entries) {
     }
     swap_and_append_bytes(output, offset);
     for(const auto &e : entries) {
+        offsets.push_back(output.size());
         append_bytes(output, e);
     }
+    return offsets;
 }
 
-void CFFWriter::append_index(const std::vector<std::vector<std::byte>> &entries) {
+std::vector<uint32_t> CFFWriter::append_index(const std::vector<std::vector<std::byte>> &entries) {
     std::vector<std::span<std::byte>> converter;
     converter.reserve(entries.size());
     for(const auto &e : entries) {
         converter.emplace_back((std::byte *)e.data(), e.size());
     }
-    append_index(converter);
+    return append_index(converter);
 }
 
 void CFFWriter::append_charset() {

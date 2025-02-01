@@ -140,7 +140,7 @@ struct Fixups {
     OffsetPatch charsets;
     OffsetPatch fdselect;
     OffsetPatch charstrings;
-    OffsetPatch fontdict;
+    OffsetPatch fdarray;
 };
 
 struct DictOutput {
@@ -167,8 +167,8 @@ public:
     std::vector<std::byte> steal() { return std::move(output); }
 
 private:
-    void append_index(const std::vector<std::span<std::byte>> &entries);
-    void append_index(const std::vector<std::vector<std::byte>> &entries);
+    std::vector<uint32_t> append_index(const std::vector<std::span<std::byte>> &entries);
+    std::vector<uint32_t> append_index(const std::vector<std::vector<std::byte>> &entries);
     void append_charset();
     void append_charstrings();
     void append_fdthings();

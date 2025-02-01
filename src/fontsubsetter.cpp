@@ -50,8 +50,9 @@ rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeF
 
 } // namespace
 
-rvoe<FontSubsetter> FontSubsetter::construct(const std::filesystem::path &fontfile, FT_Face face) {
-    ERC(font, load_and_parse_font_file(fontfile));
+rvoe<FontSubsetter>
+FontSubsetter::construct(const std::filesystem::path &fontfile, FT_Face face, uint16_t subfont) {
+    ERC(font, load_and_parse_font_file(fontfile, subfont));
     if(auto *ttffile = std::get_if<TrueTypeFontFile>(&font)) {
         std::vector<FontSubsetData> subsets;
         subsets.emplace_back(create_startstate());

@@ -882,7 +882,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
 
 } // namespace
 
-rvoe<TrueTypeCollection> parse_ttc_file(DataSource backing) {
+rvoe<TrueTypeCollection> parse_ttc_file(DataSource backing, uint16_t subfont) {
     TrueTypeCollection ttc;
     ttc.original_data = std::move(backing);
     ERC(original_data, span_of_source(ttc.original_data));
@@ -895,17 +895,15 @@ rvoe<TrueTypeCollection> parse_ttc_file(DataSource backing) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
         offsets.push_back(std::byteswap(off));
     }
-    for(const auto &o : offsets) {
-        ERC(ttf, parse_truetype_file(original_data, o));
-        ttc.entries.emplace_back(std::move(ttf));
-    }
+    ERC(ttf, parse_truetype_file(original_data, offsets.at(subfont)));
+    ttc.entries.emplace_back(std::move(ttf));
     return ttc;
 }
 
-rvoe<FontData> parse_font_file(DataSource backing) {
+rvoe<FontData> parse_font_file(DataSource backing, uint16_t subfont) {
     ERC(view, view_of_source(backing));
     if(view.starts_with("ttcf")) {
-        ERC(ttc, parse_ttc_file(std::move(backing)))
+        ERC(ttc, parse_ttc_file(std::move(backing), subfont))
         return FontData{std::move(ttc)};
     }
     ERC(ttf, parse_truetype_file(std::move(backing)));
@@ -948,9 +946,9 @@ generate_font(const TrueTypeFontFile &source,
     return bytes;
 }
 
-rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname) {
+rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname, uint16_t subfont) {
     ERC(mmapdata, mmap_file(fname.string().c_str()));
-    return parse_font_file(std::move(mmapdata));
+    return parse_font_file(std::move(mmapdata), subfont);
 }
 
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf) {

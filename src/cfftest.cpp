@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s <font file>\n", argv[0]);
         return 1;
     }
-    std::filesystem::path fontfile(true ? "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc"
-                                        : argv[1]);
+    std::filesystem::path fontfile(false ? "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc"
+                                         : argv[1]);
     auto ext = fontfile.extension();
     if(ext == ".cff") {
         auto cff = capypdf::internal::parse_cff_file(fontfile).value();
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
         }
     } else if(ext == ".ttc") {
         // /usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc
-        auto cff = capypdf::internal::load_and_parse_font_file(fontfile).value();
+        auto cff = capypdf::internal::load_and_parse_font_file(fontfile, 0).value();
         if(auto *plaincff = std::get_if<capypdf::internal::CFFont>(&cff)) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }
@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
             capypdf::internal::CFFWriter wr(ttc->entries[0].cff.value(), glyphs);
             wr.create();
             auto sfont = wr.steal();
+            capypdf::internal::parse_cff_data(sfont);
             FILE *f = fopen("fontout.cff", "wb");
             fwrite(sfont.data(), 1, sfont.size(), f);
             fclose(f);
