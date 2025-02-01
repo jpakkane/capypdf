@@ -335,14 +335,14 @@ uint16_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
     assert(!fdselect.empty());
     for(size_t i = 0; i < fdselect.size(); ++i) {
         if(fdselect[i].first == glyph_id) {
-            return i;
+            return fdselect[i].fd;
         }
         if(fdselect[i].first > glyph_id) {
             assert(i > 0);
-            return i - 1;
+            return fdselect[i - 1].fd;
         }
     }
-    return fdselect.size() - 1;
+    return fdselect.back().fd;
 }
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {

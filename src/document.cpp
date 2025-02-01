@@ -1872,12 +1872,13 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
     return (font_unit_advance / 64.0) / 300.0 * 72.0;
 }
 
-rvoe<CapyPDF_FontId> PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname) {
+rvoe<CapyPDF_FontId>
+PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, uint16_t subfont) {
     FT_Face face;
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 fname,
                 {}};
-    auto error = FT_New_Face(ft, fname.string().c_str(), 0, &face);
+    auto error = FT_New_Face(ft, fname.string().c_str(), subfont, &face);
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!

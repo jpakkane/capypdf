@@ -90,6 +90,7 @@ enum class ErrorCode : int32_t {
     EmbeddedNullInString,
     InvalidBufsize,
     MMapFail,
+    InvalidSubfont,
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

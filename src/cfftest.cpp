@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv) {
     if(argc != 2) {
-        fprintf(stderr, "Is bad\n");
+        fprintf(stderr, "%s <font file>\n", argv[0]);
         return 1;
     }
     std::filesystem::path fontfile(true ? "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc"

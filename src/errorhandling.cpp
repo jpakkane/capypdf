@@ -92,6 +92,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "String must not have an embedded null character.",
 "Buffer size argument is invalid.",
 "MMaping file to memory failed.",
+"Invalid subfont.",
 };
 
 // clang-format on
