@@ -264,6 +264,60 @@ std::vector<uint32_t> append_index_to(std::vector<std::byte> &output, const CFFI
     return offsets;
 }
 
+rvoe<CFFPrivateDict>
+load_private_dict(std::span<std::byte> dataspan, size_t dict_offset, size_t dict_size) {
+    CFFPrivateDict pdict;
+    auto dictspan = dataspan.subspan(dict_offset, dict_size);
+    ERC(raw_pdict, unpack_dictionary(dictspan));
+    for(const auto &e : raw_pdict.entries) {
+        if(e.opr == DictOperator::Subrs) {
+            const auto &subr_offset = e.operand.front();
+            size_t from_the_top = dict_offset + subr_offset;
+            ERC(subr_index, load_index(dataspan, from_the_top));
+            pdict.subr = std::move(subr_index);
+        } else {
+            pdict.entries.entries.emplace_back(std::move(e));
+        }
+    }
+    return pdict;
+}
+
+rvoe<CFFFontDict> load_fdarray_entry(std::span<std::byte> dataspan, std::span<std::byte> dstr) {
+    ERC(raw_entries, unpack_dictionary(dstr));
+    CFFFontDict fdict;
+    for(const auto &e : raw_entries.entries) {
+        if(e.opr == DictOperator::Private) {
+            const auto &local_dsize = e.operand.front();
+            const auto &local_offset = e.operand.back();
+            ERC(priv, load_private_dict(dataspan, local_offset, local_dsize));
+            fdict.priv = std::move(priv);
+        } else {
+            fdict.entries.entries.emplace_back(std::move(e));
+        }
+    }
+    return fdict;
+}
+
+size_t write_private_dict(std::vector<std::byte> &output, const CFFPrivateDict &pd) {
+    CFFDictWriter w;
+    for(const auto &e : pd.entries.entries) {
+        w.append_command(e);
+    }
+    if(pd.subr) {
+        // This is always last, so we know the layout.
+        CFFDictItem e;
+        e.operand.push_back(w.current_size() + 1 + 4 + 1);
+        e.opr = DictOperator::Subrs;
+        w.append_command(e);
+    }
+    auto bytes = w.steal();
+    output.insert(output.end(), bytes.output.cbegin(), bytes.output.cend());
+    if(pd.subr) {
+        append_index_to(output, pd.subr.value());
+    }
+    return bytes.output.size();
+}
+
 } // namespace
 
 void CFFSelectRange3::swap_endian() { first = std::byteswap(first); }
@@ -345,23 +399,8 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     offset = fda->operand[0];
     ERC(fdastr, load_index(dataspan, offset))
     for(const auto dstr : fdastr.entries) {
-        ERC(dict, unpack_dictionary(dstr));
-        f.fontdict.emplace_back(std::move(dict));
-        const auto &private_op = f.fontdict.back();
-        assert(private_op.entries.back().opr == DictOperator::Private);
-        const auto &local_dsize = private_op.entries.back().operand.front();
-        const auto &local_offset = private_op.entries.back().operand.back();
-        auto privdict_range = dataspan.subspan(local_offset, local_dsize);
-        ERC(priv, unpack_dictionary(privdict_range));
-        auto subrcmd = find_command(priv, DictOperator::Subrs);
-        if(subrcmd) {
-            std::byte *dptr = privdict_range.data() + subrcmd->operand.front();
-            size_t difftmp = dptr - dataspan.data();
-            ERC(local_subr, load_index(dataspan, difftmp));
-            f.local_subrs.emplace_back(std::move(local_subr));
-        } else {
-            f.local_subrs.emplace_back(std::vector<std::span<std::byte>>());
-        }
+        ERC(fdentry, load_fdarray_entry(dataspan, dstr));
+        f.fdarray.emplace_back(std::move(fdentry));
     }
     offset = fds->operand[0];
     ERC(fdsstr, unpack_fdselect(dataspan.subspan(fds->operand[0]), f.char_strings.size()));
@@ -427,45 +466,77 @@ void CFFWriter::create() {
 }
 
 void CFFWriter::append_fdthings() {
-    LocalSubrs localsubs;
     auto source_data = span_of_source(source.original_data).value();
     std::vector<std::vector<std::byte>> fontdicts;
+    std::vector<std::byte> privatedict_buffer; // Stores concatenated private dict/localsubr pairs.
+    std::vector<size_t> privatedict_offsets;   // within the above buffer
+    std::vector<size_t> privatereference_offsets; // where the correct value shall be written
     for(const auto &s : sub) {
+        // Why is this so complicated you ask?
+        // Because the data model is completely wacko.
+        //
+        // Each glyph has a "font" dictionary.
+        // Each of those point to a "private" dictionary.
+        // Each of those point to "local subrs" index
+        // That one is needed for rendering.
+        //
+        // The latter two are not stored in any global
+        // index, they jost float around in the file.
+        // If you don't read every single letter of
+        // the (not particularly great) CFF spec with a
+        // magnifying glass, you can't decipher that
+        // and your subset fonts won't work.
+
         auto source_id = source.get_fontdict_id(s.gid);
-        const auto &source_dict = source.fontdict.at(source_id);
-        const size_t private_id = 1; // FIXME. Got lazy. :(
-        assert(source_dict.entries[private_id].opr == DictOperator::Private);
-        const auto &source_localsubr = source.local_subrs.at(source_id);
-        const auto local_private_dict_size = source_dict.entries[private_id].operand.front();
-        const auto local_private_dict_offset = source_dict.entries[private_id].operand.back();
+        const auto &source_dict = source.fdarray.at(source_id);
 
-        CFFDictWriter w;
-        for(const auto &entry : source_dict.entries) {
-            w.append_command(entry.operand, entry.opr);
+        privatedict_offsets.push_back(privatedict_buffer.size());
+        size_t last_dict_size = -1;
+        if(source_dict.priv) {
+            last_dict_size = write_private_dict(privatedict_buffer, source_dict.priv.value());
         }
-        auto serialization = w.steal();
-        localsubs.data_offsets.push_back(localsubs.data.size());
-        auto localprivate_span =
-            source_data.subspan(local_private_dict_offset, local_private_dict_size);
-        auto local_private_dict = unpack_dictionary(localprivate_span).value();
-        /*
-        if(local_subr_cmd_offset != (size_t)-1) {
-            const auto localsubr_fixup_location = local_subr_cmd_offset + 1;
-            const uint32_t localsubr_fixup_value =
-                serialization.output.size() - local_subr_cmd_offset + localprivate.size();
-            const uint32_t fixup_value_be = std::byteswap(localsubr_fixup_value);
-            memcpy(serialization.output.data() + localsubr_fixup_location,
-                   &fixup_value_be,
-                   sizeof(uint32_t));
+        CFFDictWriter fdarray_dict_writer;
+        for(const auto &entry : source_dict.entries.entries) {
+            fdarray_dict_writer.append_command(entry);
         }
-
-        localsubs.data.insert(localsubs.data.end(), localprivate.begin(), localprivate.end());
-*/
-        append_index_to(localsubs.data, source_localsubr);
+        if(source_dict.priv) {
+            privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
+            CFFDictItem e;
+            e.operand.push_back(last_dict_size);
+            e.operand.push_back(-1); // Offset from the beginning of the file, fixed below.
+            e.opr = DictOperator::Private;
+            fdarray_dict_writer.append_command(e);
+        } else {
+            privatereference_offsets.push_back(-1);
+        }
+        auto serialization = fdarray_dict_writer.steal();
         fontdicts.emplace_back(std::move(serialization.output));
     }
     fixups.fdarray.value = output.size();
-    auto index_offsets = append_index(fontdicts);
+    auto fdarray_index_offsets = append_index(fontdicts);
+    const auto privatedict_area_start = output.size();
+    output.insert(output.end(), privatedict_buffer.begin(), privatedict_buffer.end());
+
+    assert(fdarray_index_offsets.size() == privatereference_offsets.size());
+    assert(fdarray_index_offsets.size() == privatedict_offsets.size());
+    for(size_t i = 0; i < fdarray_index_offsets.size(); ++i) {
+        const auto fdarray_index_offset = fdarray_index_offsets[i];
+        const auto privatereference_offset = privatereference_offsets[i];
+        const auto privatedict_offset = privatedict_offsets[i];
+        const auto write_location = fdarray_index_offset + privatereference_offset;
+        const uint32_t offset_value = privatedict_area_start + privatedict_offset;
+
+        if(privatereference_offset == -1) {
+            continue;
+        }
+        uint32_t sanity_check;
+        memcpy(&sanity_check, output.data() + write_location, sizeof(int32_t));
+        if(sanity_check != -1) {
+            std::abort();
+        }
+        const auto offset_be = std::byteswap(offset_value);
+        memcpy(output.data() + write_location, &offset_be, sizeof(int32_t));
+    }
 
     // Now fdselect
     fixups.fdselect.value = output.size();
@@ -478,30 +549,6 @@ void CFFWriter::append_fdthings() {
     output.push_back(std::byte(0));
     for(uint8_t i = 0; i < sub.size(); ++i) {
         output.push_back(std::byte(i));
-    }
-
-    // Local subrs are stored wherever in unstructured slop.
-    const uint32_t localsub_start = output.size();
-    output.insert(output.end(), localsubs.data.begin(), localsubs.data.end());
-    // Fix offsets.
-    assert(localsubs.data_offsets.size() == index_offsets.size());
-    for(size_t i = 0; i < localsubs.data_offsets.size(); ++i) {
-        const uint32_t fixed_offset = localsub_start + localsubs.data_offsets[i];
-        const uint32_t off_be = std::byteswap(fixed_offset);
-        const auto fix_location = index_offsets[i] + 13; // localsubs.index_offsets[i];
-        /*
-        const auto &original = source.fontdict.at(source.get_fontdict_id(sub[i].gid));
-        const auto original_value = original[1].operand.back();
-        const auto swapped_original = std::byteswap(original_value);
-        auto found = std::search(output.begin(),
-                                 output.end(),
-                                 (std::byte *)&swapped_original,
-                                 (std::byte *)&swapped_original + 4);
-        assert(found != output.end());
-        const auto correct_distance = std::distance(output.begin(), found);
-        assert(correct_distance == fix_location);
-*/
-        memcpy(output.data() + fix_location, &off_be, sizeof(off_be));
     }
 }
 

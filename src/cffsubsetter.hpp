@@ -116,6 +116,26 @@ struct CFFCharsetRange2 {
 
 #pragma pack(pop, r1)
 
+struct DictOutput {
+    std::vector<std::byte> output;
+    std::vector<uint16_t> offsets;
+};
+
+struct LocalSubrs {
+    std::vector<std::byte> data;
+    std::vector<uint32_t> data_offsets;
+};
+
+struct CFFPrivateDict {
+    CFFDict entries; // Without substr entry.
+    std::optional<CFFIndex> subr;
+};
+
+struct CFFFontDict {
+    CFFDict entries; // without private entry
+    std::optional<CFFPrivateDict> priv;
+};
+
 struct CFFont {
     DataSource original_data;
     CFFHeader header;
@@ -127,9 +147,10 @@ struct CFFont {
     CFFIndex char_strings;
     std::vector<CFFCharsetRange2> charsets;
     CFFDict pdict;
-    std::vector<CFFDict> fontdict;
+    std::vector<CFFFontDict> fdarray;
+    //    std::vector<CFFDict> fontdict;
+    //    std::vector<CFFIndex> local_subrs;
     std::vector<CFFSelectRange3> fdselect;
-    std::vector<CFFIndex> local_subrs;
 
     uint16_t get_fontdict_id(uint16_t glyph_id) const;
 };
@@ -154,19 +175,10 @@ struct Fixups {
     OffsetPatch fdarray;
 };
 
-struct DictOutput {
-    std::vector<std::byte> output;
-    std::vector<uint16_t> offsets;
-};
-
-struct LocalSubrs {
-    std::vector<std::byte> data;
-    std::vector<uint32_t> data_offsets;
-};
-
 class CFFDictWriter {
 public:
     void append_command(const std::vector<int32_t> operands, DictOperator op);
+    void append_command(const CFFDictItem &e) { append_command(e.operand, e.opr); };
 
     DictOutput steal() { return std::move(o); }
 
