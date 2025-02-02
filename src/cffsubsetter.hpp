@@ -83,9 +83,19 @@ struct CFFHeader {
     uint8_t offsize;
 };
 
-struct CFFDict {
+struct CFFIndex {
+    std::vector<std::span<std::byte>> entries;
+
+    size_t size() const { return entries.size(); }
+};
+
+struct CFFDictItem {
     std::vector<int32_t> operand;
     DictOperator opr; // "operator" is a reserved word
+};
+
+struct CFFDict {
+    std::vector<CFFDictItem> entries;
 };
 
 #pragma pack(push, r1, 1)
@@ -109,16 +119,17 @@ struct CFFCharsetRange2 {
 struct CFFont {
     DataSource original_data;
     CFFHeader header;
-    std::vector<std::span<std::byte>> name;
-    std::vector<std::span<std::byte>> top_dict_data;
-    std::vector<CFFDict> top_dict;
-    std::vector<std::span<std::byte>> string;
-    std::vector<std::span<std::byte>> global_subr;
-    std::vector<std::span<std::byte>> char_strings;
+    CFFIndex name;
+    CFFIndex top_dict_data;
+    CFFDict top_dict;
+    CFFIndex string;
+    CFFIndex global_subr;
+    CFFIndex char_strings;
     std::vector<CFFCharsetRange2> charsets;
-    std::vector<CFFDict> pdict;
-    std::vector<std::vector<CFFDict>> fontdict;
+    CFFDict pdict;
+    std::vector<CFFDict> fontdict;
     std::vector<CFFSelectRange3> fdselect;
+    std::vector<CFFIndex> local_subrs;
 
     uint16_t get_fontdict_id(uint16_t glyph_id) const;
 };
@@ -148,11 +159,18 @@ struct DictOutput {
     std::vector<uint16_t> offsets;
 };
 
+struct LocalSubrs {
+    std::vector<std::byte> data;
+    std::vector<uint32_t> data_offsets;
+};
+
 class CFFDictWriter {
 public:
     void append_command(const std::vector<int32_t> operands, DictOperator op);
 
     DictOutput steal() { return std::move(o); }
+
+    size_t current_size() const { return o.output.size(); }
 
 private:
     DictOutput o;
@@ -167,7 +185,7 @@ public:
     std::vector<std::byte> steal() { return std::move(output); }
 
 private:
-    std::vector<uint32_t> append_index(const std::vector<std::span<std::byte>> &entries);
+    std::vector<uint32_t> append_index(const CFFIndex &entries);
     std::vector<uint32_t> append_index(const std::vector<std::vector<std::byte>> &entries);
     void append_charset();
     void append_charstrings();
