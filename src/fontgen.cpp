@@ -16,10 +16,12 @@ void center_test() {
     opts.default_page_properties.mediabox->y2 = 200;
     GenPopper genpop("centering.pdf", opts);
     PdfGen &gen = *genpop.g;
-    auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf").value();
-    auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf").value();
+    FontProperties fprops;
+    auto f1 = gen.load_font("/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf", fprops).value();
+    auto f2 = gen.load_font("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf", fprops).value();
     auto f3 =
-        gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf").value();
+        gen.load_font("/usr/share/fonts/truetype/gentiumplus/GentiumBookPlus-Regular.ttf", fprops)
+            .value();
     auto ctxpop = gen.guarded_page_context();
     auto &ctx = ctxpop.ctx;
     ctx.cmd_w(1.0);
@@ -63,8 +65,9 @@ int test1(int argc, char **argv) {
     opts.title = u8string::from_cstr("Over 255 letters").value();
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = *genpop.g;
-    auto regular_fid = gen.load_font(regularfont).value();
-    auto italic_fid = gen.load_font(italicfont).value();
+    FontProperties fprops;
+    auto regular_fid = gen.load_font(regularfont, fprops).value();
+    auto italic_fid = gen.load_font(italicfont, fprops).value();
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.set_nonstroke_color(DeviceGrayColor{0.0});
@@ -234,7 +237,8 @@ int test2(int argc, char **argv) {
     opts.title = u8string::from_cstr("Ligaturing").value();
     GenPopper genpop("ligaturetest.pdf", opts);
     PdfGen &gen = *genpop.g;
-    auto regular_fid = gen.load_font(regularfont).value();
+    FontProperties fprops;
+    auto regular_fid = gen.load_font(regularfont, fprops).value();
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     {

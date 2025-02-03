@@ -607,6 +607,15 @@ struct Destination {
 
 typedef std::unordered_map<asciistring, asciistring> BDCTags;
 
+struct FontProperties {
+    uint16_t subfont = 0;
+    // Add other font properties here like:
+    //
+    // - OpenType alternatives to use
+    // - Vertical or Horizontal writing
+    // - Other CID metadata at al
+};
+
 } // namespace capypdf::internal
 
 template<> struct std::hash<capypdf::internal::asciistring> {

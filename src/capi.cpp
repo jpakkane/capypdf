@@ -487,15 +487,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    const char *fname,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    uint64_t subfont = 0;
-    if(subfont >= (1 << 16)) {
-        // Freetype uses only the 16 low bits to select subfonts.
-        // The higher bits do other selection thingys that are not
-        // supported yet.
-        return conv_err(ErrorCode::InvalidSubfont);
-    }
+    FontProperties fprops;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->load_font(fname, subfont);
+    auto rc = g->load_font(fname, fprops);
     if(rc) {
         *out_ptr = rc.value();
     }

@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
         }
     } else if(ext == ".ttc") {
         // /usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc
-        auto cff = capypdf::internal::load_and_parse_font_file(fontfile, 0).value();
+        capypdf::internal::FontProperties fprops;
+        auto cff = capypdf::internal::load_and_parse_font_file(fontfile, fprops).value();
         if(auto *plaincff = std::get_if<capypdf::internal::CFFont>(&cff)) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }

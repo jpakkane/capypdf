@@ -153,7 +153,8 @@ void hardcoded() {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    auto pdffont = gen.load_font(fontfile).value();
+    FontProperties fprops;
+    auto pdffont = gen.load_font(fontfile, fprops).value();
     TextSequence ts;
     ts.append_unicode('A');
     ctx.translate(10, 100);
@@ -178,7 +179,8 @@ void hardcoded2() {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    auto pdffont = gen.load_font(fontfile).value();
+    FontProperties fprops;
+    auto pdffont = gen.load_font(fontfile, fprops).value();
     TextSequence ts;
     CHCK(ts.append_raw_glyph(54, 'S'));
     CHCK(ts.append_raw_glyph(2200, 'm'));
@@ -207,7 +209,8 @@ void whole_shebang() {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
 
-    auto pdffont = gen.load_font(fontfile).value();
+    FontProperties fprops;
+    auto pdffont = gen.load_font(fontfile, fprops).value();
     ctx.render_text(u8string::from_cstr(sampletext).value(), pdffont, ptsize, 10, 110);
     do_harfbuzz(ctx, pdffont);
 }

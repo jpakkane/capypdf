@@ -45,8 +45,9 @@ public:
 
     rvoe<RasterImage> load_image(const std::filesystem::path &fname);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef) { return pdoc.embed_file(ef); }
-    rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname, uint16_t subfont = 0) {
-        return pdoc.load_font(ft.get(), fname, subfont);
+    rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname,
+                                   const FontProperties &props) {
+        return pdoc.load_font(ft.get(), fname, props);
     };
 
     rvoe<RawPixelImage> convert_image_to_cs(RawPixelImage image,

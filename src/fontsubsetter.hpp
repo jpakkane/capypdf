@@ -33,7 +33,7 @@ struct FontSubsetData {
 class FontSubsetter {
 public:
     static rvoe<FontSubsetter>
-    construct(const std::filesystem::path &fontfile, FT_Face face, uint16_t subfont);
+    construct(const std::filesystem::path &fontfile, FT_Face face, const FontProperties &props);
 
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, std::vector<FontSubsetData> subsets)
         : ttfile{std::move(ttfile)}, face{face}, subsets{subsets} {}

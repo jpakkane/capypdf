@@ -1873,12 +1873,12 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 }
 
 rvoe<CapyPDF_FontId>
-PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, uint16_t subfont) {
+PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontProperties props) {
     FT_Face face;
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 fname,
                 {}};
-    auto error = FT_New_Face(ft, fname.string().c_str(), subfont, &face);
+    auto error = FT_New_Face(ft, fname.string().c_str(), props.subfont, &face);
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!
@@ -1889,7 +1889,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, uint16
     if(!font_format) {
         RETERR(UnsupportedFormat);
     }
-    ERC(fontdata, load_and_parse_font_file(fname, subfont));
+    ERC(fontdata, load_and_parse_font_file(fname, props));
     assert(std::holds_alternative<TrueTypeFontFile>(fontdata));
     ttf.fontdata = std::move(std::get<TrueTypeFontFile>(fontdata));
 
@@ -1917,7 +1917,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, uint16
         RETERR(UnsupportedFormat);
     }
     auto font_source_id = fonts.size();
-    ERC(fss, FontSubsetter::construct(fname, face, subfont));
+    ERC(fss, FontSubsetter::construct(fname, face, props));
     fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
 
     const int32_t subset_num = 0;
