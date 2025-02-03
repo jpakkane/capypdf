@@ -27,11 +27,11 @@ int main(int argc, char **argv) {
         if(auto *plaincff = std::get_if<capypdf::internal::CFFont>(&cff)) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }
-        if(auto *ttc = std::get_if<capypdf::internal::TrueTypeCollection>(&cff)) {
+        if(auto *ttc = std::get_if<capypdf::internal::TrueTypeFontFile>(&cff)) {
             std::vector<capypdf::internal::SubsetGlyphs> glyphs;
             glyphs.emplace_back(0, 0);
             glyphs.emplace_back(1024, 1024);
-            capypdf::internal::CFFWriter wr(ttc->entries[0].cff.value(), glyphs);
+            capypdf::internal::CFFWriter wr(ttc->cff.value(), glyphs);
             wr.create();
             auto sfont = wr.steal();
             capypdf::internal::parse_cff_data(sfont).value();

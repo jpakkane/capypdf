@@ -882,22 +882,17 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
 
 } // namespace
 
-rvoe<TrueTypeCollection> parse_ttc_file(DataSource backing, const FontProperties &props) {
-    TrueTypeCollection ttc;
-    ttc.original_data = std::move(backing);
-    ERC(original_data, span_of_source(ttc.original_data));
+rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing, const FontProperties &props) {
+    ERC(original_data, span_of_source(backing));
     ERC(header, extract<TTCHeader>(original_data, 0));
     header.swap_endian();
     std::vector<uint32_t> offsets;
     offsets.reserve(header.num_fonts);
-    ttc.entries.reserve(header.num_fonts);
     for(uint32_t i = 0; i < header.num_fonts; ++i) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
         offsets.push_back(std::byteswap(off));
     }
-    ERC(ttf, parse_truetype_file(original_data, offsets.at(props.subfont)));
-    ttc.entries.emplace_back(std::move(ttf));
-    return ttc;
+    return parse_truetype_file(std::move(backing), offsets.at(props.subfont));
 }
 
 rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) {

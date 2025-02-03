@@ -195,6 +195,14 @@ struct TrueTypeFontFile {
     std::vector<std::byte> prep;
     std::vector<std::byte> cmap;
 
+    bool use_16bit_glyph_ids() const { return cff.has_value(); }
+
+    // Currently always the same as above,
+    // tht that method goes away when we
+    // standardize on CIDfonts even for
+    // Truetype fonts.
+    bool in_cff_format() const { return cff.has_value(); }
+
     int num_directory_entries() const {
         int entries = 6;
         if(!cmap.empty()) {
@@ -218,7 +226,8 @@ struct TrueTypeCollection {
     std::vector<TrueTypeFontFile> entries;
 };
 
-typedef std::variant<TrueTypeFontFile, TrueTypeCollection, CFFont> FontData;
+// In case of TTC, only return the requested subfont.
+typedef std::variant<TrueTypeFontFile, CFFont> FontData;
 
 rvoe<bool> is_composite_glyph(std::span<const std::byte> buf);
 rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
