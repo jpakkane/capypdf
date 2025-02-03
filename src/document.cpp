@@ -1120,7 +1120,7 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
     fmt.add_token_pair("/BaseFont", font_names[font]);
     fmt.end_dict();
     font_objects.push_back(
-        FontInfo{-1, -1, add_object(FullPDFObject{fmt.steal(), {}}), size_t(-1)});
+        FontPDFObjects{-1, -1, add_object(FullPDFObject{fmt.steal(), {}}), {}, size_t(-1)});
     auto fontid = CapyPDF_FontId{(int32_t)font_objects.size() - 1};
     builtin_fonts[font] = fontid;
     return fontid;
@@ -1136,7 +1136,8 @@ bool PdfDocument::font_has_character(CapyPDF_FontId fid, uint32_t codepoint) {
 }
 
 bool PdfDocument::font_has_character(FT_Face face, uint32_t codepoint) {
-    return FT_Get_Char_Index(face, codepoint) != 0;
+    auto glyphid = glyph_for_codepoint(face, codepoint);
+    return glyphid != 0;
 }
 
 rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
@@ -1893,10 +1894,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
     assert(std::holds_alternative<TrueTypeFontFile>(fontdata));
     ttf.fontdata = std::move(std::get<TrueTypeFontFile>(fontdata));
 
-    if(strcmp(font_format,
-              "TrueType")) { // != 0 &&
-                             // strcmp(font_format,
-                             // "CFF") != 0) {
+    if(!(strcmp(font_format, "TrueType") || strcmp(font_format, "CFF"))) {
         fprintf(stderr,
                 "Only TrueType fonts are supported. %s "
                 "is a %s font.",
@@ -1916,23 +1914,23 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
                 error);
         RETERR(UnsupportedFormat);
     }
-    auto font_source_id = fonts.size();
+    CapyPDF_FontId font_source_id{(int32_t)fonts.size()};
     ERC(fss, FontSubsetter::construct(fname, face, props));
     fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
 
     const int32_t subset_num = 0;
-    auto subfont_data_obj =
-        add_object(DelayedSubsetFontData{CapyPDF_FontId{(int32_t)font_source_id}, subset_num});
-    auto subfont_descriptor_obj = add_object(DelayedSubsetFontDescriptor{
-        CapyPDF_FontId{(int32_t)font_source_id}, subfont_data_obj, subset_num});
-    auto subfont_cmap_obj =
-        add_object(DelayedSubsetCMap{CapyPDF_FontId{(int32_t)font_source_id}, subset_num});
-    auto subfont_obj = add_object(DelayedSubsetFont{
-        CapyPDF_FontId{(int32_t)font_source_id}, subfont_descriptor_obj, subfont_cmap_obj});
-    (void)subfont_obj;
+    auto subfont_data_obj = add_object(DelayedSubsetFontData{font_source_id, subset_num});
+    auto subfont_descriptor_obj =
+        add_object(DelayedSubsetFontDescriptor{font_source_id, subfont_data_obj, subset_num});
+    auto subfont_cmap_obj = add_object(DelayedSubsetCMap{font_source_id, subset_num});
+    auto subfont_obj = add_object(DelayedSubsetFont{font_source_id, subfont_descriptor_obj});
+    std::optional<int32_t> cid_dict_obj;
+    if(ttf.fontdata.in_cff_format()) {
+        cid_dict_obj = add_object(DelayedCIDDictionary{font_source_id, subfont_descriptor_obj});
+    }
     CapyPDF_FontId fid{(int32_t)fonts.size() - 1};
-    font_objects.push_back(
-        FontInfo{subfont_data_obj, subfont_descriptor_obj, subfont_obj, fonts.size() - 1});
+    font_objects.push_back(FontPDFObjects{
+        subfont_data_obj, subfont_descriptor_obj, subfont_obj, cid_dict_obj, fonts.size() - 1});
     return fid;
 }
 

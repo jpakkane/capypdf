@@ -916,9 +916,9 @@ generate_font(std::span<const std::byte> buf,
 }
 
 rvoe<std::vector<std::byte>>
-generate_font(const TrueTypeFontFile &source,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+generate_truetype_font(const TrueTypeFontFile &source,
+                       const std::vector<TTGlyphs> &glyphs,
+                       const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
@@ -939,6 +939,37 @@ generate_font(const TrueTypeFontFile &source,
 
     auto bytes = serialize_font(dest, subglyphs);
     return bytes;
+}
+
+rvoe<std::vector<std::byte>>
+generate_cff_font(const TrueTypeFontFile &source,
+                  const std::vector<TTGlyphs> &glyphs,
+                  const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+    const auto &source_data = source.cff.value();
+    std::vector<SubsetGlyphs> converted;
+    converted.reserve(glyphs.size());
+    for(const auto &g : glyphs) {
+        const auto &tmp = std::get<RegularGlyph>(g);
+        if(tmp.unicode_codepoint == 0) {
+            converted.emplace_back(0, 0);
+        } else {
+            converted.emplace_back(tmp.unicode_codepoint, tmp.glyph_index);
+        }
+    }
+    CFFWriter w(source_data, converted);
+    w.create();
+    return w.steal();
+}
+
+rvoe<std::vector<std::byte>>
+generate_font(const TrueTypeFontFile &source,
+              const std::vector<TTGlyphs> &glyphs,
+              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+    if(source.in_cff_format()) {
+        return generate_cff_font(source, glyphs, comp_mapping);
+    } else {
+        return generate_truetype_font(source, glyphs, comp_mapping);
+    }
 }
 
 rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname,

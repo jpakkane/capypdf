@@ -270,6 +270,23 @@ class TestPDFCreation(unittest.TestCase):
                 t.cmd_TJ(ks)
                 ctx.render_text_obj(t)
 
+    @validate_image('python_cjk', 200, 200)
+    def test_cjk(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            cjkfont = noto_cjk_fontdir / 'NotoSerifCJK-Bold.ttc'
+            self.assertTrue(cjkfont.is_file())
+            fid = g.load_font(cjkfont)
+            with g.page_draw_context() as ctx:
+                ctx.render_text('大刀', fid, 50, 50, 75)
+                ctx.cmd_re(35, 55, 130, 75)
+                ctx.cmd_w(5)
+                ctx.cmd_j(capypdf.LineJoinStyle.Round)
+                ctx.cmd_S()
+
 
     @validate_image('python_shaping', 200, 200)
     def test_shaping(self, ofilename, w, h):

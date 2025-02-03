@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     capypdf::PageProperties pp;
     pp.set_pagebox(CAPY_BOX_MEDIA, 0, 0, 200, 200);
     dp.set_default_page_properties(pp);
-    dp.set_title("Image generator test");
+    dp.set_title("Image testing tool");
     capypdf::Generator gen(argv[2], dp);
     auto image = gen.load_image(argv[1]);
     auto imageid = gen.add_image(image, capypdf::ImagePdfProperties{});

@@ -117,6 +117,9 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
 }
 
 rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
+    if(ttfile.in_cff_format()) {
+        RETOK;
+    }
     if(glyph_index == 0 || glyph_index >= ttfile.glyphs.size()) {
         RETERR(MissingGlyph);
     }

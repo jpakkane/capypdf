@@ -153,7 +153,8 @@ end
     return buf;
 }
 
-rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs) {
+rvoe<std::string>
+build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool is_cff = false) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
@@ -167,10 +168,15 @@ rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGly
             }
             horiadvance = face->glyph->metrics.horiAdvance;
         }
-        // I don't know if this is correct or not, but it worked with all fonts I had.
+        // I don't know if these are correct or not.
+        // They produce the correct results with all fonts I had.
         //
         // Determined via debugging empirism.
-        std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
+        if(is_cff) {
+            std::format_to(bi, "{} ", face->units_per_EM);
+        } else {
+            std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
+        }
     }
     arr += "]";
     return arr;
@@ -336,6 +342,11 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
             RETOK;
         },
 
+        [&](const DelayedCIDDictionary &ciddict) -> rvoe<NoReturnValue> {
+            ERCV(write_cid_dict(i, ciddict.fid, ciddict.subfont_descriptor_obj));
+            RETOK;
+        },
+
         [&](const DelayedPages &) -> rvoe<NoReturnValue> {
             ERCV(write_pages_root());
             RETOK;
@@ -452,45 +463,65 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
-    ERC(width_arr, build_subset_width_array(face, subset_glyphs));
     const bool is_cff = font.fontdata.fontdata.in_cff_format();
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
-    fmt.add_token_pair("/Subtype", is_cff ? "/CIDFontType0" : "/TrueType");
+    fmt.add_token_pair("/Subtype", is_cff ? "/Type0" : "/TrueType");
     fmt.add_token("/BaseFont");
     fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
     if(is_cff) {
-        fmt.add_token("/CIDSystemInfo");
-        fmt.begin_dict();
-        fmt.add_token_pair("/Registry", "(Adobe)");
-        fmt.add_token_pair("/Ordering", "(Identity)");
-        fmt.add_token_pair("/Supplement", "0");
-        fmt.end_dict();
-        fmt.add_token("/W");
-        {
-            fmt.begin_array();
-            fmt.add_token("0");
-            {
-                fmt.begin_array();
-                for(const auto w : width_arr) {
-                    fmt.add_token(w);
-                }
-                fmt.end_array();
-            }
-            fmt.end_array();
-        }
+        const int32_t ciddict_obj = object_num + 1; // FIXME
+        fmt.add_token_pair("/Encoding", "/Identity-H");
+        fmt.add_token("/DescendantFonts");
+        fmt.begin_array();
+        fmt.add_object_ref(ciddict_obj);
+        fmt.end_array();
     } else {
+        ERC(width_arr, build_subset_width_array(face, subset_glyphs));
         fmt.add_token_pair("/FirstChar", start_char);
         fmt.add_token_pair("/LastChar", end_char);
         fmt.add_token_pair("/Widths", width_arr);
+        fmt.add_token("/FontDescriptor");
+        fmt.add_object_ref(font_descriptor_obj);
     }
-    fmt.add_token("/FontDescriptor");
-    fmt.add_object_ref(font_descriptor_obj);
     fmt.add_token("/ToUnicode");
     fmt.add_object_ref(tounicode_obj);
     fmt.end_dict();
 
+    ERCV(write_finished_object(object_num, fmt.steal(), {}));
+    RETOK;
+}
+
+rvoe<NoReturnValue>
+PdfWriter::write_cid_dict(int32_t object_num, CapyPDF_FontId fid, int32_t font_descriptor_obj) {
+    int32_t subset = 0; // FIXME
+    const auto &font = doc.fonts.at(fid.id);
+    auto face = font.fontdata.face.get();
+    ERC(width_arr, build_subset_width_array(face, font.subsets.get_subset(subset), true));
+    assert(font.fontdata.fontdata.in_cff_format());
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Font");
+    fmt.add_token_pair("/Subtype", "/CIDFontType0");
+    fmt.add_token("/BaseFont");
+    fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
+    fmt.add_token("/CIDSystemInfo");
+    fmt.begin_dict();
+    fmt.add_token_pair("/Registry", "(Adobe)");
+    fmt.add_token_pair("/Ordering", "(Identity)");
+    fmt.add_token_pair("/Supplement", "0");
+    fmt.end_dict();
+    fmt.add_token("/FontDescriptor");
+    fmt.add_object_ref(font_descriptor_obj);
+    fmt.add_token("/W");
+    {
+        fmt.begin_array();
+        fmt.add_token("0");
+        fmt.add_token(width_arr);
+        fmt.end_array();
+    }
+    fmt.end_dict();
     ERCV(write_finished_object(object_num, fmt.steal(), {}));
     RETOK;
 }

@@ -63,10 +63,11 @@ struct FormXObjectInfo {
     int32_t xobj_num;
 };
 
-struct FontInfo {
+struct FontPDFObjects {
     int32_t font_file_obj;
     int32_t font_descriptor_obj;
     int32_t font_obj;
+    std::optional<int32_t> cid_dictionary_obj;
     size_t font_index_tmp;
 };
 
@@ -143,6 +144,11 @@ struct DelayedSubsetFont {
     CapyPDF_FontId fid;
     int32_t subfont_descriptor_obj;
     int32_t subfont_cmap_obj;
+};
+
+struct DelayedCIDDictionary {
+    CapyPDF_FontId fid;
+    int32_t subfont_descriptor_obj;
 };
 
 struct DelayedPages {};
@@ -327,6 +333,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedSubsetFontDescriptor,
                      DelayedSubsetCMap,
                      DelayedSubsetFont,
+                     DelayedCIDDictionary,
                      DelayedPages,
                      DelayedPage,
                      DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
@@ -523,8 +530,8 @@ private:
     }
     ImageInfo &get(CapyPDF_ImageId id) { return image_info.at(id.id); }
     const ImageInfo &get(CapyPDF_ImageId id) const { return image_info.at(id.id); }
-    FontInfo &get(CapyPDF_FontId id) { return font_objects.at(id.id); }
-    const FontInfo &get(CapyPDF_FontId id) const { return font_objects.at(id.id); }
+    FontPDFObjects &get(CapyPDF_FontId id) { return font_objects.at(id.id); }
+    const FontPDFObjects &get(CapyPDF_FontId id) const { return font_objects.at(id.id); }
 
     DocumentProperties docprops;
     PdfColorConverter cm;
@@ -533,7 +540,7 @@ private:
     std::vector<PageLabel> page_labels;
     std::vector<ImageInfo> image_info;
     std::unordered_map<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
-    std::vector<FontInfo> font_objects;
+    std::vector<FontPDFObjects> font_objects;
     std::vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
     OutlineData outlines;

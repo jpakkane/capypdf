@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     capypdf::PageProperties pp;
     pp.set_pagebox(CAPY_BOX_MEDIA, 0, 0, 200, 200);
     dp.set_default_page_properties(pp);
-    dp.set_title("Image generator test");
+    dp.set_title("Text testing tool");
     capypdf::Generator gen(argv[2], dp);
     auto fontid = gen.load_font(argv[1]);
     auto ctx = gen.new_page_context();
