@@ -6,6 +6,7 @@
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 #include <span>
