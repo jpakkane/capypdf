@@ -284,6 +284,8 @@ private:
 
     rvoe<int32_t> add_bcd_structure(CapyPDF_StructureItemId sid);
 
+    rvoe<NoReturnValue> validate_text_contents(const PdfText &text);
+
     PdfDocument *doc;
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;

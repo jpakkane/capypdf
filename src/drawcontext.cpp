@@ -947,6 +947,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     if(textobj.creator() != this) {
         RETERR(WrongDrawContext);
     }
+    ERCV(validate_text_contents(textobj));
     std::string serialisation{ind + "BT\n"};
     ERCV(indent(DrawStateType::Text));
     std::back_insert_iterator<std::string> app = std::back_inserter(serialisation);
@@ -1097,6 +1098,36 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     serialisation += ind;
     serialisation += "ET\n";
     commands += serialisation;
+    RETOK;
+}
+
+rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) {
+    std::optional<CapyPDF_FontId> font;
+    for(const auto &e : text.get_events()) {
+        if(const auto *Tf = std::get_if<Tf_arg>(&e)) {
+            font = Tf->font;
+        } else if(const auto *text_arg = std::get_if<Text_arg>(&e)) {
+            if(!font) {
+                RETERR(FontNotSpecified);
+                for(const auto &codepoint : text_arg->text) {
+                    if(!doc->font_has_character(font.value(), codepoint)) {
+                        RETERR(MissingGlyph);
+                    }
+                }
+            }
+        } else if(const auto *TJ = std::get_if<TJ_arg>(&e)) {
+            if(!font) {
+                RETERR(FontNotSpecified);
+            }
+            for(const auto &te : TJ->elements) {
+                if(const auto *unicode = std::get_if<UnicodeCharacter>(&te)) {
+                    if(!doc->font_has_character(font.value(), unicode->codepoint)) {
+                        RETERR(MissingGlyph);
+                    }
+                }
+            }
+        }
+    }
     RETOK;
 }
 
