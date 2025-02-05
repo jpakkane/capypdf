@@ -310,7 +310,7 @@ cfunc_types = (
 ('capy_generator_convert_image', [ctypes.c_void_p, ctypes.c_void_p, enum_type, enum_type, ctypes.c_void_p]),
 ('capy_generator_load_icc_profile', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_generator_add_lab_colorspace', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
-('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p]),
+('capy_generator_load_font', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_image', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_function', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_shading', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
@@ -562,7 +562,11 @@ cfunc_types = (
 
 ('capy_embedded_file_new', [ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_embedded_file_set_subtype', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
-('capy_embedded_file_destroy', [ctypes.c_void_p],)
+('capy_embedded_file_destroy', [ctypes.c_void_p]),
+
+('capy_font_properties_new', [ctypes.c_void_p]),
+('capy_font_properties_set_subfont', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_font_properties_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1088,9 +1092,12 @@ class Generator:
         check_error(libfile.capy_generator_embed_file(self, efile, ctypes.pointer(fid)))
         return fid
 
-    def load_font(self, fname):
+    def load_font(self, fname, fontprops=None):
         fid = FontId()
-        check_error(libfile.capy_generator_load_font(self, to_bytepath(fname), ctypes.pointer(fid)))
+        if fontprops is not None:
+            if not isinstance(fontprops, FontProperties):
+                raise CapyPDFException('Property argument is not a Font Properties object.')
+        check_error(libfile.capy_generator_load_font(self, to_bytepath(fname), fontprops, ctypes.pointer(fid)))
         return fid
 
     def load_icc_profile(self, fname):
@@ -1845,3 +1852,15 @@ class EmbeddedFile:
 
     def __del__(self):
         check_error(libfile.capy_embedded_file_destroy(self))
+
+class FontProperties:
+    def __init__(self, path):
+        o = ctypes.c_void_p()
+        check_error(libfile.capy_font_properties_new(fbytes, ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def set_subfont(self, subfont):
+        check_error(libfile.capy_font_properties_set_subfont(self, subfont))
+
+    def __del__(self):
+        check_error(libfile.capy_font_properties_destroy(self))

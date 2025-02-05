@@ -79,6 +79,8 @@ struct CapyCTypeDeleter {
             rc = capy_generator_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_BDCTags>) {
             rc = capy_bdc_tags_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_FontProperties>) {
+            rc = capy_font_properties_destroy(cobj);
         } else {
             static_assert(std::is_same_v<T, CapyPDF_DocumentProperties>, "Unknown C object type.");
         }
@@ -227,6 +229,21 @@ public:
     }
 };
 static_assert(sizeof(DocumentProperties) == sizeof(void *));
+
+class FontProperties : public CapyC<CapyPDF_FontProperties> {
+public:
+    friend class Generator;
+
+    FontProperties() {
+        CapyPDF_FontProperties *fp;
+        CAPY_CPP_CHECK(capy_font_properties_new(&fp));
+        _d.reset(fp);
+    }
+
+    void set_subfont(int32_t subfont) {
+        CAPY_CPP_CHECK(capy_font_properties_set_subfont(*this, subfont));
+    }
+};
 
 class TextSequence : public CapyC<CapyPDF_TextSequence> {
     friend class Text;
@@ -769,7 +786,13 @@ public:
 
     CapyPDF_FontId load_font(const char *fname) {
         CapyPDF_FontId fid;
-        CAPY_CPP_CHECK(capy_generator_load_font(*this, fname, &fid));
+        CAPY_CPP_CHECK(capy_generator_load_font(*this, fname, nullptr, &fid));
+        return fid;
+    }
+
+    CapyPDF_FontId load_font(const char *fname, FontProperties &fprop) {
+        CapyPDF_FontId fid;
+        CAPY_CPP_CHECK(capy_generator_load_font(*this, fname, fprop, &fid));
         return fid;
     }
 
