@@ -168,6 +168,31 @@ struct StructureItem {
     CapyPDF_StructureItemId sid;
 };
 
+struct M_arg {
+    double miterlimit;
+};
+
+struct w_arg {
+    double width;
+};
+
+struct j_arg {
+    CapyPDF_Line_Join join_style;
+};
+
+struct J_arg {
+    CapyPDF_Line_Cap cap_style;
+};
+
+struct d_arg {
+    std::vector<double> array;
+    double phase;
+};
+
+struct gs_arg {
+    CapyPDF_GraphicsStateId gid;
+};
+
 typedef std::variant<TStar_arg,
                      Tc_arg,
                      Td_arg,
@@ -184,7 +209,13 @@ typedef std::variant<TStar_arg,
                      StructureItem,
                      Emc_arg,
                      Stroke_arg,
-                     Nonstroke_arg>
+                     Nonstroke_arg,
+                     M_arg,
+                     w_arg,
+                     j_arg,
+                     J_arg,
+                     d_arg,
+                     gs_arg>
     TextEvent;
 
 class PdfText {
@@ -279,6 +310,33 @@ public:
 
     rvoe<NoReturnValue> nonstroke_color(const Color &c) {
         events.emplace_back(Nonstroke_arg{c});
+        RETOK;
+    }
+
+    rvoe<NoReturnValue> cmd_w(double line_width) {
+        events.emplace_back(w_arg{line_width});
+        RETOK;
+    }
+    rvoe<NoReturnValue> cmd_M(double miterlimit) {
+        events.emplace_back(M_arg{miterlimit});
+        RETOK;
+    }
+    rvoe<NoReturnValue> cmd_j(CapyPDF_Line_Join join_style) {
+        events.emplace_back(j_arg{join_style});
+        RETOK;
+    }
+    rvoe<NoReturnValue> cmd_J(CapyPDF_Line_Cap cap_style) {
+        events.emplace_back(J_arg{cap_style});
+        RETOK;
+    }
+    rvoe<NoReturnValue> cmd_d(double *dash_array, int32_t array_size, double phase) {
+        std::vector<double> array;
+        array.assign(dash_array, dash_array + array_size);
+        events.emplace_back(d_arg{std::move(array), phase});
+        RETOK;
+    }
+    rvoe<NoReturnValue> cmd_gs(CapyPDF_GraphicsStateId gsid) {
+        events.emplace_back(gs_arg{gsid});
         RETOK;
     }
 

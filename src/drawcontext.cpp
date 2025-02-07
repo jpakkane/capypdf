@@ -1069,6 +1069,22 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 ERCV(serialize_G(app, ind, gray->v));
             } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&sarg.c)) {
                 ERCV(serialize_K(app, ind, cmyk->c, cmyk->m, cmyk->y, cmyk->k));
+            } else if(auto icc = std::get_if<ICCColor>(&sarg.c)) {
+                CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
+                const auto &icc_info = doc->get(icc->id);
+                if(icc_info.num_channels != (int32_t)icc->values.size()) {
+                    RETERR(IncorrectColorChannelCount);
+                }
+                used_colorspaces.insert(icc_info.object_num);
+                std::format_to(app, "{}/CSpace{} CS\n", ind, icc_info.object_num);
+                for(const auto &i : icc->values) {
+                    std::format_to(app, "{:f} ", i);
+                }
+                std::format_to(app, "{}\n", "SCN");
+            } else if(auto id = std::get_if<CapyPDF_PatternId>(&sarg.c)) {
+                used_patterns.insert(id->id);
+                std::format_to(app, "{}/Pattern CS\n", ind);
+                std::format_to(app, "{}/Pattern-{} SCN\n", ind, id->id);
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
@@ -1083,12 +1099,71 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 ERCV(serialize_g(app, ind, gray->v));
             } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&nsarg.c)) {
                 ERCV(serialize_k(app, ind, cmyk->c, cmyk->m, cmyk->y, cmyk->k));
+            } else if(auto icc = std::get_if<ICCColor>(&nsarg.c)) {
+                CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
+                const auto &icc_info = doc->get(icc->id);
+                if(icc_info.num_channels != (int32_t)icc->values.size()) {
+                    RETERR(IncorrectColorChannelCount);
+                }
+                used_colorspaces.insert(icc_info.object_num);
+                std::format_to(app, "{}/CSpace{} cs\n", ind, icc_info.object_num);
+                for(const auto &i : icc->values) {
+                    std::format_to(app, "{:f} ", i);
+                }
+                std::format_to(app, "{}\n", "scn");
+            } else if(auto id = std::get_if<CapyPDF_PatternId>(&nsarg.c)) {
+                used_patterns.insert(id->id);
+                std::format_to(app, "{}/Pattern cs\n", ind);
+                std::format_to(app, "{}/Pattern-{} scn\n", ind, id->id);
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
             RETOK;
         },
+
+        [&](const w_arg &w) -> rvoe<NoReturnValue> {
+            std::format_to(app, "{}{:f} w\n", ind, w.width);
+            RETOK;
+        },
+        [&](const M_arg &M) -> rvoe<NoReturnValue> {
+            std::format_to(app, "{}{:f} M\n", ind, M.miterlimit);
+            RETOK;
+        },
+        [&](const j_arg &j) -> rvoe<NoReturnValue> {
+            CHECK_ENUM(j.join_style, CAPY_LJ_BEVEL);
+            std::format_to(app, "{}{} j\n", ind, (int)j.join_style);
+            RETOK;
+        },
+        [&](const J_arg &J) -> rvoe<NoReturnValue> {
+            CHECK_ENUM(J.cap_style, CAPY_LC_PROJECTION);
+            std::format_to(app, "{}{} J\n", ind, (int)J.cap_style);
+            RETOK;
+        },
+        [&](const d_arg &dash) -> rvoe<NoReturnValue> {
+            if(dash.array.size() == 0) {
+                RETERR(ZeroLengthArray);
+            }
+            for(auto val : dash.array) {
+                if(val < 0) {
+                    RETERR(NegativeDash);
+                }
+            }
+            serialisation += ind;
+            serialisation += "[ ";
+            for(auto val : dash.array) {
+                std::format_to(app, "{:f} ", val);
+            }
+            std::format_to(app, " ] {} d\n", dash.phase);
+            RETOK;
+        },
+        [&](const gs_arg &gs) -> rvoe<NoReturnValue> {
+            CHECK_INDEXNESS(gs.gid.id, doc->document_objects);
+            used_gstates.insert(gs.gid.id);
+            std::format_to(app, "{}/GS{} gs\n", ind, gs.gid.id);
+            RETOK;
+        },
+
     };
 
     for(const auto &e : textobj.get_events()) {

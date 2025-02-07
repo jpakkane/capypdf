@@ -1462,6 +1462,49 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_w(CapyPDF_Text *text, double line_width) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_w(line_width));
+    API_BOUNDARY_END;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_M(CapyPDF_Text *text, double miterlimit) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_M(miterlimit));
+    API_BOUNDARY_END;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_j(CapyPDF_Text *text,
+                                          CapyPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_j(join_style));
+    API_BOUNDARY_END;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_J(CapyPDF_Text *text,
+                                          CapyPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_J(cap_style));
+    API_BOUNDARY_END;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_d(CapyPDF_Text *text,
+                                          double *dash_array,
+                                          int32_t array_size,
+                                          double phase) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_d(dash_array, array_size, phase));
+    API_BOUNDARY_END;
+}
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_gs(CapyPDF_Text *text,
+                                           CapyPDF_GraphicsStateId gsid) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *t = reinterpret_cast<PdfText *>(text);
+    return conv_err(t->cmd_gs(gsid));
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_BDC_builtin(CapyPDF_Text *text,
                                                     CapyPDF_StructureItemId stid) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;

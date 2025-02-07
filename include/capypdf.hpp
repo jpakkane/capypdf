@@ -245,6 +245,35 @@ public:
     }
 };
 
+class Color : public CapyC<CapyPDF_Color> {
+public:
+    friend class DrawContext;
+    friend class Text;
+    friend class Type2Function;
+    friend class Type4Shading;
+    friend class Type6Shading;
+
+    Color() {
+        CapyPDF_Color *c;
+        CAPY_CPP_CHECK(capy_color_new(&c));
+        _d.reset(c);
+    }
+
+    void set_rgb(double r, double g, double b) {
+        CAPY_CPP_CHECK(capy_color_set_rgb(*this, r, g, b));
+    }
+    void set_cmyk(double c, double m, double y, double k) {
+        CAPY_CPP_CHECK(capy_color_set_cmyk(*this, c, m, y, k));
+    }
+    void set_gray(double g) { CAPY_CPP_CHECK(capy_color_set_gray(*this, g)); }
+    void set_icc(CapyPDF_IccColorSpaceId icc_id, double *values, int32_t num_values) {
+        CAPY_CPP_CHECK(capy_color_set_icc(*this, icc_id, values, num_values));
+    }
+    void set_pattern(CapyPDF_PatternId pattern_id) {
+        CAPY_CPP_CHECK(capy_color_set_pattern(*this, pattern_id));
+    }
+};
+
 class TextSequence : public CapyC<CapyPDF_TextSequence> {
     friend class Text;
 
@@ -324,36 +353,19 @@ public:
 
     void cmd_EMC() { CAPY_CPP_CHECK(capy_text_cmd_EMC(*this)); }
 
+    void set_nonstroke(Color &color) { CAPY_CPP_CHECK(capy_text_set_nonstroke(*this, color)); }
+    void set_stroke(Color &color) { CAPY_CPP_CHECK(capy_text_set_stroke(*this, color)); }
+    void cmd_w(double value) { CAPY_CPP_CHECK(capy_text_cmd_w(*this, value)); }
+    void cmd_M(double value) { CAPY_CPP_CHECK(capy_text_cmd_M(*this, value)); }
+    void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_text_cmd_j(*this, value)); }
+    void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_text_cmd_J(*this, value)); }
+    void cmd_d(double *values, int32_t num_values, double offset) {
+        CAPY_CPP_CHECK(capy_text_cmd_d(*this, values, num_values, offset));
+    }
+    void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_text_cmd_gs(*this, gsid)); }
+
 private:
     explicit Text(CapyPDF_Text *text) { _d.reset(text); }
-};
-
-class Color : public CapyC<CapyPDF_Color> {
-public:
-    friend class DrawContext;
-    friend class Type2Function;
-    friend class Type4Shading;
-    friend class Type6Shading;
-
-    Color() {
-        CapyPDF_Color *c;
-        CAPY_CPP_CHECK(capy_color_new(&c));
-        _d.reset(c);
-    }
-
-    void set_rgb(double r, double g, double b) {
-        CAPY_CPP_CHECK(capy_color_set_rgb(*this, r, g, b));
-    }
-    void set_cmyk(double c, double m, double y, double k) {
-        CAPY_CPP_CHECK(capy_color_set_cmyk(*this, c, m, y, k));
-    }
-    void set_gray(double g) { CAPY_CPP_CHECK(capy_color_set_gray(*this, g)); }
-    void set_icc(CapyPDF_IccColorSpaceId icc_id, double *values, int32_t num_values) {
-        CAPY_CPP_CHECK(capy_color_set_icc(*this, icc_id, values, num_values));
-    }
-    void set_pattern(CapyPDF_PatternId pattern_id) {
-        CAPY_CPP_CHECK(capy_color_set_pattern(*this, pattern_id));
-    }
 };
 
 class GraphicsState : public CapyC<CapyPDF_GraphicsState> {
