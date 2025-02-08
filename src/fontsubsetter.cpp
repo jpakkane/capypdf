@@ -91,6 +91,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
     }
     const uint32_t glyph_index = glyph_id ? glyph_id.value() : FT_Get_Char_Index(face, codepoint);
     if(glyph_index == 0) {
+        fprintf(stderr, "Missing glyph for codepoint %d, glyph id %d", codepoint, glyph_index);
         RETERR(MissingGlyph);
     }
     if(codepoint == SPACE) {
@@ -120,7 +121,15 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
     if(ttfile.in_cff_format()) {
         RETOK;
     }
-    if(glyph_index == 0 || glyph_index >= ttfile.glyphs.size()) {
+    if(glyph_index == 0) {
+        fprintf(stderr, "Glyph id zero is not valid.\n");
+        RETERR(MissingGlyph);
+    }
+    if(glyph_index >= ttfile.glyphs.size()) {
+        fprintf(stderr,
+                "Glyph index points past the end of glyps: %d/%d.\n",
+                glyph_index,
+                (int)ttfile.glyphs.size());
         RETERR(MissingGlyph);
     }
     ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(glyph_index)));
