@@ -1923,7 +1923,8 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
     auto subfont_descriptor_obj =
         add_object(DelayedSubsetFontDescriptor{font_source_id, subfont_data_obj, subset_num});
     auto subfont_cmap_obj = add_object(DelayedSubsetCMap{font_source_id, subset_num});
-    auto subfont_obj = add_object(DelayedSubsetFont{font_source_id, subfont_descriptor_obj});
+    auto subfont_obj =
+        add_object(DelayedSubsetFont{font_source_id, subfont_descriptor_obj, subfont_cmap_obj});
     std::optional<int32_t> cid_dict_obj;
     if(ttf.fontdata.in_cff_format()) {
         cid_dict_obj = add_object(DelayedCIDDictionary{font_source_id, subfont_descriptor_obj});
