@@ -1306,13 +1306,16 @@ CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 double l,
                                                 double b,
-                                                double t,
                                                 double r,
+                                                double t,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    *out_ptr =
-        reinterpret_cast<CapyPDF_DrawContext *>(g->new_form_xobject(PdfRectangle{l, b, t, r}));
+    auto bbox = PdfRectangle::construct(l, b, r, t);
+    if(!bbox) {
+        return conv_err(bbox);
+    }
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_form_xobject(bbox.value()));
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1322,8 +1325,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    PdfRectangle bbox{l, b, r, t};
-    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_transparency_group(bbox));
+    auto bbox = PdfRectangle::construct(l, b, r, t);
+    if(!bbox) {
+        return conv_err(bbox);
+    }
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_transparency_group(bbox.value()));
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1336,8 +1342,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
                                                           double t) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    *out_ptr =
-        reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(PdfRectangle{l, b, r, t}));
+    auto bbox = PdfRectangle::construct(l, b, r, t);
+    if(!bbox) {
+        return conv_err(bbox);
+    }
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(bbox.value()));
     RETNOERR;
     API_BOUNDARY_END;
 }

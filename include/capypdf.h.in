@@ -748,8 +748,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_NOEXCEP
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 double l,
                                                 double b,
-                                                double t,
                                                 double r,
+                                                double t,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT;
 
 // Color Pattern

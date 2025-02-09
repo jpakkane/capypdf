@@ -93,7 +93,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Buffer size argument is invalid.",
 "MMaping file to memory failed.",
 "Invalid subfont.",
-"No font has been specified."
+"No font has been specified.",
+"Invalid values for bounding box.",
 };
 
 // clang-format on

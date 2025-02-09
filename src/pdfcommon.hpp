@@ -205,6 +205,8 @@ struct PdfRectangle {
 
     static PdfRectangle a4() { return PdfRectangle{0, 0, 595.28, 841.89}; }
 
+    static rvoe<PdfRectangle> construct(double l, double b, double r, double t);
+
     double w() const { return y2 - y1; }
     double h() const { return x2 - x1; }
 };

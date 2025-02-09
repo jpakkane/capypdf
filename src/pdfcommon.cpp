@@ -85,6 +85,16 @@ const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_typ
     // clang-format on
 };
 
+rvoe<PdfRectangle> PdfRectangle::construct(double l, double b, double r, double t) {
+    if(r <= l) {
+        RETERR(InvalidBBox);
+    }
+    if(t <= b) {
+        RETERR(InvalidBBox);
+    }
+    return PdfRectangle(l, b, r, t);
+}
+
 void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Group");
