@@ -794,7 +794,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     fmt.add_object_ref(pages_object);
 
     if(!page_labels.empty()) {
-        fmt.add_token("PageLabels");
+        fmt.add_token("/PageLabels");
         fmt.begin_dict();
         fmt.add_token("/Nums");
         fmt.begin_array(2);
