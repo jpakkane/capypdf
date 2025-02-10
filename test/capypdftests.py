@@ -1347,6 +1347,48 @@ class TestPDFCreation(unittest.TestCase):
                 page.cmd_gs(psid)
                 page.cmd_Do(tid)
 
+    @validate_image('python_textchanges', 200, 200)
+    def test_textchanges(self, ofilename, w, h):
+        pprops = capypdf.PageProperties()
+        dprops = capypdf.DocumentProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            c = capypdf.Color()
+            pctx = gen.create_tiling_pattern_context(0, 0, 2, 2)
+            pctx.cmd_RG(0.5, 0.5, 0.5)
+            pctx.cmd_re(0, 0, 1, 1)
+            pctx.cmd_f()
+            pctx.cmd_re(1, 1, 2, 2)
+            pctx.cmd_f()
+            pid = gen.add_tiling_pattern(pctx)
+
+            with gen.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    with ctx.text_new() as t:
+                        t.cmd_Tf(fid, 12)
+                        t.cmd_Td(10, 100)
+                        t.render_text('Changing ')
+                        c.set_rgb(1.0, 0.0, 1.0)
+                        t.set_nonstroke(c)
+                        t.render_text('color ')
+                        c.set_rgb(0.0, 0.0, 0.0)
+                        t.set_nonstroke(c)
+                        t.render_text('inside BT.')
+                with ctx.push_gstate():
+                    with ctx.text_new() as t:
+                        t.cmd_Tf(fid, 12)
+                        t.cmd_Td(10, 80)
+                        t.render_text('Changing ')
+                        c.set_pattern(pid)
+                        t.set_nonstroke(c)
+                        t.render_text('pattern ')
+                        c.set_rgb(0.0, 0.0, 0.0)
+                        t.set_nonstroke(c)
+                        t.render_text('inside BT.')
+
+
     @validate_image('python_pdfx3', 200, 200)
     def test_pdfx3(self, ofilename, w, h):
         pprops = capypdf.PageProperties()
