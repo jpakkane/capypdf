@@ -421,6 +421,7 @@ cfunc_types = (
 ('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_set_stroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
+('capy_text_cmd_gs', [ctypes.c_void_p, GraphicsStateId]),
 
 ('capy_color_new', [ctypes.c_void_p]),
 ('capy_color_destroy', [ctypes.c_void_p]),
@@ -1351,6 +1352,9 @@ class Text:
 
     def cmd_Tstar(self):
         check_error(libfile.capy_text_cmd_Tstar(self))
+
+    def cmd_gs(self, gsid):
+        check_error(libfile.capy_text_cmd_gs(self, gsid))
 
 class Color:
     def __init__(self):

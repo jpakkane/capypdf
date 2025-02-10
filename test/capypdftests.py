@@ -1364,11 +1364,19 @@ class TestPDFCreation(unittest.TestCase):
             pctx.cmd_f()
             pid = gen.add_tiling_pattern(pctx)
 
+            gs = capypdf.GraphicsState()
+            gs.set_ca(0.5)
+            gsid = gen.add_graphics_state(gs)
+
             with gen.page_draw_context() as ctx:
+                with ctx.push_gstate():
+                    ctx.cmd_rg(0.1, 0.9, 0.1)
+                    ctx.cmd_re(50, 20, 75, 160)
+                    ctx.cmd_f()
                 with ctx.push_gstate():
                     with ctx.text_new() as t:
                         t.cmd_Tf(fid, 12)
-                        t.cmd_Td(10, 100)
+                        t.cmd_Td(10, 120)
                         t.render_text('Changing ')
                         c.set_rgb(1.0, 0.0, 1.0)
                         t.set_nonstroke(c)
@@ -1379,7 +1387,7 @@ class TestPDFCreation(unittest.TestCase):
                 with ctx.push_gstate():
                     with ctx.text_new() as t:
                         t.cmd_Tf(fid, 12)
-                        t.cmd_Td(10, 80)
+                        t.cmd_Td(10, 100)
                         t.render_text('Changing ')
                         c.set_pattern(pid)
                         t.set_nonstroke(c)
@@ -1387,6 +1395,13 @@ class TestPDFCreation(unittest.TestCase):
                         c.set_rgb(0.0, 0.0, 0.0)
                         t.set_nonstroke(c)
                         t.render_text('inside BT.')
+                with ctx.push_gstate():
+                    with ctx.text_new() as t:
+                        t.cmd_Tf(fid, 12)
+                        t.cmd_Td(10, 80)
+                        t.render_text('Changing ')
+                        t.cmd_gs(gsid)
+                        t.render_text('gs alpha inside BT.')
 
 
     @validate_image('python_pdfx3', 200, 200)
