@@ -18,6 +18,11 @@ namespace capypdf::internal {
 
 namespace {
 
+const std::string_view PNG_SIG("\x89PNG\r\n\x1a\n", 8);
+const std::string_view JPG_SIG("\xff\xd8\xff", 3);
+const std::string_view TIF_SIG1("II*", 3);
+const std::string_view TIF_SIG2("MM", 2);
+
 void load_rgb_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
     unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 8;
@@ -621,13 +626,14 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
         RETERR(UnsupportedFormat);
     }
     std::string_view v(buf, buf + bufsize);
-    if(v.starts_with(".PNG")) {
+
+    if(v.starts_with(PNG_SIG)) {
         return load_png_file(fname);
     }
-    if(v.starts_with("II*") || v.starts_with("MM")) {
+    if(v.starts_with(TIF_SIG1) || v.starts_with(TIF_SIG2)) {
         return load_tif_file(fname);
     }
-    if((unsigned char)v[0] == 0xff && (unsigned char)v[1] == 0xd8 && (unsigned char)v[2] == 0xff) {
+    if(v.starts_with(JPG_SIG)) {
         ERC(jpegfile, load_jpg_file(fname));
         return RasterImage{std::move(jpegfile)};
     }
@@ -644,13 +650,13 @@ rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
 
     std::string_view v(buf, buf + bufsize);
 
-    if(v.starts_with(".PNG")) {
+    if(v.starts_with(PNG_SIG)) {
         return load_png_from_memory(buf, bufsize);
     }
-    if(v.starts_with("II*") || v.starts_with("MM")) {
+    if(v.starts_with(TIF_SIG1) || v.starts_with(TIF_SIG2)) {
         return load_tif_from_memory(buf, bufsize);
     }
-    if((unsigned char)v[0] == 0xff && (unsigned char)v[1] == 0xd8 && (unsigned char)v[2] == 0xff) {
+    if(v.starts_with(JPG_SIG)) {
         ERC(jpegfile, load_jpg_from_memory(buf, bufsize));
         return RasterImage{std::move(jpegfile)};
     }
