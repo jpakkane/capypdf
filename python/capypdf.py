@@ -114,10 +114,8 @@ class PdfAType(Enum):
     A3a = 5
     A3b = 6
     A3u = 7
-    A4a = 8
-    A4b = 9
-    A4f = 10
-    A4e = 11
+    A4f = 8
+    A4e = 9
 
 class ImageInterpolation(Enum):
     Automatic = 0

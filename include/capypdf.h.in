@@ -162,8 +162,6 @@ typedef enum {
     CAPY_PDFA_3a,
     CAPY_PDFA_3b,
     CAPY_PDFA_3u,
-    CAPY_PDFA_4a,
-    CAPY_PDFA_4b,
     CAPY_PDFA_4f,
     CAPY_PDFA_4e,
 } CapyPDF_PDFA_Type;
