@@ -1188,33 +1188,6 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
     RETOK;
 }
 
-// FIXME del this func as it is not really used.
-void PdfDrawContext::render_raw_glyph(
-    uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y) {
-    auto &font_data = doc->get(fid);
-    // used_fonts.insert(font_data.font_obj);
-
-    const auto font_glyph_id = doc->glyph_for_codepoint(
-        doc->fonts.at(font_data.font_index_tmp).fontdata.face.get(), glyph);
-    std::format_to(cmds.app(),
-                   R"({}BT
-{}  /Font{} {} Tf
-{}  {:f} {:f} Td
-{}  (\{:o}) Tj
-{}ET
-)",
-                   cmds.ind(),
-                   cmds.ind(),
-                   font_data.font_obj,
-                   pointsize,
-                   cmds.ind(),
-                   x,
-                   y,
-                   cmds.ind(),
-                   font_glyph_id,
-                   cmds.ind());
-}
-
 rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
                                                   CapyPDF_FontId fid,
                                                   double pointsize) {

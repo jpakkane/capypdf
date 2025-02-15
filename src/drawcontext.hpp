@@ -184,7 +184,6 @@ public:
     rvoe<NoReturnValue>
     render_text(const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y);
     rvoe<NoReturnValue> render_text(const PdfText &textobj);
-    void render_raw_glyph(uint32_t glyph, CapyPDF_FontId fid, double pointsize, double x, double y);
     rvoe<NoReturnValue>
     render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);
     rvoe<NoReturnValue> render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,

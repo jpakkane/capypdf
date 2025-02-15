@@ -196,32 +196,6 @@ int test1(int argc, char **argv) {
         }
         ctx.render_text(text);
     }
-
-    /*
-    std::vector<PdfGlyph> glyphs;
-    const int num_glyphs = 26;
-    for(int i = 0; i < num_glyphs; ++i) {
-        const double x = 100 + 40 * sin(2 * M_PI * double(i) / num_glyphs);
-        const double y = 50 + 40 * cos(2 * M_PI * double(i) / num_glyphs);
-        glyphs.emplace_back(PdfGlyph{uint32_t('a' + i), x, y});
-    }
-    ctx.render_glyphs(glyphs, fid, 10);
-    */
-    /*
-    gen.new_page();
-    for(int page_num = 0; page_num < 2; ++page_num) {
-        for(int i = 0; i < 16; ++i) {
-            for(int j = 0; j < 16; ++j) {
-                char buf[10];
-                const uint32_t cur_char = 256 * page_num + 16 * i + j;
-                snprintf(buf, 10, "0x%04X", cur_char);
-                ctx.render_utf8_text(buf, fid, 8, 10 + 45 * i, opts.page_size.h - (10 + 10 *
-    j)); ctx.render_raw_glyph( (uint32_t)cur_char, fid, 8, 10 + 30 + 45 * i, opts.page_size.h -
-    (10 + 10 * j));
-            }
-        }
-    }
-    */
     return 0;
 }
 
