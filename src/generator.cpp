@@ -99,7 +99,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     if(ctx.has_unclosed_state()) {
         RETERR(DrawStateEndMismatch);
     }
-    auto sc_var = ctx.serialize();
+    ERC(sc_var, ctx.serialize());
     assert(std::holds_alternative<SerializedBasicContext>(sc_var));
     auto &sc = std::get<SerializedBasicContext>(sc_var);
     ObjectFormatter fmt;
@@ -130,7 +130,7 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto sc_var = ctx.serialize();
+    ERC(sc_var, ctx.serialize());
     assert(std::holds_alternative<SerializedXObject>(sc_var));
     auto &sc = std::get<SerializedXObject>(sc_var);
     pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.command_stream));

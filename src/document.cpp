@@ -1746,7 +1746,7 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto sc_var = ctx.serialize();
+    ERC(sc_var, ctx.serialize());
     auto &d = std::get<SerializedXObject>(sc_var);
     auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
     return CapyPDF_PatternId{objid};
@@ -1872,7 +1872,7 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
     if(ctx.marked_content_depth() != 0) {
         RETERR(UnclosedMarkedContent);
     }
-    auto sc_var = ctx.serialize();
+    ERC(sc_var, ctx.serialize());
     auto &d = std::get<SerializedXObject>(sc_var);
     auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
     transparency_groups.push_back(objid);

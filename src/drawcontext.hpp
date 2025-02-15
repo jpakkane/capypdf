@@ -8,6 +8,7 @@
 #include <errorhandling.hpp>
 #include <colorconverter.hpp>
 #include <document.hpp>
+#include <commandstreamformatter.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -59,12 +60,6 @@ struct PdfGlyph {
     double x, y;
 };
 
-enum class DrawStateType {
-    MarkedContent,
-    SaveState,
-    Text,
-};
-
 class PdfDrawContext {
 
 public:
@@ -73,7 +68,7 @@ public:
                    CapyPDF_Draw_Context_Type dtype,
                    const PdfRectangle &area);
     ~PdfDrawContext();
-    DCSerialization serialize();
+    rvoe<DCSerialization> serialize();
 
     PdfDrawContext() = delete;
     PdfDrawContext(const PdfDrawContext &) = delete;
@@ -210,12 +205,11 @@ public:
     PdfDocument &get_doc() { return *doc; }
 
     void build_resource_dict(ObjectFormatter &fmt);
-    std::string_view get_command_stream() { return commands; }
 
     double get_w() const { return bbox.x2 - bbox.x1; }
     double get_h() const { return bbox.y2 - bbox.y1; }
 
-    int32_t marked_content_depth() const { return marked_depth; }
+    int32_t marked_content_depth() const { return cmds.marked_content_depth(); }
 
     const std::unordered_set<CapyPDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
     const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
@@ -229,7 +223,7 @@ public:
 
     const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
 
-    bool has_unclosed_state() const { return !dstate_stack.empty(); }
+    bool has_unclosed_state() const { return cmds.has_unclosed_state(); }
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
@@ -246,41 +240,12 @@ public:
 
 private:
     rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,
-                                               std::string &serialisation,
+                                               CommandStreamFormatter &serialisation,
                                                CapyPDF_FontId &current_font,
                                                int32_t &current_subset,
                                                double &current_pointsize);
     rvoe<NoReturnValue>
     utf8_to_kerned_chars(const u8string &text, TextEvents &charseq, CapyPDF_FontId fid);
-
-    rvoe<NoReturnValue> indent(DrawStateType dtype) {
-        if(dtype == DrawStateType::MarkedContent) {
-            for(const auto &s : dstate_stack) {
-                if(s == dtype) {
-                    RETERR(NestedBMC);
-                }
-            }
-        }
-        dstate_stack.push_back(dtype);
-        ind += "  ";
-        RETOK;
-    }
-
-    rvoe<NoReturnValue> dedent(DrawStateType dtype) {
-        if(dstate_stack.empty()) {
-            RETERR(DrawStateEndMismatch);
-        }
-        if(dstate_stack.back() != dtype) {
-            RETERR(DrawStateEndMismatch);
-        }
-        if(ind.size() < 2) {
-            std::abort();
-        }
-        dstate_stack.pop_back();
-        ind.pop_back();
-        ind.pop_back();
-        RETOK;
-    }
 
     rvoe<int32_t> add_bcd_structure(CapyPDF_StructureItemId sid);
 
@@ -289,8 +254,6 @@ private:
     PdfDocument *doc;
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;
-    std::string commands;
-    std::back_insert_iterator<std::string> cmd_appender;
     std::unordered_set<int32_t> used_images;
     std::unordered_set<FontSubset> used_subset_fonts;
     std::unordered_set<int32_t> used_fonts;
@@ -307,7 +270,6 @@ private:
     std::vector<SubPageNavigation> sub_navigations;
 
     // Not a std::stack because we need to access all entries.
-    std::vector<DrawStateType> dstate_stack;
     std::optional<Transition> transition;
 
     PageProperties custom_props;
@@ -316,8 +278,7 @@ private:
     bool uses_all_colorspace = false;
     PdfRectangle bbox;
     std::optional<PdfMatrix> group_matrix;
-    int32_t marked_depth = 0;
-    std::string ind;
+    CommandStreamFormatter cmds;
 };
 
 } // namespace capypdf::internal
