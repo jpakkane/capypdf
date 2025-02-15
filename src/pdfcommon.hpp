@@ -56,6 +56,11 @@ DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf::internal {
 
+// If at all possible, never expose this in the public API
+// Instead have the user specify some higher level version,
+// like PDF/A or PDF/X and set this based on that.
+enum class PdfVersion : uint8_t { v17, v20 };
+
 class ObjectFormatter;
 
 extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;

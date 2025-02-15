@@ -287,6 +287,33 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
+PdfVersion DocumentProperties::version() const {
+    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+        if(*pdfa >= CAPY_PDFA_4f) {
+            return PdfVersion::v20;
+        }
+    }
+    return PdfVersion::v17;
+}
+
+bool DocumentProperties::use_rdf_metadata() const {
+    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+        if(*pdfa >= CAPY_PDFA_4f) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool DocumentProperties::require_embedded_files() const {
+    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+        if(*pdfa >= CAPY_PDFA_4f) {
+            return true;
+        }
+    }
+    return false;
+}
+
 rvoe<NoReturnValue>
 serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t page_object_number) {
     fmt.add_token("/Dest");
@@ -669,29 +696,32 @@ rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
 }
 
 rvoe<int32_t> PdfDocument::create_name_dict() {
-    assert(!embedded_files.empty());
     ObjectFormatter fmt;
     auto sorted_names = sort_names(embedded_files);
 
     fmt.begin_dict();
     fmt.add_token("/EmbeddedFiles");
     fmt.begin_dict();
-    fmt.add_token("/Limits");
+    // PDF/A 4 mandates that you have an EmbeddedFiles key, even if it is empty.
+    // At least that is what the VeraPDF validator says.
+    if(!embedded_files.empty()) {
 
-    fmt.begin_array(2);
-    fmt.add_token(pdfstring_quote(sorted_names.front().name));
-    fmt.add_token(pdfstring_quote(sorted_names.back().name));
-    fmt.end_array();
+        fmt.add_token("/Limits");
 
-    fmt.add_token("/Names");
+        fmt.begin_array(2);
+        fmt.add_token(pdfstring_quote(sorted_names.front().name));
+        fmt.add_token(pdfstring_quote(sorted_names.back().name));
+        fmt.end_array();
 
-    fmt.begin_array(2);
-    for(const auto &e : sorted_names) {
-        fmt.add_token(pdfstring_quote(e.name));
-        fmt.add_object_ref(embedded_files[e.i].filespec_obj);
+        fmt.add_token("/Names");
+
+        fmt.begin_array(2);
+        for(const auto &e : sorted_names) {
+            fmt.add_token(pdfstring_quote(e.name));
+            fmt.add_object_ref(embedded_files[e.i].filespec_obj);
+        }
+        fmt.end_array();
     }
-    fmt.end_array();
-
     fmt.end_dict();
     fmt.end_dict();
     return add_object(FullPDFObject{fmt.steal(), {}});
@@ -771,7 +801,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 
     fmt.begin_dict();
 
-    if(!embedded_files.empty()) {
+    if(docprops.require_embedded_files() || !embedded_files.empty()) {
         ERC(names, create_name_dict());
         names_object = names;
         ERC(afnum, create_AF_dict());
@@ -1080,26 +1110,28 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> 
 
 rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     ObjectFormatter fmt;
-    fmt.begin_dict();
-    if(!docprops.title.empty()) {
-        fmt.add_token_pair("/Title ", utf8_to_pdfutf16be(docprops.title));
-    }
-    if(!docprops.author.empty()) {
-        fmt.add_token_pair("/Author ", utf8_to_pdfutf16be(docprops.author));
-    }
-    if(!docprops.creator.empty()) {
-        fmt.add_token_pair("/Creator ", utf8_to_pdfutf16be(docprops.creator));
-    }
     const auto current_date = current_date_string();
-    fmt.add_token_pair("/Producer", "(CapyPDF " CAPYPDF_VERSION_STR ")");
-    fmt.add_token_pair("/CreationDate", current_date);
+    fmt.begin_dict();
     fmt.add_token_pair("/ModDate", current_date);
-    fmt.add_token_pair("/Trapped", "/False");
+    if(!docprops.use_rdf_metadata()) {
+        if(!docprops.title.empty()) {
+            fmt.add_token_pair("/Title ", utf8_to_pdfutf16be(docprops.title));
+        }
+        if(!docprops.author.empty()) {
+            fmt.add_token_pair("/Author ", utf8_to_pdfutf16be(docprops.author));
+        }
+        if(!docprops.creator.empty()) {
+            fmt.add_token_pair("/Creator ", utf8_to_pdfutf16be(docprops.creator));
+        }
+        fmt.add_token_pair("/Producer", "(CapyPDF " CAPYPDF_VERSION_STR ")");
+        fmt.add_token_pair("/CreationDate", current_date);
+    }
     if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&docprops.subtype)) {
         std::string parname("(");
         parname += pdfx_names.at(*xptr);
         parname += ")\n";
         fmt.add_token_pair("/GTS_PDFXVersion", parname);
+        fmt.add_token_pair("/Trapped", "/False");
     }
     fmt.end_dict();
     add_object(FullPDFObject{fmt.steal(), {}});

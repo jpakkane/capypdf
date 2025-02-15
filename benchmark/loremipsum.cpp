@@ -229,7 +229,7 @@ void create_doc() {
     capypdf::DocumentProperties opts;
     opts.set_tagged(true);
     opts.set_language("en-US");
-    opts.set_pdfa(CAPY_PDFA_3u);
+    opts.set_pdfa(CAPY_PDFA_4f);
     opts.set_device_profile(CAPY_DEVICE_CS_RGB, "/usr/share/color/icc/ghostscript/srgb.icc");
     opts.set_output_intent("sRGB IEC61966-2.1");
     capypdf::Generator gen{"loremipsum.pdf", opts};

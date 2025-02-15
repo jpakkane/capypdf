@@ -188,6 +188,10 @@ struct IccInfo {
 struct DocumentProperties {
     DocumentProperties() { default_page_properties.mediabox = PdfRectangle::a4(); }
 
+    PdfVersion version() const;
+    bool use_rdf_metadata() const;
+    bool require_embedded_files() const;
+
     PageProperties default_page_properties;
     u8string title;
     u8string author;

@@ -23,7 +23,8 @@ namespace capypdf::internal {
 
 namespace {
 
-const char PDF_header[] = "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n";
+const std::array<const char *, 2> PDF_header_strings = {"%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
+                                                        "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
 
 std::string fontname2pdfname(std::string_view original) {
     std::string out;
@@ -291,7 +292,8 @@ rvoe<NoReturnValue> PdfWriter::write_bytes(const char *buf, size_t buf_size) {
 }
 
 rvoe<NoReturnValue> PdfWriter::write_header() {
-    return write_bytes(PDF_header, strlen(PDF_header));
+    const auto header = PDF_header_strings.at((int)doc.docprops.version());
+    return write_bytes(header, strlen(header));
 }
 
 rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
@@ -402,7 +404,7 @@ PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offse
     return write_bytes(buf);
 }
 
-rvoe<NoReturnValue> PdfWriter ::write_trailer(int64_t xref_offset) {
+rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
     const int32_t info = 1;                               // Info object is the first printed.
     const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
@@ -412,8 +414,10 @@ rvoe<NoReturnValue> PdfWriter ::write_trailer(int64_t xref_offset) {
     fmt.add_token_pair("/Size", doc.document_objects.size());
     fmt.add_token("/Root");
     fmt.add_object_ref(root);
-    fmt.add_token("/Info");
-    fmt.add_object_ref(info);
+    if(add_info_key_to_trailer()) {
+        fmt.add_token("/Info");
+        fmt.add_object_ref(info);
+    }
     fmt.add_token("/ID");
     fmt.begin_array();
     fmt.add_token(documentid);
@@ -972,6 +976,17 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
+}
+
+bool PdfWriter::add_info_key_to_trailer() const {
+    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&doc.docprops.subtype)) {
+        if(*pdfa >= CAPY_PDFA_4f) {
+            // FIXME, should be true if there is a PieceInfo.
+            return false;
+        }
+    }
+
+    return true;
 }
 
 } // namespace capypdf::internal

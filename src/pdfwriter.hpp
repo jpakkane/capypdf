@@ -52,6 +52,8 @@ private:
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 
+    bool add_info_key_to_trailer() const;
+
     PdfDocument &doc;
     // This is for convenience so that the file argument does not need to be passed around all the
     // time.
