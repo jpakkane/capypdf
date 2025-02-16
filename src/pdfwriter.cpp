@@ -70,48 +70,6 @@ void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &bo
         appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
 }
 
-std::string create_basic_font_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
-    std::string buf = std::format(R"(/CIDInit/ProcSet findresource begin
-12 dict begin
-begincmap
-/CIDSystemInfo<<
-/Registry (Adobe)
-/Ordering (UCS)
-/Supplement 0
->> def
-/CMapName/Adobe-Identity-UCS def
-/CMapType 2 def
-1 begincodespacerange
-<00> <FF>
-endcodespacerange
-{} beginbfchar
-)",
-                                  glyphs.size() - 1);
-    // Glyph zero is not mapped.
-    auto appender = std::back_inserter(buf);
-    for(size_t i = 1; i < glyphs.size(); ++i) {
-        const auto &g = glyphs[i];
-        if(std::holds_alternative<LigatureGlyph>(g)) {
-            const auto &lg = std::get<LigatureGlyph>(g);
-            const auto u16repr = utf8_to_pdfutf16be(lg.text, false);
-            std::format_to(appender, "<{:02X}> <{}>\n", i, u16repr);
-        } else {
-            uint32_t unicode_codepoint = 0;
-            if(std::holds_alternative<RegularGlyph>(g)) {
-                unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
-            }
-            std::format_to(appender, "<{:02X}> <{:04X}>\n", i, unicode_codepoint);
-        }
-    }
-    buf += R"(endbfchar
-endcmap
-CMapName currentdict /CMap defineresource pop
-end
-end
-)";
-    return buf;
-}
-
 std::string create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
     std::string buf = std::format(R"(/CIDInit /ProcSet findresource begin
 12 dict begin
@@ -465,35 +423,18 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
                                                  int32_t tounicode_obj) {
     auto face = font.fontdata.face.get();
     const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
-    int32_t start_char = 0;
-    int32_t end_char = subset_glyphs.size() - 1;
-    const bool is_cff = font.fontdata.fontdata.in_cff_format();
-    const bool is_cid = is_cff;
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
-    if(is_cid) {
-        fmt.add_token_pair("/Subtype", "/Type0");
-    } else {
-        fmt.add_token_pair("/Subtype", "/TrueType");
-    }
+    fmt.add_token_pair("/Subtype", "/Type0");
     fmt.add_token("/BaseFont");
     fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
-    if(is_cid) {
-        const int32_t ciddict_obj = object_num + 1; // FIXME
-        fmt.add_token_pair("/Encoding", "/Identity-H");
-        fmt.add_token("/DescendantFonts");
-        fmt.begin_array();
-        fmt.add_object_ref(ciddict_obj);
-        fmt.end_array();
-    } else {
-        ERC(width_arr, build_subset_width_array(face, subset_glyphs, is_cff));
-        fmt.add_token_pair("/FirstChar", start_char);
-        fmt.add_token_pair("/LastChar", end_char);
-        fmt.add_token_pair("/Widths", width_arr);
-        fmt.add_token("/FontDescriptor");
-        fmt.add_object_ref(font_descriptor_obj);
-    }
+    const int32_t ciddict_obj = object_num + 1; // FIXME
+    fmt.add_token_pair("/Encoding", "/Identity-H");
+    fmt.add_token("/DescendantFonts");
+    fmt.begin_array();
+    fmt.add_object_ref(ciddict_obj);
+    fmt.end_array();
     fmt.add_token("/ToUnicode");
     fmt.add_object_ref(tounicode_obj);
     fmt.end_dict();
@@ -532,6 +473,9 @@ PdfWriter::write_cid_dict(int32_t object_num, CapyPDF_FontId fid, int32_t font_d
         fmt.add_token(width_arr);
         fmt.end_array();
     }
+    if(!font.fontdata.fontdata.in_cff_format()) {
+        fmt.add_token_pair("/CIDToGIDMap", "/Identity");
+    }
     fmt.end_dict();
     ERCV(write_finished_object(object_num, fmt.steal(), {}));
     RETOK;
@@ -557,6 +501,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
         fmt.add_token_pair("/Length", compressed_bytes.size());
         fmt.add_token_pair("/Length1", subset_font.size());
         fmt.add_token_pair("/Filter", "/FlateDecode");
+        fmt.add_token_pair("/Subtype", "/OpenType");
         fmt.end_dict();
         ERCV(write_finished_object(object_num, fmt.steal(), compressed_bytes));
     }
@@ -588,11 +533,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
     fmt.add_token_pair("/CapHeight", (int)face->bbox.yMax); // Copying what Cairo does.
     fmt.add_token_pair("/StemV", 80);                       // Cairo always sets these to 80.
     fmt.add_token_pair("/StemH", 80);
-    if(font.fontdata.in_cff_format()) {
-        fmt.add_token("/FontFile3");
-    } else {
-        fmt.add_token("/FontFile2");
-    }
+    fmt.add_token("/FontFile3");
     fmt.add_object_ref(font_data_obj);
     fmt.end_dict();
     return write_finished_object(object_num, fmt.steal(), {});
@@ -600,9 +541,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
 
 rvoe<NoReturnValue>
 PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
-    auto cmap = font.fontdata.fontdata.use_16bit_glyph_ids()
-                    ? create_cidfont_subset_cmap(font.subsets.get_subset(subset_number))
-                    : create_basic_font_subset_cmap(font.subsets.get_subset(subset_number));
+    auto cmap = create_cidfont_subset_cmap(font.subsets.get_subset(subset_number));
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Length", cmap.length());

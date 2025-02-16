@@ -1955,10 +1955,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
     auto subfont_cmap_obj = add_object(DelayedSubsetCMap{font_source_id, subset_num});
     auto subfont_obj =
         add_object(DelayedSubsetFont{font_source_id, subfont_descriptor_obj, subfont_cmap_obj});
-    std::optional<int32_t> cid_dict_obj;
-    if(ttf.fontdata.in_cff_format()) {
-        cid_dict_obj = add_object(DelayedCIDDictionary{font_source_id, subfont_descriptor_obj});
-    }
+    auto cid_dict_obj = add_object(DelayedCIDDictionary{font_source_id, subfont_descriptor_obj});
 
     CapyPDF_FontId fid{(int32_t)fonts.size() - 1};
     font_objects.push_back(FontPDFObjects{

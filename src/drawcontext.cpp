@@ -838,11 +838,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             }
             current_font = current_subset_glyph.ss.fid;
             current_subset = current_subset_glyph.ss.subset_id;
-            if(doc->fonts.at(current_font.id).fontdata.fontdata.use_16bit_glyph_ids()) {
-                std::format_to(serialisation.app(), "<{:04x}> ", current_subset_glyph.glyph_id);
-            } else {
-                std::format_to(serialisation.app(), "<{:02x}> ", current_subset_glyph.glyph_id);
-            }
+            std::format_to(serialisation.app(), "<{:04x}> ", current_subset_glyph.glyph_id);
         };
     for(const auto &e : charseq) {
         if(auto kval = std::get_if<KerningValue>(&e)) {
@@ -1199,7 +1195,6 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     }
     auto &ind = cmds.ind();
     auto &font_data = doc->get(fid);
-    const bool use_16bit = doc->fonts.at(fid.id).fontdata.fontdata.use_16bit_glyph_ids();
     // FIXME, do per character.
     // const auto &bob =
     //    doc->font_objects.at(doc->get_subset_glyph(fid,
@@ -1220,13 +1215,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
         std::format_to(cmds.app(), "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
         prev_x = g.x;
         prev_y = g.y;
-        if(use_16bit) {
-            std::format_to(
-                cmds.app(), "  <{:04x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
-        } else {
-            std::format_to(
-                cmds.app(), "  <{:02x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
-        }
+        std::format_to(cmds.app(), "  <{:04x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
     }
     std::format_to(cmds.app(), "{}ET\n", ind);
     RETOK;

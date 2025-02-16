@@ -67,7 +67,7 @@ struct FontPDFObjects {
     int32_t font_file_obj;
     int32_t font_descriptor_obj;
     int32_t font_obj;
-    std::optional<int32_t> cid_dictionary_obj;
+    int32_t cid_dictionary_obj;
     size_t font_index_tmp;
 };
 

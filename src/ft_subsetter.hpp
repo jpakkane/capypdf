@@ -195,8 +195,6 @@ struct TrueTypeFontFile {
     std::vector<std::byte> prep;
     std::vector<std::byte> cmap;
 
-    bool use_16bit_glyph_ids() const { return in_cff_format(); }
-
     int32_t num_glyphs() const {
         if(in_cff_format()) {
             return cff->char_strings.size();
@@ -205,10 +203,6 @@ struct TrueTypeFontFile {
         }
     }
 
-    // Currently always the same as above,
-    // tht that method goes away when we
-    // standardize on CIDfonts even for
-    // Truetype fonts.
     bool in_cff_format() const { return cff.has_value(); }
 
     int num_directory_entries() const {
