@@ -810,34 +810,16 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(
 
 rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &charseq,
                                                            CommandStreamFormatter &serialisation,
-                                                           CapyPDF_FontId &current_font,
-                                                           int32_t &current_subset,
-                                                           double &current_pointsize) {
+                                                           CapyPDF_FontId &current_font) {
     CHECK_INDEXNESS(current_font.id, doc->font_objects);
     bool is_first = true;
     auto appender_lambda =
-        [this, &serialisation, &is_first, &current_font, &current_subset, &current_pointsize](
-            const SubsetGlyph &current_subset_glyph) {
+        [this, &serialisation, &is_first](const SubsetGlyph &current_subset_glyph) {
             used_subset_fonts.insert(current_subset_glyph.ss);
-            if(current_subset_glyph.ss.subset_id != current_subset) {
-                if(!is_first) {
-                    serialisation.append_raw("] TJ\n");
-                }
-                std::format_to(serialisation.app(),
-                               "{}/SFont{}-{} {} Tf\n{}[ ",
-                               serialisation.ind(),
-                               doc->get(current_subset_glyph.ss.fid).font_obj,
-                               current_subset_glyph.ss.subset_id,
-                               current_pointsize,
-                               serialisation.ind());
-            } else {
-                if(is_first) {
-                    serialisation.append_indent();
-                    serialisation.append_raw("[ ");
-                }
+            if(is_first) {
+                serialisation.append_indent();
+                serialisation.append_raw("[ ");
             }
-            current_font = current_subset_glyph.ss.fid;
-            current_subset = current_subset_glyph.ss.subset_id;
             std::format_to(serialisation.app(), "<{:04x}> ", current_subset_glyph.glyph_id);
         };
     for(const auto &e : charseq) {
@@ -953,22 +935,26 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
             current_font = tf.font;
-            current_subset = -1;
+            current_subset = 0;
             current_pointsize = tf.pointsize;
+            std::format_to(cmds.app(),
+                           "{}/SFont{}-{} {:f} Tf\n",
+                           cmds.ind(),
+                           doc->get(current_font).font_obj,
+                           current_subset,
+                           current_pointsize);
             RETOK;
         },
 
         [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
             TextEvents charseq;
             ERCV(utf8_to_kerned_chars(tj.text, charseq, current_font));
-            ERCV(serialize_charsequence(
-                charseq, cmds, current_font, current_subset, current_pointsize));
+            ERCV(serialize_charsequence(charseq, cmds, current_font));
             RETOK;
         },
 
         [&](const TJ_arg &tJ) -> rvoe<NoReturnValue> {
-            ERCV((serialize_charsequence(
-                tJ.elements, cmds, current_font, current_subset, current_pointsize)));
+            ERCV((serialize_charsequence(tJ.elements, cmds, current_font)));
             RETOK;
         },
 
