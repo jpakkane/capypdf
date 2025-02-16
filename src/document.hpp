@@ -165,7 +165,7 @@ struct DelayedPage {
 
 struct SubsetGlyph {
     FontSubset ss;
-    uint8_t glyph_id;
+    uint16_t glyph_id;
 };
 
 struct FontThingy {

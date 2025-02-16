@@ -142,7 +142,7 @@ void render_column(const std::vector<std::string> &text_lines,
         const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
             textobj.cmd_Tw(0);
-            textobj.render_text(l);
+            textobj.cmd_Tj(l);
             textobj.cmd_Tstar();
         } else {
             if(!l.empty()) {
@@ -151,7 +151,7 @@ void render_column(const std::vector<std::string> &text_lines,
                 const int ns = num_spaces(l);
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
                 textobj.cmd_Tw(word_spacing);
-                textobj.render_text(l);
+                textobj.cmd_Tj(l);
             } else {
                 textobj.cmd_EMC();
                 textobj.cmd_BDC(

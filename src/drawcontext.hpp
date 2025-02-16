@@ -241,8 +241,6 @@ private:
     rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,
                                                CommandStreamFormatter &serialisation,
                                                CapyPDF_FontId &current_font);
-    rvoe<NoReturnValue>
-    utf8_to_kerned_chars(const u8string &text, TextEvents &charseq, CapyPDF_FontId fid);
 
     rvoe<int32_t> add_bcd_structure(CapyPDF_StructureItemId sid);
 

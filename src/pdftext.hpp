@@ -122,7 +122,7 @@ struct Tf_arg {
     double pointsize;
 };
 
-struct Text_arg {
+struct Tj_arg {
     u8string text;
 };
 
@@ -198,7 +198,7 @@ typedef std::variant<TStar_arg,
                      Td_arg,
                      TD_arg,
                      Tf_arg,
-                     Text_arg,
+                     Tj_arg,
                      TJ_arg,
                      TL_arg,
                      Tm_arg,
@@ -257,8 +257,8 @@ public:
         RETOK;
     }
 
-    rvoe<NoReturnValue> render_text(const u8string &text) {
-        events.emplace_back(Text_arg{text});
+    rvoe<NoReturnValue> cmd_Tj(const u8string &text) {
+        events.emplace_back(Tj_arg{text});
         RETOK;
     }
 

@@ -223,7 +223,7 @@ class TestPDFCreation(unittest.TestCase):
                 t = ctx.text_new()
                 t.cmd_Tf(font, 12.0)
                 t.cmd_Td(10.0, 100.0)
-                t.render_text('Using text object!')
+                t.cmd_Tj('Using text object!')
                 ctx.render_text_obj(t)
 
     @validate_image('python_kerning', 200, 200)
@@ -1212,13 +1212,13 @@ class TestPDFCreation(unittest.TestCase):
                         t.cmd_Td(20, 130)
                         t.cmd_Tf(fid, 8)
                         t.cmd_TL(10)
-                        t.render_text('Text object inside marked content')
+                        t.cmd_Tj('Text object inside marked content')
                 with ctx.text_new() as t:
                     t.cmd_Td(20, 100)
                     t.cmd_Tf(fid, 8)
                     t.cmd_TL(10)
                     with t.cmd_BDC_builtin(gen.add_structure_item(capypdf.StructureType.P, doc_id)):
-                        t.render_text('Marked content inside text object.')
+                        t.cmd_Tj('Marked content inside text object.')
 
     @validate_image('python_customroles', 200, 200)
     def test_customroles(self, ofilename, w, h):
@@ -1245,13 +1245,13 @@ class TestPDFCreation(unittest.TestCase):
                         t.cmd_Td(20, 130)
                         t.cmd_Tf(fid, 8)
                         t.cmd_TL(10)
-                        t.render_text('Text object inside custom role mark.')
+                        t.cmd_Tj('Text object inside custom role mark.')
                 with ctx.text_new() as t:
                     t.cmd_Td(20, 100)
                     t.cmd_Tf(fid, 8)
                     t.cmd_TL(10)
                     with t.cmd_BDC_builtin(gen.add_structure_item(text_role, doc_id)):
-                        t.render_text('Custom role mark inside text object.')
+                        t.cmd_Tj('Custom role mark inside text object.')
 
 
     @validate_image('python_printersmark', 200, 200)
@@ -1377,31 +1377,31 @@ class TestPDFCreation(unittest.TestCase):
                     with ctx.text_new() as t:
                         t.cmd_Tf(fid, 12)
                         t.cmd_Td(10, 120)
-                        t.render_text('Changing ')
+                        t.cmd_Tj('Changing ')
                         c.set_rgb(1.0, 0.0, 1.0)
                         t.set_nonstroke(c)
-                        t.render_text('color ')
+                        t.cmd_Tj('color ')
                         c.set_rgb(0.0, 0.0, 0.0)
                         t.set_nonstroke(c)
-                        t.render_text('inside BT.')
+                        t.cmd_Tj('inside BT.')
                 with ctx.push_gstate():
                     with ctx.text_new() as t:
                         t.cmd_Tf(fid, 12)
                         t.cmd_Td(10, 100)
-                        t.render_text('Changing ')
+                        t.cmd_Tj('Changing ')
                         c.set_pattern(pid)
                         t.set_nonstroke(c)
-                        t.render_text('pattern ')
+                        t.cmd_Tj('pattern ')
                         c.set_rgb(0.0, 0.0, 0.0)
                         t.set_nonstroke(c)
-                        t.render_text('inside BT.')
+                        t.cmd_Tj('inside BT.')
                 with ctx.push_gstate():
                     with ctx.text_new() as t:
                         t.cmd_Tf(fid, 12)
                         t.cmd_Td(10, 80)
-                        t.render_text('Changing ')
+                        t.cmd_Tj('Changing ')
                         t.cmd_gs(gsid)
-                        t.render_text('gs alpha inside BT.')
+                        t.cmd_Tj('gs alpha inside BT.')
 
 
     @validate_image('python_pdfx3', 200, 200)

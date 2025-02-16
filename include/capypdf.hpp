@@ -316,12 +316,10 @@ class Text : public CapyC<CapyPDF_Text> {
 public:
     Text() = delete;
 
-    void render_text(const char *utf8_text, int32_t strsize = -1) {
-        CAPY_CPP_CHECK(capy_text_render_text(*this, utf8_text, strsize));
+    void cmd_Tj(const char *utf8_text, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_text_cmd_Tj(*this, utf8_text, strsize));
     }
-    template<ByteSequence T> void render_text(const T &text) {
-        render_text(text.data(), text.size());
-    }
+    template<ByteSequence T> void cmd_Tj(const T &text) { cmd_Tj(text.data(), text.size()); }
 
     void cmd_BDC(CapyPDF_StructureItemId sid) {
         CAPY_CPP_CHECK(capy_text_cmd_BDC_builtin(*this, sid));

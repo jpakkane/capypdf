@@ -416,7 +416,7 @@ cfunc_types = (
 ('capy_text_cmd_Tr', [ctypes.c_void_p, enum_type]),
 ('capy_text_cmd_Tw', [ctypes.c_void_p, ctypes.c_double]),
 ('capy_text_cmd_Tstar', [ctypes.c_void_p]),
-('capy_text_render_text', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_text_cmd_Tj', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_set_stroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_set_nonstroke', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_text_cmd_gs', [ctypes.c_void_p, GraphicsStateId]),
@@ -1298,11 +1298,11 @@ class Text:
         if self._as_parameter_ is not None:
             check_error(libfile.capy_text_destroy(self))
 
-    def render_text(self, text):
+    def cmd_Tj(self, text):
         if not isinstance(text, str):
             raise CapyPDFException('Text must be a Unicode string.')
         bytes = text.encode('UTF-8')
-        check_error(libfile.capy_text_render_text(self, bytes, len(bytes)))
+        check_error(libfile.capy_text_cmd_Tj(self, bytes, len(bytes)))
 
     def set_nonstroke(self, color):
         check_error(libfile.capy_text_set_nonstroke(self, color))

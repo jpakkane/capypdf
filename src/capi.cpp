@@ -1440,16 +1440,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq)
     API_BOUNDARY_END;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_render_text(CapyPDF_Text *text,
-                                                const char *utf8_text,
-                                                int32_t strsize) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tj(CapyPDF_Text *text,
+                                           const char *utf8_text,
+                                           int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *t = reinterpret_cast<PdfText *>(text);
     auto txt = validate_utf8(utf8_text, strsize);
     if(!txt) {
         return conv_err(txt);
     }
-    return conv_err(t->render_text(txt.value()));
+    return conv_err(t->cmd_Tj(txt.value()));
     API_BOUNDARY_END;
 }
 

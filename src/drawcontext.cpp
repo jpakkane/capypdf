@@ -804,7 +804,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(
     PdfText t(this);
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
-    t.render_text(text);
+    t.cmd_Tj(text);
     return render_text(t);
 }
 
@@ -863,45 +863,6 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::utf8_to_kerned_chars(const u8string &text,
-                                                         TextEvents &charseq,
-                                                         CapyPDF_FontId fid) {
-    CHECK_INDEXNESS(fid.id, doc->font_objects);
-    if(text.empty()) {
-        RETOK;
-    }
-    FT_Face face = doc->fonts.at(doc->get(fid).font_index_tmp).fontdata.face.get();
-    if(!face) {
-        RETERR(BuiltinFontNotSupported);
-    }
-
-    uint32_t previous_codepoint = -1;
-    // Freetype does not support GPOS kerning because it is context-sensitive.
-    // So this method might produce incorrect kerning. Users that need precision
-    // need to use the glyph based rendering method.
-    const bool has_kerning = FT_HAS_KERNING(face);
-    for(const auto &codepoint : text) {
-        if(has_kerning && previous_codepoint != (uint32_t)-1) {
-            FT_Vector kerning;
-            const auto index_left = FT_Get_Char_Index(face, previous_codepoint);
-            const auto index_right = FT_Get_Char_Index(face, codepoint);
-            auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
-            if(ec != 0) {
-                RETERR(FreeTypeError);
-            }
-            if(kerning.x != 0) {
-                // The value might be a integer, fraction or something else.
-                // None of the fonts I tested had kerning that Freetype recognized,
-                // so don't know if this actually works.
-                charseq.emplace_back(KerningValue{(int32_t)kerning.x});
-            }
-        }
-        charseq.emplace_back(UnicodeCharacter{codepoint});
-        previous_codepoint = codepoint;
-    }
-    RETOK;
-}
-
 rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     if(textobj.creator() != this) {
         RETERR(WrongDrawContext);
@@ -943,13 +904,21 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                            doc->get(current_font).font_obj,
                            current_subset,
                            current_pointsize);
+            FontSubset fs;
+            fs.subset_id = 0;
+            fs.fid = current_font;
+            used_subset_fonts.insert(fs);
             RETOK;
         },
 
-        [&](const Text_arg &tj) -> rvoe<NoReturnValue> {
-            TextEvents charseq;
-            ERCV(utf8_to_kerned_chars(tj.text, charseq, current_font));
-            ERCV(serialize_charsequence(charseq, cmds, current_font));
+        [&](const Tj_arg &tj) -> rvoe<NoReturnValue> {
+            cmds.append_indent();
+            cmds.append_raw("<");
+            for(const auto c : tj.text) {
+                ERC(current_subset_glyph, doc->get_subset_glyph(current_font, c, {}));
+                std::format_to(cmds.app(), "{:04X}", current_subset_glyph.glyph_id);
+            }
+            cmds.append_raw("> Tj\n");
             RETOK;
         },
 
@@ -1145,7 +1114,7 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
     for(const auto &e : text.get_events()) {
         if(const auto *Tf = std::get_if<Tf_arg>(&e)) {
             font = Tf->font;
-        } else if(const auto *text_arg = std::get_if<Text_arg>(&e)) {
+        } else if(const auto *text_arg = std::get_if<Tj_arg>(&e)) {
             if(!font) {
                 RETERR(FontNotSpecified);
                 for(const auto &codepoint : text_arg->text) {
