@@ -468,13 +468,18 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
     int32_t start_char = 0;
     int32_t end_char = subset_glyphs.size() - 1;
     const bool is_cff = font.fontdata.fontdata.in_cff_format();
+    const bool is_cid = is_cff;
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
-    fmt.add_token_pair("/Subtype", is_cff ? "/Type0" : "/TrueType");
+    if(is_cid) {
+        fmt.add_token_pair("/Subtype", "/Type0");
+    } else {
+        fmt.add_token_pair("/Subtype", "/TrueType");
+    }
     fmt.add_token("/BaseFont");
     fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
-    if(is_cff) {
+    if(is_cid) {
         const int32_t ciddict_obj = object_num + 1; // FIXME
         fmt.add_token_pair("/Encoding", "/Identity-H");
         fmt.add_token("/DescendantFonts");
@@ -482,7 +487,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
         fmt.add_object_ref(ciddict_obj);
         fmt.end_array();
     } else {
-        ERC(width_arr, build_subset_width_array(face, subset_glyphs));
+        ERC(width_arr, build_subset_width_array(face, subset_glyphs, is_cff));
         fmt.add_token_pair("/FirstChar", start_char);
         fmt.add_token_pair("/LastChar", end_char);
         fmt.add_token_pair("/Widths", width_arr);
@@ -502,12 +507,14 @@ PdfWriter::write_cid_dict(int32_t object_num, CapyPDF_FontId fid, int32_t font_d
     int32_t subset = 0; // FIXME
     const auto &font = doc.fonts.at(fid.id);
     auto face = font.fontdata.face.get();
-    ERC(width_arr, build_subset_width_array(face, font.subsets.get_subset(subset), true));
-    assert(font.fontdata.fontdata.in_cff_format());
+    ERC(width_arr,
+        build_subset_width_array(
+            face, font.subsets.get_subset(subset), font.fontdata.fontdata.in_cff_format()));
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
-    fmt.add_token_pair("/Subtype", "/CIDFontType0");
+    fmt.add_token_pair("/Subtype",
+                       font.fontdata.fontdata.in_cff_format() ? "/CIDFontType0" : "/CIDFontType2");
     fmt.add_token("/BaseFont");
     fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
     fmt.add_token("/CIDSystemInfo");

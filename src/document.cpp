@@ -1959,6 +1959,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
     if(ttf.fontdata.in_cff_format()) {
         cid_dict_obj = add_object(DelayedCIDDictionary{font_source_id, subfont_descriptor_obj});
     }
+
     CapyPDF_FontId fid{(int32_t)fonts.size() - 1};
     font_objects.push_back(FontPDFObjects{
         subfont_data_obj, subfont_descriptor_obj, subfont_obj, cid_dict_obj, fonts.size() - 1});
