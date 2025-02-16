@@ -283,6 +283,24 @@ struct TTEncodingSubtable0 {
     }
 };
 
+struct TTEncodingSubtable6 {
+    uint16_t format;
+    uint16_t length;
+    uint16_t language;
+    uint16_t firstCode;
+    uint16_t entryCount;
+
+    // Followed by vector of 16 bit values.
+
+    void swap_endian() {
+        byte_swap_inplace(format);
+        byte_swap_inplace(length);
+        byte_swap_inplace(language);
+        byte_swap_inplace(firstCode);
+        byte_swap_inplace(entryCount);
+    }
+};
+
 struct TTPost {
     uint16_t version_major;
     uint16_t version_minor;
@@ -707,16 +725,17 @@ std::vector<std::byte> serialize_font(TrueTypeFontFile &tf,
 }
 
 std::vector<std::byte> gen_cmap(const std::vector<TTGlyphs> &glyphs) {
-    TTEncodingSubtable0 glyphencoding;
-    glyphencoding.format = 0;
+    assert(glyphs.size() < 65535);
+    TTEncodingSubtable6 glyphencoding;
+    glyphencoding.format = 6;
     glyphencoding.language = 0;
-    glyphencoding.length = sizeof(glyphencoding);
-    for(size_t i = 0; i < 256; ++i) {
-        if(i < glyphs.size()) {
-            glyphencoding.glyphids[i] = i;
-        } else {
-            glyphencoding.glyphids[i] = 0;
-        }
+    glyphencoding.length = sizeof(glyphencoding) + sizeof(uint16_t) * glyphs.size();
+    glyphencoding.firstCode = 0;
+    glyphencoding.entryCount = glyphs.size();
+    std::vector<uint16_t> glyphids;
+    glyphids.reserve(glyphs.size());
+    for(size_t i = 0; i < glyphs.size(); ++i) {
+        glyphids.push_back(std::byteswap(uint16_t(i)));
     }
     TTEncodingRecord enc;
     enc.platform_id = 1;
@@ -734,6 +753,7 @@ std::vector<std::byte> gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     append_bytes(buf, cmap_head);
     append_bytes(buf, enc);
     append_bytes(buf, glyphencoding);
+    append_bytes(buf, glyphids);
 
     return buf;
 }
