@@ -665,14 +665,12 @@ rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
             continue;
         }
         auto &subsetter = sf.subsets;
-        assert(subsetter.num_subsets() > 0);
-        const auto subset_id = subsetter.num_subsets() - 1;
         // Try to add glyphs until the subset has 32 elements.
         bool padding_succeeded = false;
         uint32_t gindex;
         auto charcode = FT_Get_First_Char(face, &gindex);
         for(uint32_t i = 0; i < max_count; ++i) {
-            if(subsetter.get_subset(subset_id).size() >= SPACE) {
+            if(subsetter.get_subset().size() >= SPACE) {
                 padding_succeeded = true;
                 break;
             }
@@ -686,8 +684,8 @@ rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
             std::abort();
         }
         subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
-        assert(subsetter.get_subset(subset_id).size() > SPACE);
-        const auto &space_glyph = subsetter.get_subset(subset_id).at(SPACE);
+        assert(subsetter.get_subset().size() > SPACE);
+        const auto &space_glyph = subsetter.get_subset().at(SPACE);
         (void)space_glyph;
         assert(std::holds_alternative<RegularGlyph>(space_glyph));
         assert(std::get<RegularGlyph>(space_glyph).unicode_codepoint == SPACE);

@@ -55,9 +55,7 @@ rvoe<FontSubsetter> FontSubsetter::construct(const std::filesystem::path &fontfi
                                              const FontProperties &props) {
     ERC(font, load_and_parse_font_file(fontfile, props));
     if(auto *ttffile = std::get_if<TrueTypeFontFile>(&font)) {
-        std::vector<FontSubsetData> subsets;
-        subsets.emplace_back(create_startstate());
-        return FontSubsetter(std::move(*ttffile), face, std::move(subsets));
+        return FontSubsetter(std::move(*ttffile), face, create_startstate());
     } else {
         fprintf(stderr, "Only basic Truetype fonts supported currently.\n");
         RETERR(UnsupportedFormat);
@@ -86,8 +84,8 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const u8string &text,
 rvoe<FontSubsetInfo>
 FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
                                                      const std::optional<uint32_t> glyph_id) {
-    if(subsets.back().glyphs.size() == max_glyphs) {
-        subsets.emplace_back(create_startstate());
+    if(subset.glyphs.size() >= max_glyphs) {
+        RETERR(TooManyGlyphsUsed);
     }
     const uint32_t glyph_index = glyph_id ? glyph_id.value() : FT_Get_Char_Index(face, codepoint);
     if(glyph_index == 0) {
@@ -98,23 +96,22 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
         // In the PDF document model the space character is special.
         // Every subset font _must_ have the space character in
         // location 32.
-        if(subsets.back().glyphs.size() == SPACE) {
-            subsets.back().glyphs.push_back(RegularGlyph{codepoint, glyph_index});
-            subsets.back().font_index_mapping[glyph_index] =
-                (uint32_t)subsets.back().glyphs.size() - 1;
+        if(subset.glyphs.size() == SPACE) {
+            subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
+            subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
         }
-        return FontSubsetInfo{int32_t(subsets.size() - 1), SPACE};
+        return FontSubsetInfo{int32_t(0), SPACE};
     }
     ERCV(handle_subglyphs(glyph_index));
-    if(subsets.back().glyphs.size() == SPACE) {
+    if(subset.glyphs.size() == SPACE) {
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
-        subsets.back().glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
-        subsets.back().font_index_mapping[glyph_index] = SPACE;
+        subset.glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
+        subset.font_index_mapping[glyph_index] = SPACE;
     }
-    subsets.back().glyphs.push_back(RegularGlyph{codepoint, glyph_index});
-    subsets.back().font_index_mapping[glyph_index] = (uint32_t)subsets.back().glyphs.size() - 1;
-    return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().glyphs.size() - 1)};
+    subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
+    subset.font_index_mapping[glyph_index] = (uint32_t)0;
+    return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 
 rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
@@ -135,19 +132,17 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
     ERC(iscomp, is_composite_glyph(ttfile.glyphs.at(glyph_index)));
     if(iscomp) {
         ERC(subglyphs, get_all_subglyphs(glyph_index, ttfile));
-        if(subglyphs.size() + subsets.back().glyphs.size() >= max_glyphs) {
+        if(subglyphs.size() + subset.glyphs.size() >= max_glyphs) {
             fprintf(stderr, "Composite glyph overflow not yet implemented.");
             std::abort();
         }
         for(const auto &new_glyph : subglyphs) {
-            if(subsets.back().font_index_mapping.find(new_glyph) !=
-               subsets.back().font_index_mapping.end()) {
+            if(subset.font_index_mapping.find(new_glyph) != subset.font_index_mapping.end()) {
                 continue;
             }
             // Composite glyph parts do not necessarily correspond to any Unicode codepoint.
-            subsets.back().glyphs.push_back(CompositeGlyph{new_glyph});
-            subsets.back().font_index_mapping[new_glyph] =
-                (uint32_t)subsets.back().glyphs.size() - 1;
+            subset.glyphs.push_back(CompositeGlyph{new_glyph});
+            subset.font_index_mapping[new_glyph] = (uint32_t)subset.glyphs.size() - 1;
         }
     }
     RETOK;
@@ -155,62 +150,52 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
 
 rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const u8string &text,
                                                                           uint32_t glyph_id) {
-    if(subsets.back().glyphs.size() == max_glyphs) {
-        subsets.emplace_back(create_startstate());
+    if(subset.glyphs.size() >= max_glyphs) {
+        RETERR(TooManyGlyphsUsed);
     }
-    if(subsets.back().glyphs.size() == SPACE) {
+    if(subset.glyphs.size() == SPACE) {
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
-        subsets.back().glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
-        subsets.back().font_index_mapping[glyph_id] = SPACE;
+        subset.glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
+        subset.font_index_mapping[glyph_id] = SPACE;
     }
     ERCV(handle_subglyphs(glyph_id));
-    subsets.back().glyphs.push_back(LigatureGlyph{text, glyph_id});
-    subsets.back().font_index_mapping[glyph_id] = (uint32_t)subsets.back().glyphs.size() - 1;
-    return FontSubsetInfo{int32_t(subsets.size() - 1), int32_t(subsets.back().glyphs.size() - 1)};
+    subset.glyphs.push_back(LigatureGlyph{text, glyph_id});
+    subset.font_index_mapping[glyph_id] = (uint32_t)subset.glyphs.size() - 1;
+    return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
-    for(size_t subset = 0; subset < subsets.size(); ++subset) {
-        auto loc =
-            std::find_if(subsets.at(subset).glyphs.cbegin(),
-                         subsets.at(subset).glyphs.cend(),
-                         [&glyph](const TTGlyphs &ttg) {
-                             if(std::holds_alternative<RegularGlyph>(ttg)) {
-                                 return std::get<RegularGlyph>(ttg).unicode_codepoint == glyph;
-                             }
-                             return false;
-                         });
-        if(loc != subsets[subset].glyphs.cend()) {
-            return FontSubsetInfo{int32_t(subset),
-                                  int32_t(loc - subsets.at(subset).glyphs.cbegin())};
-        }
+    auto loc =
+        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&glyph](const TTGlyphs &ttg) {
+            if(std::holds_alternative<RegularGlyph>(ttg)) {
+                return std::get<RegularGlyph>(ttg).unicode_codepoint == glyph;
+            }
+            return false;
+        });
+    if(loc != subset.glyphs.cend()) {
+        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
     }
     return {};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) const {
-    for(size_t subset = 0; subset < subsets.size(); ++subset) {
-        auto loc = std::find_if(subsets.at(subset).glyphs.cbegin(),
-                                subsets.at(subset).glyphs.cend(),
-                                [&text](const TTGlyphs &ttg) {
-                                    if(std::holds_alternative<LigatureGlyph>(ttg)) {
-                                        return std::get<LigatureGlyph>(ttg).text == text;
-                                    }
-                                    return false;
-                                });
-        if(loc != subsets[subset].glyphs.cend()) {
-            return FontSubsetInfo{int32_t(subset),
-                                  int32_t(loc - subsets.at(subset).glyphs.cbegin())};
-        }
+    auto loc =
+        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&text](const TTGlyphs &ttg) {
+            if(std::holds_alternative<LigatureGlyph>(ttg)) {
+                return std::get<LigatureGlyph>(ttg).text == text;
+            }
+            return false;
+        });
+    if(loc != subset.glyphs.cend()) {
+        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
     }
     return {};
 }
 
 rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source,
                                                             int32_t subset_number) const {
-    const auto &glyphs = subsets.at(subset_number);
-    return generate_font(source, glyphs.glyphs, glyphs.font_index_mapping);
+    return generate_font(source, subset.glyphs, subset.font_index_mapping);
 }
 
 } // namespace capypdf::internal

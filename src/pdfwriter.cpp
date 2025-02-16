@@ -289,14 +289,14 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
 
         [&](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
-            ERCV(write_subset_cmap(i, doc.fonts.at(sscmap.fid.id), sscmap.subset_id));
+            assert(sscmap.subset_id == 0);
+            ERCV(write_subset_cmap(i, doc.fonts.at(sscmap.fid.id)));
             RETOK;
         },
 
         [&](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
             ERCV(write_subset_font(i,
                                    doc.fonts.at(ssfont.fid.id),
-                                   0,
                                    ssfont.subfont_descriptor_obj,
                                    ssfont.subfont_cmap_obj));
             RETOK;
@@ -418,17 +418,16 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
 
 rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
                                                  const FontThingy &font,
-                                                 int32_t subset,
                                                  int32_t font_descriptor_obj,
                                                  int32_t tounicode_obj) {
+    const int32_t subset_id = 0;
     auto face = font.fontdata.face.get();
-    const std::vector<TTGlyphs> &subset_glyphs = font.subsets.get_subset(subset);
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
     fmt.add_token_pair("/Subtype", "/Type0");
     fmt.add_token("/BaseFont");
-    fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset));
+    fmt.add_token_with_slash(subsetfontname2pdfname(FT_Get_Postscript_Name(face), subset_id));
     const int32_t ciddict_obj = object_num + 1; // FIXME
     fmt.add_token_pair("/Encoding", "/Identity-H");
     fmt.add_token("/DescendantFonts");
@@ -450,7 +449,7 @@ PdfWriter::write_cid_dict(int32_t object_num, CapyPDF_FontId fid, int32_t font_d
     auto face = font.fontdata.face.get();
     ERC(width_arr,
         build_subset_width_array(
-            face, font.subsets.get_subset(subset), font.fontdata.fontdata.in_cff_format()));
+            face, font.subsets.get_subset(), font.fontdata.fontdata.in_cff_format()));
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");
@@ -539,9 +538,8 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
     return write_finished_object(object_num, fmt.steal(), {});
 }
 
-rvoe<NoReturnValue>
-PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number) {
-    auto cmap = create_cidfont_subset_cmap(font.subsets.get_subset(subset_number));
+rvoe<NoReturnValue> PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font) {
+    auto cmap = create_cidfont_subset_cmap(font.subsets.get_subset());
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Length", cmap.length());

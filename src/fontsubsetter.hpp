@@ -18,7 +18,7 @@ typedef struct FT_FaceRec_ *FT_Face;
 
 namespace capypdf::internal {
 
-static const std::size_t max_glyphs = 255;
+static const std::size_t max_glyphs = 65000;
 
 struct FontSubsetInfo {
     int32_t subset;
@@ -35,8 +35,8 @@ public:
     static rvoe<FontSubsetter>
     construct(const std::filesystem::path &fontfile, FT_Face face, const FontProperties &props);
 
-    FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, std::vector<FontSubsetData> subsets)
-        : ttfile{std::move(ttfile)}, face{face}, subsets{subsets} {}
+    FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
+        : ttfile{std::move(ttfile)}, face{face}, subset{std::move(subset)} {}
 
     rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph, const std::optional<uint32_t> glyph_id);
     rvoe<FontSubsetInfo> get_glyph_subset(const u8string &text, const uint32_t glyph_id);
@@ -46,16 +46,11 @@ public:
     rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const u8string &text,
                                                                uint32_t glyph_id);
 
-    const std::vector<TTGlyphs> &get_subset(int32_t subset_number) const {
-        return subsets.at(subset_number).glyphs;
-    }
+    const std::vector<TTGlyphs> &get_subset() const { return subset.glyphs; }
 
-    std::vector<TTGlyphs> &get_subset(int32_t subset_number) {
-        return subsets.at(subset_number).glyphs;
-    }
+    std::vector<TTGlyphs> &get_subset() { return subset.glyphs; }
 
-    size_t num_subsets() const { return subsets.size(); }
-    size_t subset_size(size_t subset) const { return subsets.at(subset).glyphs.size(); }
+    size_t subset_size() const { return subset.glyphs.size(); }
 
     rvoe<std::vector<std::byte>> generate_subset(const TrueTypeFontFile &source,
                                                  int32_t subset_number) const;
@@ -68,7 +63,7 @@ private:
     std::optional<FontSubsetInfo> find_glyph(uint32_t glyph) const;
     std::optional<FontSubsetInfo> find_glyph(const u8string &text) const;
 
-    std::vector<FontSubsetData> subsets;
+    FontSubsetData subset;
 };
 
 } // namespace capypdf::internal

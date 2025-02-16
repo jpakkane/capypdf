@@ -36,11 +36,9 @@ private:
                                                      const TtfFont &font,
                                                      int32_t font_data_obj,
                                                      int32_t subset_number);
-    rvoe<NoReturnValue>
-    write_subset_cmap(int32_t object_num, const FontThingy &font, int32_t subset_number);
+    rvoe<NoReturnValue> write_subset_cmap(int32_t object_num, const FontThingy &font);
     rvoe<NoReturnValue> write_subset_font(int32_t object_num,
                                           const FontThingy &font,
-                                          int32_t subset,
                                           int32_t font_descriptor_obj,
                                           int32_t tounicode_obj);
     rvoe<NoReturnValue>
