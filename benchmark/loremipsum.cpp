@@ -118,6 +118,20 @@ const std::string email = "author@servermcserverface.com";
 double cm2pt(double cm) { return cm * 28.346; }
 // double pt2cm(double pt) { return pt / 28.346; }
 
+std::vector<std::string_view> const split_spaces(const std::string &s) {
+    size_t current = 0;
+    size_t pos = 0;
+    const char splitchr = ' ';
+    std::string_view sview{s};
+    std::vector<std::string_view> result;
+    while((pos = sview.find(splitchr, current)) != std::string_view::npos) {
+        result.emplace_back(sview.substr(current, pos - current));
+        current = pos + 1;
+    }
+    result.emplace_back(sview.substr(current));
+    return result;
+}
+
 template<typename T> int num_spaces(const T &s) { return std::count(s.begin(), s.end(), ' '); }
 
 const double midx = cm2pt(21.0 / 2);
@@ -133,6 +147,8 @@ void render_column(const std::vector<std::string> &text_lines,
                    double column_left,
                    double column_top) {
     const double target_width = cm2pt(8);
+    // ctx.cmd_re(column_left, column_top - 400, target_width, 400);
+    // ctx.cmd_s();
     auto textobj = ctx.text_new();
     textobj.cmd_Tf(textfont, textsize);
     textobj.cmd_Td(column_left, column_top);
@@ -141,17 +157,27 @@ void render_column(const std::vector<std::string> &text_lines,
     for(size_t i = 0; i < text_lines.size(); ++i) {
         const auto &l = text_lines[i];
         if(i + 1 < text_lines.size() && text_lines[i + 1].empty()) {
-            textobj.cmd_Tw(0);
             textobj.cmd_Tj(l);
             textobj.cmd_Tstar();
         } else {
             if(!l.empty()) {
                 double total_w = gen.text_width(l, textfont, textsize);
                 const double extra_w = target_width - total_w;
-                const int ns = num_spaces(l);
+                auto split_words = split_spaces(l);
+                const int ns = split_words.size() - 1;
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
-                textobj.cmd_Tw(word_spacing);
-                textobj.cmd_Tj(l);
+                // Why 100? I don't know. It should be 1000.
+                const int32_t word_spacing_extra_thou = -100 * word_spacing;
+                for(size_t i = 0; i < split_words.size(); ++i) {
+                    const auto &cur_word = split_words[i];
+                    textobj.cmd_Tj(cur_word);
+                    if(i != split_words.size() - 1) {
+                        capypdf::TextSequence ts;
+                        ts.append_codepoint(' ');
+                        ts.append_kerning(word_spacing_extra_thou);
+                        textobj.cmd_TJ(ts);
+                    }
+                }
             } else {
                 textobj.cmd_EMC();
                 textobj.cmd_BDC(
