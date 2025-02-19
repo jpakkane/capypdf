@@ -153,7 +153,7 @@ struct CFFont {
     //    std::vector<CFFIndex> local_subrs;
     std::vector<CFFSelectRange3> fdselect;
 
-    uint16_t get_fontdict_id(uint16_t glyph_id) const;
+    uint8_t get_fontdict_id(uint16_t glyph_id) const;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);

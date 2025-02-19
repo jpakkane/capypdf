@@ -410,7 +410,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     return f;
 }
 
-uint16_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
+uint8_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
     assert(!fdselect.empty());
     for(size_t i = 0; i < fdselect.size(); ++i) {
         if(fdselect[i].first == glyph_id) {
@@ -471,11 +471,12 @@ void CFFWriter::append_fdthings() {
     std::vector<std::byte> privatedict_buffer; // Stores concatenated private dict/localsubr pairs.
     std::vector<size_t> privatedict_offsets;   // within the above buffer
     std::vector<size_t> privatereference_offsets; // where the correct value shall be written
-    for(const auto &s : sub) {
+    for(const auto &source_dict : source.fdarray) {
         // Why is this so complicated you ask?
         // Because the data model is completely wacko.
         //
         // Each glyph has a "font" dictionary.
+        // There can be only 256 font dictionaries total. Even with 65 glyphs.
         // Each of those point to a "private" dictionary.
         // Each of those point to "local subrs" index
         // That one is needed for rendering.
@@ -486,9 +487,15 @@ void CFFWriter::append_fdthings() {
         // the (not particularly great) CFF spec with a
         // magnifying glass, you can't decipher that
         // and your subset fonts won't work.
+        //
+        // To make things simple:
+        //
+        // Any metadata that is somewhat shared
+        // is copied as is so all indexes and offsets
+        // work directly. Only character data is subset.
 
-        auto source_id = source.get_fontdict_id(s.gid);
-        const auto &source_dict = source.fdarray.at(source_id);
+        // auto source_id = source.get_fontdict_id(s.gid);
+        // const auto &source_dict = source.fdarray.at(source_id);
 
         privatedict_offsets.push_back(privatedict_buffer.size());
         size_t last_dict_size = -1;
@@ -547,8 +554,9 @@ void CFFWriter::append_fdthings() {
     // To get started use format 0, which is super easy, barely an inconvenience.
     // Need to be changed to v3 or something.
     output.push_back(std::byte(0));
-    for(uint8_t i = 0; i < sub.size(); ++i) {
-        output.push_back(std::byte(i));
+    for(const auto &s : sub) {
+        auto id = source.get_fontdict_id(s.gid);
+        output.push_back(std::byte(id));
     }
 }
 
