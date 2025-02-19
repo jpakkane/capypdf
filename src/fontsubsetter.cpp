@@ -65,7 +65,7 @@ rvoe<FontSubsetter> FontSubsetter::construct(const std::filesystem::path &fontfi
 rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
                                                      const std::optional<uint32_t> glyph_id) {
     // FIXME, look for glyph id.
-    auto trial = find_glyph(codepoint);
+    auto trial = find_glyph_with_codepoint(codepoint);
     if(trial) {
         return trial.value();
     }
@@ -165,11 +165,11 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 
-std::optional<FontSubsetInfo> FontSubsetter::find_glyph(uint32_t glyph) const {
-    auto loc =
-        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&glyph](const TTGlyphs &ttg) {
+std::optional<FontSubsetInfo> FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
+    auto loc = std::find_if(
+        subset.glyphs.cbegin(), subset.glyphs.cend(), [&codepoint](const TTGlyphs &ttg) {
             if(std::holds_alternative<RegularGlyph>(ttg)) {
-                return std::get<RegularGlyph>(ttg).unicode_codepoint == glyph;
+                return std::get<RegularGlyph>(ttg).unicode_codepoint == codepoint;
             }
             return false;
         });

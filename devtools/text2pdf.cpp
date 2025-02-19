@@ -6,6 +6,7 @@
 int main(int argc, char **argv) {
     if(argc != 4) {
         printf("%s <font file> <pdf output> <text to render>\n", argv[0]);
+        return 1;
     }
     capypdf::DocumentProperties dp;
     capypdf::FontProperties fp;
