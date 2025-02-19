@@ -304,7 +304,7 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_raw_glyph(*this, glyph_id, codepoint));
     }
 
-    void apppend_ligature_glyph(uint32_t glyph_id, const char *original_text) {
+    void append_ligature_glyph(uint32_t glyph_id, const char *original_text) {
         CAPY_CPP_CHECK(
             capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text, -1));
     }
