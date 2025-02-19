@@ -318,6 +318,21 @@ size_t write_private_dict(std::vector<std::byte> &output, const CFFPrivateDict &
     return bytes.output.size();
 }
 
+std::vector<CFFSelectRange3> build_fdselect3(const CFFont &source,
+                                             const std::vector<SubsetGlyphs> &sub) {
+    std::vector<CFFSelectRange3> result;
+    result.reserve(10);
+    result.emplace_back(0, source.get_fontdict_id(0));
+    for(size_t i = 1; i < sub.size(); ++i) {
+        const auto &sg = sub[i];
+        const auto &sg_fd = source.get_fontdict_id(sg.gid);
+        if(sg_fd != result.back().fd) {
+            result.emplace_back((uint16_t)i, sg_fd);
+        }
+    }
+    return result;
+}
+
 } // namespace
 
 void CFFSelectRange3::swap_endian() { first = std::byteswap(first); }
@@ -545,19 +560,17 @@ void CFFWriter::append_fdthings() {
         memcpy(output.data() + write_location, &offset_be, sizeof(int32_t));
     }
 
-    // Now fdselect
+    // Now fdselect using the 16 bit format 3
     fixups.fdselect.value = output.size();
-    if(sub.size() >= 256) {
-        fprintf(stderr, "More than 255 glyphs not yet supported.\n");
-        std::abort();
+    auto fdrange = build_fdselect3(source, sub);
+    assert(fdrange.size() <= 65535);
+    output.push_back(std::byte(3));
+    swap_and_append_bytes(output, (uint16_t)fdrange.size());
+    for(auto &fd : fdrange) {
+        fd.swap_endian();
+        append_bytes(output, fd);
     }
-    // To get started use format 0, which is super easy, barely an inconvenience.
-    // Need to be changed to v3 or something.
-    output.push_back(std::byte(0));
-    for(const auto &s : sub) {
-        auto id = source.get_fontdict_id(s.gid);
-        output.push_back(std::byte(id));
-    }
+    swap_and_append_bytes(output, (uint16_t)sub.size());
 }
 
 void CFFWriter::patch_offsets() {
