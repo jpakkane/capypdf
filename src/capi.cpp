@@ -511,6 +511,22 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image_from_memory(CapyPDF_Generator *gen,
+                                                                const char *buf,
+                                                                int64_t bufsize,
+                                                                CapyPDF_RasterImage **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto rc = g->load_image(buf, bufsize);
+    if(rc) {
+        auto *result = new RasterImage(std::move(rc.value()));
+        *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);
+    }
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        const CapyPDF_RasterImage *source,
                                                        CapyPDF_Device_Colorspace output_cs,
@@ -1971,6 +1987,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_size(CapyPDF_RasterImage
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_depth(
+    CapyPDF_RasterImageBuilder *builder, uint32_t depth) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    b->i.md.pixel_depth = depth;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -1981,11 +2006,39 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_depth(
+    CapyPDF_RasterImageBuilder *builder, uint32_t depth) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    b->i.md.alpha_depth = depth;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_data(
+    CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    auto *byteptr = (std::byte *)buf;
+    b->i.alpha.assign(byteptr, byteptr + bufsize);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_compression(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Compression compression) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
     b->i.md.compression = compression;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_colorspace(
+    CapyPDF_RasterImageBuilder *builder, CapyPDF_Image_Colorspace colorspace) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
+    b->i.md.cs = colorspace;
     RETNOERR;
     API_BOUNDARY_END;
 }

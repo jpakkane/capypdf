@@ -692,6 +692,24 @@ class RasterImage : public CapyC<CapyPDF_RasterImage> {
 public:
     RasterImage() = delete;
 
+    std::pair<uint32_t, uint32_t> get_size() {
+        uint32_t h, w = 0;
+        CAPY_CPP_CHECK(capy_raster_image_get_size(*this, &w, &h));
+        return {h, w};
+    }
+
+    CapyPDF_Image_Colorspace get_colorspace() {
+        CapyPDF_Image_Colorspace out;
+        CAPY_CPP_CHECK(capy_raster_image_get_colorspace(*this, &out));
+        return out;
+    }
+
+    bool has_profile() {
+        int32_t out = 0;
+        CAPY_CPP_CHECK(capy_raster_image_has_profile(*this, &out));
+        return out != 0;
+    }
+
 private:
     RasterImage(CapyPDF_RasterImage *ri) { _d.reset(ri); }
 };
@@ -723,6 +741,34 @@ public:
         CapyPDF_RasterImageBuilder *rib;
         CAPY_CPP_CHECK(capy_raster_image_builder_new(&rib));
         _d.reset(rib);
+    }
+
+    void set_size(uint32_t w, uint32_t h) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_size(*this, w, h));
+    }
+    void set_pixel_depth(uint32_t depth) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_pixel_depth(*this, depth));
+    }
+    void set_pixel_data(const char *buf, uint64_t bufsize) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_pixel_data(*this, buf, bufsize));
+    }
+    void set_alpha_depth(uint32_t depth) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_alpha_depth(*this, depth));
+    }
+    void set_alpha_data(const char *buf, uint64_t bufsize) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_alpha_data(*this, buf, bufsize));
+    }
+    void set_compression(CapyPDF_Compression compression) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_compression(*this, compression));
+    }
+    void set_colorspace(CapyPDF_Image_Colorspace colorspace) {
+        CAPY_CPP_CHECK(capy_raster_image_builder_set_colorspace(*this, colorspace));
+    }
+
+    RasterImage build() {
+        CapyPDF_RasterImage *im;
+        CAPY_CPP_CHECK(capy_raster_image_builder_build(*this, &im));
+        return RasterImage(im);
     }
 };
 
@@ -874,6 +920,12 @@ public:
     RasterImage load_image(const char *fname) {
         CapyPDF_RasterImage *im;
         CAPY_CPP_CHECK(capy_generator_load_image(*this, fname, &im));
+        return RasterImage(im);
+    }
+
+    RasterImage load_image_from_memory(const char *buf, int64_t bufsize) {
+        CapyPDF_RasterImage *im;
+        CAPY_CPP_CHECK(capy_generator_load_image_from_memory(*this, buf, bufsize, &im));
         return RasterImage(im);
     }
 

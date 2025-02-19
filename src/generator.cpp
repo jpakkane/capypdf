@@ -66,6 +66,10 @@ rvoe<RasterImage> PdfGen::load_image(const std::filesystem::path &fname) {
     return load_image_file(fname);
 }
 
+rvoe<RasterImage> PdfGen::load_image(const char *buf, int64_t bufsize) {
+    return load_image_from_memory(buf, bufsize);
+}
+
 rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImagePDFProperties &params) {
     if(auto *raster = std::get_if<RawPixelImage>(&image)) {
         if(params.as_mask) {
