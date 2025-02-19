@@ -353,8 +353,9 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     ERC(global_subr_index, load_index(dataspan, offset));
     f.global_subr = std::move(global_subr_index);
 
-    // print_info(f);
-
+    if(false) {
+        print_info(f);
+    }
     auto *cse = find_command(f, DictOperator::CharStrings);
     if(!cse) {
         RETERR(UnsupportedFormat);
@@ -466,7 +467,6 @@ void CFFWriter::create() {
 }
 
 void CFFWriter::append_fdthings() {
-    auto source_data = span_of_source(source.original_data).value();
     std::vector<std::vector<std::byte>> fontdicts;
     std::vector<std::byte> privatedict_buffer; // Stores concatenated private dict/localsubr pairs.
     std::vector<size_t> privatedict_offsets;   // within the above buffer
@@ -526,12 +526,12 @@ void CFFWriter::append_fdthings() {
         const auto write_location = fdarray_index_offset + privatereference_offset;
         const uint32_t offset_value = privatedict_area_start + privatedict_offset;
 
-        if(privatereference_offset == -1) {
+        if(privatereference_offset == (size_t)-1) {
             continue;
         }
         uint32_t sanity_check;
         memcpy(&sanity_check, output.data() + write_location, sizeof(int32_t));
-        if(sanity_check != -1) {
+        if(sanity_check != (uint32_t)-1) {
             std::abort();
         }
         const auto offset_be = std::byteswap(offset_value);
