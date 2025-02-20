@@ -84,7 +84,7 @@ rvoe<MMapper> mmap_file(const char *fname) {
         RETERR(CouldNotOpenFile);
     }
 
-    const uint64_t bufsize = ((uint64_t)size_high) << 32 + size_low;
+    const uint64_t bufsize = (((uint64_t)size_high) << 32) + size_low;
     HANDLE mapping_handle =
         CreateFileMapping(file_handle, nullptr, PAGE_EXECUTE_READ, 0, 0, nullptr);
     if(!mapping_handle) {
