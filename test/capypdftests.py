@@ -507,7 +507,7 @@ class TestPDFCreation(unittest.TestCase):
             iid = g.add_image(image, ipar)
             ib.set_size(2, 3)
             ib.set_pixel_data(zlib.compress(self.build_rasterdata(127), 9))
-            ib.set_compression(capypdf.Compression.Deflate)
+            ib.set_input_data_compression_format(capypdf.Compression.Deflate)
             comprimage = ib.build()
             ciid = g.add_image(comprimage, ipar)
             with g.page_draw_context() as ctx:

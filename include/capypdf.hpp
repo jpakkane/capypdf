@@ -758,8 +758,9 @@ public:
     void set_alpha_data(const char *buf, uint64_t bufsize) {
         CAPY_CPP_CHECK(capy_raster_image_builder_set_alpha_data(*this, buf, bufsize));
     }
-    void set_compression(CapyPDF_Compression compression) {
-        CAPY_CPP_CHECK(capy_raster_image_builder_set_compression(*this, compression));
+    void set_input_data_compression_format(CapyPDF_Compression compression) {
+        CAPY_CPP_CHECK(
+            capy_raster_image_builder_set_input_data_compression_format(*this, compression));
     }
     void set_colorspace(CapyPDF_Image_Colorspace colorspace) {
         CAPY_CPP_CHECK(capy_raster_image_builder_set_colorspace(*this, colorspace));

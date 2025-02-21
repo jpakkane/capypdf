@@ -2025,7 +2025,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_data(
     API_BOUNDARY_END;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_compression(
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_input_data_compression_format(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Compression compression) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);

@@ -455,7 +455,7 @@ cfunc_types = (
 ('capy_raster_image_builder_new', [ctypes.c_void_p]),
 ('capy_raster_image_builder_set_size', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
 ('capy_raster_image_builder_set_pixel_data', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint64]),
-('capy_raster_image_builder_set_compression', [ctypes.c_void_p, enum_type]),
+('capy_raster_image_builder_set_input_data_compression_format', [ctypes.c_void_p, enum_type]),
 ('capy_raster_image_builder_build', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_raster_image_get_size', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]),
 ('capy_raster_image_get_colorspace', [ctypes.c_void_p, ctypes.POINTER(enum_type)]),
@@ -1473,10 +1473,10 @@ class RasterImageBuilder:
             raise CapyPDFException('Pixel data must be in bytes.')
         check_error(libfile.capy_raster_image_builder_set_pixel_data(self, pixels, len(pixels)))
 
-    def set_compression(self, compression):
+    def set_input_data_compression_format(self, compression):
         if not isinstance(compression, Compression):
             raise CapyPDFException('Compression argument must be enum value.')
-        check_error(libfile.capy_raster_image_builder_set_compression(self, compression.value))
+        check_error(libfile.capy_raster_image_builder_set_input_data_compression_format(self, compression.value))
 
 
     def build(self):

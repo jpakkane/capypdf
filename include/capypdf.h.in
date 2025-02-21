@@ -934,7 +934,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_depth(
     CapyPDF_RasterImageBuilder *builder, uint32_t depth) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_compression(
+CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_input_data_compression_format(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Compression compression) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_colorspace(
     CapyPDF_RasterImageBuilder *builder, CapyPDF_Image_Colorspace colorspace) CAPYPDF_NOEXCEPT;
