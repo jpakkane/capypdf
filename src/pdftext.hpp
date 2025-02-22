@@ -146,10 +146,6 @@ struct Ts_arg {
     double rise;
 };
 
-struct Tw_arg {
-    double width;
-};
-
 struct Tz_arg {
     double scaling;
 };
@@ -204,7 +200,6 @@ typedef std::variant<TStar_arg,
                      Tm_arg,
                      Tr_arg,
                      Ts_arg,
-                     Tw_arg,
                      Tz_arg,
                      StructureItem,
                      Emc_arg,
@@ -290,11 +285,6 @@ public:
 
     rvoe<NoReturnValue> cmd_Ts(double rise) {
         events.emplace_back(Ts_arg{rise});
-        RETOK;
-    }
-
-    rvoe<NoReturnValue> cmd_Tw(double spacing) {
-        events.emplace_back(Tw_arg{spacing});
         RETOK;
     }
 

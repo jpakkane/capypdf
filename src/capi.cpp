@@ -1617,13 +1617,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
     API_BOUNDARY_END;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tw(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
-    API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
-    return conv_err(t->cmd_Tw(spacing));
-    API_BOUNDARY_END;
-}
-
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *t = reinterpret_cast<PdfText *>(text);

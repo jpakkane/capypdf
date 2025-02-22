@@ -345,8 +345,6 @@ public:
 
     void cmd_Tr(CapyPDF_Text_Mode tmode) { CAPY_CPP_CHECK(capy_text_cmd_Tr(*this, tmode)); }
 
-    void cmd_Tw(double spacing) { CAPY_CPP_CHECK(capy_text_cmd_Tw(*this, spacing)); }
-
     void cmd_Tstar() { CAPY_CPP_CHECK(capy_text_cmd_Tstar(*this)); }
 
     void cmd_EMC() { CAPY_CPP_CHECK(capy_text_cmd_EMC(*this)); }

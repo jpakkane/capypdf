@@ -166,17 +166,6 @@ int test1(int argc, char **argv) {
     {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
-        text.cmd_Td(20, 450);
-        text.cmd_Tj(u8string::from_cstr("Word spacing word spacing word spacing.").value());
-        text.cmd_Tstar();
-        text.cmd_Tw(4);
-        text.cmd_Tj(u8string::from_cstr("Word spacing word spacing word spacing.").value());
-        ctx.render_text(text);
-    }
-
-    {
-        PdfText text(&ctx);
-        text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 400);
         text.cmd_Tj(u8string::from_cstr("Character scaling.").value());
         text.cmd_Tstar();

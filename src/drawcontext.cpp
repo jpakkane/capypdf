@@ -955,11 +955,6 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             RETOK;
         },
 
-        [&](const Tw_arg &tw) -> rvoe<NoReturnValue> {
-            cmds.append_command(tw.width, "Tw");
-            RETOK;
-        },
-
         [&](const Tz_arg &tz) -> rvoe<NoReturnValue> {
             cmds.append_command(tz.scaling, "Tz");
             RETOK;

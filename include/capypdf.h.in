@@ -815,7 +815,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
                                            double f) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
                                            CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tw(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT;
+// The Tw command is not provided. The PDF spec says it is only used with 8 bit font encodings.
+// CapyPDF always uses 16 bit encodings, thus Tw would always be a no-op.
+// To achieve the same result use a TextSequence and add kerning manually.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_w(CapyPDF_Text *text, double line_width) CAPYPDF_NOEXCEPT;
