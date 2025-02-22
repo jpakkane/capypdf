@@ -287,7 +287,6 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_j(capypdf.LineJoinStyle.Round)
                 ctx.cmd_S()
 
-
     @validate_image('python_shaping', 200, 200)
     def test_shaping(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
@@ -356,6 +355,17 @@ class TestPDFCreation(unittest.TestCase):
                     ts.append_raw_glyph(gid, codepoint)
                 t.cmd_TJ(ts)
                 ctx.render_text_obj(t)
+
+    @validate_image('python_accents', 200, 200)
+    def test_accents(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                ctx.render_text('eêéèẽëe', font, 42, 10, 80)
 
     @validate_image('python_unusualfont', 200, 200)
     def test_unusualfont(self, ofilename, w, h):

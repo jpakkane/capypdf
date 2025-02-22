@@ -158,7 +158,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
         subset.font_index_mapping[glyph_index] = SPACE;
     }
     subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
-    subset.font_index_mapping[glyph_index] = (uint32_t)0;
+    subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 
