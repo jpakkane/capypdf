@@ -60,6 +60,7 @@ private:
 
     TrueTypeFontFile ttfile;
     FT_Face face;
+    std::optional<FontSubsetInfo> find_existing_glyph(uint32_t gid) const;
     std::optional<FontSubsetInfo> find_glyph_with_codepoint(uint32_t codepoint) const;
     std::optional<FontSubsetInfo> find_glyph(const u8string &text) const;
 

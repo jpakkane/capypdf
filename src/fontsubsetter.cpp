@@ -64,7 +64,32 @@ rvoe<FontSubsetter> FontSubsetter::construct(const std::filesystem::path &fontfi
 
 rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
                                                      const std::optional<uint32_t> glyph_id) {
-    // FIXME, look for glyph id.
+    if(glyph_id) {
+        auto existing_gid = find_existing_glyph(*glyph_id);
+        if(existing_gid) {
+            const auto &existing_definition = subset.glyphs.at(existing_gid->offset);
+            if(const auto *d = std::get_if<RegularGlyph>(&existing_definition)) {
+                if(d->unicode_codepoint != codepoint) {
+                    fprintf(
+                        stderr,
+                        "Tried to map glyph %d twice.\n Old value: %d\n New value: %d.\nUsing the "
+                        "old value.\n",
+                        *glyph_id,
+                        d->unicode_codepoint,
+                        codepoint);
+                } else {
+                    fprintf(stderr,
+                            "Tried to map existing glyph %d to a different codepoint.\n",
+                            *glyph_id);
+                }
+            } else {
+                fprintf(stderr,
+                        "Tried to map existing glyph %d to a different codepoint.\n",
+                        *glyph_id);
+            }
+            return *existing_gid;
+        }
+    }
     auto trial = find_glyph_with_codepoint(codepoint);
     if(trial) {
         return trial.value();
@@ -74,6 +99,29 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
 
 rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const u8string &text,
                                                      const uint32_t glyph_id) {
+    auto existing_gid = find_existing_glyph(glyph_id);
+    if(existing_gid) {
+        const auto &existing_definition = subset.glyphs.at(existing_gid->offset);
+        if(const auto *d = std::get_if<LigatureGlyph>(&existing_definition)) {
+            if(d->text != text) {
+                fprintf(stderr,
+                        "Tried to map glyph %d twice.\n Old value: %s\n New value: %s.\nUsing the "
+                        "old value.\n",
+                        glyph_id,
+                        d->text.c_str(),
+                        text.c_str());
+            } else {
+                fprintf(stderr,
+                        "Tried to map existing glyph %d to a different text representation.\n",
+                        glyph_id);
+            }
+        } else {
+            fprintf(stderr,
+                    "Tried to map existing glyph %d to a different text representation.\n",
+                    glyph_id);
+        }
+        return *existing_gid;
+    }
     auto trial = find_glyph(text);
     if(trial) {
         return trial.value();
@@ -163,6 +211,20 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
     subset.glyphs.push_back(LigatureGlyph{text, glyph_id});
     subset.font_index_mapping[glyph_id] = (uint32_t)subset.glyphs.size() - 1;
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
+}
+
+std::optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) const {
+    auto loc =
+        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&gid](const TTGlyphs &ttg) {
+            if(std::holds_alternative<RegularGlyph>(ttg)) {
+                return std::get<RegularGlyph>(ttg).glyph_index == gid;
+            }
+            return false;
+        });
+    if(loc != subset.glyphs.cend()) {
+        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
+    }
+    return {};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
