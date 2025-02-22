@@ -187,7 +187,8 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         for(const auto &i : used_subset_fonts) {
             const auto &bob = doc->get(i.fid);
-            scratch = std::format("/SFont{}-{}", bob.font_obj, i.subset_id);
+            assert(i.subset_id == 0);
+            scratch = std::format("/SFont{}", bob.font_obj);
             fmt.add_token(scratch);
             fmt.add_object_ref(bob.font_obj);
         }
@@ -869,7 +870,6 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     }
     ERCV(validate_text_contents(textobj));
 
-    int32_t current_subset{-1};
     CapyPDF_FontId current_font{-1};
     double current_pointsize{-1};
 
@@ -896,13 +896,11 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
             current_font = tf.font;
-            current_subset = 0;
             current_pointsize = tf.pointsize;
             std::format_to(cmds.app(),
-                           "{}/SFont{}-{} {:f} Tf\n",
+                           "{}/SFont{} {:f} Tf\n",
                            cmds.ind(),
                            doc->get(current_font).font_obj,
-                           current_subset,
                            current_pointsize);
             FontSubset fs;
             fs.subset_id = 0;
@@ -1151,12 +1149,11 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     //    glyphs.front().codepoint).ss.fid.id);
     std::format_to(cmds.app(),
                    R"({}BT
-{}  /SFont{}-{} {:f} Tf
+{}  /SFont{} {:f} Tf
 )",
                    ind,
                    ind,
                    font_data.font_obj,
-                   0,
                    pointsize);
     for(const auto &g : glyphs) {
         ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint, {}));
