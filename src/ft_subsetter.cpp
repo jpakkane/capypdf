@@ -20,8 +20,6 @@ namespace capypdf::internal {
 
 namespace {
 
-const uint32_t SPACE = ' ';
-
 template<typename T> void byte_swap_inplace(T &val) { val = std::byteswap(val); }
 
 uint32_t ttf_checksum(std::span<const std::byte> data) {
@@ -576,15 +574,6 @@ subset_glyphs(const TrueTypeFontFile &source,
                 ERCV(reassign_composite_glyph_numbers(subset.back(), comp_mapping));
             }
         }
-    }
-    // Glyph ID 32 _must_ be the space character. Pad empty things until done.
-    if(subset.size() < SPACE + 1) {
-        const auto &pad_glyph = source.glyphs[0];
-        while(subset.size() < SPACE) {
-            subset.emplace_back(std::vector<std::byte>(pad_glyph.begin(), pad_glyph.end()));
-        }
-        const auto &space_glyph = source.glyphs.at(SPACE);
-        subset.emplace_back(std::vector<std::byte>(space_glyph.begin(), space_glyph.end()));
     }
     return subset;
 }

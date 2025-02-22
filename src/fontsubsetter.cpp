@@ -140,23 +140,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
         fprintf(stderr, "Missing glyph for codepoint %d, glyph id %d", codepoint, glyph_index);
         RETERR(MissingGlyph);
     }
-    if(codepoint == SPACE) {
-        // In the PDF document model the space character is special.
-        // Every subset font _must_ have the space character in
-        // location 32.
-        if(subset.glyphs.size() == SPACE) {
-            subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
-            subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
-        }
-        return FontSubsetInfo{int32_t(0), SPACE};
-    }
     ERCV(handle_subglyphs(glyph_index));
-    if(subset.glyphs.size() == SPACE) {
-        // NOTE: the case where the subset font has fewer than 32 characters
-        // is handled when serializing the font.
-        subset.glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
-        subset.font_index_mapping[glyph_index] = SPACE;
-    }
     subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
     subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};

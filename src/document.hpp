@@ -520,7 +520,6 @@ private:
                                            CapyPDF_Compression compression);
 
     rvoe<NoReturnValue> generate_info_object();
-    rvoe<NoReturnValue> pad_subset_fonts();
     int32_t add_document_metadata_object();
 
     rvoe<NoReturnValue> validate_format(const RawPixelImage &ri) const;

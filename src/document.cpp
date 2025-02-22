@@ -650,49 +650,6 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::
     return add_icc_profile(contents, num_channels);
 }
 
-rvoe<NoReturnValue> PdfDocument::pad_subset_fonts() {
-    const uint32_t SPACE = ' ';
-    const uint32_t max_count = 100;
-
-    // A hidden requirement of the PDF text model is that _every_ subset font
-    // must have the space character mapped at location 32.
-
-    for(auto &sf : fonts) {
-        auto face = sf.fontdata.face.get();
-        if(!font_has_character(face, SPACE)) {
-            // This font does not have the space character.
-            // Thus nobody can use it and the subset does not need padding.
-            continue;
-        }
-        auto &subsetter = sf.subsets;
-        // Try to add glyphs until the subset has 32 elements.
-        bool padding_succeeded = false;
-        uint32_t gindex;
-        auto charcode = FT_Get_First_Char(face, &gindex);
-        for(uint32_t i = 0; i < max_count; ++i) {
-            if(subsetter.get_subset().size() >= SPACE) {
-                padding_succeeded = true;
-                break;
-            }
-            ERCV(subsetter.get_glyph_subset(charcode, gindex));
-            charcode = FT_Get_Next_Char(face, charcode, &gindex);
-        }
-        if(!padding_succeeded) {
-            fprintf(stderr,
-                    "Font subset padding failed for file %s.\n",
-                    sf.fontdata.original_file.string().c_str());
-            std::abort();
-        }
-        subsetter.unchecked_insert_glyph_to_last_subset(' ', {});
-        assert(subsetter.get_subset().size() > SPACE);
-        const auto &space_glyph = subsetter.get_subset().at(SPACE);
-        (void)space_glyph;
-        assert(std::holds_alternative<RegularGlyph>(space_glyph));
-        assert(std::get<RegularGlyph>(space_glyph).unicode_codepoint == SPACE);
-    }
-    return NoReturnValue{};
-}
-
 rvoe<int32_t> PdfDocument::create_name_dict() {
     ObjectFormatter fmt;
     auto sorted_names = sort_names(embedded_files);
