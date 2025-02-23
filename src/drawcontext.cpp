@@ -814,7 +814,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                                                            CapyPDF_FontId &current_font) {
     CHECK_INDEXNESS(current_font.id, doc->font_objects);
     bool is_first = true;
-    auto appender_lambda =
+    auto glyph_appender_lambda =
         [this, &serialisation, &is_first](const SubsetGlyph &current_subset_glyph) {
             used_subset_fonts.insert(current_subset_glyph.ss);
             if(is_first) {
@@ -833,7 +833,23 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
         } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
             const auto codepoint = uglyph->codepoint;
             ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
-            appender_lambda(current_subset_glyph);
+            glyph_appender_lambda(current_subset_glyph);
+        } else if(auto u8str = std::get_if<u8string>(&e)) {
+            if(u8str->empty()) {
+                continue;
+            }
+            ERC(subset, doc->get_subset_glyph(current_font, *u8str->begin(), {}));
+            used_subset_fonts.insert(subset.ss);
+            if(is_first) {
+                serialisation.append_indent();
+                serialisation.append_raw("[ ");
+            }
+            serialisation.append_raw("<");
+            for(const auto codepoint : *u8str) {
+                ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
+                std::format_to(serialisation.app(), "{:04x}", current_subset_glyph.glyph_id);
+            }
+            serialisation.append_raw("> ");
         } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
             auto u16 = utf8_to_pdfutf16be(actualtext->text);
             std::format_to(serialisation.app(),
@@ -848,12 +864,12 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             ERC(current_subset_glyph,
                 doc->get_subset_glyph(
                     current_font, glyphitem->unicode_codepoint, glyphitem->glyph_id));
-            appender_lambda(current_subset_glyph);
+            glyph_appender_lambda(current_subset_glyph);
         } else if(auto glyphtextitem = std::get_if<GlyphTextItem>(&e)) {
             ERC(current_subset_glyph,
                 doc->get_subset_glyph(
                     current_font, glyphtextitem->source_text, glyphtextitem->glyph_id));
-            appender_lambda(current_subset_glyph);
+            glyph_appender_lambda(current_subset_glyph);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
             std::abort();
@@ -1124,6 +1140,12 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
                 if(const auto *unicode = std::get_if<UnicodeCharacter>(&te)) {
                     if(!doc->font_has_character(font.value(), unicode->codepoint)) {
                         RETERR(MissingGlyph);
+                    } else if(const auto *u8str = std::get_if<u8string>(&te)) {
+                        for(const auto &codepoint : *u8str) {
+                            if(!doc->font_has_character(font.value(), codepoint)) {
+                                RETERR(MissingGlyph);
+                            }
+                        }
                     }
                 }
             }

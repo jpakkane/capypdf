@@ -1385,6 +1385,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequen
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_string(CapyPDF_TextSequence *tseq,
+                                                           const char *u8str,
+                                                           int32_t strlen) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto u8 = validate_utf8(u8str, strlen);
+    if(!u8) {
+        return conv_err(u8);
+    }
+    auto rc = ts->append_string(std::move(u8.value()));
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
                                                             int32_t kern) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;

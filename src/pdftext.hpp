@@ -41,6 +41,7 @@ struct ActualTextEnd {};
 
 typedef std::variant<KerningValue,
                      UnicodeCharacter,
+                     u8string,
                      GlyphItem,
                      GlyphTextItem,
                      ActualTextStart,
@@ -58,6 +59,11 @@ public:
 
     rvoe<NoReturnValue> append_unicode(uint32_t codepoint) {
         e.emplace_back(UnicodeCharacter{codepoint});
+        RETOK;
+    }
+
+    rvoe<NoReturnValue> append_string(u8string str) {
+        e.emplace_back(std::move(str));
         RETOK;
     }
 

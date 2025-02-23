@@ -367,6 +367,25 @@ class TestPDFCreation(unittest.TestCase):
             with g.page_draw_context() as ctx:
                 ctx.render_text('eêéèẽëe', font, 42, 10, 80)
 
+    @validate_image('python_ts_string', 200, 200)
+    def test_ts_string(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            with g.page_draw_context() as ctx:
+                ts = capypdf.TextSequence()
+                ts.append_string("Word")
+                ts.append_kerning(-2000)
+                ts.append_string("spacing.")
+                t = ctx.text_new()
+                t.cmd_Tf(font, 12)
+                t.cmd_Td(10, 80)
+                t.cmd_TJ(ts)
+                ctx.render_text_obj(t)
+
     @validate_image('python_unusualfont', 200, 200)
     def test_unusualfont(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()

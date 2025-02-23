@@ -770,6 +770,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequence *tseq,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_string(CapyPDF_TextSequence *tseq,
+                                                           const char *u8str,
+                                                           int32_t strlen) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
                                                             int32_t kern) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(

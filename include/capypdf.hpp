@@ -292,6 +292,13 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_kerning(*this, kern));
     }
 
+    void append_string(const char *u8str, int32_t slen) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_string(*this, u8str, slen));
+    }
+    template<ByteSequence T> void append_string(const T &text) {
+        append_string(text.data(), text.size());
+    }
+
     void append_actualtext_start(const char *actual_text) {
         CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text, -1));
     }

@@ -397,6 +397,7 @@ cfunc_types = (
 ('capy_text_sequence_new', [ctypes.c_void_p]),
 ('capy_text_sequence_append_codepoint', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_text_sequence_append_kerning', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_text_sequence_append_string', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_sequence_append_actualtext_start', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_text_sequence_append_actualtext_end', [ctypes.c_void_p]),
 ('capy_text_sequence_append_raw_glyph', [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32]),
@@ -1253,6 +1254,10 @@ class TextSequence:
         if not isinstance(codepoint, int):
             codepoint = ord(codepoint)
         check_error(libfile.capy_text_sequence_append_codepoint(self, codepoint))
+
+    def append_string(self, ustr):
+        u8bytes = ustr.encode('UTF-8')
+        check_error(libfile.capy_text_sequence_append_string(self, u8bytes, len(u8bytes)))
 
     def append_kerning(self, kern):
         check_error(libfile.capy_text_sequence_append_kerning(self, kern))
