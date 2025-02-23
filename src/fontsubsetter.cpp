@@ -77,10 +77,6 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
                         *glyph_id,
                         d->unicode_codepoint,
                         codepoint);
-                } else {
-                    fprintf(stderr,
-                            "Tried to map existing glyph %d to a different codepoint.\n",
-                            *glyph_id);
                 }
             } else {
                 fprintf(stderr,
@@ -110,10 +106,6 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const u8string &text,
                         glyph_id,
                         d->text.c_str(),
                         text.c_str());
-            } else {
-                fprintf(stderr,
-                        "Tried to map existing glyph %d to a different text representation.\n",
-                        glyph_id);
             }
         } else {
             fprintf(stderr,
