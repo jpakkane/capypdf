@@ -34,8 +34,8 @@ void CommandStreamFormatter::append_command(int32_t arg, const char *command) {
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::BT() {
-    ERCV(indent(DrawStateType::Text));
     append("BT");
+    ERCV(indent(DrawStateType::Text));
     RETOK;
 }
 
@@ -46,8 +46,8 @@ rvoe<NoReturnValue> CommandStreamFormatter::ET() {
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::CommandStreamFormatter::q() {
-    ERCV(indent(DrawStateType::SaveState));
     append("q");
+    ERCV(indent(DrawStateType::SaveState));
     RETOK;
 }
 
@@ -58,8 +58,8 @@ rvoe<NoReturnValue> CommandStreamFormatter::Q() {
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::BMC() {
-    ERCV(indent(DrawStateType::MarkedContent));
     append("BMC");
+    ERCV(indent(DrawStateType::MarkedContent));
     RETOK;
 }
 
