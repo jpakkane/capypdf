@@ -51,8 +51,12 @@ struct CapyCTypeDeleter {
             rc = capy_text_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_TextSequence>) {
             rc = capy_text_sequence_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Annotation>) {
+            rc = capy_annotation_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_Color>) {
             rc = capy_color_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Destination>) {
+            rc = capy_destination_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_GraphicsState>) {
             rc = capy_graphics_state_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_DrawContext>) {
@@ -94,6 +98,54 @@ protected:
     operator const T *() const { return _d.get(); }
 
     std::unique_ptr<T, CapyCTypeDeleter> _d;
+};
+
+class Destination : public CapyC<CapyPDF_Destination> {
+public:
+    friend class Annotation;
+
+    Destination() {
+        CapyPDF_Destination *dest;
+        CAPY_CPP_CHECK(capy_destination_new(&dest));
+        _d.reset(dest);
+    }
+
+    void set_page_fit(int32_t page_num) {
+        CAPY_CPP_CHECK(capy_destination_set_page_fit(*this, page_num));
+    }
+
+    void set_page_xyz(int32_t page_num,
+                      std::optional<double> x,
+                      std::optional<double> y,
+                      std::optional<double> z) {
+        CAPY_CPP_CHECK(capy_destination_set_page_xyz(
+            *this, page_num, x ? &*x : nullptr, y ? &*y : nullptr, z ? &*z : nullptr));
+    }
+};
+
+class Annotation : public CapyC<CapyPDF_Annotation> {
+public:
+    friend class Generator;
+
+    Annotation() {
+        CapyPDF_Annotation *annot;
+        CAPY_CPP_CHECK(capy_link_annotation_new(&annot));
+        _d.reset(annot);
+    }
+
+    void set_uri(const char *u8str, int32_t slen) {
+        CAPY_CPP_CHECK(capy_annotation_set_uri(*this, u8str, slen));
+    }
+    template<ByteSequence T> void set_uri(const T &text) { set_uri(text.data(), text.size()); }
+    void set_rectangle(double x1, double y1, double x2, double y2) {
+        CAPY_CPP_CHECK(capy_annotation_set_rectangle(*this, x1, y1, x2, y2));
+    }
+    void set_flags(CapyPDF_Annotation_Flags flags) {
+        CAPY_CPP_CHECK(capy_annotation_set_flags(*this, flags));
+    }
+    void set_destination(Destination &dest) {
+        CAPY_CPP_CHECK(capy_annotation_set_destination(*this, dest));
+    }
 };
 
 class BDCTags : public CapyC<CapyPDF_BDCTags> {
@@ -575,6 +627,9 @@ class DrawContext : public CapyC<CapyPDF_DrawContext> {
 
 public:
     DrawContext() = delete;
+
+    void annotate(CapyPDF_AnnotationId aid) { CAPY_CPP_CHECK(capy_dc_annotate(*this, aid)); }
+
     void cmd_b() { CAPY_CPP_CHECK(capy_dc_cmd_b(*this)); }
     void cmd_B() { CAPY_CPP_CHECK(capy_dc_cmd_B(*this)); }
     void cmd_bstar() { CAPY_CPP_CHECK(capy_dc_cmd_bstar(*this)); }
@@ -814,6 +869,12 @@ public:
         CapyPDF_DrawContext *dc;
         CAPY_CPP_CHECK(capy_tiling_pattern_context_new(*this, &dc, l, b, r, t));
         return DrawContext(dc);
+    }
+
+    CapyPDF_AnnotationId add_annotation(Annotation &annot) {
+        CapyPDF_AnnotationId aid;
+        CAPY_CPP_CHECK(capy_generator_add_annotation(*this, annot, &aid));
+        return aid;
     }
 
     void add_page_labeling(uint32_t start_page,
