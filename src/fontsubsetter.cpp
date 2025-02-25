@@ -85,10 +85,11 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
             }
             return *existing_gid;
         }
-    }
-    auto trial = find_glyph_with_codepoint(codepoint);
-    if(trial) {
-        return trial.value();
+    } else {
+        auto trial = find_glyph_with_codepoint(codepoint);
+        if(trial) {
+            return trial.value();
+        }
     }
     return unchecked_insert_glyph_to_last_subset(codepoint, glyph_id);
 }
@@ -193,7 +194,9 @@ std::optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) c
     auto loc =
         std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&gid](const TTGlyphs &ttg) {
             if(std::holds_alternative<RegularGlyph>(ttg)) {
-                return std::get<RegularGlyph>(ttg).glyph_index == gid;
+                if(std::get<RegularGlyph>(ttg).glyph_index == gid) {
+                    return true;
+                }
             }
             return false;
         });

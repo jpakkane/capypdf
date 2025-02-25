@@ -342,7 +342,7 @@ class TestPDFCreation(unittest.TestCase):
                    (2194, 'l'),
                    (3, ' '),
                    (38, 'C'),
-                   (2156, 'a'),
+                   (2136, 'a'),
                    (2219, 'p'),
                    (2226, 's'))
 
