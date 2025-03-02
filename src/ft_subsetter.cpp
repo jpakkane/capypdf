@@ -523,12 +523,13 @@ rvoe<std::vector<std::span<std::byte>>> load_GLYF_glyphs(uint32_t offset,
     return glyph_data;
 }
 
-rvoe<CFFont> load_CFF_glyphs(uint32_t offset,
-                             std::span<std::byte> buf,
-                             uint16_t num_glyphs,
-                             const std::vector<int32_t> &loca) {
+rvoe<CFFont> load_CFF_glyphs(uint32_t offset, std::span<std::byte> buf, uint16_t num_glyphs) {
     auto cff_span = buf.subspan(offset);
-    return parse_cff_data(cff_span);
+    auto cff = parse_cff_data(cff_span);
+    if(cff.has_value()) {
+        assert(cff->char_strings.size() == num_glyphs);
+    }
+    return cff;
 }
 
 rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
@@ -798,7 +799,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     }
     auto *cff = find_entry(directory, "CFF ");
     if(cff) {
-        ERC(cffg, load_CFF_glyphs(cff->offset, original_data, tf.maxp.num_glyphs(), loca))
+        ERC(cffg, load_CFF_glyphs(cff->offset, original_data, tf.maxp.num_glyphs()))
         tf.cff = std::move(cffg);
     }
     ERC(cvt, load_raw_table(directory, original_data, "cvt "));
@@ -940,10 +941,8 @@ generate_truetype_font(const TrueTypeFontFile &source,
     return bytes;
 }
 
-rvoe<std::vector<std::byte>>
-generate_cff_font(const TrueTypeFontFile &source,
-                  const std::vector<TTGlyphs> &glyphs,
-                  const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
+                                               const std::vector<TTGlyphs> &glyphs) {
     const auto &source_data = source.cff.value();
     std::vector<SubsetGlyphs> converted;
     converted.reserve(glyphs.size());
@@ -965,7 +964,7 @@ generate_font(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     if(source.in_cff_format()) {
-        return generate_cff_font(source, glyphs, comp_mapping);
+        return generate_cff_font(source, glyphs);
     } else {
         return generate_truetype_font(source, glyphs, comp_mapping);
     }
