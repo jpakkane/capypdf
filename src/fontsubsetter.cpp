@@ -234,8 +234,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) co
     return {};
 }
 
-rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source,
-                                                            int32_t subset_number) const {
+rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source) const {
     return generate_font(source, subset.glyphs, subset.font_index_mapping);
 }
 

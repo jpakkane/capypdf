@@ -294,10 +294,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
 
         [&](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
-            ERCV(write_subset_font(i,
-                                   doc.fonts.at(ssfont.fid.id),
-                                   ssfont.subfont_descriptor_obj,
-                                   ssfont.subfont_cmap_obj));
+            ERCV(write_subset_font(i, doc.fonts.at(ssfont.fid.id), ssfont.subfont_cmap_obj));
             RETOK;
         },
 
@@ -415,10 +412,8 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
     return write_bytes(buf);
 }
 
-rvoe<NoReturnValue> PdfWriter::write_subset_font(int32_t object_num,
-                                                 const FontThingy &font,
-                                                 int32_t font_descriptor_obj,
-                                                 int32_t tounicode_obj) {
+rvoe<NoReturnValue>
+PdfWriter::write_subset_font(int32_t object_num, const FontThingy &font, int32_t tounicode_obj) {
     const int32_t subset_id = 0;
     auto face = font.fontdata.face.get();
     ObjectFormatter fmt;
@@ -482,7 +477,8 @@ PdfWriter::write_cid_dict(int32_t object_num, CapyPDF_FontId fid, int32_t font_d
 rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
                                                       const DelayedSubsetFontData &ssfont) {
     const auto &font = doc.fonts.at(ssfont.fid.id);
-    ERC(subset_font, font.subsets.generate_subset(font.fontdata.fontdata, ssfont.subset_id));
+    assert(ssfont.subset_id == 0);
+    ERC(subset_font, font.subsets.generate_subset(font.fontdata.fontdata));
 
     ERC(compressed_bytes, flate_compress(subset_font));
     if(font.fontdata.fontdata.in_cff_format()) {

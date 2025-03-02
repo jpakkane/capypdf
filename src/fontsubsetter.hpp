@@ -52,8 +52,7 @@ public:
 
     size_t subset_size() const { return subset.glyphs.size(); }
 
-    rvoe<std::vector<std::byte>> generate_subset(const TrueTypeFontFile &source,
-                                                 int32_t subset_number) const;
+    rvoe<std::vector<std::byte>> generate_subset(const TrueTypeFontFile &source) const;
 
 private:
     rvoe<NoReturnValue> handle_subglyphs(uint32_t glyph_index);
