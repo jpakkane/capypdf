@@ -419,7 +419,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         f.fdarray.emplace_back(std::move(fdentry));
     }
     offset = fds->operand[0];
-    ERC(fdsstr, unpack_fdselect(dataspan.subspan(fds->operand[0]), f.char_strings.size()));
+    ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), f.char_strings.size()));
     f.fdselect = std::move(fdsstr);
 
     return f;
