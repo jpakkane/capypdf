@@ -830,64 +830,6 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
         }
 #endif
     }
-    /*
-    for(const auto &e : directory) {
-        char tagbuf[5];
-        tagbuf[4] = 0;
-        memcpy(tagbuf, e.tag, 4);
-        printf("%s off: %d size: %d\n", tagbuf, e.offset, e.length);
-        if(e.tag_is("DSIG")) {
-            // Not actually needed for subsetting.
-            TTDsig sig;
-            memcpy(&sig, buf.data() + e.offset, sizeof(sig));
-            sig.swap_endian();
-            assert(sig.version == 1);
-            assert(sig.num_signatures == 0);
-        } else if(e.tag_is("GDEF")) {
-            // This neither.
-            TTGDEF gdef;
-            assert(e.length > sizeof(gdef));
-            memcpy(&gdef, buf.data() + e.offset, sizeof(gdef));
-            gdef.swap_endian();
-            assert(gdef.major == 1);
-            assert(gdef.minor == 2);
-            gdef.item_var_offset = -1;
-            uint16_t classdef_version;
-            memcpy(&classdef_version,
-                   buf.data() + e.offset + gdef.glyph_class_offset,
-                   sizeof(classdef_version));
-            byte_swap_inplace(classdef_version);
-            assert(classdef_version == 2);
-            uint16_t num_records;
-            memcpy(&num_records,
-                   buf.data() + e.offset + gdef.glyph_class_offset + sizeof(classdef_version),
-                   sizeof(num_records));
-            byte_swap_inplace(num_records);
-            const char *array_start = buf.data() + e.offset + gdef.glyph_class_offset +
-                                      sizeof(classdef_version) + sizeof(num_records);
-            for(uint16_t i = 0; i < num_records; ++i) {
-                TTClassRangeRecord range;
-                memcpy(&range, array_start + i * sizeof(range), sizeof(range));
-                range.swap_endian();
-            }
-        } else if(e.tag_is("cmap")) {
-            // Maybe we don't need to parse this table, but
-            // instead get it from Freetype as needed
-            // when generating output?
-        } else if(e.tag_is("GPOS")) {
-        } else if(e.tag_is("GSUB")) {
-        } else if(e.tag_is("OS/2")) {
-        } else if(e.tag_is("gasp")) {
-        } else if(e.tag_is("name")) {
-        } else {
-            printf("Unknown tag %s.\n", tagbuf);
-            std::abort();
-
-            // TT fonts contain a ton of additional data tables.
-            // We ignore all of them.
-        }
-    }
-    */
     return tf;
 }
 
