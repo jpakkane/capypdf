@@ -755,7 +755,8 @@ rvoe<int16_t> num_contours(std::span<const std::byte> buf) {
 }
 
 rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset = 0) {
-    TrueTypeFontFile tf{std::move(backing)};
+    TrueTypeFontFile tf;
+    tf.original_data = std::move(backing);
     ERC(original_data, span_of_source(tf.original_data));
     auto header_span = original_data.subspan(header_offset);
     if(header_span.size() < sizeof(TTOffsetTable)) {
