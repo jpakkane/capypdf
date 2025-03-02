@@ -243,12 +243,6 @@ generate_font(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
 
-rvoe<std::vector<std::byte>>
-generate_font(FT_Face face,
-              std::span<const std::byte> buf,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
-
 rvoe<FontData> parse_font_file(DataSource original_data, uint16_t subfont);
 rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname,
                                         const FontProperties &props);

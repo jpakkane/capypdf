@@ -915,16 +915,6 @@ rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) 
 }
 
 rvoe<std::vector<std::byte>>
-generate_font(std::span<const std::byte> buf,
-              const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
-    // ERC(source, parse_truetype_font(buf));
-    // return generate_font(source, glyphs, comp_mapping);
-    fprintf(stderr, "Not implemented.\n");
-    std::abort();
-}
-
-rvoe<std::vector<std::byte>>
 generate_truetype_font(const TrueTypeFontFile &source,
                        const std::vector<TTGlyphs> &glyphs,
                        const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
