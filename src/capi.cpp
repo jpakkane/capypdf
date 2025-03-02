@@ -1907,6 +1907,40 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *sta
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_FL(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    if(value < 0) {
+        return conv_err(ErrorCode::InvalidFlatness);
+    }
+    s->FL = value;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    if(value < 0 || value > 1.0) {
+        return conv_err(ErrorCode::InvalidFlatness);
+    }
+    s->SM = value;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *state,
+                                                      int32_t value) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    CHECK_BOOLEAN(value);
+    s->AIS = value;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;

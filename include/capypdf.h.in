@@ -901,6 +901,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *sta
                                                       int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *state,
                                                         CapyPDF_SoftMaskId smid) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_FL(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *state,
+                                                     double value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *state,
+                                                      int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
