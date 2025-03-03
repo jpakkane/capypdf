@@ -89,7 +89,15 @@ rvoe<CFFIndex> load_index(std::span<std::byte> dataspan, size_t &offset) {
         ERC(c, extract_index_offset(dataspan, offset, offSize));
         assert(c > 0);
         if(!offsets.empty()) {
-            assert(offsets.back() < c);
+            if(offsets.back() > c) {
+                fprintf(stderr,
+                        "CFF font has index with negative size in entry %d (previous offset %d, "
+                        "current offset %d).\n ",
+                        i,
+                        (int)offsets.back(),
+                        (int)c);
+                RETERR(MalformedFontFile);
+            }
         }
         offsets.push_back(c);
         offset += offSize;
