@@ -5,6 +5,7 @@
 
 #include <errorhandling.hpp>
 
+#include <iterator>
 #include <string>
 #include <vector>
 #include <stdint.h>
