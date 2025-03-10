@@ -49,6 +49,14 @@ public:
     void end_array();
     void end_dict();
 
+    template<typename T> void add_array(const T &arr) {
+        begin_array();
+        for(const auto &i : arr) {
+            add_token(i);
+        }
+        end_array();
+    }
+
     void add_token_pair(const char *t1, const char *t2);
     template<typename T> void add_token_pair(std::string_view key, T &&vtype) {
         add_token(key);

@@ -553,11 +553,11 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
         im.cs = CAPY_DEVICE_CS_CMYK;
         // FIXME: should detect whether to invert or not:
         // https://graphicdesign.stackexchange.com/questions/12894/cmyk-jpegs-extracted-from-pdf-appear-inverted
-        im.invert_channels = true;
+        im.domain = std::vector<double>{1, 0, 1, 0, 1, 0, 1, 0};
         break;
     case JCS_YCCK:
         im.cs = CAPY_DEVICE_CS_CMYK;
-        im.invert_channels = true;
+        im.domain = std::vector<double>{1, 0, 1, 0, 1, 0, 1, 0};
         break;
     default:
         RETERR(UnsupportedFormat);

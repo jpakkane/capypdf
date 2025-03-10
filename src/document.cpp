@@ -1287,7 +1287,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
 rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProperties &props) {
     ObjectFormatter fmt;
     fmt.begin_dict();
-    fmt.add_token_pair("/Type", "/XObjedt");
+    fmt.add_token_pair("/Type", "/XObject");
     fmt.add_token_pair("/Subtype", "/Image");
     fmt.add_token_pair("/Width", jpg.w);
     fmt.add_token_pair("/Height", jpg.h);
@@ -1295,9 +1295,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     fmt.add_token_pair("/Length", jpg.file_contents.size());
     fmt.add_token_pair("/Filter", "/DCTDecode");
 
-    if(jpg.invert_channels) {
+    if(!jpg.domain.empty()) {
         assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
-        fmt.add_token_pair("/Decode", "[1 0 1 0 1 0 1 0]");
+        fmt.add_token("/Decode");
+        fmt.add_array(jpg.domain);
     }
     if(jpg.icc_profile.empty()) {
         fmt.add_token_pair("/ColorSpace", colorspace_names.at(jpg.cs));
