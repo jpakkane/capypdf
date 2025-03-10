@@ -1862,7 +1862,6 @@ rvoe<CapyPDF_FontId>
 PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontProperties props) {
     FT_Face face;
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
-                fname,
                 {}};
     auto error = FT_New_Face(ft, fname.string().c_str(), props.subfont, &face);
     if(error) {
