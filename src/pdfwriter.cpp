@@ -535,11 +535,13 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
 
 rvoe<NoReturnValue> PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font) {
     auto cmap = create_cidfont_subset_cmap(font.subsets.get_subset());
+    ERC(compressed_cmap, flate_compress(cmap));
     ObjectFormatter fmt;
     fmt.begin_dict();
-    fmt.add_token_pair("/Length", cmap.length());
+    fmt.add_token_pair("/Filter", "/FlateDecode");
+    fmt.add_token_pair("/Length", compressed_cmap.size());
     fmt.end_dict();
-    return write_finished_object(object_num, fmt.steal(), str2span(cmap));
+    return write_finished_object(object_num, fmt.steal(), compressed_cmap);
 }
 
 rvoe<NoReturnValue> PdfWriter::write_pages_root() {
