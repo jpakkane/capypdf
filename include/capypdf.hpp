@@ -260,8 +260,11 @@ public:
         CAPY_CPP_CHECK(capy_document_properties_set_colorspace(*this, cs));
     }
 
-    void set_output_intent(const char *identifier) {
-        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier, -1));
+    void set_output_intent(const char *identifier, int32_t strsize = -1) {
+        CAPY_CPP_CHECK(capy_document_properties_set_output_intent(*this, identifier, strsize));
+    }
+    template<ByteSequence T> void set_output_intent(const T &buf) {
+        set_output_intent(buf.data, buf.size());
     }
 
     void set_pdfx(CapyPDF_PDFX_Type xtype) {

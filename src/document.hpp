@@ -432,11 +432,11 @@ public:
     rvoe<CapyPDF_FunctionId> add_function(PdfFunction f);
 
     // Shading
-    rvoe<FullPDFObject> serialize_shading(const PdfShading &shade);
-    rvoe<FullPDFObject> serialize_shading(const ShadingType2 &shade);
-    rvoe<FullPDFObject> serialize_shading(const ShadingType3 &shade);
-    rvoe<FullPDFObject> serialize_shading(const ShadingType4 &shade);
-    rvoe<FullPDFObject> serialize_shading(const ShadingType6 &shade);
+    rvoe<int32_t> serialize_shading(const PdfShading &shade);
+    rvoe<int32_t> serialize_shading(const ShadingType2 &shade);
+    rvoe<int32_t> serialize_shading(const ShadingType3 &shade);
+    rvoe<int32_t> serialize_shading(const ShadingType4 &shade);
+    rvoe<int32_t> serialize_shading(const ShadingType6 &shade);
     rvoe<CapyPDF_ShadingId> add_shading(PdfShading sh);
 
     // Patterns
