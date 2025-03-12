@@ -61,9 +61,8 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         if(group_matrix) {
             write_matrix(fmt, group_matrix.value());
         }
-        fmt.end_dict();
         ERC(commands, cmds.steal());
-        return SerializedXObject{fmt.steal(), std::move(commands)};
+        return SerializedXObject{std::move(fmt), std::move(commands)};
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -86,9 +85,8 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         fmt.add_token_pair("/Length", cmds.size());
-        fmt.end_dict();
         ERC(commands, cmds.steal());
-        return SerializedXObject{fmt.steal(), std::move(commands)};
+        return SerializedXObject{std::move(fmt), std::move(commands)};
     } else if(context_type == CAPY_DC_COLOR_TILING) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -111,9 +109,8 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         fmt.add_token_pair("/Length", cmds.size());
-        fmt.end_dict();
         ERC(commands, cmds.steal());
-        return SerializedXObject{fmt.steal(), std::move(commands)};
+        return SerializedXObject{std::move(fmt), std::move(commands)};
     } else {
         assert(!group_matrix);
         SerializedBasicContext sc;

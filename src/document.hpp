@@ -392,7 +392,7 @@ public:
                                           std::optional<uint32_t> start_num);
 
     // Form XObjects
-    void add_form_xobject(std::string xobj_data, std::string xobj_stream);
+    void add_form_xobject(ObjectFormatter xobj_data, std::string xobj_stream);
 
     // Colors
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,

@@ -472,9 +472,9 @@ PdfDocument::add_page_labeling(uint32_t start_page,
 }
 
 // Form XObjects
-void PdfDocument::add_form_xobject(std::string xobj_dict, std::string xobj_stream) {
+void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, std::string xobj_stream) {
     const auto xobj_num =
-        add_object(FullPDFObject{std::move(xobj_dict), RawData(std::move(xobj_stream))});
+        add_object(DeflatePDFObject{std::move(xobj_dict), RawData(std::move(xobj_stream)), true});
 
     form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
 }
@@ -1702,7 +1702,8 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     }
     ERC(sc_var, ctx.serialize());
     auto &d = std::get<SerializedXObject>(sc_var);
-    auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
+    auto objid =
+        add_object(DeflatePDFObject{std::move(d.dict), RawData(std::move(d.command_stream)), true});
     return CapyPDF_PatternId{objid};
 }
 
@@ -1828,7 +1829,8 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
     }
     ERC(sc_var, ctx.serialize());
     auto &d = std::get<SerializedXObject>(sc_var);
-    auto objid = add_object(FullPDFObject{std::move(d.dict), RawData(std::move(d.command_stream))});
+    auto objid =
+        add_object(DeflatePDFObject{std::move(d.dict), RawData(std::move(d.command_stream)), true});
     transparency_groups.push_back(objid);
     return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
 }

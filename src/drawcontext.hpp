@@ -49,7 +49,7 @@ struct SerializedBasicContext {
 };
 
 struct SerializedXObject {
-    std::string dict; // FIXME, convert to unclosed so these can be compressed.
+    ObjectFormatter dict;
     std::string command_stream;
 };
 
