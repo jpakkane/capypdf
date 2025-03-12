@@ -121,6 +121,7 @@ struct FullPDFObject {
 struct DeflatePDFObject {
     ObjectFormatter unclosed_dictionary;
     RawData stream;
+    bool leave_uncompressed_in_debug = false;
 };
 
 struct DelayedSubsetFontData {
@@ -185,7 +186,7 @@ struct IccInfo {
 };
 
 struct DocumentProperties {
-    DocumentProperties() { default_page_properties.mediabox = PdfRectangle::a4(); }
+    DocumentProperties();
 
     PdfVersion version() const;
     bool use_rdf_metadata() const;
@@ -202,7 +203,7 @@ struct DocumentProperties {
     std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
     u8string metadata_xml;
     u8string intent_condition_identifier;
-    bool compress_streams = false;
+    bool compress_streams = true;
 };
 
 struct Outline {

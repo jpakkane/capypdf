@@ -287,6 +287,11 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
+DocumentProperties::DocumentProperties() {
+    default_page_properties.mediabox = PdfRectangle::a4();
+    compress_streams = (getenv("CAPY_DEBUG_PDF") == nullptr);
+}
+
 PdfVersion DocumentProperties::version() const {
     if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
         if(*pdfa >= CAPY_PDFA_4f) {
@@ -420,14 +425,8 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     fmt.begin_dict();
     const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
     int32_t commands_num{-1};
-    if(docprops.compress_streams) {
-        commands_num =
-            add_object(DeflatePDFObject{std::move(fmt), RawData{std::move(command_stream)}});
-    } else {
-        fmt.add_token_pair("/Length", command_stream.length());
-        fmt.end_dict();
-        commands_num = add_object(FullPDFObject{fmt.steal(), RawData(std::move(command_stream))});
-    }
+    commands_num =
+        add_object(DeflatePDFObject{std::move(fmt), RawData{std::move(command_stream)}, true});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
     p.custom_props = custom_props;

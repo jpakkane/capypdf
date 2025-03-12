@@ -264,14 +264,21 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
 
         [&](const DeflatePDFObject &pobj) -> rvoe<NoReturnValue> {
-            ERC(compressed, flate_compress(pobj.stream.sv()));
-            // FIXME, not great.
             ObjectFormatter &fmt = const_cast<ObjectFormatter &>(pobj.unclosed_dictionary);
-            fmt.add_token_pair("/Filter", "/FlateDecode");
-            fmt.add_token_pair("/Length", compressed.size());
-            fmt.end_dict();
-            ERCV(write_finished_object(i, fmt.steal(), compressed));
-            RETOK;
+            if(pobj.leave_uncompressed_in_debug && !doc.docprops.compress_streams) {
+                fmt.add_token_pair("/Length", pobj.stream.size());
+                fmt.end_dict();
+                ERCV(write_finished_object(i, fmt.steal(), pobj.stream.span()));
+                RETOK;
+            } else {
+                ERC(compressed, flate_compress(pobj.stream.sv()));
+                // FIXME, not great.
+                fmt.add_token_pair("/Filter", "/FlateDecode");
+                fmt.add_token_pair("/Length", compressed.size());
+                fmt.end_dict();
+                ERCV(write_finished_object(i, fmt.steal(), compressed));
+                RETOK;
+            }
         },
 
         [&](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
