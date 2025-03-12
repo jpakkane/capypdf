@@ -377,7 +377,6 @@ public:
 
     // Pages
     rvoe<NoReturnValue> add_page(std::string resource_dict,
-                                 ObjectFormatter fmt,
                                  std::string command_stream,
                                  const PageProperties &custom_props,
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,

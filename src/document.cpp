@@ -394,7 +394,6 @@ rvoe<NoReturnValue> PdfDocument::init() {
 }
 
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
-                                          ObjectFormatter fmt,
                                           std::string command_stream,
                                           const PageProperties &custom_props,
                                           const std::unordered_set<CapyPDF_FormWidgetId> &fws,
@@ -417,6 +416,8 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
             RETERR(StructureReuse);
         }
     }
+    ObjectFormatter fmt;
+    fmt.begin_dict();
     const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
     int32_t commands_num{-1};
     if(docprops.compress_streams) {
