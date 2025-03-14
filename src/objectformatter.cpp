@@ -120,7 +120,9 @@ void ObjectFormatter::check_indent() {
 
 void ObjectFormatter::add_pdfstring(const asciistring &str) {
     // FIXME: add quoting for special characters.
+    check_indent();
     std::format_to(app, "({})", str.c_str());
+    added_item();
 }
 
 void ObjectFormatter::added_item() {
