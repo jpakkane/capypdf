@@ -49,6 +49,21 @@ namespace {
 
 const int32_t NUM_STANDARD_STRINGS = 390;
 
+rvoe<std::span<std::byte>>
+safe_subspan(const std::span<std::byte> &span, size_t offset, size_t size) {
+    if(offset + size < offset) {
+        // Overflow
+        RETERR(IndexOutOfBounds);
+    }
+    if(offset > span.size_bytes()) {
+        RETERR(IndexOutOfBounds);
+    }
+    if(offset + size > span.size_bytes()) {
+        RETERR(IndexOutOfBounds);
+    }
+    return span.subspan(offset, size);
+}
+
 rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, uint8_t offSize) {
     if(dataspan.size_bytes() <= offset + offSize) {
         RETERR(IndexOutOfBounds);
@@ -68,7 +83,7 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
         ERC(v, extract<uint32_t>(dataspan, offset))
         return std::byteswap(v);
     } else {
-        std::abort();
+        RETERR(MalformedFontFile);
     }
 }
 
@@ -84,18 +99,24 @@ rvoe<CFFIndex> load_index(std::span<std::byte> dataspan, size_t &offset) {
     ++offset;
     std::vector<size_t> offsets;
     offsets.reserve(count + 1);
-    assert(offSize <= 5);
+    if(offSize > 5) {
+        RETERR(MalformedFontFile);
+    }
     for(uint32_t i = 0; i <= count; ++i) {
         ERC(c, extract_index_offset(dataspan, offset, offSize));
-        assert(c > 0);
+        if(c <= 0) {
+            RETERR(MalformedFontFile);
+        }
         if(!offsets.empty()) {
             if(offsets.back() > c) {
+                /*
                 fprintf(stderr,
                         "CFF font has index with negative size in entry %d (previous offset %d, "
                         "current offset %d).\n ",
                         i,
                         (int)offsets.back(),
                         (int)c);
+*/
                 RETERR(MalformedFontFile);
             }
         }
@@ -107,25 +128,31 @@ rvoe<CFFIndex> load_index(std::span<std::byte> dataspan, size_t &offset) {
 
     for(uint16_t i = 0; i < count; ++i) {
         const auto entrysize = offsets[i + 1] - offsets[i];
-        auto entry = dataspan.subspan(offset + offsets[i], entrysize);
+        if(offset + offsets[i] > dataspan.size() ||
+           offset + offsets[i] + entrysize > dataspan.size()) {
+            RETERR(MalformedFontFile);
+        }
+        ERC(entry, safe_subspan(dataspan, offset + offsets[i], entrysize));
         index.entries.emplace_back(entry);
     }
     offset += offsets.back();
     return index;
 }
 
-rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan) {
+rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan_orig) {
     CFFDict dict;
     size_t offset = 0;
     std::vector<int32_t> operands;
-    while(offset < dataspan.size_bytes()) {
+    // span.at() is not available yet. Change back to span once it is.
+    auto dataspan = span2sv(dataspan_orig);
+    while(offset < dataspan.size()) {
         // Read operand
-        const int32_t b0 = (uint8_t)dataspan[offset++];
+        const int32_t b0 = (uint8_t)dataspan.at(offset++);
         if(b0 <= 21) {
             // Is an operator.
             int32_t unpacked_operator = b0;
             if(b0 == 0xc) {
-                const int32_t b1 = (uint8_t)dataspan[offset++];
+                const int32_t b1 = (uint8_t)dataspan.at(offset++);
                 unpacked_operator = b0 << 8 | b1;
             }
             dict.entries.emplace_back(std::move(operands), (DictOperator)unpacked_operator);
@@ -136,26 +163,26 @@ rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan) {
             if(b0 >= 32 && b0 <= 246) {
                 unpacked_operand = b0 - 139;
             } else if(b0 >= 247 && b0 <= 250) {
-                const int32_t b1 = (uint8_t)dataspan[offset++];
+                const int32_t b1 = (uint8_t)dataspan.at(offset++);
                 unpacked_operand = (b0 - 247) * 256 + b1 + 108;
             } else if(b0 >= 251 && b0 <= 254) {
-                const int32_t b1 = (uint8_t)dataspan[offset++];
+                const int32_t b1 = (uint8_t)dataspan.at(offset++);
                 unpacked_operand = -(b0 - 251) * 256 - b1 - 108;
             } else if(b0 == 28) {
-                const int32_t b1 = (uint8_t)dataspan[offset++];
-                const int32_t b2 = (uint8_t)dataspan[offset++];
+                const int32_t b1 = (uint8_t)dataspan.at(offset++);
+                const int32_t b2 = (uint8_t)dataspan.at(offset++);
                 unpacked_operand = b1 << 8 | b2;
             } else if(b0 == 29) {
-                const int32_t b1 = (uint8_t)dataspan[offset++];
-                const int32_t b2 = (uint8_t)dataspan[offset++];
-                const int32_t b3 = (uint8_t)dataspan[offset++];
-                const int32_t b4 = (uint8_t)dataspan[offset++];
+                const int32_t b1 = (uint8_t)dataspan.at(offset++);
+                const int32_t b2 = (uint8_t)dataspan.at(offset++);
+                const int32_t b3 = (uint8_t)dataspan.at(offset++);
+                const int32_t b4 = (uint8_t)dataspan.at(offset++);
                 unpacked_operand = b1 << 24 | b2 << 16 | b3 << 8 | b4;
             } else if(b0 == 30) {
                 // Floating point.
                 uint8_t b1;
                 do {
-                    b1 = (uint8_t)dataspan[offset++];
+                    b1 = (uint8_t)dataspan.at(offset++);
                 } while((b1 & 0xf) != 0xf);
                 unpacked_operand = -1; // FIXME
             } else {
@@ -164,14 +191,16 @@ rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan) {
             operands.push_back(unpacked_operand);
         }
     }
-    assert(operands.empty());
+    if(!operands.empty()) {
+        RETERR(MalformedFontFile);
+    }
     return dict;
 }
 
 const CFFDictItem *find_command(const CFFDict &dict, DictOperator op) {
-    for(size_t i = 0; i < dict.entries.size(); ++i) {
-        if(dict.entries[i].opr == op) {
-            return &dict.entries[i];
+    for(const auto &entry : dict.entries) {
+        if(entry.opr == op) {
+            return &entry;
         }
     }
     return nullptr;
@@ -182,6 +211,9 @@ const CFFDictItem *find_command(const CFFont &f, DictOperator op) {
 }
 
 rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) {
+    if(dataspan.empty()) {
+        RETERR(MalformedFontFile);
+    }
     std::vector<CFFCharsetRange2> charset;
     size_t offset = 0;
     const auto format = (uint8_t)dataspan[offset++];
@@ -275,10 +307,16 @@ std::vector<uint32_t> append_index_to(std::vector<std::byte> &output, const CFFI
 rvoe<CFFPrivateDict>
 load_private_dict(std::span<std::byte> dataspan, size_t dict_offset, size_t dict_size) {
     CFFPrivateDict pdict;
-    auto dictspan = dataspan.subspan(dict_offset, dict_size);
+    if(dict_offset > dataspan.size_bytes() || dict_offset + dict_size > dataspan.size_bytes()) {
+        RETERR(MalformedFontFile);
+    }
+    ERC(dictspan, safe_subspan(dataspan, dict_offset, dict_size));
     ERC(raw_pdict, unpack_dictionary(dictspan));
     for(const auto &e : raw_pdict.entries) {
         if(e.opr == DictOperator::Subrs) {
+            if(e.operand.empty()) {
+                RETERR(MalformedFontFile);
+            }
             const auto &subr_offset = e.operand.front();
             size_t from_the_top = dict_offset + subr_offset;
             ERC(subr_index, load_index(dataspan, from_the_top));
@@ -295,6 +333,9 @@ rvoe<CFFFontDict> load_fdarray_entry(std::span<std::byte> dataspan, std::span<st
     CFFFontDict fdict;
     for(const auto &e : raw_entries.entries) {
         if(e.opr == DictOperator::Private) {
+            if(e.operand.size() != 2) {
+                RETERR(MalformedFontFile);
+            }
             const auto &local_dsize = e.operand.front();
             const auto &local_offset = e.operand.back();
             ERC(priv, load_private_dict(dataspan, local_offset, local_dsize));
@@ -362,14 +403,24 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         RETERR(UnsupportedFormat);
     }
     f.header = h;
-    assert(f.header.hdrsize == 4);
-    assert(f.header.offsize > 0 || f.header.offsize < 5);
+    if(f.header.hdrsize != 4) {
+        RETERR(MalformedFontFile);
+    }
+    if(f.header.offsize == 0 || f.header.offsize >= 5) {
+        RETERR(MalformedFontFile);
+    }
     size_t offset = f.header.hdrsize;
     ERC(name_index, load_index(dataspan, offset));
     f.name = std::move(name_index);
     ERC(topdict_index, load_index(dataspan, offset));
     f.top_dict_data = std::move(topdict_index);
+    if(f.top_dict_data.entries.empty()) {
+        RETERR(MalformedFontFile);
+    }
     ERC(tc, unpack_dictionary(f.top_dict_data.entries.front()));
+    if(tc.entries.empty()) {
+        RETERR(MalformedFontFile);
+    }
     f.top_dict = std::move(tc);
     ERC(string_index, load_index(dataspan, offset));
     f.string = std::move(string_index);
@@ -394,30 +445,41 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     if(ence) {
         // Not a CID font.
         // Ignore for not, hopefully forever.
-        std::abort();
+        RETERR(UnsupportedFormat);
     }
     auto *cste = find_command(f, DictOperator::Charset);
     if(!cste) {
         RETERR(UnsupportedFormat);
     }
-    assert(cste->operand.size() == 1);
+    if(cste->operand.size() != 1) {
+        RETERR(MalformedFontFile);
+    }
+    if((size_t)cste->operand[0] > dataspan.size_bytes()) {
+        RETERR(MalformedFontFile);
+    }
     ERC(charsets, unpack_charsets(dataspan.subspan(cste->operand[0])));
     f.charsets = std::move(charsets);
 
     auto *priv = find_command(f, DictOperator::Private);
     if(priv) {
+        if(priv->operand.empty()) {
+            RETERR(MalformedFontFile);
+        }
         offset = priv->operand[0];
         ERC(pdata, load_index(dataspan, offset));
+        if(pdata.entries.empty()) {
+            RETERR(MalformedFontFile);
+        }
         ERC(pdict, unpack_dictionary(pdata.entries.front()));
         f.pdict = std::move(pdict);
     }
 
     auto *fda = find_command(f, DictOperator::FDArray);
     auto *fds = find_command(f, DictOperator::FDSelect);
-    if(!fda) {
+    if(!fda || fda->operand.empty()) {
         RETERR(UnsupportedFormat);
     }
-    if(!fds) {
+    if(!fds || fds->operand.empty()) {
         RETERR(UnsupportedFormat);
     }
     offset = fda->operand[0];
@@ -427,6 +489,9 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         f.fdarray.emplace_back(std::move(fdentry));
     }
     offset = fds->operand[0];
+    if(offset > dataspan.size_bytes()) {
+        RETERR(MalformedFontFile);
+    }
     ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), f.char_strings.size()));
     f.fdselect = std::move(fdsstr);
 

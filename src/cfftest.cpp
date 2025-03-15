@@ -4,7 +4,12 @@
 #include <cffsubsetter.hpp>
 #include <ft_subsetter.hpp>
 
-int main(int argc, char **argv) {
+int main2(int argc, char **argv) {
+    auto cff_file = capypdf::internal::parse_cff_file(argv[1]);
+    return 0;
+}
+
+int main1(int argc, char **argv) {
     if(argc != 2) {
         fprintf(stderr, "%s <font file>\n", argv[0]);
         return 1;
@@ -45,3 +50,5 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
+
+int main(int argc, char **argv) { return main1(argc, argv); }

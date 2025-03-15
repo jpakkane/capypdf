@@ -45,7 +45,9 @@ capypdf_internal_dep = declare_dependency(include_directories: [pubinc, '.'],
 )
 
 if get_option('fuzzing')
-    executable('fontfuzzer', 'fontfuzz.cpp',
+    executable('ttf_fuzzer', 'ttf_fuzz.cpp',
+    dependencies: capypdf_internal_dep)
+    executable('cff_fuzzer', 'cff_fuzz.cpp',
     dependencies: capypdf_internal_dep)
 else
     executable('fontgen',
