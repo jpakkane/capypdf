@@ -390,7 +390,6 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
 rvoe<TTMaxp> load_maxp(const std::vector<TTDirEntry> &dir, std::span<const std::byte> buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
-        fprintf(stderr, "Maxp table missing.\n");
         RETERR(MalformedFontFile);
     }
     uint32_t version;
@@ -514,10 +513,19 @@ rvoe<std::vector<std::span<std::byte>>> load_GLYF_glyphs(uint32_t offset,
                                                          uint16_t num_glyphs,
                                                          const std::vector<int32_t> &loca) {
     std::vector<std::span<std::byte>> glyph_data;
+    if(offset > buf.size_bytes()) {
+        RETERR(MalformedFontFile);
+    }
     auto glyf_start = buf.subspan(offset);
+    if(num_glyphs + 1 != (int32_t)loca.size()) {
+        RETERR(MalformedFontFile);
+    }
     for(uint16_t i = 0; i < num_glyphs; ++i) {
         const auto data_off = loca.at(i);
         const auto data_size = loca.at(i + 1) - loca.at(i);
+        if(data_off < 0 || data_size < 0 || size_t(data_off + data_size) > glyf_start.size()) {
+            RETERR(IndexOutOfBounds);
+        }
         glyph_data.push_back(glyf_start.subspan(data_off, data_size));
     }
     return glyph_data;
@@ -754,7 +762,9 @@ rvoe<int16_t> num_contours(std::span<const std::byte> buf) {
     return num_contours;
 }
 
-rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset = 0) {
+} // namespace
+
+rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset) {
     TrueTypeFontFile tf;
     tf.original_data = std::move(backing);
     ERC(original_data, span_of_source(tf.original_data));
@@ -783,7 +793,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     ERC(maxp, load_maxp(directory, original_data));
     tf.maxp = maxp;
 #ifdef CAPYFUZZING
-    if(tf.maxp.num_glyphs > 1024) {
+    if(tf.maxp.num_glyphs() > 1024) {
         RETERR(MalformedFontFile);
     }
 #endif
@@ -832,8 +842,6 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     }
     return tf;
 }
-
-} // namespace
 
 rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing, const FontProperties &props) {
     ERC(original_data, span_of_source(backing));

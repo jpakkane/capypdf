@@ -246,6 +246,7 @@ generate_font(const TrueTypeFontFile &source,
 rvoe<FontData> parse_font_file(DataSource original_data, uint16_t subfont);
 rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname,
                                         const FontProperties &props);
+rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset = 0);
 
 uint32_t font_id_for_glyph(const TTGlyphs &g);
 

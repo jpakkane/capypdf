@@ -26,14 +26,20 @@ tiff_dep = dependency('libtiff-4')
 
 pubinc = include_directories('include')
 
+if get_option('fuzzing')
+  add_project_arguments('-DCAPYFUZZING', language: 'cpp')
+endif
+
 subdir('include')
 subdir('src')
 if get_option('devtools')
   subdir('devtools')
 endif
-subdir('python')
-subdir('benchmark')
-subdir('test')
+if not get_option('fuzzing')
+  subdir('python')
+  subdir('benchmark')
+  subdir('test')
+endif
 
 pkg_mod = import('pkgconfig')
 pkg_mod.generate(capypdf_lib,
