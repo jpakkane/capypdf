@@ -222,7 +222,6 @@ std::string utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
 }
 
 bool is_valid_utf8(std::string_view input) {
-    std::vector<uint32_t> glyphs;
     UtfDecodeStep par;
     // clang-format off
     const uint32_t twobyte_header_mask    = 0b11100000;
@@ -235,7 +234,6 @@ bool is_valid_utf8(std::string_view input) {
     for(size_t i = 0; i < input.size(); ++i) {
         const uint32_t code = uint32_t((unsigned char)input[i]);
         if(code < 0x80) {
-            glyphs.push_back(code);
             continue;
         } else if((code & twobyte_header_mask) == twobyte_header_value) {
             par.byte1_data_mask = 0b11111;
