@@ -1868,6 +1868,19 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!
+        auto *ft_message = FT_Error_String(error);
+        if(ft) {
+            fprintf(stderr,
+                    "Freetype could not open font file %s:\n%s\n",
+                    fname.string().c_str(),
+                    ft_message);
+        } else {
+            fprintf(
+                stderr,
+                "Freetype failed to open font %s, error code %d (FT error strings not available).",
+                fname.string().c_str(),
+                error);
+        }
         RETERR(FreeTypeError);
     }
     ttf.face.reset(face);
