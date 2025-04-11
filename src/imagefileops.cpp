@@ -461,7 +461,7 @@ rvoe<RasterImage> load_png_file(FILE *f) {
 }
 
 rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "r");
+    FILE *f = fopen(fname.string().c_str(), "rb");
     if(!f) {
         RETERR(CouldNotOpenFile);
     }
