@@ -72,11 +72,17 @@ std::string_view MMapper::sv() const { return d->sv(); }
 #ifdef _WIN32
 
 rvoe<MMapper> mmap_file(const char *fname) {
-    HANDLE file_handle =
-        CreateFile(fname, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    HANDLE file_handle = CreateFile(fname,
+                                    GENERIC_READ,
+                                    FILE_SHARE_READ,
+                                    nullptr,
+                                    OPEN_EXISTING,
+                                    FILE_ATTRIBUTE_NORMAL,
+                                    nullptr);
     if(file_handle == INVALID_HANDLE_VALUE) {
         RETERR(CouldNotOpenFile);
     }
+
     DWORD size_low, size_high;
     size_low = GetFileSize(file_handle, &size_high);
     if(size_low == INVALID_FILE_SIZE) {
@@ -85,8 +91,7 @@ rvoe<MMapper> mmap_file(const char *fname) {
     }
 
     const uint64_t bufsize = (((uint64_t)size_high) << 32) + size_low;
-    HANDLE mapping_handle =
-        CreateFileMapping(file_handle, nullptr, PAGE_EXECUTE_READ, 0, 0, nullptr);
+    HANDLE mapping_handle = CreateFileMapping(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
     if(!mapping_handle) {
         CloseHandle(file_handle);
         RETERR(MMapFail);
@@ -97,6 +102,7 @@ rvoe<MMapper> mmap_file(const char *fname) {
         CloseHandle(file_handle);
         RETERR(MMapFail);
     }
+
     return MMapper(new MMapperPrivate(file_handle, mapping_handle, buf, bufsize));
 }
 
