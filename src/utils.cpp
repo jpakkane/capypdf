@@ -191,7 +191,7 @@ rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f) {
 }
 
 void write_file(const char *ofname, const char *buf, size_t bufsize) {
-    FILE *f = fopen(ofname, "w");
+    FILE *f = fopen(ofname, "wb");
     if(!f) {
         std::abort();
     }
