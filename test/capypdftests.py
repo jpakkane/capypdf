@@ -11,18 +11,30 @@ try:
 except ModuleNotFoundError:
     sys.exit('PIL not found, test suite can not be run.')
 
-if shutil.which('gs') is None:
+source_root = pathlib.Path(__file__).parent.parent
+
+if sys.platform == "win32":
+    gs = "gswin64c.exe"
+    # assumes we've downloaded noto fonts into a "fonts" subdir
+    noto_fontdir = source_root / "fonts"
+    noto_cjk_fontdir = noto_fontdir
+    a98_icc = pathlib.Path(shutil.which(gs)).parent.parent / "iccprofiles" / "a98.icc"
+else:
+    gs = "gs"
+    noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
+    noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
+    a98_icc = '/usr/share/color/icc/ghostscript/a98.icc'
+
+if shutil.which(gs) is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
-os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
-source_root = pathlib.Path(__file__).parent.parent
+# Sucks, but there does not seem to be a better injection point.
+os.environ['CAPYPDF_SO_OVERRIDE'] = str(source_root / "build" / "src") 
 testdata_dir = source_root / 'testoutput'
 image_dir = source_root / 'images'
 icc_dir = source_root / 'icc'
 sys.path.append(str(source_root / 'python'))
 
-noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
-noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
 sys.argv = sys.argv[0:1] + sys.argv[2:]
 
 import capypdf
@@ -53,7 +65,7 @@ def validate_image(basename, w, h):
             value = func(*args, **kwargs)
             the_truth = testdata_dir / pngname
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
-            utobj.assertEqual(subprocess.run(['gs',
+            utobj.assertEqual(subprocess.run([gs,
                                               '-q',
                                               '-dNOPAUSE',
                                               '-dBATCH',
@@ -463,7 +475,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            cs = g.load_icc_profile('/usr/share/color/icc/ghostscript/a98.icc')
+            cs = g.load_icc_profile(a98_icc)
             sc = capypdf.Color()
             sc.set_icc(cs, [0.1, 0.2, 0.8])
             nsc = capypdf.Color()
