@@ -64,6 +64,13 @@ def validate_image(basename, w, h):
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
             value = func(*args, **kwargs)
             the_truth = testdata_dir / pngname
+
+            # check if there's a windows version (slightly different GS rendering)
+            if sys.platform == "win32":
+                the_truth = testdata_dir / "win" / pngname
+                if not the_truth.exists():
+                    the_truth = testdata_dir / pngname
+
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
             utobj.assertEqual(subprocess.run([gs,
                                               '-q',
