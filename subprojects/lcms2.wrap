@@ -1,10 +1,10 @@
 [wrap-file]
-directory = lcms2-2.16
-source_url = https://github.com/mm2/Little-CMS/releases/download/lcms2.16/lcms2-2.16.tar.gz
-source_filename = lcms2-2.16.tar.gz
-source_hash = d873d34ad8b9b4cea010631f1a6228d2087475e4dc5e763eb81acc23d9d45a51
-source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/lcms2_2.16-1/lcms2-2.16.tar.gz
-wrapdb_version = 2.16-1
+directory = lcms2-2.17
+source_url = https://github.com/mm2/Little-CMS/releases/download/lcms2.17/lcms2-2.17.tar.gz
+source_filename = lcms2-2.17.tar.gz
+source_hash = d11af569e42a1baa1650d20ad61d12e41af4fead4aa7964a01f93b08b53ab074
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/lcms2_2.17-1/lcms2-2.17.tar.gz
+wrapdb_version = 2.17-1
 
 [provide]
 lcms2 = liblcms2_dep
