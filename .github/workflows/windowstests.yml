@@ -24,7 +24,9 @@ jobs:
       - name: Install ghostscript
         run: |
           choco install ghostscript --version 10.5.1 -y --no-progress
-          echo  'C:\Program Files\gs\gs10.05.1\bin\' >> $GITHUB_PATH
+          Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+          refreshenv
+          echo $env:Path >> $env:GITHUB_PATH
 
       - name: Print out gs path
         run: (Get-Command gswin64c).Path
