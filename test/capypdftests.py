@@ -464,7 +464,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            cs = g.load_icc_profile('/usr/share/color/icc/ghostscript/a98.icc')
+            cs = g.load_icc_profile(icc_dir / 'compatibleWithAdobeRGB1998.icc')
             sc = capypdf.Color()
             sc.set_icc(cs, [0.1, 0.2, 0.8])
             nsc = capypdf.Color()
