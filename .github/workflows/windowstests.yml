@@ -22,10 +22,9 @@ jobs:
         run: pip install meson Pillow
 
       - name: Install ghostscript
-        run: | 
-          choco install ghostscript -y --no-progress
-          Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
-          refreshenv
+        run: |
+          choco install ghostscript --version 10.5.1 -y --no-progress
+          echo  'C:\Program Files\gs\gs10.05.1\bin\' >> $GITHUB_PATH
 
       - name: Configure
         run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true builddir
