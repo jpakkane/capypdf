@@ -16,9 +16,10 @@ if shutil.which('gs') is None:
 
 os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
 source_root = pathlib.Path(__file__).parent.parent
-testdata_dir = source_root / 'testoutput'
-image_dir = source_root / 'images'
-icc_dir = source_root / 'icc'
+testoutput_dir = source_root / 'testoutput'
+testdata_dir = source_root / 'testdata'
+image_dir = testdata_dir / 'images'
+icc_dir = testdata_dir / 'icc'
 sys.path.append(str(source_root / 'python'))
 
 noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
@@ -51,7 +52,7 @@ def validate_image(basename, w, h):
                 pass
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
             value = func(*args, **kwargs)
-            the_truth = testdata_dir / pngname
+            the_truth = testoutput_dir / pngname
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
             utobj.assertEqual(subprocess.run(['gs',
                                               '-q',
@@ -1163,7 +1164,7 @@ class TestPDFCreation(unittest.TestCase):
             ta.set_rectangle(30, 80, 40, 90)
             taid = gen.add_annotation(ta)
             fid = gen.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
-            ef = capypdf.EmbeddedFile(image_dir / '../readme.md')
+            ef = capypdf.EmbeddedFile(source_root / 'readme.md')
             embid = gen.embed_file(ef)
             emba = capypdf.Annotation.new_file_attachment_annotation(embid)
             emba.set_rectangle(30, 50, 40, 60)
