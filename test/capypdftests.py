@@ -16,23 +16,25 @@ source_root = pathlib.Path(__file__).parent.parent
 if sys.platform == "win32":
     gs = "gswin64c.exe"
     # assumes we've downloaded noto fonts into a "fonts" subdir
-    noto_fontdir = source_root / "fonts"
-    noto_cjk_fontdir = noto_fontdir
-    a98_icc = pathlib.Path(shutil.which(gs)).parent.parent / "iccprofiles" / "a98.icc"
+    # noto_fontdir = source_root / "fonts"
+    # noto_cjk_fontdir = noto_fontdir
+    # a98_icc = pathlib.Path(shutil.which(gs)).parent.parent / "iccprofiles" / "a98.icc"
 else:
     gs = "gs"
-    noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
-    noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
-    a98_icc = '/usr/share/color/icc/ghostscript/a98.icc'
+    # noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
+    # noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
+    # a98_icc = '/usr/share/color/icc/ghostscript/a98.icc'
 
 if shutil.which(gs) is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
-# Sucks, but there does not seem to be a better injection point.
-os.environ['CAPYPDF_SO_OVERRIDE'] = str(source_root / "build" / "src") 
-testdata_dir = source_root / 'testoutput'
-image_dir = source_root / 'images'
-icc_dir = source_root / 'icc'
+os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
+source_root = pathlib.Path(__file__).parent.parent
+testoutput_dir = source_root / 'testoutput'
+testdata_dir = source_root / 'testdata'
+image_dir = testdata_dir / 'images'
+icc_dir = testdata_dir / 'icc'
+font_dir = testdata_dir / 'fonts'
 sys.path.append(str(source_root / 'python'))
 
 sys.argv = sys.argv[0:1] + sys.argv[2:]
@@ -63,13 +65,13 @@ def validate_image(basename, w, h):
                 pass
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
             value = func(*args, **kwargs)
-            the_truth = testdata_dir / pngname
+            the_truth = testoutput_dir / pngname
 
             # check if there's a windows version (slightly different GS rendering)
             if sys.platform == "win32":
-                the_truth = testdata_dir / "win" / pngname
+                the_truth = testoutput_dir / "win" / pngname
                 if not the_truth.exists():
-                    the_truth = testdata_dir / pngname
+                    the_truth = testoutput_dir / pngname
 
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
             utobj.assertEqual(subprocess.run([gs,
@@ -87,6 +89,7 @@ def validate_image(basename, w, h):
             utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
             pdfname.unlink()
             pngname.unlink()
+                
             return value
         return wrapper_validate
     return decorator_validate
@@ -136,7 +139,7 @@ class TestPDFCreation(unittest.TestCase):
         dprops.set_default_page_properties(pprops)
         dprops.set_language('en-US')
         with capypdf.Generator(ofilename, dprops) as g:
-            fid = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
+            fid = g.load_font(font_dir / 'NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:
                 ctx.render_text('Av, Tv, kerning yo.', fid, 12, 50, 150)
 
@@ -237,7 +240,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
                 t.cmd_Tf(font, 12.0)
@@ -252,7 +255,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
                 ks = capypdf.TextSequence()
@@ -278,7 +281,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSans-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
                 ks = capypdf.TextSequence()
@@ -296,7 +299,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            cjkfont = noto_cjk_fontdir / 'NotoSerifCJK-Bold.ttc'
+            cjkfont = font_dir / 'NotoSerifCJK-Bold.ttc'
             self.assertTrue(cjkfont.is_file())
             fid = g.load_font(cjkfont)
             with g.page_draw_context() as ctx:
@@ -313,7 +316,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
                 t.cmd_Tf(font, 48)
@@ -334,7 +337,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 t = ctx.text_new()
                 t.cmd_Tf(font, 48)
@@ -353,7 +356,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             seq = ((54, 'S'),
                    (2200, 'm'),
                    (2136, 'a'),
@@ -382,7 +385,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 ctx.render_text('eêéèẽëe', font, 42, 10, 80)
 
@@ -393,7 +396,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with g.page_draw_context() as ctx:
                 ts = capypdf.TextSequence()
                 ts.append_string("Word")
@@ -412,7 +415,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            font = g.load_font(noto_fontdir / 'NotoSansSymbols2-Regular.ttf')
+            font = g.load_font(font_dir / 'NotoSansSymbols2-Regular.ttf')
             with g.page_draw_context() as ctx:
                 ctx.render_text("🖙", font, 100, 30, 80)
 
@@ -482,7 +485,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as g:
-            cs = g.load_icc_profile(a98_icc)
+            cs = g.load_icc_profile(icc_dir / 'compatibleWithAdobeRGB1998.icc')
             sc = capypdf.Color()
             sc.set_icc(cs, [0.1, 0.2, 0.8])
             nsc = capypdf.Color()
@@ -1139,7 +1142,7 @@ class TestPDFCreation(unittest.TestCase):
         dprops = capypdf.DocumentProperties()
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as gen:
-            font = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            font = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
             # Repeating pattern.
             pctx = gen.create_tiling_pattern_context(0, 0, 10, 10)
             pctx.cmd_rg(0.9, 0.8, 0.8)
@@ -1181,8 +1184,8 @@ class TestPDFCreation(unittest.TestCase):
             ta = capypdf.Annotation.new_text_annotation('This is a text ännotation.')
             ta.set_rectangle(30, 80, 40, 90)
             taid = gen.add_annotation(ta)
-            fid = gen.load_font(noto_fontdir / 'NotoSans-Regular.ttf')
-            ef = capypdf.EmbeddedFile(image_dir / '../readme.md')
+            fid = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
+            ef = capypdf.EmbeddedFile(source_root / 'readme.md')
             embid = gen.embed_file(ef)
             emba = capypdf.Annotation.new_file_attachment_annotation(embid)
             emba.set_rectangle(30, 50, 40, 60)
@@ -1235,8 +1238,8 @@ class TestPDFCreation(unittest.TestCase):
         dprops.set_default_page_properties(pprops)
         dprops.set_tagged(True)
         with capypdf.Generator(ofilename, dprops) as gen:
-            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
-            bfid = gen.load_font(noto_fontdir / 'NotoSans-Bold.ttf')
+            fid = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
+            bfid = gen.load_font(font_dir / 'NotoSans-Bold.ttf')
             title = 'H1 element'
             title_extra = capypdf.StructItemExtraData()
             title_extra.set_t('Main title')
@@ -1276,8 +1279,8 @@ class TestPDFCreation(unittest.TestCase):
         dprops.set_default_page_properties(pprops)
         dprops.set_tagged(True)
         with capypdf.Generator(ofilename, dprops) as gen:
-            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
-            bfid = gen.load_font(noto_fontdir / 'NotoSans-Bold.ttf')
+            fid = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
+            bfid = gen.load_font(font_dir / 'NotoSans-Bold.ttf')
             title = 'Headline text'
             head_role = gen.add_rolemap_entry("Headline", capypdf.StructureType.H1)
             text_role = gen.add_rolemap_entry("Text body", capypdf.StructureType.P)
@@ -1402,7 +1405,7 @@ class TestPDFCreation(unittest.TestCase):
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as gen:
-            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            fid = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
             c = capypdf.Color()
             pctx = gen.create_tiling_pattern_context(0, 0, 2, 2)
             pctx.cmd_RG(0.5, 0.5, 0.5)
@@ -1465,7 +1468,7 @@ class TestPDFCreation(unittest.TestCase):
         dprops.set_device_profile(capypdf.DeviceColorspace.CMYK, icc_dir / 'FOGRA29L.icc')
         dprops.set_title('PDF X3 test')
         with capypdf.Generator(ofilename, dprops) as gen:
-            fid = gen.load_font(noto_fontdir / 'NotoSerif-Regular.ttf')
+            fid = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
             with gen.page_draw_context() as ctx:
                 ctx.render_text('This document should validate as PDF/X3.', fid, 8, 10, 180)
                 ctx.render_text('The image was converted from sRGB to DeviceCMYK on load.', fid, 6, 10, 120)
