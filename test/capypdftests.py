@@ -15,15 +15,8 @@ source_root = pathlib.Path(__file__).parent.parent
 
 if sys.platform == "win32":
     gs = "gswin64c.exe"
-    # assumes we've downloaded noto fonts into a "fonts" subdir
-    # noto_fontdir = source_root / "fonts"
-    # noto_cjk_fontdir = noto_fontdir
-    # a98_icc = pathlib.Path(shutil.which(gs)).parent.parent / "iccprofiles" / "a98.icc"
 else:
     gs = "gs"
-    # noto_fontdir = pathlib.Path('/usr/share/fonts/truetype/noto')
-    # noto_cjk_fontdir= pathlib.Path('/usr/share/fonts/opentype/noto')
-    # a98_icc = '/usr/share/color/icc/ghostscript/a98.icc'
 
 if shutil.which(gs) is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
@@ -66,12 +59,6 @@ def validate_image(basename, w, h):
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
             value = func(*args, **kwargs)
             the_truth = testoutput_dir / pngname
-
-            # check if there's a windows version (slightly different GS rendering)
-            if sys.platform == "win32":
-                the_truth = testoutput_dir / "win" / pngname
-                if not the_truth.exists():
-                    the_truth = testoutput_dir / pngname
 
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
             utobj.assertEqual(subprocess.run([gs,
