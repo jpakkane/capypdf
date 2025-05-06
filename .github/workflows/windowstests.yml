@@ -22,7 +22,7 @@ jobs:
         run: pip install meson
 
       - name: Install ghostscript
-        run: choco install ghostscript -y
+        run: choco install ghostscript -y --no-progress
 
       - name: Configure
         run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true builddir
@@ -31,4 +31,8 @@ jobs:
         run: meson compile -C builddir
 
       - name: Test
-        run: meson test -C builddir
+        run: meson test capypdf:* -C builddir
+      
+      - name: Print test log
+        if: failure()
+        run: cat builddir/meson-logs/testlog.txt
