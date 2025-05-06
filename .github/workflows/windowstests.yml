@@ -22,7 +22,9 @@ jobs:
         run: pip install meson Pillow
 
       - name: Install ghostscript
-        run: choco install ghostscript -y --no-progress
+        run: | 
+          choco install ghostscript -y --no-progress
+          refreshenv
 
       - name: Configure
         run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true builddir
