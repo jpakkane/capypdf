@@ -26,13 +26,13 @@ int main() {
 
     capypdf::DocumentProperties dp;
     capypdf::PageProperties pp;
-    pp.set_pagebox(CAPY_BOX_MEDIA, 0, 0, 200*N_IMG, 200);
+    pp.set_pagebox(CAPY_BOX_MEDIA, 0, 0, 200 * N_IMG, 200);
     dp.set_default_page_properties(pp);
     capypdf::Generator gen(fname, dp);
     auto ctx = gen.new_page_context();
     ctx.cmd_cm(200, 0, 0, 200, 0, 0);
 
-    for (int i = 0; i < N_IMG; ++i) {
+    for(int i = 0; i < N_IMG; ++i) {
         auto img = gen.load_image((img_dir + img_files[i]).c_str());
         auto img_id = gen.add_image(img, capypdf::ImagePdfProperties());
         ctx.cmd_q();
@@ -43,7 +43,7 @@ int main() {
 
     gen.add_page(ctx);
     gen.write();
-    
+
     // f = fopen(fname, "rb");
     // if(!f) {
     //     fprintf(stderr, "Output file not created.\n");
