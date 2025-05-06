@@ -1,5 +1,5 @@
 name: CapyPDF CI - Windows
-run-name: ${{ github.actor }} unit tests for CapyPDF
+run-name: ${{ github.actor }} unit tests for CapyPDF (Windows)
 on:
   push:
     branches:
@@ -31,6 +31,4 @@ jobs:
         run: meson compile -C builddir
 
       - name: Test
-        env:
-          PATH: builddir/src;${env:PATH}
         run: meson test -C builddir
