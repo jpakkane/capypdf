@@ -26,6 +26,9 @@ jobs:
           choco install ghostscript --version 10.5.1 -y --no-progress
           echo  'C:\Program Files\gs\gs10.05.1\bin\' >> $GITHUB_PATH
 
+      - name: Print out gs path
+        run: (Get-Command gswin64c).Path
+
       - name: Configure
         run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true builddir
 
