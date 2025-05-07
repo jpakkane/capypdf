@@ -1,5 +1,5 @@
 <p align="center">
-<img src="images/capylogo_web.png">
+<img src="testdata/images/capylogo_web.png">
 </p>
 
 # CapyPDF
