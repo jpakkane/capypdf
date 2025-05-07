@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} unit tests for CapyPDF (Windows)
 on:
   push:
     branches:
-      - windows_CI
+      - master
   pull_request:
 jobs:
   CapyPDF-tests:
