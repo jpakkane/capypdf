@@ -11,7 +11,12 @@ try:
 except ModuleNotFoundError:
     sys.exit('PIL not found, test suite can not be run.')
 
-if shutil.which('gs') is None:
+if sys.platform == "win32":
+    gs = "gswin64c.exe"
+else:
+    gs = "gs"
+
+if shutil.which(gs) is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
 
 os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
@@ -52,8 +57,9 @@ def validate_image(basename, w, h):
             utobj.assertFalse(os.path.exists(pdfname), 'PDF file already exists.')
             value = func(*args, **kwargs)
             the_truth = testoutput_dir / pngname
+
             utobj.assertTrue(os.path.exists(pdfname), 'Test did not generate a PDF file.')
-            utobj.assertEqual(subprocess.run(['gs',
+            utobj.assertEqual(subprocess.run([gs,
                                               '-q',
                                               '-dNOPAUSE',
                                               '-dBATCH',
@@ -68,6 +74,7 @@ def validate_image(basename, w, h):
             utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
             pdfname.unlink()
             pngname.unlink()
+                
             return value
         return wrapper_validate
     return decorator_validate
