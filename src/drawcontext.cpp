@@ -57,7 +57,6 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.end_array();
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
-        fmt.add_token_pair("/Length", cmds.size());
         if(group_matrix) {
             write_matrix(fmt, group_matrix.value());
         }
@@ -84,7 +83,6 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         }
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
-        fmt.add_token_pair("/Length", cmds.size());
         ERC(commands, cmds.steal());
         return SerializedXObject{std::move(fmt), std::move(commands)};
     } else if(context_type == CAPY_DC_COLOR_TILING) {
@@ -108,7 +106,6 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token_pair("/YStep", get_h());
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
-        fmt.add_token_pair("/Length", cmds.size());
         ERC(commands, cmds.steal());
         return SerializedXObject{std::move(fmt), std::move(commands)};
     } else {
