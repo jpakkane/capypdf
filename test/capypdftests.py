@@ -1082,7 +1082,7 @@ class TestPDFCreation(unittest.TestCase):
                                        [0, 1, 0, 1, 0, 1, 0, 1],
                                        function_code)
             f4id  = gen.add_function(f4)
-            sepid = gen.add_separation("gold", capypdf.DeviceColorspace.CMYK, f4id)
+            sepid = gen.add_separation("gold ink", capypdf.DeviceColorspace.CMYK, f4id)
             gold.set_separation(sepid, 1.0)
             with gen.page_draw_context() as ctx:
                 ctx.set_nonstroke(red)

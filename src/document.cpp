@@ -599,7 +599,8 @@ rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &nam
     ObjectFormatter fmt;
     fmt.begin_array();
     fmt.add_token("/Separation");
-    fmt.add_token_with_slash(name.c_str());
+    auto name_obj = bytes2pdfstringliteral(name.sv(), true);
+    fmt.add_token(name_obj);
     fmt.add_token(colorspace_names.at((int)cs));
     fmt.add_object_ref(f4.object_number);
     fmt.end_array();
