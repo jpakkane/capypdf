@@ -257,7 +257,7 @@ class Demopresentation:
             self.colorize_pycode(text, p['code'])
         else:
             for line in p['code']:
-                text.render_text(line)
+                text.cmd_Tj(line)
                 text.cmd_Tstar()
         ctx.render_text_obj(text)
 
@@ -355,16 +355,16 @@ class Demopresentation:
                 if line.startswith("'"):
                     qstr, line = line.split("'", 2)[1:]
                     t.set_nonstroke(self.stringcolor)
-                    t.render_text(f"'{qstr}'")
+                    t.cmd_Tj(f"'{qstr}'")
                     t.set_nonstroke(self.normalcolor)
                     continue
                 if line.startswith(' '):
-                    t.render_text(' ')
+                    t.cmd_Tj(' ')
                     line = line[1:]
                     continue
                 if line.startswith('#'):
                     t.set_nonstroke(self.commentcolor)
-                    t.render_text(line)
+                    t.cmd_Tj(line)
                     t.set_nonstroke(self.normalcolor)
                     line = ''
                     continue
@@ -372,7 +372,7 @@ class Demopresentation:
                 if m:
                     numbah = m.group(0)
                     t.set_nonstroke(self.numbercolor)
-                    t.render_text(numbah)
+                    t.Tj(numbah)
                     t.set_nonstroke(self.normalcolor)
                     line = line[len(numbah):]
                     continue
@@ -381,17 +381,17 @@ class Demopresentation:
                     word = m.group(0)
                     if word in self.keywords:
                         t.set_nonstroke(self.keywordcolor)
-                        t.render_text(word)
+                        t.cmd_Tj(word)
                         t.set_nonstroke(self.normalcolor)
                     elif word.startswith('__'):
                         t.set_nonstroke(self.dundercolor)
-                        t.render_text(word)
+                        t.cmd_Tj(word)
                         t.set_nonstroke(self.normalcolor)
                     else:
-                        t.render_text(word)
+                        t.cmd_Tj(word)
                     line = line[len(word):]
                     continue
-                t.render_text(line[0:1])
+                t.cmd_Tj(line[0:1])
                 line = line[1:]
             t.cmd_Tstar()
 
