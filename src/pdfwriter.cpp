@@ -131,11 +131,7 @@ build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool
         // They produce the correct results with all fonts I had.
         //
         // Determined via debugging empirism.
-        if(is_cff) {
-            std::format_to(bi, "{} ", face->units_per_EM);
-        } else {
-            std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
-        }
+        std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
     }
     arr += "]";
     return arr;

@@ -147,17 +147,17 @@ struct CFFont {
     CFFIndex global_subr;
     CFFIndex char_strings;
     std::vector<CFFCharsetRange2> charsets;
-    CFFDict pdict;
+    CFFPrivateDict pdict;
     std::vector<CFFFontDict> fdarray;
-    //    std::vector<CFFDict> fontdict;
-    //    std::vector<CFFIndex> local_subrs;
     std::vector<CFFSelectRange3> fdselect;
+    bool is_cid;
 
     uint8_t get_fontdict_id(uint16_t glyph_id) const;
 };
 
 rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
 rvoe<CFFont> parse_cff_data(DataSource original_data);
+void append_ros_strings(CFFont &f);
 
 struct SubsetGlyphs {
     uint32_t codepoint; // unicode
@@ -178,7 +178,7 @@ struct Fixups {
 
 class CFFDictWriter {
 public:
-    void append_command(const std::vector<int32_t> operands, DictOperator op);
+    void append_command(const std::vector<int32_t> &operands, DictOperator op);
     void append_command(const CFFDictItem &e) { append_command(e.operand, e.opr); };
 
     DictOutput steal() { return std::move(o); }

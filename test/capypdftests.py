@@ -374,6 +374,19 @@ class TestPDFCreation(unittest.TestCase):
             with g.page_draw_context() as ctx:
                 ctx.render_text('eêéèẽëe', font, 42, 10, 80)
 
+
+    @validate_image('python_otf_cff', 200, 200)
+    def test_accents(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            font = g.load_font(font_dir / 'P052-Roman.otf')
+            with g.page_draw_context() as ctx:
+                ctx.render_text('A non-CID OTF font.', font, 18, 10, 80)
+
+
     @validate_image('python_ts_string', 200, 200)
     def test_ts_string(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()

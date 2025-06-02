@@ -139,6 +139,22 @@ rvoe<CFFIndex> load_index(std::span<std::byte> dataspan, size_t &offset) {
     return index;
 }
 
+rvoe<CFFPrivateDict>
+build_pdict_from_dict(std::span<std::byte> dataspan, size_t priv_dict_offset, CFFDict raw_pdict) {
+    CFFPrivateDict priv(std::move(raw_pdict), {});
+    if(priv.entries.entries.size() > 0) {
+        // This seems to always be last.
+        const auto &subrs = priv.entries.entries.back();
+        if(subrs.opr == DictOperator::Subrs) {
+            size_t local_subrs_offset = priv_dict_offset + subrs.operand.front();
+            ERC(rsdata, load_index(dataspan, local_subrs_offset));
+            priv.subr = std::move(rsdata);
+            priv.entries.entries.pop_back();
+        }
+    }
+    return priv;
+}
+
 rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan_orig) {
     CFFDict dict;
     size_t offset = 0;
@@ -350,6 +366,7 @@ rvoe<CFFFontDict> load_fdarray_entry(std::span<std::byte> dataspan, std::span<st
 size_t write_private_dict(std::vector<std::byte> &output, const CFFPrivateDict &pd) {
     CFFDictWriter w;
     for(const auto &e : pd.entries.entries) {
+        assert(e.opr != DictOperator::Subrs);
         w.append_command(e);
     }
     if(pd.subr) {
@@ -371,12 +388,20 @@ std::vector<CFFSelectRange3> build_fdselect3(const CFFont &source,
                                              const std::vector<SubsetGlyphs> &sub) {
     std::vector<CFFSelectRange3> result;
     result.reserve(10);
-    result.emplace_back(0, source.get_fontdict_id(0));
-    for(size_t i = 1; i < sub.size(); ++i) {
-        const auto &sg = sub[i];
-        const auto &sg_fd = source.get_fontdict_id(sg.gid);
-        if(sg_fd != result.back().fd) {
-            result.emplace_back((uint16_t)i, sg_fd);
+    if(source.is_cid) {
+        result.emplace_back(0, source.get_fontdict_id(0));
+        for(size_t i = 1; i < sub.size(); ++i) {
+            const auto &sg = sub[i];
+            const auto sg_fd = source.get_fontdict_id(sg.gid);
+            if(sg_fd != result.back().fd) {
+                result.emplace_back((uint16_t)i, sg_fd);
+            }
+        }
+    } else {
+        // If the source is not in CID format, then in the output
+        // CID format all glyphs use the same private dictionary.
+        for(size_t i = 0; i < sub.size(); ++i) {
+            result.emplace_back((uint16_t)i, 0);
         }
     }
     return result;
@@ -444,7 +469,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     auto *ence = find_command(f, DictOperator::Encoding);
     if(ence) {
         // Not a CID font.
-        // Ignore for not, hopefully forever.
+        // Ignore for now, hopefully forever.
         RETERR(UnsupportedFormat);
     }
     auto *cste = find_command(f, DictOperator::Charset);
@@ -465,40 +490,62 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         if(priv->operand.empty()) {
             RETERR(MalformedFontFile);
         }
-        offset = priv->operand[0];
-        ERC(pdata, load_index(dataspan, offset));
-        if(pdata.entries.empty()) {
-            RETERR(MalformedFontFile);
-        }
-        ERC(pdict, unpack_dictionary(pdata.entries.front()));
-        f.pdict = std::move(pdict);
+        auto dict_offset = priv->operand[1];
+        auto dict_size = priv->operand[0];
+        ERC(raw_pdict, unpack_dictionary(dataspan.subspan(dict_offset, dict_size)));
+        ERC(processed_pdict, build_pdict_from_dict(dataspan, dict_offset, raw_pdict));
+        f.pdict = std::move(processed_pdict);
     }
 
     auto *fda = find_command(f, DictOperator::FDArray);
     auto *fds = find_command(f, DictOperator::FDSelect);
-    if(!fda || fda->operand.empty()) {
-        RETERR(UnsupportedFormat);
+    if(fda) {
+        f.is_cid = true;
+    } else {
+        f.is_cid = false;
     }
-    if(!fds || fds->operand.empty()) {
-        RETERR(UnsupportedFormat);
+    if(!f.is_cid) {
+        append_ros_strings(f);
     }
-    offset = fda->operand[0];
-    ERC(fdastr, load_index(dataspan, offset))
-    for(const auto dstr : fdastr.entries) {
-        ERC(fdentry, load_fdarray_entry(dataspan, dstr));
-        f.fdarray.emplace_back(std::move(fdentry));
+    if(f.is_cid) {
+        if(!fda || fda->operand.empty()) {
+            RETERR(UnsupportedFormat);
+        }
+        offset = fda->operand[0];
+        ERC(fdastr, load_index(dataspan, offset))
+        for(const auto dstr : fdastr.entries) {
+            ERC(fdentry, load_fdarray_entry(dataspan, dstr));
+            f.fdarray.emplace_back(std::move(fdentry));
+        }
+        if(!fds || fds->operand.empty()) {
+            RETERR(UnsupportedFormat);
+        }
+        offset = fds->operand[0];
+        if(offset > dataspan.size_bytes()) {
+            RETERR(MalformedFontFile);
+        }
+        ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), f.char_strings.size()));
+        f.fdselect = std::move(fdsstr);
     }
-    offset = fds->operand[0];
-    if(offset > dataspan.size_bytes()) {
-        RETERR(MalformedFontFile);
-    }
-    ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), f.char_strings.size()));
-    f.fdselect = std::move(fdsstr);
-
     return f;
 }
 
+static const char registry_str[] = "Adobe";
+static const char ordering_str[] = "Identity";
+
+void append_ros_strings(CFFont &f) {
+    assert(!f.is_cid);
+    // Add two string needed to specify ROS values.
+    std::span<std::byte> registry((std::byte *)registry_str, strlen(registry_str));
+    f.string.entries.push_back(registry);
+    std::span<std::byte> ordering((std::byte *)ordering_str, strlen(ordering_str));
+    f.string.entries.push_back(ordering);
+}
+
 uint8_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
+    if(!is_cid) {
+        return glyph_id;
+    }
     assert(!fdselect.empty());
     for(size_t i = 0; i < fdselect.size(); ++i) {
         if(fdselect[i].first == glyph_id) {
@@ -517,7 +564,7 @@ rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
     return parse_cff_data(std::move(source));
 }
 
-void CFFDictWriter::append_command(const std::vector<int32_t> operands, DictOperator op) {
+void CFFDictWriter::append_command(const std::vector<int32_t> &operands, DictOperator op) {
     o.offsets.push_back(o.output.size());
     for(const auto opr : operands) {
         o.output.push_back(std::byte{29});
@@ -547,7 +594,6 @@ void CFFWriter::create() {
     fixups.charstrings.value = output.size();
     append_charstrings();
     append_fdthings();
-
     patch_offsets();
     //  encodings
     //  private
@@ -559,51 +605,67 @@ void CFFWriter::append_fdthings() {
     std::vector<std::byte> privatedict_buffer; // Stores concatenated private dict/localsubr pairs.
     std::vector<size_t> privatedict_offsets;   // within the above buffer
     std::vector<size_t> privatereference_offsets; // where the correct value shall be written
-    for(const auto &source_dict : source.fdarray) {
-        // Why is this so complicated you ask?
-        // Because the data model is completely wacko.
-        //
-        // Each glyph has a "font" dictionary.
-        // There can be only 256 font dictionaries total. Even with 65 glyphs.
-        // Each of those point to a "private" dictionary.
-        // Each of those point to "local subrs" index
-        // That one is needed for rendering.
-        //
-        // The latter two are not stored in any global
-        // index, they jost float around in the file.
-        // If you don't read every single letter of
-        // the (not particularly great) CFF spec with a
-        // magnifying glass, you can't decipher that
-        // and your subset fonts won't work.
-        //
-        // To make things simple:
-        //
-        // Any metadata that is somewhat shared
-        // is copied as is so all indexes and offsets
-        // work directly. Only character data is subset.
+    if(source.is_cid) {
+        for(const auto &source_dict : source.fdarray) {
+            // Why is this so complicated you ask?
+            // Because the data model is completely wacko.
+            //
+            // Each glyph has a "font" dictionary.
+            // There can be only 256 font dictionaries total. Even with 65k glyphs.
+            // Each of those point to a "private" dictionary.
+            // Each of those point to "local subrs" index
+            // That one is needed for rendering.
+            //
+            // The latter two are not stored in any global
+            // index, they jost float around in the file.
+            // If you don't read every single letter of
+            // the (not particularly great) CFF spec with a
+            // magnifying glass, you can't decipher that
+            // and your subset fonts won't work.
+            //
+            // To make things simple:
+            //
+            // Any metadata that is somewhat shared
+            // is copied as is so all indexes and offsets
+            // work directly. Only character data is subset.
 
-        // auto source_id = source.get_fontdict_id(s.gid);
-        // const auto &source_dict = source.fdarray.at(source_id);
+            privatedict_offsets.push_back(privatedict_buffer.size());
+            size_t last_dict_size = -1;
+            if(source_dict.priv) {
+                last_dict_size = write_private_dict(privatedict_buffer, source_dict.priv.value());
+            } else {
+                last_dict_size = write_private_dict(privatedict_buffer, source.pdict);
+            }
+            CFFDictWriter fdarray_dict_writer;
+            for(const auto &entry : source_dict.entries.entries) {
+                fdarray_dict_writer.append_command(entry);
+            }
+            if(source_dict.priv) {
+                privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
+                CFFDictItem e;
+                e.operand.push_back(last_dict_size);
+                e.operand.push_back(-1); // Offset from the beginning of the file, fixed below.
+                e.opr = DictOperator::Private;
+                fdarray_dict_writer.append_command(e);
+            } else {
+                privatereference_offsets.push_back(-1);
+            }
+            auto serialization = fdarray_dict_writer.steal();
+            fontdicts.emplace_back(std::move(serialization.output));
+        }
+    } else {
+        // Create a FDArray that has only one element that all glyphs use.
+        CFFDictWriter fdarray_dict_writer;
 
         privatedict_offsets.push_back(privatedict_buffer.size());
-        size_t last_dict_size = -1;
-        if(source_dict.priv) {
-            last_dict_size = write_private_dict(privatedict_buffer, source_dict.priv.value());
-        }
-        CFFDictWriter fdarray_dict_writer;
-        for(const auto &entry : source_dict.entries.entries) {
-            fdarray_dict_writer.append_command(entry);
-        }
-        if(source_dict.priv) {
-            privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
-            CFFDictItem e;
-            e.operand.push_back(last_dict_size);
-            e.operand.push_back(-1); // Offset from the beginning of the file, fixed below.
-            e.opr = DictOperator::Private;
-            fdarray_dict_writer.append_command(e);
-        } else {
-            privatereference_offsets.push_back(-1);
-        }
+        auto dict_size = write_private_dict(privatedict_buffer, source.pdict);
+        CFFDictItem e;
+        privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
+        // FIXME, add font name here.
+        e.operand.push_back(dict_size);
+        e.operand.push_back(-1);
+        e.opr = DictOperator::Private;
+        fdarray_dict_writer.append_command(e);
         auto serialization = fdarray_dict_writer.steal();
         fontdicts.emplace_back(std::move(serialization.output));
     }
@@ -664,18 +726,39 @@ void CFFWriter::write_fix(const OffsetPatch &p) {
 void CFFWriter::create_topdict() {
     CFFDictWriter topdict;
 
-    copy_dict_item(topdict, DictOperator::ROS);
+    if(source.is_cid) {
+        copy_dict_item(topdict, DictOperator::ROS);
+    } else {
+        CFFDictItem ros;
+        ros.opr = DictOperator::ROS;
+        ros.operand.push_back(391 + source.string.size() - 2);
+        ros.operand.push_back(391 + source.string.size() - 1);
+        ros.operand.push_back(0);
+        topdict.append_command(ros);
+    }
     copy_dict_item(topdict, DictOperator::Notice);
     copy_dict_item(topdict, DictOperator::FullName);
     copy_dict_item(topdict, DictOperator::FamilyName);
     copy_dict_item(topdict, DictOperator::Weight);
     copy_dict_item(topdict, DictOperator::FontBBox);
-    copy_dict_item(topdict, DictOperator::CIDFontVersion);
-    // copy_dict_item(topdict, DictOperator::CIDFontRevision);
-    copy_dict_item(topdict, DictOperator::CIDCount);
-    copy_dict_item(topdict, DictOperator::FDArray);  // offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::FDSelect); // offset needs to be fixed in post.
-    copy_dict_item(topdict, DictOperator::Charset);  // offset needs to be fixed in post.
+    if(source.is_cid) {
+        copy_dict_item(topdict, DictOperator::CIDFontVersion);
+        copy_dict_item(topdict, DictOperator::CIDCount);
+        copy_dict_item(topdict, DictOperator::FDArray);  // offset needs to be fixed in post.
+        copy_dict_item(topdict, DictOperator::FDSelect); // offset needs to be fixed in post.
+    } else {
+        std::vector<int32_t> operand;
+        operand.push_back(-1);
+        topdict.append_command(operand, DictOperator::CIDFontVersion);
+        operand.clear();
+        operand.push_back(65535);
+        topdict.append_command(operand, DictOperator::CIDCount);
+        operand.clear();
+        operand.push_back(-1);
+        topdict.append_command(operand, DictOperator::FDArray);
+        topdict.append_command(operand, DictOperator::FDSelect);
+    }
+    copy_dict_item(topdict, DictOperator::Charset); // offset needs to be fixed in post.
     copy_dict_item(topdict,
                    DictOperator::CharStrings); // offset needs to be fixed in post.
     // copy_dict_item(topdict, DictOperator::UnderlinePosition);
