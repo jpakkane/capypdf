@@ -226,7 +226,8 @@ const CFFDictItem *find_command(const CFFont &f, DictOperator op) {
     return find_command(f.top_dict, op);
 }
 
-rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(std::span<std::byte> dataspan) {
+rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(const CFFont &f,
+                                                    std::span<std::byte> dataspan) {
     if(dataspan.empty()) {
         RETERR(MalformedFontFile);
     }
@@ -234,7 +235,16 @@ rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(std::span<std::byte> dataspa
     size_t offset = 0;
     const auto format = (uint8_t)dataspan[offset++];
     if(format == 0) {
-        RETERR(UnsupportedFormat);
+        const auto num_glyphs = (int32_t)f.char_strings.size() - 1;
+        assert(num_glyphs >= 0);
+        std::vector<uint16_t> glyphlist;
+        for(int32_t i = 0; i < num_glyphs; ++i) {
+            ERC(value, extract<uint16_t>(dataspan, offset + i * sizeof(uint16_t)));
+            value = std::byteswap(value);
+            glyphlist.push_back(value);
+        }
+        // FIXME do something with this.
+        charset.push_back(CFFCharsetRange2{1, (uint16_t)(glyphlist.size() - 1)});
     } else if(format == 1) {
         ERC(rng, extract<CFFCharsetRange1>(dataspan, offset));
         rng.swap_endian();
@@ -366,7 +376,11 @@ rvoe<CFFFontDict> load_fdarray_entry(std::span<std::byte> dataspan, std::span<st
 size_t write_private_dict(std::vector<std::byte> &output, const CFFPrivateDict &pd) {
     CFFDictWriter w;
     for(const auto &e : pd.entries.entries) {
-        assert(e.opr != DictOperator::Subrs);
+        const auto opr = e.opr;
+        if(opr == DictOperator::Subrs || opr == DictOperator::Encoding) {
+            // We output only CID fonts, which are not allowed to have these operators in them.
+            continue;
+        }
         w.append_command(e);
     }
     if(pd.subr) {
@@ -470,9 +484,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
 
     auto *ence = find_command(f, DictOperator::Encoding);
     if(ence) {
-        // Not a CID font.
-        // Ignore for now, hopefully forever.
-        RETERR(UnsupportedFormat);
+        f.predefined_encoding = ence->operand.front();
     }
     auto *cste = find_command(f, DictOperator::Charset);
     if(!cste) {
@@ -484,7 +496,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     if((size_t)cste->operand[0] > dataspan.size_bytes()) {
         RETERR(MalformedFontFile);
     }
-    ERC(charsets, unpack_charsets(dataspan.subspan(cste->operand[0])));
+    ERC(charsets, unpack_charsets(f, dataspan.subspan(cste->operand[0])));
     f.charsets = std::move(charsets);
 
     auto *priv = find_command(f, DictOperator::Private);

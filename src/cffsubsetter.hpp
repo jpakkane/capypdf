@@ -158,6 +158,8 @@ struct CFFont {
     std::vector<CFFFontDict> fdarray;
     std::vector<CFFSelectRange3> fdselect;
     bool is_cid;
+    std::optional<int32_t> predefined_encoding;
+    std::optional<uint32_t> predefined_charset;
 
     uint8_t get_fontdict_id(uint16_t glyph_id) const;
 };
