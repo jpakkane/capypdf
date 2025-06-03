@@ -9,7 +9,6 @@
 #include <tiffio.h>
 #include <cstring>
 #include <cassert>
-#include <stdexcept>
 #include <vector>
 #include <memory>
 #include <span>

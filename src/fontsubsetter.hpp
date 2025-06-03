@@ -7,12 +7,9 @@
 #include <ft_subsetter.hpp>
 
 #include <vector>
-#include <string>
-#include <string_view>
 #include <optional>
 #include <cstdint>
 #include <unordered_map>
-#include <variant>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

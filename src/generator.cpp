@@ -8,8 +8,6 @@
 #include <cstring>
 #include <cerrno>
 #include <cassert>
-#include <stdexcept>
-#include <array>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H

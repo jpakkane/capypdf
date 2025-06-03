@@ -9,11 +9,9 @@
 #include <mmapper.hpp>
 #include <cffsubsetter.hpp>
 
-#include <string_view>
 #include <vector>
 #include <variant>
 #include <unordered_map>
-#include <expected>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

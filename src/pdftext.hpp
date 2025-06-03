@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <errorhandling.hpp>
 #include <vector>
-#include <string>
 
 namespace capypdf::internal {
 

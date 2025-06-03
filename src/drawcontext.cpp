@@ -12,7 +12,6 @@
 #include <array>
 #include <cmath>
 #include <cassert>
-#include <memory>
 
 namespace capypdf::internal {
 

@@ -6,10 +6,6 @@
 #include "pdfcommon.hpp"
 #include <errorhandling.hpp>
 #include <cstdint>
-#include <string>
-#include <optional>
-#include <variant>
-#include <expected>
 #include <filesystem>
 
 namespace capypdf::internal {

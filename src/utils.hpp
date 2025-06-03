@@ -6,7 +6,6 @@
 #include <errorhandling.hpp>
 #include <pdfcommon.hpp>
 #include <string>
-#include <expected>
 #include <cstdio>
 #include <string_view>
 #include <filesystem>
