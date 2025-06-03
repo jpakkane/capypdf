@@ -234,17 +234,17 @@ rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(std::span<std::byte> dataspa
     size_t offset = 0;
     const auto format = (uint8_t)dataspan[offset++];
     if(format == 0) {
-        // RETERR(UnsupportedFormat);
-        //  FIXME
-        return charset;
-    } else if(format == 1) {
         RETERR(UnsupportedFormat);
+    } else if(format == 1) {
+        ERC(rng, extract<CFFCharsetRange1>(dataspan, offset));
+        rng.swap_endian();
+        charset.emplace_back(CFFCharsetRange2{rng.first, rng.nLeft});
     } else {
         ERC(rng, extract<CFFCharsetRange2>(dataspan, offset));
         rng.swap_endian();
         charset.push_back(rng);
-        return charset;
     }
+    return charset;
 }
 
 rvoe<std::vector<CFFSelectRange3>> unpack_fdselect(std::span<std::byte> dataspan,
@@ -410,6 +410,8 @@ std::vector<CFFSelectRange3> build_fdselect3(const CFFont &source,
 } // namespace
 
 void CFFSelectRange3::swap_endian() { first = std::byteswap(first); }
+
+void CFFCharsetRange1::swap_endian() { first = std::byteswap(first); }
 
 void CFFCharsetRange2::swap_endian() {
     first = std::byteswap(first);

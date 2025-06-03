@@ -108,6 +108,13 @@ struct CFFSelectRange3 {
     void swap_endian();
 };
 
+struct CFFCharsetRange1 {
+    uint16_t first;
+    uint8_t nLeft;
+
+    void swap_endian();
+};
+
 struct CFFCharsetRange2 {
     uint16_t first;
     uint16_t nLeft;
