@@ -1,0 +1,7 @@
+[wrap-git]
+directory=pystd
+url=https://github.com/jpakkane/pystd.git
+revision=head
+
+[provide]
+pystd = stdlib_dep

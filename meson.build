@@ -24,6 +24,8 @@ jpeg_dep = dependency('libjpeg')
 freetype_dep = dependency('freetype2')
 tiff_dep = dependency('libtiff-4')
 
+pystd_dep = dependency('pystd')
+
 pubinc = include_directories('include')
 
 if get_option('fuzzing')

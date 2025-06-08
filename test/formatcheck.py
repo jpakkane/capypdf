@@ -28,6 +28,8 @@ class FormatChecker:
         for f in filelist:
             if not f.is_file():
                 continue
+            if 'subprojects' in str(f):
+                continue
             formatted = subprocess.check_output([self.clangformat,
                                                  '--style=file',
                                                  f])

@@ -1,4 +1,4 @@
-capydeps = [png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep]
+capydeps = [png_dep, jpeg_dep, lcms_dep, tiff_dep, zlib_dep, freetype_dep, pystd_dep]
 
 cpp_args = ['-DBUILDING_CAPYPDF']
 

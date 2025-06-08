@@ -4,16 +4,15 @@
 #pragma once
 
 #include <cstdint>
-#include <stack>
+#include <pystd2025.hpp>
 #include <string>
-#include <vector>
 
 namespace capypdf::internal {
 
 enum class ContainerType { Array, Dictionary };
 
 struct FormatState {
-    std::string indent;
+    pystd2025::CString indent;
     int array_elems_per_line;
     int num_entries;
 };
@@ -32,14 +31,12 @@ public:
 
     ObjectFormatter(const ObjectFormatter &o) = delete;
     ObjectFormatter(ObjectFormatter &&o)
-        : state{std::move(o.state)}, stack{std::move(o.stack)}, buf{std::move(o.buf)},
-          app{std::back_inserter(buf)} {}
+        : state{std::move(o.state)}, stack{std::move(o.stack)}, buf{std::move(o.buf)} {}
 
     ObjectFormatter &operator=(ObjectFormatter &&o) {
         state = std::move(o.state);
         stack = std::move(o.stack);
         buf = std::move(o.buf);
-        app = std::back_inserter(buf);
         return *this;
     }
     ObjectFormatter &operator=(const ObjectFormatter &o) = delete;
@@ -77,7 +74,7 @@ public:
 
     std::string steal();
 
-    const std::string &current_indent() const { return state.indent; }
+    const pystd2025::CString &current_indent() const { return state.indent; }
     size_t depth() const { return stack.size(); }
 
 private:
@@ -88,9 +85,8 @@ private:
     void do_push(ContainerType ctype);
 
     FormatState state;
-    std::stack<FormatStash, std::vector<FormatStash>> stack;
-    std::string buf;
-    std::back_insert_iterator<std::string> app;
+    pystd2025::Stack<FormatStash> stack;
+    pystd2025::CString buf;
 };
 
 } // namespace capypdf::internal

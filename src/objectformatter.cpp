@@ -4,13 +4,12 @@
 #include <objectformatter.hpp>
 #include <pdfcommon.hpp>
 
-#include <format>
 #include <cassert>
 
 namespace capypdf::internal {
 
 ObjectFormatter::ObjectFormatter(std::string_view base_indent)
-    : state{std::string{base_indent}, 0, 0}, app{std::back_inserter(buf)} {}
+    : state{pystd2025::CString{base_indent.data(), base_indent.size()}, 0, 0} {}
 
 void ObjectFormatter::begin_array(int32_t max_element) {
     do_push(ContainerType::Array);
@@ -26,7 +25,7 @@ void ObjectFormatter::end_array() { do_pop(ContainerType::Array); }
 void ObjectFormatter::end_dict() { do_pop(ContainerType::Dictionary); }
 
 void ObjectFormatter::do_pop(ContainerType ctype) {
-    if(stack.empty()) {
+    if(stack.is_empty()) {
         fprintf(stderr, "Stack underrun\n");
         std::abort();
     }
@@ -36,7 +35,7 @@ void ObjectFormatter::do_pop(ContainerType ctype) {
     }
     state = std::move(stack.top().params);
     stack.pop();
-    if(!buf.empty() && buf.back() == '\n') {
+    if(!buf.is_empty() && buf.back() == '\n') {
         buf += state.indent;
     }
     buf += ctype == ContainerType::Dictionary ? ">>" : "]";
@@ -64,51 +63,54 @@ void ObjectFormatter::add_token(const char *raw_text) {
 
 void ObjectFormatter::add_token(std::string_view raw_text) {
     check_indent();
-    buf += raw_text;
+    pystd2025::CStringView v(raw_text.data(), raw_text.size());
+    buf += v;
     added_item();
 }
 
 void ObjectFormatter::add_token(int32_t number) {
     check_indent();
-    std::format_to(app, "{}", number);
+    pystd2025::format_append(buf, "%d", number);
     added_item();
 }
 
 void ObjectFormatter::add_token(uint32_t number) {
     check_indent();
-    std::format_to(app, "{}", number);
+    pystd2025::format_append(buf, "%u", number);
     added_item();
 }
 
 void ObjectFormatter::add_token(double number) {
     check_indent();
-    std::format_to(app, "{:f}", number);
+    pystd2025::format_append(buf, "%f", number);
     added_item();
 }
 
 void ObjectFormatter::add_token(size_t number) {
     check_indent();
-    std::format_to(app, "{}", number);
+    pystd2025::format_append(buf, "%zd", number);
     added_item();
 }
 
 void ObjectFormatter::add_token_with_slash(const char *name) {
     check_indent();
     assert(name[0] != '/');
-    std::format_to(app, "/{}", name);
+    pystd2025::format_append(buf, "/%s", name);
     added_item();
 }
 
 void ObjectFormatter::add_token_with_slash(std::string_view name) {
     check_indent();
     assert(name[0] != '/');
-    std::format_to(app, "/{}", name);
+    pystd2025::CStringView tmp(name.data(), name.size());
+    buf.append('/');
+    buf += tmp;
     added_item();
 }
 
 void ObjectFormatter::add_object_ref(int32_t onum) {
     check_indent();
-    std::format_to(app, "{} 0 R", onum);
+    pystd2025::format_append(buf, "%i 0 R", onum);
     added_item();
 }
 
@@ -121,13 +123,13 @@ void ObjectFormatter::check_indent() {
 void ObjectFormatter::add_pdfstring(const asciistring &str) {
     // FIXME: add quoting for special characters.
     check_indent();
-    std::format_to(app, "({})", str.c_str());
+    pystd2025::format_append(buf, "(%s)", str.c_str());
     added_item();
 }
 
 void ObjectFormatter::added_item() {
     ++state.num_entries;
-    if(stack.empty()) {
+    if(stack.is_empty()) {
         return;
     }
     if(stack.top().type == ContainerType::Array) {
@@ -150,11 +152,13 @@ void ObjectFormatter::added_item() {
 }
 
 std::string ObjectFormatter::steal() {
-    assert(stack.empty());
-    if(buf.empty() || (!buf.empty() && buf.back() != '\n')) {
-        buf += '\n';
+    assert(stack.is_empty());
+    if(buf.is_empty() || (!buf.is_empty() && buf.back() != '\n')) {
+        buf.append('\n');
     }
-    return std::move(buf);
+    std::string res(buf.c_str());
+    buf.clear();
+    return res;
 }
 
 } // namespace capypdf::internal
