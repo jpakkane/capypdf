@@ -990,21 +990,15 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             auto item = doc->structure_items.at(sitem.sid.id).stype;
             if(auto itemid = std::get_if<CapyPDF_Structure_Type>(&item)) {
                 const auto &itemstr = structure_type_names.at(*itemid);
-                std::format_to(cmds.app(),
-                               "{}/{} << /MCID {} >>\n{}BDC\n",
-                               cmds.ind(),
-                               itemstr,
-                               mcid_id,
-                               cmds.ind());
+                auto cmd = std::format("/{} << /MCID {} >>\n", itemstr, mcid_id);
+                cmds.append(cmd);
+                cmds.append("BDC");
             } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
                 const auto &role = *ri;
                 auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name);
-                std::format_to(cmds.app(),
-                               "{}{} << /MCID {} >>\n{}BDC\n",
-                               cmds.ind(),
-                               rolename,
-                               mcid_id,
-                               cmds.ind());
+                auto cmd = std::format("{} << /MCID {} >>\n", rolename, mcid_id);
+                cmds.append(cmd);
+                cmds.append("BDC");
             } else {
                 fprintf(stderr, "FIXME 1\n");
                 std::abort();
@@ -1029,15 +1023,22 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(IncorrectColorChannelCount);
                 }
                 used_colorspaces.insert(icc_info.object_num);
-                std::format_to(cmds.app(), "{}/CSpace{} CS\n", cmds.ind(), icc_info.object_num);
+                std::string cmd;
+                auto app = std::back_inserter<std::string>(cmd);
+                std::format_to(app, "/CSpace{} CS\n", icc_info.object_num);
+                cmds.append(cmd);
+                cmd.clear();
+
                 for(const auto &i : icc->values) {
-                    std::format_to(cmds.app(), "{:f} ", i);
+                    std::format_to(app, "{:f} ", i);
                 }
-                std::format_to(cmds.app(), "{}\n", "SCN");
+                cmd += " SCN";
+                cmds.append(cmd);
             } else if(auto id = std::get_if<CapyPDF_PatternId>(&sarg.c)) {
                 used_patterns.insert(id->id);
-                std::format_to(cmds.app(), "{}/Pattern CS\n", cmds.ind());
-                std::format_to(cmds.app(), "{}/Pattern-{} SCN\n", cmds.ind(), id->id);
+                cmds.append("/Pattern CS\n");
+                auto cmd = std::format("/Pattern-{} SCN\n", id->id);
+                cmds.append(cmd);
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
@@ -1061,15 +1062,17 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(IncorrectColorChannelCount);
                 }
                 used_colorspaces.insert(icc_info.object_num);
-                std::format_to(app, "{}/CSpace{} cs\n", ind, icc_info.object_num);
+                auto cmd = std::format("/CSpace{} cs\n", icc_info.object_num);
                 for(const auto &i : icc->values) {
-                    std::format_to(app, "{:f} ", i);
+                    std::format_to(std::back_inserter(cmd), "{:f} ", i);
                 }
-                std::format_to(app, "{}\n", "scn");
+                std::format_to(std::back_inserter(cmd), "{}\n", "scn");
+                cmds.append(cmd);
             } else if(auto id = std::get_if<CapyPDF_PatternId>(&nsarg.c)) {
                 used_patterns.insert(id->id);
-                std::format_to(app, "{}/Pattern cs\n", ind);
-                std::format_to(app, "{}/Pattern-{} scn\n", ind, id->id);
+                cmds.append("/Pattern cs\n");
+                auto cmd = std::format("/Pattern-{} scn\n", id->id);
+                cmds.append(cmd);
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
@@ -1104,18 +1107,19 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(NegativeDash);
                 }
             }
-            cmds.append_indent();
-            cmds.append_raw("[ ");
+            std::string cmd = "[ ";
             for(auto val : dash.array) {
-                std::format_to(cmds.app(), "{:f} ", val);
+                std::format_to(std::back_inserter(cmd), "{:f} ", val);
             }
-            std::format_to(cmds.app(), " ] {} d\n", dash.phase);
+            std::format_to(std::back_inserter(cmd), " ] {} d\n", dash.phase);
+            cmds.append(cmd);
             RETOK;
         },
         [&](const gs_arg &gs) -> rvoe<NoReturnValue> {
             CHECK_INDEXNESS(gs.gid.id, doc->document_objects);
             used_gstates.insert(gs.gid.id);
-            std::format_to(cmds.app(), "{}/GS{} gs\n", cmds.ind(), gs.gid.id);
+            auto cmd = std::format("/GS{} gs\n", gs.gid.id);
+            cmds.append(cmd);
             RETOK;
         },
     };
