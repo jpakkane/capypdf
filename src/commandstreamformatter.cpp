@@ -3,6 +3,7 @@
 
 #include <commandstreamformatter.hpp>
 #include <format>
+#include <cassert>
 
 namespace capypdf::internal {
 
@@ -31,6 +32,21 @@ void CommandStreamFormatter::append_command(double arg, const char *command) {
 
 void CommandStreamFormatter::append_command(int32_t arg, const char *command) {
     std::format_to(appender, "{}{} {}\n", lead, arg, command);
+}
+
+void CommandStreamFormatter::append_dict_entry(std::string_view key, std::string_view value) {
+    assert(key.front() == '/');
+    std::format_to(appender, "{}{} {}\n", lead, key, value);
+}
+
+void CommandStreamFormatter::append_dict_entry(std::string_view key, int32_t value) {
+    assert(key.front() == '/');
+    std::format_to(appender, "{}{} {}\n", lead, key, value);
+}
+
+void CommandStreamFormatter::append_dict_entry_string(const char *key, const char *value) {
+    assert(key[0] == '/');
+    std::format_to(appender, "{}{} ({})\n", lead, key, value);
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::BT() {

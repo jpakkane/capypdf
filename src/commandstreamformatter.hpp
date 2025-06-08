@@ -16,6 +16,7 @@ enum class DrawStateType : uint8_t {
     MarkedContent,
     SaveState,
     Text,
+    Dictionary,
 };
 
 class CommandStreamFormatter {
@@ -26,10 +27,15 @@ public:
 
     void append(std::string_view line_of_text);
     void append_raw(std::string_view raw) { buf += raw; }
+    void append_raw(const char *raw) { buf += raw; }
     void append_command(std::string_view arg, const char *command);
     void append_command(double arg, const char *command);
     void append_command(int32_t arg, const char *command);
     void append_indent() { buf += lead; }
+
+    void append_dict_entry(std::string_view key, std::string_view value);
+    void append_dict_entry(std::string_view key, int32_t value);
+    void append_dict_entry_string(const char *key, const char *value);
 
     std::back_insert_iterator<std::string> &app() { return appender; }
 

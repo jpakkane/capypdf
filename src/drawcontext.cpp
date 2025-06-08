@@ -289,26 +289,27 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
                                             std::optional<CapyPDF_StructureItemId> sid,
                                             const BDCTags *attributes) {
-    auto &cmd_appender = cmds.app();
-    const auto &ind = cmds.ind();
     if(!sid && !attributes) {
         fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
         std::abort();
     }
-    std::format_to(cmd_appender, "{}/{}", ind, name.sv());
+    cmds.append_indent();
+    cmds.append_raw("/");
+    cmds.append_raw(name.sv());
     cmds.append_raw(" <<\n");
+    cmds.indent(DrawStateType::Dictionary);
     if(sid) {
         ERC(MCID_id, add_bcd_structure(sid.value()));
-        std::format_to(cmd_appender, "{}  /MCID {}\n", ind, MCID_id);
+        cmds.append_dict_entry("/MCID", MCID_id);
     }
     if(attributes) {
         for(const auto &[key, value] : *attributes) {
-            // FIXME: validate value contents properly.
-            std::format_to(cmd_appender, "{}  /{} ({})\n", ind, key.c_str(), value.c_str());
+            cmds.append_dict_entry_string(key.c_str(), value.c_str());
         }
     }
-    std::format_to(cmd_appender, "{}>>\n", ind);
-    std::format_to(cmd_appender, "{}BDC\n", ind);
+    cmds.append(">>");
+    cmds.dedent(DrawStateType::Dictionary);
+    cmds.append("BDC");
     ERCV(cmds.indent(DrawStateType::MarkedContent));
     RETOK;
 }
