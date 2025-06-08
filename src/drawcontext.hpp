@@ -132,34 +132,12 @@ public:
     rvoe<NoReturnValue> cmd_y(double x1, double y1, double x3, double y3);
 
     // Command serialization.
-    rvoe<NoReturnValue> serialize_G(std::back_insert_iterator<std::string> &out,
-                                    std::string_view indent,
-                                    LimitDouble gray) const;
-    rvoe<NoReturnValue> serialize_g(std::back_insert_iterator<std::string> &out,
-                                    std::string_view indent,
-                                    LimitDouble gray) const;
-    rvoe<NoReturnValue> serialize_K(std::back_insert_iterator<std::string> &out,
-                                    std::string_view indent,
-                                    LimitDouble c,
-                                    LimitDouble m,
-                                    LimitDouble y,
-                                    LimitDouble k) const;
-    rvoe<NoReturnValue> serialize_k(std::back_insert_iterator<std::string> &out,
-                                    std::string_view indent,
-                                    LimitDouble c,
-                                    LimitDouble m,
-                                    LimitDouble y,
-                                    LimitDouble k) const;
-    rvoe<NoReturnValue> serialize_RG(std::back_insert_iterator<std::string> &out,
-                                     std::string_view indent,
-                                     LimitDouble r,
-                                     LimitDouble g,
-                                     LimitDouble b) const;
-    rvoe<NoReturnValue> serialize_rg(std::back_insert_iterator<std::string> &out,
-                                     std::string_view indent,
-                                     LimitDouble r,
-                                     LimitDouble g,
-                                     LimitDouble b) const;
+    rvoe<NoReturnValue> serialize_G(LimitDouble gray);
+    rvoe<NoReturnValue> serialize_g(LimitDouble gray);
+    rvoe<NoReturnValue> serialize_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
+    rvoe<NoReturnValue> serialize_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k);
+    rvoe<NoReturnValue> serialize_RG(LimitDouble r, LimitDouble g, LimitDouble b);
+    rvoe<NoReturnValue> serialize_rg(LimitDouble r, LimitDouble g, LimitDouble b);
 
     // Color
     rvoe<NoReturnValue> set_stroke_color(const Color &c) { return set_color(c, true); }

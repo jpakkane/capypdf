@@ -308,7 +308,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
         }
     }
     cmds.append(">>");
-    cmds.dedent(DrawStateType::Dictionary);
+    ERCV(cmds.dedent(DrawStateType::Dictionary));
     cmds.append("BDC");
     ERCV(cmds.indent(DrawStateType::MarkedContent));
     RETOK;
@@ -429,13 +429,9 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_fstar() {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_G(LimitDouble gray) {
-    return serialize_G(cmds.app(), cmds.ind_v(), gray);
-}
+rvoe<NoReturnValue> PdfDrawContext::cmd_G(LimitDouble gray) { return serialize_G(gray); }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) {
-    return serialize_g(cmds.app(), cmds.ind_v(), gray);
-}
+rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) { return serialize_g(gray); }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
@@ -472,12 +468,12 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_J(CapyPDF_Line_Cap cap_style) {
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
-    return serialize_K(cmds.app(), cmds.ind_v(), c, m, y, k);
+    return serialize_K(c, m, y, k);
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
-    return serialize_k(cmds.app(), cmds.ind_v(), c, m, y, k);
+    return serialize_k(c, m, y, k);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_l(double x, double y) {
@@ -516,11 +512,11 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_re(double x, double y, double w, double 
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_RG(LimitDouble r, LimitDouble g, LimitDouble b) {
-    return serialize_RG(cmds.app(), cmds.ind(), r, g, b);
+    return serialize_RG(r, g, b);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDouble b) {
-    return serialize_rg(cmds.app(), cmds.ind(), r, g, b);
+    return serialize_rg(r, g, b);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
@@ -594,55 +590,35 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_y(double x1, double y1, double x3, doubl
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_G(std::back_insert_iterator<std::string> &out,
-                                                std::string_view indent,
-                                                LimitDouble gray) const {
-    std::format_to(out, "{}{:f} G\n", indent, gray.v());
+rvoe<NoReturnValue> PdfDrawContext::serialize_G(LimitDouble gray) {
+    cmds.append_command(gray.v(), "G");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_g(std::back_insert_iterator<std::string> &out,
-                                                std::string_view indent,
-                                                LimitDouble gray) const {
-    std::format_to(out, "{}{:f} g\n", indent, gray.v());
+rvoe<NoReturnValue> PdfDrawContext::serialize_g(LimitDouble gray) {
+    cmds.append_command(gray.v(), "g");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_K(std::back_insert_iterator<std::string> &out,
-                                                std::string_view indent,
-                                                LimitDouble c,
-                                                LimitDouble m,
-                                                LimitDouble y,
-                                                LimitDouble k) const {
-    std::format_to(out, "{}{:f} {:f} {:f} {:f} K\n", indent, c.v(), m.v(), y.v(), k.v());
+rvoe<NoReturnValue>
+PdfDrawContext::serialize_K(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
+    cmds.append_command(c.v(), m.v(), y.v(), k.v(), "K");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_k(std::back_insert_iterator<std::string> &out,
-                                                std::string_view indent,
-                                                LimitDouble c,
-                                                LimitDouble m,
-                                                LimitDouble y,
-                                                LimitDouble k) const {
-    std::format_to(out, "{}{:f} {:f} {:f} {:f} k\n", indent, c.v(), m.v(), y.v(), k.v());
+rvoe<NoReturnValue>
+PdfDrawContext::serialize_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k) {
+    cmds.append_command(c.v(), m.v(), y.v(), k.v(), "k");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_RG(std::back_insert_iterator<std::string> &out,
-                                                 std::string_view indent,
-                                                 LimitDouble r,
-                                                 LimitDouble g,
-                                                 LimitDouble b) const {
-    std::format_to(out, "{}{:f} {:f} {:f} RG\n", indent, r.v(), g.v(), b.v());
+rvoe<NoReturnValue> PdfDrawContext::serialize_RG(LimitDouble r, LimitDouble g, LimitDouble b) {
+    cmds.append_command(r.v(), g.v(), b.v(), "RG");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::serialize_rg(std::back_insert_iterator<std::string> &out,
-                                                 std::string_view indent,
-                                                 LimitDouble r,
-                                                 LimitDouble g,
-                                                 LimitDouble b) const {
-    std::format_to(out, "{}{:f} {:f} {:f} rg\n", indent, r.v(), g.v(), b.v());
+rvoe<NoReturnValue> PdfDrawContext::serialize_rg(LimitDouble r, LimitDouble g, LimitDouble b) {
+    cmds.append_command(r.v(), g.v(), b.v(), "rg");
     RETOK;
 }
 
@@ -914,7 +890,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const TD_arg &tD) -> rvoe<NoReturnValue> {
-            cmds.append_command(tD.tx, tD.ty, "/TD");
+            cmds.append_command(tD.tx, tD.ty, "TD");
             RETOK;
         },
 
@@ -1011,11 +987,11 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
         [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
             if(auto rgb = std::get_if<DeviceRGBColor>(&sarg.c)) {
-                ERCV(serialize_RG(cmds.app(), cmds.ind_v(), rgb->r, rgb->g, rgb->b));
+                ERCV(serialize_RG(rgb->r, rgb->g, rgb->b));
             } else if(auto gray = std::get_if<DeviceGrayColor>(&sarg.c)) {
-                ERCV(serialize_G(cmds.app(), cmds.ind_v(), gray->v));
+                ERCV(serialize_G(gray->v));
             } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&sarg.c)) {
-                ERCV(serialize_K(cmds.app(), cmds.ind_v(), cmyk->c, cmyk->m, cmyk->y, cmyk->k));
+                ERCV(serialize_K(cmyk->c, cmyk->m, cmyk->y, cmyk->k));
             } else if(auto icc = std::get_if<ICCColor>(&sarg.c)) {
                 CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
                 const auto &icc_info = doc->get(icc->id);
@@ -1047,14 +1023,12 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
-            auto &app = cmds.app();
-            auto &ind = cmds.ind();
             if(auto rgb = std::get_if<DeviceRGBColor>(&nsarg.c)) {
-                ERCV(serialize_rg(app, ind, rgb->r, rgb->g, rgb->b));
+                ERCV(serialize_rg(rgb->r, rgb->g, rgb->b));
             } else if(auto gray = std::get_if<DeviceGrayColor>(&nsarg.c)) {
-                ERCV(serialize_g(app, ind, gray->v));
+                ERCV(serialize_g(gray->v));
             } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&nsarg.c)) {
-                ERCV(serialize_k(app, ind, cmyk->c, cmyk->m, cmyk->y, cmyk->k));
+                ERCV(serialize_k(cmyk->c, cmyk->m, cmyk->y, cmyk->k));
             } else if(auto icc = std::get_if<ICCColor>(&nsarg.c)) {
                 CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
                 const auto &icc_info = doc->get(icc->id);
@@ -1176,30 +1150,29 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     if(glyphs.empty()) {
         RETOK;
     }
-    auto &ind = cmds.ind();
     auto &font_data = doc->get(fid);
     // FIXME, do per character.
     // const auto &bob =
     //    doc->font_objects.at(doc->get_subset_glyph(fid,
     //    glyphs.front().codepoint).ss.fid.id);
-    std::format_to(cmds.app(),
-                   R"({}BT
-{}  /SFont{} {:f} Tf
-)",
-                   ind,
-                   ind,
-                   font_data.font_obj,
-                   pointsize);
+    cmds.append("BT");
+    ERCV(cmds.indent(DrawStateType::Text));
+    auto cmd = std::format("/SFont{} {:f} Tf", font_data.font_obj, pointsize);
+    cmds.append(cmd);
     for(const auto &g : glyphs) {
         ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint, {}));
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
         used_subset_fonts.insert(current_subset_glyph.ss);
-        std::format_to(cmds.app(), "  {:f} {:f} Td\n", g.x - prev_x, g.y - prev_y);
+        cmds.append_command(g.x - prev_x, g.y - prev_y, "Td");
         prev_x = g.x;
         prev_y = g.y;
-        std::format_to(cmds.app(), "  <{:04x}> Tj\n", (unsigned char)current_subset_glyph.glyph_id);
+        cmd.clear();
+        std::format_to(
+            std::back_inserter(cmd), "<{:04x}>", (unsigned char)current_subset_glyph.glyph_id);
+        cmds.append_command(cmd, "Tj");
     }
-    std::format_to(cmds.app(), "{}ET\n", ind);
+    ERCV(cmds.dedent(DrawStateType::Text));
+    cmds.append("ET");
     RETOK;
 }
 
@@ -1213,24 +1186,17 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
     used_fonts.insert(font_object);
-    auto &ind = cmds.ind();
-    std::format_to(cmds.app(),
-                   R"({}BT
-{}  /Font{} {} Tf
-{}  {:f} {:f} Td
-{}  {} Tj
-{}ET
-)",
-                   ind,
-                   ind,
-                   font_object,
-                   pointsize,
-                   ind,
-                   x,
-                   y,
-                   ind,
-                   pdfstring_quote(pdfdoc_encoded_text),
-                   ind);
+    cmds.append("BT");
+    ERCV(cmds.indent(DrawStateType::Text));
+    std::string cmd;
+    auto app = std::back_inserter(cmd);
+    std::format_to(app, "/Font{} {} Tf", font_object, pointsize);
+    cmds.append(cmd);
+    cmd.clear();
+    cmds.append_command(x, y, "Td");
+    cmds.append_command(pdfstring_quote(pdfdoc_encoded_text), "Tj");
+    ERCV(cmds.dedent(DrawStateType::Text));
+    cmds.append("ET");
     RETOK;
 }
 
