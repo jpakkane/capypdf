@@ -30,6 +30,7 @@ public:
     void append_raw(const char *raw) { buf += raw; }
     void append_command(std::string_view arg, const char *command);
     void append_command(double arg, const char *command);
+    void append_command(double arg1, double arg2, const char *command);
     void append_command(int32_t arg, const char *command);
     void append_indent() { buf += lead; }
 

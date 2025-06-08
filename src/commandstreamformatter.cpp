@@ -30,6 +30,10 @@ void CommandStreamFormatter::append_command(double arg, const char *command) {
     std::format_to(appender, "{}{:f} {}\n", lead, arg, command);
 }
 
+void CommandStreamFormatter::append_command(double arg1, double arg2, const char *command) {
+    std::format_to(appender, "{}{:f} {:f} {}\n", lead, arg1, arg2, command);
+}
+
 void CommandStreamFormatter::append_command(int32_t arg, const char *command) {
     std::format_to(appender, "{}{} {}\n", lead, arg, command);
 }
