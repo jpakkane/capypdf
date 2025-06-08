@@ -23,7 +23,7 @@ class CommandStreamFormatter {
 
 public:
     CommandStreamFormatter();
-    CommandStreamFormatter(std::string_view start_indent);
+    explicit CommandStreamFormatter(std::string_view start_indent);
 
     void append(std::string_view line_of_text);
     void append_raw(std::string_view raw) { buf += raw; }
@@ -40,8 +40,6 @@ public:
     void append_dict_entry(std::string_view key, int32_t value);
     void append_dict_entry_string(const char *key, const char *value);
 
-    std::back_insert_iterator<std::string> &app() { return appender; }
-
     rvoe<NoReturnValue> BT();
     rvoe<NoReturnValue> ET();
 
@@ -52,8 +50,6 @@ public:
     rvoe<NoReturnValue> EMC();
 
     const std::string &contents() const { return buf; }
-    const std::string &ind() const { return lead; }
-    std::string_view ind_v() const { return std::string_view{lead}; }
 
     void clear();
 

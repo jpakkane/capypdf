@@ -332,7 +332,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     used_ocgs.insert(ocgid);
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    auto cmd = std::format("/OC /oc{} BDC\n", cmds.ind(), doc->ocg_object_number(ocgid));
+    auto cmd = std::format("/OC /oc{} BDC\n", doc->ocg_object_number(ocgid));
     cmds.append(cmd);
     RETOK;
 }
@@ -737,7 +737,8 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke)
         ERCV(cmd_cs("/Pattern"));
     }
     used_patterns.insert(id.id);
-    std::format_to(cmds.app(), "{}/Pattern-{} {}\n", cmds.ind(), id.id, stroke ? "SCN" : "scn");
+    auto cmd = std::format("/Pattern-{} {}\n", id.id, stroke ? "SCN" : "scn");
+    cmds.append(cmd);
     RETOK;
 }
 
@@ -805,7 +806,8 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
             }
-            std::format_to(serialisation.app(), "<{:04x}> ", current_subset_glyph.glyph_id);
+            auto glyphid = std::format("<{:04x}> ", current_subset_glyph.glyph_id);
+            serialisation.append_raw(glyphid);
         };
     for(const auto &e : charseq) {
         if(auto kval = std::get_if<KerningValue>(&e)) {
@@ -813,7 +815,8 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
             }
-            std::format_to(serialisation.app(), "{} ", kval->v);
+            auto v = std::format("{} ", kval->v);
+            serialisation.append_raw(v);
         } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
             const auto codepoint = uglyph->codepoint;
             ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
@@ -831,19 +834,19 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             serialisation.append_raw("<");
             for(const auto codepoint : *u8str) {
                 ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
-                std::format_to(serialisation.app(), "{:04x}", current_subset_glyph.glyph_id);
+                auto cmd = std::format("{:04x}", current_subset_glyph.glyph_id);
+                serialisation.append_raw(cmd);
             }
             serialisation.append_raw("> ");
         } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
             auto u16 = utf8_to_pdfutf16be(actualtext->text);
-            std::format_to(serialisation.app(),
-                           "] TJ\n{}/Span << /ActualText {} >> BDC\n{}[",
-                           serialisation.ind(),
-                           u16,
-                           serialisation.ind());
+            serialisation.append_raw("] TJ\n");
+            auto cmd = std::format("/Span << /ActualText {} >> BDC", u16);
+            serialisation.append(cmd);
+            serialisation.append_raw("[");
         } else if(std::holds_alternative<ActualTextEnd>(e)) {
-            std::format_to(
-                serialisation.app(), "] TJ\n{}EMC\n{}[", serialisation.ind(), serialisation.ind());
+            serialisation.append_raw("] TJ\n");
+            serialisation.append("EMC [");
         } else if(auto glyphitem = std::get_if<GlyphItem>(&e)) {
             ERC(current_subset_glyph,
                 doc->get_subset_glyph(
@@ -927,20 +930,19 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const TL_arg &tL) -> rvoe<NoReturnValue> {
-            std::format_to(cmds.app(), "{}{:f} TL\n", cmds.ind(), tL.leading);
+            cmds.append_command(tL.leading, "TL");
             RETOK;
         },
 
         [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
-            std::format_to(cmds.app(),
-                           "{}{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
-                           cmds.ind(),
-                           tm.m.a,
-                           tm.m.b,
-                           tm.m.c,
-                           tm.m.d,
-                           tm.m.e,
-                           tm.m.f);
+            auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
+                                   tm.m.a,
+                                   tm.m.b,
+                                   tm.m.c,
+                                   tm.m.d,
+                                   tm.m.e,
+                                   tm.m.f);
+            cmds.append(cmd);
             RETOK;
         },
 
