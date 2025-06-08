@@ -332,7 +332,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     used_ocgs.insert(ocgid);
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    std::format_to(cmds.app(), "{}/OC /oc{} BDC\n", cmds.ind(), doc->ocg_object_number(ocgid));
+    auto cmd = std::format("/OC /oc{} BDC\n", cmds.ind(), doc->ocg_object_number(ocgid));
+    cmds.append(cmd);
     RETOK;
 }
 
@@ -341,21 +342,22 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
         RETERR(SlashStart);
     }
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    std::format_to(cmds.app(), "{}/{} BMC\n", cmds.ind(), tag);
+    auto cmd = std::format("/{} BMC\n", tag);
+    cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    std::format_to(
-        cmds.app(), "{}{:f} {:f} {:f} {:f} {:f} {:f} c\n", cmds.ind(), x1, y1, x2, y2, x3, y3);
+    auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} c\n", x1, y1, x2, y2, x3, y3);
+    cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    std::format_to(
-        cmds.app(), "{}{:f} {:f} {:f} {:f} {:f} {:f} cm\n", cmds.ind(), m1, m2, m3, m4, m5, m6);
+    auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} cm\n", m1, m2, m3, m4, m5, m6);
+    cmds.append(cmd);
     RETOK;
 }
 
@@ -379,25 +381,29 @@ PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase
             RETERR(NegativeDash);
         }
     }
-    cmds.append_raw(cmds.ind());
-    cmds.append_raw("[ ");
+    std::string cmd;
+    auto app = std::back_inserter<std::string>(cmd);
+    cmd += "[ ";
     for(size_t i = 0; i < dash_array_length; ++i) {
-        std::format_to(cmds.app(), "{:f} ", dash_array[i]);
+        std::format_to(app, "{:f} ", dash_array[i]);
     }
-    std::format_to(cmds.app(), " ] {} d\n", phase);
+    std::format_to(app, "] {} d\n", phase);
+    cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
-    std::format_to(cmds.app(), "{}/FXO{} Do\n", cmds.ind(), doc->form_xobjects[fxoid.id].xobj_num);
+    auto cmd = std::format("/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);
+    cmds.append(cmd);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
     CHECK_INDEXNESS(trid.id, doc->transparency_groups);
-    std::format_to(cmds.app(), "{}/TG{} Do\n", cmds.ind(), doc->transparency_groups[trid.id]);
+    auto cmd = std::format("/TG{} Do\n", doc->transparency_groups[trid.id]);
+    cmds.append(cmd);
     used_trgroups.insert(trid);
     RETOK;
 }
@@ -406,7 +412,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
-    std::format_to(cmds.app(), "{}/Image{} Do\n", cmds.ind(), obj_num);
+    auto cmd = std::format("/Image{} Do\n", obj_num);
+    cmds.append(cmd);
     RETOK;
 }
 
@@ -433,7 +440,8 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) {
 rvoe<NoReturnValue> PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
-    std::format_to(cmds.app(), "{}/GS{} gs\n", cmds.ind(), gid.id);
+    auto cmd = std::format("/GS{} gs\n", gid.id);
+    cmds.append(cmd);
     RETOK;
 }
 
