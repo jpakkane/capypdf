@@ -502,7 +502,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->load_image(fname);
+    pystd2025::Path f(fname);
+    auto rc = g->load_image(f);
     if(rc) {
         auto *result = new RasterImage(std::move(rc.value()));
         *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);

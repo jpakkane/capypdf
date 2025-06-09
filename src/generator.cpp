@@ -60,7 +60,7 @@ rvoe<NoReturnValue> PdfGen::write() {
     return pwriter.write_to_file(ofilename);
 }
 
-rvoe<RasterImage> PdfGen::load_image(const std::filesystem::path &fname) {
+rvoe<RasterImage> PdfGen::load_image(const pystd2025::Path &fname) {
     return load_image_file(fname);
 }
 

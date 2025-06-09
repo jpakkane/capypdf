@@ -5,12 +5,12 @@
 
 #include "pdfcommon.hpp"
 #include <errorhandling.hpp>
-#include <cstdint>
-#include <filesystem>
+#include <stdint.h>
+#include <pystd2025.hpp>
 
 namespace capypdf::internal {
 
-rvoe<RasterImage> load_image_file(const std::filesystem::path &fname);
+rvoe<RasterImage> load_image_file(const pystd2025::Path &fname);
 rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize);
 
 } // namespace capypdf::internal

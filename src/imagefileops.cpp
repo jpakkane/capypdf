@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
-#include <filesystem>
 #include <imagefileops.hpp>
 #include <utils.hpp>
 #include <png.h>
@@ -460,8 +459,8 @@ rvoe<RasterImage> load_png_file(FILE *f) {
     return do_png_load(pclose.p, pclose.i);
 }
 
-rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "rb");
+rvoe<RasterImage> load_png_file(const pystd2025::Path &fname) {
+    FILE *f = fopen(fname.c_str(), "rb");
     if(!f) {
         RETERR(CouldNotOpenFile);
     }
@@ -485,8 +484,8 @@ rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
     return load_png_file(f);
 }
 
-rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
-    TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
+rvoe<RasterImage> load_tif_file(const pystd2025::Path &fname) {
+    TIFF *tif = TIFFOpen(fname.c_str(), "rb");
     if(!tif) {
         RETERR(FileReadError);
     }
@@ -577,8 +576,8 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     return im;
 }
 
-rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "rb");
+rvoe<jpg_image> load_jpg_file(const pystd2025::Path &fname) {
+    FILE *f = fopen(fname.c_str(), "rb");
     if(!f) {
         RETERR(FileDoesNotExist);
     }
@@ -598,8 +597,8 @@ rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
 
 } // namespace
 
-rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
-    if(!std::filesystem::exists(fname)) {
+rvoe<RasterImage> load_image_file(const pystd2025::Path &fname) {
+    if(!fname.is_file()) {
         RETERR(FileDoesNotExist);
     }
     auto extension = fname.extension();
@@ -619,7 +618,7 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     const size_t bufsize = 10;
     char buf[bufsize];
     buf[0] = 0;
-    FILE *f = fopen(fname.string().c_str(), "rb");
+    FILE *f = fopen(fname.c_str(), "rb");
     auto rc = fread(buf, 1, bufsize, f);
     fclose(f);
     if(rc != bufsize) {

@@ -43,7 +43,7 @@ public:
 
     rvoe<NoReturnValue> write();
 
-    rvoe<RasterImage> load_image(const std::filesystem::path &fname);
+    rvoe<RasterImage> load_image(const pystd2025::Path &fname);
     rvoe<RasterImage> load_image(const char *buf, int64_t bufsize);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef) { return pdoc.embed_file(ef); }
     rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname,
