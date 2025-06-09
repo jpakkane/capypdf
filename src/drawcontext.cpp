@@ -8,7 +8,6 @@
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
-#include <format>
 #include <array>
 #include <cmath>
 #include <cassert>
@@ -142,20 +141,20 @@ void PdfDrawContext::clear() {
 
 void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
     fmt.begin_dict();
-    std::string scratch;
+    pystd2025::CString scratch;
     if(!used_images.empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
         fmt.add_token("/XObject");
         fmt.begin_dict();
         if(!used_images.empty()) {
             for(const auto &i : used_images) {
-                scratch = std::format("/Image{}", i);
+                scratch = pystd2025::format("/Image%d", i);
                 fmt.add_token(scratch);
                 fmt.add_object_ref(i);
             }
         }
         if(!used_form_xobjects.empty()) {
             for(const auto &fx : used_form_xobjects) {
-                scratch = std::format("/FXO{}", fx);
+                scratch = pystd2025::format("/FXO%d", fx);
                 fmt.add_token(scratch);
                 fmt.add_object_ref(fx);
             }
@@ -163,7 +162,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         if(!used_trgroups.empty()) {
             for(const auto &tg : used_trgroups) {
                 auto objnum = doc->transparency_groups.at(tg.id);
-                scratch = std::format("/TG{}", objnum);
+                scratch = pystd2025::format("/TG%d", objnum);
                 fmt.add_token(scratch);
                 fmt.add_object_ref(objnum);
             }
@@ -174,14 +173,14 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.add_token("/Font");
         fmt.begin_dict();
         for(const auto &i : used_fonts) {
-            scratch = std::format("/Font{}", i);
+            scratch = pystd2025::format("/Font%d}", i);
             fmt.add_token(scratch);
             fmt.add_object_ref(i);
         }
         for(const auto &i : used_subset_fonts) {
             const auto &bob = doc->get(i.fid);
             assert(i.subset_id == 0);
-            scratch = std::format("/SFont{}", bob.font_obj);
+            scratch = pystd2025::format("/SFont%d", bob.font_obj);
             fmt.add_token(scratch);
             fmt.add_object_ref(bob.font_obj);
         }
@@ -195,7 +194,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
             fmt.add_object_ref(doc->separation_objects.at(0));
         }
         for(const auto &i : used_colorspaces) {
-            scratch = std::format("/CSpace{}", i);
+            scratch = pystd2025::format("/CSpace%d", i);
             fmt.add_token(scratch);
             fmt.add_object_ref(i);
         }
@@ -205,7 +204,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.add_token("/ExtGState");
         fmt.begin_dict();
         for(const auto &s : used_gstates) {
-            scratch = std::format("/GS{}", s);
+            scratch = pystd2025::format("/GS%d", s);
             fmt.add_token(scratch);
             fmt.add_object_ref(s);
         }
@@ -215,7 +214,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.add_token("/Shading");
         fmt.begin_dict();
         for(const auto &s : used_shadings) {
-            scratch = std::format("/SH{}", s);
+            scratch = pystd2025::format("/SH%d", s);
             fmt.add_token(scratch);
             fmt.add_object_ref(doc->shadings.at(s).object_number);
         }
@@ -225,7 +224,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.add_token("/Pattern");
         fmt.begin_dict();
         for(const auto &s : used_patterns) {
-            scratch = std::format("/Pattern-{}", s);
+            scratch = pystd2025::format("/Pattern-%d", s);
             fmt.add_token(scratch);
             fmt.add_object_ref(s);
         }
@@ -236,7 +235,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.begin_dict();
         for(const auto &ocg : used_ocgs) {
             auto objnum = doc->ocg_object_number(ocg);
-            scratch = std::format("/oc{}", objnum);
+            scratch = pystd2025::format("/oc%d", objnum);
             fmt.add_token(scratch);
             fmt.add_object_ref(objnum);
         }
@@ -332,7 +331,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid) {
     used_ocgs.insert(ocgid);
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    auto cmd = std::format("/OC /oc{} BDC\n", doc->ocg_object_number(ocgid));
+    auto cmd = pystd2025::format("/OC /oc%d BDC\n", doc->ocg_object_number(ocgid));
     cmds.append(cmd);
     RETOK;
 }
@@ -342,21 +341,22 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
         RETERR(SlashStart);
     }
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    auto cmd = std::format("/{} BMC\n", tag);
+    std::string tag_(tag);
+    auto cmd = pystd2025::format("/%s BMC\n", tag_.c_str());
     cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
-    auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} c\n", x1, y1, x2, y2, x3, y3);
+    auto cmd = pystd2025::format("%f %f %f %f %f %f c\n", x1, y1, x2, y2, x3, y3);
     cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue>
 PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6) {
-    auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} cm\n", m1, m2, m3, m4, m5, m6);
+    auto cmd = pystd2025::format("%f %f %f %f %f %f cm\n", m1, m2, m3, m4, m5, m6);
     cmds.append(cmd);
     RETOK;
 }
@@ -381,20 +381,19 @@ PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase
             RETERR(NegativeDash);
         }
     }
-    std::string cmd;
-    auto app = std::back_inserter<std::string>(cmd);
+    pystd2025::CString cmd;
     cmd += "[ ";
     for(size_t i = 0; i < dash_array_length; ++i) {
-        std::format_to(app, "{:f} ", dash_array[i]);
+        pystd2025::format_append(cmd, "%f ", dash_array[i]);
     }
-    std::format_to(app, "] {} d\n", phase);
+    pystd2025::format_append(cmd, "] %f d\n", phase);
     cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
-    auto cmd = std::format("/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);
+    auto cmd = pystd2025::format("/FXO%d Do\n", doc->form_xobjects[fxoid.id].xobj_num);
     cmds.append(cmd);
     used_form_xobjects.insert(doc->form_xobjects[fxoid.id].xobj_num);
     RETOK;
@@ -402,7 +401,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_TransparencyGroupId trid) {
     CHECK_INDEXNESS(trid.id, doc->transparency_groups);
-    auto cmd = std::format("/TG{} Do\n", doc->transparency_groups[trid.id]);
+    auto cmd = pystd2025::format("/TG%d Do\n", doc->transparency_groups[trid.id]);
     cmds.append(cmd);
     used_trgroups.insert(trid);
     RETOK;
@@ -412,7 +411,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_ImageId im_id) {
     CHECK_INDEXNESS(im_id.id, doc->image_info);
     auto obj_num = doc->image_object_number(im_id);
     used_images.insert(obj_num);
-    auto cmd = std::format("/Image{} Do\n", obj_num);
+    auto cmd = pystd2025::format("/Image%d Do\n", obj_num);
     cmds.append(cmd);
     RETOK;
 }
@@ -436,7 +435,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_g(LimitDouble gray) { return serialize_g
 rvoe<NoReturnValue> PdfDrawContext::cmd_gs(CapyPDF_GraphicsStateId gid) {
     CHECK_INDEXNESS(gid.id, doc->document_objects);
     used_gstates.insert(gid.id);
-    auto cmd = std::format("/GS{} gs\n", gid.id);
+    auto cmd = pystd2025::format("/GS%d gs\n", gid.id);
     cmds.append(cmd);
     RETOK;
 }
@@ -477,13 +476,13 @@ PdfDrawContext::cmd_k(LimitDouble c, LimitDouble m, LimitDouble y, LimitDouble k
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_l(double x, double y) {
-    auto cmd = std::format("{:f} {:f} l\n", x, y);
+    auto cmd = pystd2025::format("%f %f l\n", x, y);
     cmds.append(cmd);
     RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_m(double x, double y) {
-    auto cmd = std::format("{:f} {:f} m\n", x, y);
+    auto cmd = pystd2025::format("%f %f m\n", x, y);
     cmds.append(cmd);
     RETOK;
 }
@@ -506,7 +505,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_q() {
 rvoe<NoReturnValue> PdfDrawContext::cmd_Q() { return cmds.Q(); }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_re(double x, double y, double w, double h) {
-    auto cmd = std::format("{:f} {:f} {:f} {:f} re\n", x, y, w, h);
+    auto cmd = pystd2025::format("%f %f %f %f re\n", x, y, w, h);
     cmds.append(cmd);
     RETOK;
 }
@@ -521,7 +520,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_rg(LimitDouble r, LimitDouble g, LimitDo
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_ri(CapyPDF_Rendering_Intent ri) {
     CHECK_ENUM(ri, CAPY_RI_PERCEPTUAL);
-    auto cmd = std::format("/{} ri\n", rendering_intent_names.at((int)ri));
+    auto cmd = pystd2025::format("/%s ri\n", rendering_intent_names.at((int)ri));
     cmds.append(cmd);
     RETOK;
 }
@@ -549,7 +548,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_scn(double value) {
 rvoe<NoReturnValue> PdfDrawContext::cmd_sh(CapyPDF_ShadingId shid) {
     CHECK_INDEXNESS(shid.id, doc->document_objects);
     used_shadings.insert(shid.id);
-    auto cmd = std::format("/SH{} sh\n", shid.id);
+    auto cmd = pystd2025::format("/SH%d sh\n", shid.id);
     cmds.append(cmd);
     RETOK;
 }
@@ -561,7 +560,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Tr(CapyPDF_Text_Mode mode) {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_v(double x2, double y2, double x3, double y3) {
-    auto cmd = std::format("{:f} {:f} {:f} {:f} v\n", x2, y2, x3, y3);
+    auto cmd = pystd2025::format("%f %f %f %f v\n", x2, y2, x3, y3);
     cmds.append(cmd);
     RETOK;
 }
@@ -585,7 +584,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Wstar() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_y(double x1, double y1, double x3, double y3) {
-    auto cmd = std::format("{:f} {:f} {:f} {:f} y\n", x1, y1, x3, y3);
+    auto cmd = pystd2025::format("%f %f %f %f y\n", x1, y1, x3, y3);
     cmds.append(cmd);
     RETOK;
 }
@@ -712,14 +711,13 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const ICCColor &icc, bool stroke) 
         RETERR(IncorrectColorChannelCount);
     }
     used_colorspaces.insert(icc_info.object_num);
-    std::string cmd = std::format("/CSpace{} {}\n", icc_info.object_num, stroke ? "CS" : "cs");
+    auto cmd = pystd2025::format("/CSpace%d %s\n", icc_info.object_num, stroke ? "CS" : "cs");
     cmds.append(cmd);
     cmd.clear();
-    auto app = std::back_inserter<std::string>(cmd);
     for(const auto &i : icc.values) {
-        std::format_to(app, "{:f} ", i);
+        pystd2025::format_append(cmd, "%f ", i);
     }
-    std::format_to(app, "{}\n", stroke ? "SCN" : "scn");
+    cmd += stroke ? "SCN" : "scn";
     cmds.append(cmd);
     RETOK;
 }
@@ -737,7 +735,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(CapyPDF_PatternId id, bool stroke)
         ERCV(cmd_cs("/Pattern"));
     }
     used_patterns.insert(id.id);
-    auto cmd = std::format("/Pattern-{} {}\n", id.id, stroke ? "SCN" : "scn");
+    auto cmd = pystd2025::format("/Pattern-%d %s\n", id.id, stroke ? "SCN" : "scn");
     cmds.append(cmd);
     RETOK;
 }
@@ -746,7 +744,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool
     CHECK_INDEXNESS(color.id.id, doc->separation_objects);
     const auto idnum = doc->separation_object_number(color.id);
     used_colorspaces.insert(idnum);
-    std::string csname = std::format("/CSpace{}", idnum);
+    auto csname = pystd2025::format("/CSpace%d", idnum);
     if(stroke) {
         cmd_CS(csname);
         cmd_SCN(color.v.v());
@@ -760,13 +758,13 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool
 rvoe<NoReturnValue> PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     CHECK_INDEXNESS(c.id.id, doc->document_objects);
     used_colorspaces.insert(c.id.id);
-    std::string csname = std::format("/CSpace{}", c.id.id);
+    auto csname = pystd2025::format("/CSpace%d", c.id.id);
     if(stroke) {
         cmd_CS(csname);
     } else {
         cmd_cs(csname);
     }
-    auto cmd = std::format("{:f} {:f} {:f} {}\n", c.l, c.a, c.b, stroke ? "SCN" : "scn");
+    auto cmd = pystd2025::format("%f %f %f %s\n", c.l, c.a, c.b, stroke ? "SCN" : "scn");
     cmds.append(cmd);
     RETOK;
 }
@@ -806,7 +804,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
             }
-            auto glyphid = std::format("<{:04x}> ", current_subset_glyph.glyph_id);
+            auto glyphid = pystd2025::format("<%04x> ", current_subset_glyph.glyph_id);
             serialisation.append_raw(glyphid);
         };
     for(const auto &e : charseq) {
@@ -815,7 +813,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
             }
-            auto v = std::format("{} ", kval->v);
+            auto v = pystd2025::format("%d ", kval->v);
             serialisation.append_raw(v);
         } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
             const auto codepoint = uglyph->codepoint;
@@ -834,14 +832,14 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             serialisation.append_raw("<");
             for(const auto codepoint : *u8str) {
                 ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
-                auto cmd = std::format("{:04x}", current_subset_glyph.glyph_id);
+                auto cmd = pystd2025::format("%04x", current_subset_glyph.glyph_id);
                 serialisation.append_raw(cmd);
             }
             serialisation.append_raw("> ");
         } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
             auto u16 = utf8_to_pdfutf16be(actualtext->text);
             serialisation.append_raw("] TJ\n");
-            auto cmd = std::format("/Span << /ActualText {} >> BDC", u16);
+            auto cmd = pystd2025::format("/Span << /ActualText %s >> BDC", u16.c_str());
             serialisation.append(cmd);
             serialisation.append_raw("[");
         } else if(std::holds_alternative<ActualTextEnd>(e)) {
@@ -900,8 +898,8 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
             current_font = tf.font;
             current_pointsize = tf.pointsize;
-            auto cmd = std::format(
-                "/SFont{} {:f} Tf\n", doc->get(current_font).font_obj, current_pointsize);
+            auto cmd = pystd2025::format(
+                "/SFont%d %f Tf\n", doc->get(current_font).font_obj, current_pointsize);
             cmds.append(cmd);
             FontSubset fs;
             fs.subset_id = 0;
@@ -913,11 +911,10 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         [&](const Tj_arg &tj) -> rvoe<NoReturnValue> {
             cmds.append_indent();
             cmds.append_raw("<");
-            std::string tmp;
-            auto app = std::back_inserter<std::string>(tmp);
+            pystd2025::CString tmp;
             for(const auto c : tj.text) {
                 ERC(current_subset_glyph, doc->get_subset_glyph(current_font, c, {}));
-                std::format_to(app, "{:04X}", current_subset_glyph.glyph_id);
+                pystd2025::format_append(tmp, "%04X", current_subset_glyph.glyph_id);
             }
             cmds.append_raw(tmp);
             cmds.append_raw("> Tj\n");
@@ -935,13 +932,8 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         },
 
         [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
-            auto cmd = std::format("{:f} {:f} {:f} {:f} {:f} {:f} Tm\n",
-                                   tm.m.a,
-                                   tm.m.b,
-                                   tm.m.c,
-                                   tm.m.d,
-                                   tm.m.e,
-                                   tm.m.f);
+            auto cmd = pystd2025::format(
+                "%f %f %f %f %f %f Tm\n", tm.m.a, tm.m.b, tm.m.c, tm.m.d, tm.m.e, tm.m.f);
             cmds.append(cmd);
             RETOK;
         },
@@ -968,13 +960,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             auto item = doc->structure_items.at(sitem.sid.id).stype;
             if(auto itemid = std::get_if<CapyPDF_Structure_Type>(&item)) {
                 const auto &itemstr = structure_type_names.at(*itemid);
-                auto cmd = std::format("/{} << /MCID {} >>\n", itemstr, mcid_id);
+                auto cmd = pystd2025::format("/%s << /MCID %d >>\n", itemstr, mcid_id);
                 cmds.append(cmd);
                 cmds.append("BDC");
             } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
                 const auto &role = *ri;
                 auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name);
-                auto cmd = std::format("{} << /MCID {} >>\n", rolename, mcid_id);
+                auto cmd = pystd2025::format("%s << /MCID %d >>\n", rolename.c_str(), mcid_id);
                 cmds.append(cmd);
                 cmds.append("BDC");
             } else {
@@ -1002,20 +994,19 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 }
                 used_colorspaces.insert(icc_info.object_num);
                 std::string cmd;
-                auto app = std::back_inserter<std::string>(cmd);
-                std::format_to(app, "/CSpace{} CS\n", icc_info.object_num);
+                pystd2025::format_append(cmd, "/CSpace%d CS\n", icc_info.object_num);
                 cmds.append(cmd);
                 cmd.clear();
 
                 for(const auto &i : icc->values) {
-                    std::format_to(app, "{:f} ", i);
+                    pystd2025::format_append(cmd, "%f ", i);
                 }
                 cmd += " SCN";
                 cmds.append(cmd);
             } else if(auto id = std::get_if<CapyPDF_PatternId>(&sarg.c)) {
                 used_patterns.insert(id->id);
                 cmds.append("/Pattern CS\n");
-                auto cmd = std::format("/Pattern-{} SCN\n", id->id);
+                auto cmd = pystd2025::format("/Pattern-%d SCN\n", id->id);
                 cmds.append(cmd);
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
@@ -1038,16 +1029,16 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(IncorrectColorChannelCount);
                 }
                 used_colorspaces.insert(icc_info.object_num);
-                auto cmd = std::format("/CSpace{} cs\n", icc_info.object_num);
+                auto cmd = pystd2025::format("/CSpace%d cs\n", icc_info.object_num);
                 for(const auto &i : icc->values) {
-                    std::format_to(std::back_inserter(cmd), "{:f} ", i);
+                    pystd2025::format_append(cmd, "%f ", i);
                 }
-                std::format_to(std::back_inserter(cmd), "{}\n", "scn");
+                cmd += "scn";
                 cmds.append(cmd);
             } else if(auto id = std::get_if<CapyPDF_PatternId>(&nsarg.c)) {
                 used_patterns.insert(id->id);
                 cmds.append("/Pattern cs\n");
-                auto cmd = std::format("/Pattern-{} scn\n", id->id);
+                auto cmd = pystd2025::format("/Pattern-%d scn\n", id->id);
                 cmds.append(cmd);
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
@@ -1085,16 +1076,16 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             }
             std::string cmd = "[ ";
             for(auto val : dash.array) {
-                std::format_to(std::back_inserter(cmd), "{:f} ", val);
+                pystd2025::format_append(cmd, "%f ", val);
             }
-            std::format_to(std::back_inserter(cmd), " ] {} d\n", dash.phase);
+            pystd2025::format_append(cmd, " ] %f d\n", dash.phase);
             cmds.append(cmd);
             RETOK;
         },
         [&](const gs_arg &gs) -> rvoe<NoReturnValue> {
             CHECK_INDEXNESS(gs.gid.id, doc->document_objects);
             used_gstates.insert(gs.gid.id);
-            auto cmd = std::format("/GS{} gs\n", gs.gid.id);
+            auto cmd = pystd2025::format("/GS%d gs\n", gs.gid.id);
             cmds.append(cmd);
             RETOK;
         },
@@ -1159,7 +1150,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     //    glyphs.front().codepoint).ss.fid.id);
     cmds.append("BT");
     ERCV(cmds.indent(DrawStateType::Text));
-    auto cmd = std::format("/SFont{} {:f} Tf", font_data.font_obj, pointsize);
+    auto cmd = pystd2025::format("/SFont%d %f Tf", font_data.font_obj, pointsize);
     cmds.append(cmd);
     for(const auto &g : glyphs) {
         ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint, {}));
@@ -1169,9 +1160,8 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
         prev_x = g.x;
         prev_y = g.y;
         cmd.clear();
-        std::format_to(
-            std::back_inserter(cmd), "<{:04x}>", (unsigned char)current_subset_glyph.glyph_id);
-        cmds.append_command(cmd, "Tj");
+        pystd2025::format_append(cmd, "<%04x>", (unsigned char)current_subset_glyph.glyph_id);
+        cmds.append_command(std::string_view(cmd.data(), cmd.size()), "Tj");
     }
     ERCV(cmds.dedent(DrawStateType::Text));
     cmds.append("ET");
@@ -1190,9 +1180,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
     used_fonts.insert(font_object);
     cmds.append("BT");
     ERCV(cmds.indent(DrawStateType::Text));
-    std::string cmd;
-    auto app = std::back_inserter(cmd);
-    std::format_to(app, "/Font{} {} Tf", font_object, pointsize);
+    auto cmd = pystd2025::format("/Font%d %f Tf", font_object, pointsize);
     cmds.append(cmd);
     cmd.clear();
     cmds.append_command(x, y, "Td");

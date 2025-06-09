@@ -5,9 +5,7 @@
 
 #include <errorhandling.hpp>
 
-#include <iterator>
 #include <string>
-#include <vector>
 #include <stdint.h>
 
 #include <pystd2025.hpp>
@@ -28,11 +26,14 @@ public:
     // explicit CommandStreamFormatter(std::string_view start_indent);
 
     void append(std::string_view line_of_text);
+    void append(const pystd2025::CString &line_of_text) { append(line_of_text.view()); }
+    void append(pystd2025::CStringView line) { append(std::string_view(line.data(), line.size())); }
     void append_raw(std::string_view raw) {
         pystd2025::CStringView r(raw.data(), raw.size());
         append_raw(r);
     }
     void append_raw(pystd2025::CStringView raw) { buf += raw; }
+    void append_raw(const pystd2025::CString &raw) { append_raw(raw.view()); }
     void append_raw(const char *raw) { buf += raw; }
     void append_command(std::string_view arg, const char *command);
     void append_command(double arg, const char *command);

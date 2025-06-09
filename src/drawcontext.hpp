@@ -91,7 +91,13 @@ public:
     rvoe<NoReturnValue> cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     rvoe<NoReturnValue> cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
     rvoe<NoReturnValue> cmd_CS(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_CS(pystd2025::CString &cspace_name) {
+        return cmd_CS(std::string_view(cspace_name.data(), cspace_name.size()));
+    }
     rvoe<NoReturnValue> cmd_cs(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_cs(pystd2025::CString &cspace_name) {
+        return cmd_cs(std::string_view(cspace_name.data(), cspace_name.size()));
+    }
     rvoe<NoReturnValue> cmd_d(double *dash_array, size_t dash_array_length, double phase);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_FormXObjectId fxoid);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_TransparencyGroupId trid);

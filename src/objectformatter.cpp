@@ -62,9 +62,12 @@ void ObjectFormatter::add_token(const char *raw_text) {
 }
 
 void ObjectFormatter::add_token(std::string_view raw_text) {
+    add_token(pystd2025::CStringView(raw_text.data(), raw_text.size()));
+}
+
+void ObjectFormatter::add_token(pystd2025::CStringView raw_text) {
     check_indent();
-    pystd2025::CStringView v(raw_text.data(), raw_text.size());
-    buf += v;
+    buf += raw_text;
     added_item();
 }
 

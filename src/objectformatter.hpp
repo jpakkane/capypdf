@@ -62,6 +62,8 @@ public:
 
     void add_token(const char *raw_text);
     void add_token(std::string_view raw_text);
+    void add_token(pystd2025::CStringView raw_text);
+    void add_token(const pystd2025::CString &raw_text) { add_token(raw_text.view()); }
     void add_token(int32_t number);
     void add_token(uint32_t number);
     void add_token(size_t number);
