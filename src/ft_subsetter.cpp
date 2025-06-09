@@ -10,7 +10,6 @@
 #include FT_FREETYPE_H
 
 #include <cassert>
-#include <bit>
 #include <cmath>
 
 #include <variant>
@@ -20,7 +19,7 @@ namespace capypdf::internal {
 
 namespace {
 
-template<typename T> void byte_swap_inplace(T &val) { val = std::byteswap(val); }
+template<typename T> void byte_swap_inplace(T &val) { val = byteswap(val); }
 
 uint32_t ttf_checksum(std::span<const std::byte> data) {
     uint32_t checksum = 0;
@@ -733,7 +732,7 @@ std::vector<std::byte> gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     std::vector<uint16_t> glyphids;
     glyphids.reserve(glyphs.size());
     for(size_t i = 0; i < glyphs.size(); ++i) {
-        glyphids.push_back(std::byteswap(uint16_t(i)));
+        glyphids.push_back(byteswap(uint16_t(i)));
     }
     TTEncodingRecord enc;
     enc.platform_id = 1;
@@ -851,7 +850,7 @@ rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing, const FontProperties &
     offsets.reserve(header.num_fonts);
     for(uint32_t i = 0; i < header.num_fonts; ++i) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
-        offsets.push_back(std::byteswap(off));
+        offsets.push_back(byteswap(off));
     }
     return parse_truetype_file(std::move(backing), offsets.at(props.subfont));
 }

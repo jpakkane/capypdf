@@ -4,13 +4,21 @@
 #include <span>
 #include <vector>
 #include <string_view>
-#include <bit>
 #include <string>
 
 #include <cstring>
 #include <cassert>
 
 namespace capypdf::internal {
+
+inline int8_t byteswap(int8_t v) { return v; }
+inline uint8_t byteswap(uint8_t v) { return v; }
+inline int16_t byteswap(int16_t v) { return __bswap_16(v); }
+inline uint16_t byteswap(uint16_t v) { return __bswap_16(v); }
+inline int32_t byteswap(int32_t v) { return __bswap_32(v); }
+inline uint32_t byteswap(uint32_t v) { return __bswap_32(v); }
+inline int64_t byteswap(int64_t v) { return __bswap_64(v); }
+inline uint64_t byteswap(uint64_t v) { return __bswap_64(v); }
 
 rvoe<std::span<const std::byte>> get_substring(const char *buf,
                                                const int64_t bufsize,
@@ -38,7 +46,7 @@ template<typename T> rvoe<T> extract(std::span<const std::byte> bf, const size_t
 template<typename T> rvoe<T> extract_and_swap(std::span<const std::byte> bf, const size_t offset) {
     T obj;
     ERCV(safe_memcpy(&obj, bf, offset));
-    return std::byteswap(obj);
+    return byteswap(obj);
 }
 
 template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) {
@@ -60,7 +68,7 @@ template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) 
 }
 
 template<typename T> void swap_and_append_bytes(std::vector<std::byte> &s, const T &obj) {
-    auto obj2 = std::byteswap(obj);
+    auto obj2 = byteswap(obj);
     append_bytes<T>(s, obj2);
 }
 

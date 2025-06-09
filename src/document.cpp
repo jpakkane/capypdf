@@ -5,10 +5,10 @@
 #include <utils.hpp>
 #include <drawcontext.hpp>
 #include <objectformatter.hpp>
+#include <bitfiddling.hpp>
 
 #include <cassert>
 #include <array>
-#include <bit>
 #include <algorithm>
 #include <format>
 #include <ft2build.h>
@@ -115,7 +115,7 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, dou
         RETERR(ColorOutOfRange);
     }
     T cval = (T)(std::numeric_limits<T>::max() * v);
-    cval = std::byteswap(cval);
+    cval = byteswap(cval);
     const char *ptr = (const char *)(&cval);
     buf.append(ptr, ptr + sizeof(T));
     RETOK;

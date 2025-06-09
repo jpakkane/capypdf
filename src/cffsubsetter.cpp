@@ -5,8 +5,6 @@
 #include <bitfiddling.hpp>
 #include <utils.hpp>
 
-#include <bit>
-
 // clang-format off
 
 /*
@@ -73,7 +71,7 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
         return b0;
     } else if(offSize == 2) {
         ERC(v, extract<uint16_t>(dataspan, offset))
-        return std::byteswap(v);
+        return byteswap(v);
     } else if(offSize == 3) {
         const uint8_t b2 = (uint8_t)dataspan[offset];
         const uint8_t b1 = (uint8_t)dataspan[offset + 1];
@@ -81,7 +79,7 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
         return b2 << 16 | b1 << 8 | b0;
     } else if(offSize == 4) {
         ERC(v, extract<uint32_t>(dataspan, offset))
-        return std::byteswap(v);
+        return byteswap(v);
     } else {
         RETERR(MalformedFontFile);
     }
@@ -90,7 +88,7 @@ rvoe<size_t> extract_index_offset(std::span<std::byte> dataspan, size_t offset, 
 rvoe<CFFIndex> load_index(std::span<std::byte> dataspan, size_t &offset) {
     CFFIndex index;
     ERC(cnt, extract<uint16_t>(dataspan, offset));
-    const uint32_t count = std::byteswap(cnt);
+    const uint32_t count = byteswap(cnt);
     if(count == 0) {
         return index;
     }
@@ -240,7 +238,7 @@ rvoe<std::vector<CFFCharsetRange2>> unpack_charsets(const CFFont &f,
         std::vector<uint16_t> glyphlist;
         for(int32_t i = 0; i < num_glyphs; ++i) {
             ERC(value, extract<uint16_t>(dataspan, offset + i * sizeof(uint16_t)));
-            value = std::byteswap(value);
+            value = byteswap(value);
             glyphlist.push_back(value);
         }
         // FIXME do something with this.
@@ -423,13 +421,13 @@ std::vector<CFFSelectRange3> build_fdselect3(const CFFont &source,
 
 } // namespace
 
-void CFFSelectRange3::swap_endian() { first = std::byteswap(first); }
+void CFFSelectRange3::swap_endian() { first = byteswap(first); }
 
-void CFFCharsetRange1::swap_endian() { first = std::byteswap(first); }
+void CFFCharsetRange1::swap_endian() { first = byteswap(first); }
 
 void CFFCharsetRange2::swap_endian() {
-    first = std::byteswap(first);
-    nLeft = std::byteswap(nLeft);
+    first = byteswap(first);
+    nLeft = byteswap(nLeft);
 }
 
 rvoe<CFFont> parse_cff_data(DataSource source) {
@@ -705,7 +703,7 @@ void CFFWriter::append_fdthings() {
         if(sanity_check != (uint32_t)-1) {
             std::abort();
         }
-        const auto offset_be = std::byteswap(offset_value);
+        const auto offset_be = byteswap(offset_value);
         memcpy(output.data() + write_location, &offset_be, sizeof(int32_t));
     }
 
@@ -732,7 +730,7 @@ void CFFWriter::patch_offsets() {
 void CFFWriter::write_fix(const OffsetPatch &p) {
     assert(p.offset != (uint32_t)-1);
     assert(p.value != (uint32_t)-1);
-    const uint32_t value = std::byteswap(p.value);
+    const uint32_t value = byteswap(p.value);
     assert(p.offset + sizeof(uint32_t) < output.size());
     memcpy(output.data() + p.offset, &value, sizeof(uint32_t));
 }
@@ -789,9 +787,9 @@ void CFFWriter::create_topdict() {
     /*
     uint32_t sanity_check_be;
     memcpy(&sanity_check_be, output.data() + fixups.fdarray.offset, sizeof(sanity_check_be));
-    const auto written_value = std::byteswap(sanity_check_be);
+    const auto written_value = byteswap(sanity_check_be);
     const auto original_value = find_command(source, DictOperator::FDArray)->operand.front();
-    const auto original_swapped = std::byteswap(original_value);
+    const auto original_swapped = byteswap(original_value);
     auto loc = std::search(output.begin(),
                            output.end(),
                            (std::byte *)&original_swapped,
