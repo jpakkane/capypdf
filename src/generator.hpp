@@ -11,7 +11,6 @@
 #include <vector>
 #include <string_view>
 #include <optional>
-#include <filesystem>
 
 namespace capypdf::internal {
 
@@ -36,7 +35,7 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    static rvoe<std::unique_ptr<PdfGen>> construct(const std::filesystem::path &ofname,
+    static rvoe<std::unique_ptr<PdfGen>> construct(const pystd2025::Path &ofname,
                                                    const DocumentProperties &d);
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
@@ -46,8 +45,7 @@ public:
     rvoe<RasterImage> load_image(const pystd2025::Path &fname);
     rvoe<RasterImage> load_image(const char *buf, int64_t bufsize);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef) { return pdoc.embed_file(ef); }
-    rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname,
-                                   const FontProperties &props) {
+    rvoe<CapyPDF_FontId> load_font(const pystd2025::Path &fname, const FontProperties &props) {
         return pdoc.load_font(ft.get(), fname, props);
     };
 
@@ -81,7 +79,7 @@ public:
         return pdoc.add_lab_colorspace(lab);
     }
 
-    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const pystd2025::Path &fname) {
         return pdoc.load_icc_file(fname);
     }
     rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> bytes,
@@ -162,19 +160,19 @@ public:
     }
 
 private:
-    PdfGen(std::filesystem::path ofilename,
+    PdfGen(pystd2025::Path ofilename,
            std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
            PdfDocument pdoc)
         : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
 
-    std::filesystem::path ofilename;
+    pystd2025::Path ofilename;
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;
     PdfDocument pdoc;
 };
 
 struct GenPopper {
     std::unique_ptr<PdfGen> g;
-    GenPopper(const std::filesystem::path &ofname, const DocumentProperties &d) : g() {
+    GenPopper(const pystd2025::Path &ofname, const DocumentProperties &d) : g() {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));

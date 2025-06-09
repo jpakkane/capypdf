@@ -157,7 +157,7 @@ void serialize_time(ObjectFormatter &fmt, const char *key, double timepoint) {
 
 PdfWriter::PdfWriter(PdfDocument &doc) : doc(doc) {}
 
-rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilename) {
+rvoe<NoReturnValue> PdfWriter::write_to_file(const pystd2025::Path &ofilename) {
     if(doc.pages.size() == 0) {
         RETERR(NoPages);
     }
@@ -167,7 +167,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     doc.write_attempted = true;
     auto tempfname = ofilename;
     tempfname.replace_extension(".pdf~");
-    FILE *out_file = fopen(tempfname.string().c_str(), "wb");
+    FILE *out_file = fopen(tempfname.c_str(), "wb");
     if(!out_file) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
@@ -198,10 +198,8 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
     }
 
     // If we made it here, the file has been fully written and fsync'd to disk. Now replace.
-    std::error_code ec;
-    std::filesystem::rename(tempfname, ofilename, ec);
-    if(ec) {
-        fprintf(stderr, "%s\n", ec.category().message(ec.value()).c_str());
+    auto ec = tempfname.rename_to(ofilename);
+    if(!ec) {
         RETERR(FileWriteError);
     }
     RETOK;

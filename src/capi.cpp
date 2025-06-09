@@ -2771,8 +2771,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_N
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
                                                  CapyPDF_EmbeddedFile **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    std::filesystem::path fspath(path);
-    auto pathless_name = fspath.filename().string();
+    pystd2025::Path fspath(path);
+    auto pathless_name = fspath.filename();
     auto rc = validate_utf8(pathless_name.c_str(), pathless_name.size());
     if(!rc) {
         return conv_err(rc);

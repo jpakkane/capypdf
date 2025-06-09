@@ -16,6 +16,7 @@
 #include <format>
 #include <memory>
 #include <random>
+#include <chrono>
 
 namespace capypdf::internal {
 
@@ -166,18 +167,18 @@ rvoe<std::string> load_file_as_string(const char *fname) {
     return load_file_as_string(f);
 }
 
-rvoe<std::string> load_file_as_string(const std::filesystem::path &fname) {
-    if(!std::filesystem::is_regular_file(fname)) {
+rvoe<std::string> load_file_as_string(const pystd2025::Path &fname) {
+    if(!fname.is_file()) {
         RETERR(FileDoesNotExist);
     }
 
-    return load_file_as_string(fname.string().c_str());
+    return load_file_as_string(fname.c_str());
 }
 
 rvoe<std::string> load_file_as_string(FILE *f) { return do_file_load<std::string>(f); }
 
-rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "rb");
+rvoe<std::vector<std::byte>> load_file_as_bytes(const pystd2025::Path &fname) {
+    FILE *f = fopen(fname.c_str(), "rb");
     if(!f) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);

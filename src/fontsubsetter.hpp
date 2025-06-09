@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <ft_subsetter.hpp>
 
 #include <vector>
@@ -30,7 +29,7 @@ struct FontSubsetData {
 class FontSubsetter {
 public:
     static rvoe<FontSubsetter>
-    construct(const std::filesystem::path &fontfile, FT_Face face, const FontProperties &props);
+    construct(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props);
 
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
         : ttfile{std::move(ttfile)}, face{face}, subset{std::move(subset)} {}

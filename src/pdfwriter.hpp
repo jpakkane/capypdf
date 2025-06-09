@@ -10,7 +10,7 @@ namespace capypdf::internal {
 class PdfWriter {
 public:
     explicit PdfWriter(PdfDocument &doc);
-    rvoe<NoReturnValue> write_to_file(const std::filesystem::path &ofilename);
+    rvoe<NoReturnValue> write_to_file(const pystd2025::Path &ofilename);
 
 private:
     rvoe<NoReturnValue> write_to_file(FILE *output_file);

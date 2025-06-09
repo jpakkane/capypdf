@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <optional>
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
@@ -173,9 +172,9 @@ struct FontThingy {
 };
 
 struct ColorProfiles {
-    std::filesystem::path rgb_profile_file;
-    std::filesystem::path gray_profile_file;
-    std::filesystem::path cmyk_profile_file;
+    pystd2025::Path rgb_profile_file;
+    pystd2025::Path gray_profile_file;
+    pystd2025::Path cmyk_profile_file;
 };
 
 struct IccInfo {
@@ -238,7 +237,7 @@ struct OutlineData {
 };
 
 struct EmbeddedFile {
-    std::filesystem::path path;
+    pystd2025::Path path;
     u8string pdfname;
     asciistring subtype; // actually MIME
     u8string description;
@@ -398,13 +397,13 @@ public:
                                                  CapyPDF_Device_Colorspace cs,
                                                  CapyPDF_FunctionId fid);
     rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
-    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname);
+    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const pystd2025::Path &fname);
     rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> contents,
                                                   int32_t num_channels);
 
     // Fonts
     rvoe<CapyPDF_FontId>
-    load_font(FT_Library ft, const std::filesystem::path &fname, FontProperties props);
+    load_font(FT_Library ft, const pystd2025::Path &fname, FontProperties props);
     bool font_has_character(CapyPDF_FontId fid, uint32_t codepoint);
     bool font_has_character(FT_Face face, uint32_t codepoint);
     rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid,
@@ -415,7 +414,7 @@ public:
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
 
     // Images
-    rvoe<CapyPDF_ImageId> load_image(const std::filesystem::path &fname,
+    rvoe<CapyPDF_ImageId> load_image(const pystd2025::Path &fname,
                                      CapyPDF_Image_Interpolation interpolate);
     rvoe<CapyPDF_ImageId> add_mask_image(RawPixelImage image, const ImagePDFProperties &params);
     rvoe<CapyPDF_ImageId> add_image(RawPixelImage image, const ImagePDFProperties &params);

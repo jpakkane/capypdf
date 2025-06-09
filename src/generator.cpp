@@ -35,7 +35,7 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const std::filesystem::path &ofname,
+rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const pystd2025::Path &ofname,
                                                 const DocumentProperties &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);

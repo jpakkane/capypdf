@@ -5,12 +5,13 @@
 
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
-#include <filesystem>
 #include <optional>
 #include <vector>
 
 #include <span>
-#include <cstdint>
+#include <stdint.h>
+
+#include <pystd2025.hpp>
 
 namespace capypdf::internal {
 
@@ -164,7 +165,7 @@ struct CFFont {
     uint8_t get_fontdict_id(uint16_t glyph_id) const;
 };
 
-rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname);
+rvoe<CFFont> parse_cff_file(const pystd2025::Path &fname);
 rvoe<CFFont> parse_cff_data(DataSource original_data);
 void append_ros_strings(CFFont &f);
 
