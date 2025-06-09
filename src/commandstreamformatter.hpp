@@ -10,6 +10,8 @@
 #include <vector>
 #include <stdint.h>
 
+#include <pystd2025.hpp>
+
 namespace capypdf::internal {
 
 enum class DrawStateType : uint8_t {
@@ -23,10 +25,14 @@ class CommandStreamFormatter {
 
 public:
     CommandStreamFormatter();
-    explicit CommandStreamFormatter(std::string_view start_indent);
+    // explicit CommandStreamFormatter(std::string_view start_indent);
 
     void append(std::string_view line_of_text);
-    void append_raw(std::string_view raw) { buf += raw; }
+    void append_raw(std::string_view raw) {
+        pystd2025::CStringView r(raw.data(), raw.size());
+        append_raw(r);
+    }
+    void append_raw(pystd2025::CStringView raw) { buf += raw; }
     void append_raw(const char *raw) { buf += raw; }
     void append_command(std::string_view arg, const char *command);
     void append_command(double arg, const char *command);
@@ -36,8 +42,8 @@ public:
     void append_command(int32_t arg, const char *command);
     void append_indent() { buf += lead; }
 
-    void append_dict_entry(std::string_view key, std::string_view value);
-    void append_dict_entry(std::string_view key, int32_t value);
+    void append_dict_entry(const char *key, std::string_view value);
+    void append_dict_entry(const char *key, int32_t value);
     void append_dict_entry_string(const char *key, const char *value);
 
     rvoe<NoReturnValue> BT();
@@ -49,7 +55,7 @@ public:
     rvoe<NoReturnValue> BMC();
     rvoe<NoReturnValue> EMC();
 
-    const std::string &contents() const { return buf; }
+    const pystd2025::CString &contents() const { return buf; }
 
     void clear();
 
@@ -62,15 +68,14 @@ public:
 
     size_t marked_content_depth() const;
 
-    bool has_unclosed_state() const { return !stack.empty(); }
+    bool has_unclosed_state() const { return !stack.is_empty(); }
 
 private:
     bool has_state(DrawStateType stype);
 
-    std::string lead;
-    std::vector<DrawStateType> stack;
-    std::string buf;
-    std::back_insert_iterator<std::string> appender;
+    pystd2025::CString lead;
+    pystd2025::Vector<DrawStateType> stack;
+    pystd2025::CString buf;
 };
 
 } // namespace capypdf::internal

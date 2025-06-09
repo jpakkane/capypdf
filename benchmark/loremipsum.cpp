@@ -261,6 +261,7 @@ void create_doc() {
     capypdf::Generator gen{"loremipsum.pdf", opts};
 
     auto ctx = gen.new_page_context();
+    ctx.cmd_w(0.5);
 
     document_root_item = gen.add_structure_item(CAPY_STRUCTURE_TYPE_DOCUMENT, {}, {});
     draw_headings(gen, ctx);

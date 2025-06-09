@@ -2,18 +2,26 @@
 // Copyright 2025 Jussi Pakkanen
 
 #include <commandstreamformatter.hpp>
-#include <format>
-#include <cassert>
+#include <assert.h>
 
 namespace capypdf::internal {
 
-CommandStreamFormatter::CommandStreamFormatter() : appender{std::back_inserter(buf)} {}
+namespace {
 
-CommandStreamFormatter::CommandStreamFormatter(std::string_view start_indent)
-    : lead{start_indent}, appender{std::back_inserter(buf)} {}
+pystd2025::CStringView sv2csv(std::string_view v) {
+    return pystd2025::CStringView(v.data(), v.size());
+}
 
-void CommandStreamFormatter::append(std::string_view line_of_text) {
-    if(!line_of_text.empty()) {
+} // namespace
+
+CommandStreamFormatter::CommandStreamFormatter() {}
+
+// CommandStreamFormatter::CommandStreamFormatter(std::string_view start_indent)
+//     : lead{start_indent.data(), start_indent.size()} {}
+
+void CommandStreamFormatter::append(std::string_view line_of_text_) {
+    auto line_of_text = sv2csv(line_of_text_);
+    if(!line_of_text.is_empty()) {
         buf += lead;
         buf += line_of_text;
         if(buf.back() != '\n') {
@@ -23,46 +31,57 @@ void CommandStreamFormatter::append(std::string_view line_of_text) {
 }
 
 void CommandStreamFormatter::append_command(std::string_view arg, const char *command) {
-    std::format_to(appender, "{}{} {}\n", lead, arg, command);
+    buf += lead;
+    buf += sv2csv(arg);
+    buf += ' ';
+    buf += command;
+    buf += '\n';
 }
 
 void CommandStreamFormatter::append_command(double arg, const char *command) {
-    std::format_to(appender, "{}{:f} {}\n", lead, arg, command);
+    pystd2025::format_append(buf, "%s%f %s\n", lead.c_str(), arg, command);
 }
 
 void CommandStreamFormatter::append_command(double arg1, double arg2, const char *command) {
-    std::format_to(appender, "{}{:f} {:f} {}\n", lead, arg1, arg2, command);
+    pystd2025::format_append(buf, "%s%f %f %s\n", lead.c_str(), arg1, arg2, command);
 }
 
 void CommandStreamFormatter::append_command(double arg1,
                                             double arg2,
                                             double arg3,
                                             const char *command) {
-    std::format_to(appender, "{}{:f} {:f} {:f} {}\n", lead, arg1, arg2, arg3, command);
+    pystd2025::format_append(buf, "%s%f %f %f %s\n", lead.c_str(), arg1, arg2, arg3, command);
 }
 
 void CommandStreamFormatter::append_command(
     double arg1, double arg2, double arg3, double arg4, const char *command) {
-    std::format_to(appender, "{}{:f} {:f} {:f} {:f} {}\n", lead, arg1, arg2, arg3, arg4, command);
+    pystd2025::format_append(
+        buf, "%s%f %f %f %f %s\n", lead.c_str(), arg1, arg2, arg3, arg4, command);
 }
 
 void CommandStreamFormatter::append_command(int32_t arg, const char *command) {
-    std::format_to(appender, "{}{} {}\n", lead, arg, command);
+    pystd2025::format_append(buf, "%s%d %s\n", lead.c_str(), arg, command);
 }
 
-void CommandStreamFormatter::append_dict_entry(std::string_view key, std::string_view value) {
-    assert(key.front() == '/');
-    std::format_to(appender, "{}{} {}\n", lead, key, value);
+void CommandStreamFormatter::append_dict_entry(const char *key, std::string_view value) {
+    assert(key[0] == '/');
+    buf += lead;
+    buf += key;
+    buf += ' ';
+    buf += sv2csv(value);
+    buf += '\n';
 }
 
-void CommandStreamFormatter::append_dict_entry(std::string_view key, int32_t value) {
-    assert(key.front() == '/');
-    std::format_to(appender, "{}{} {}\n", lead, key, value);
+void CommandStreamFormatter::append_dict_entry(const char *key, int32_t value) {
+    pystd2025::format_append(buf, "%s%s %d\n", lead.c_str(), key, value);
 }
 
 void CommandStreamFormatter::append_dict_entry_string(const char *key, const char *value) {
-    assert(key[0] == '/');
-    std::format_to(appender, "{}{} ({})\n", lead, key, value);
+    if(key[0] == '/') {
+        pystd2025::format_append(buf, "%s%s (%s)\n", lead.c_str(), key, value);
+    } else {
+        pystd2025::format_append(buf, "%s/%s (%s)\n", lead.c_str(), key, value);
+    }
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::BT() {
@@ -120,7 +139,7 @@ rvoe<NoReturnValue> CommandStreamFormatter::indent(DrawStateType stype) {
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::dedent(DrawStateType stype) {
-    if(stack.empty() || stack.back() != stype) {
+    if(stack.is_empty() || stack.back() != stype) {
         RETERR(DrawStateEndMismatch);
     }
     stack.pop_back();
@@ -138,10 +157,12 @@ bool CommandStreamFormatter::has_state(DrawStateType stype) {
 }
 
 rvoe<std::string> CommandStreamFormatter::steal() {
-    if(!stack.empty()) {
+    if(!stack.is_empty()) {
         RETERR(DrawStateEndMismatch);
     }
-    return std::move(buf);
+    auto tmpres = std::string(buf.c_str());
+    buf.clear();
+    return tmpres;
 }
 
 size_t CommandStreamFormatter::marked_content_depth() const {
