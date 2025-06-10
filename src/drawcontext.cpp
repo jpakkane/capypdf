@@ -874,30 +874,19 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
     CapyPDF_FontId current_font{-1};
     double current_pointsize{-1};
 
-    auto visitor = overloaded{
-        [&](const TStar_arg &) -> rvoe<NoReturnValue> {
+    ERCV(cmds.BT());
+    for(const auto &e : textobj.get_events()) {
+        if(std::holds_alternative<TStar_arg>(e)) {
             cmds.append("T*");
-            RETOK;
-        },
-
-        [&](const Tc_arg &tc) -> rvoe<NoReturnValue> {
-            cmds.append_command(tc.val, "Tc");
-            RETOK;
-        },
-
-        [&](const Td_arg &td) -> rvoe<NoReturnValue> {
-            cmds.append_command(td.tx, td.ty, "Td");
-            RETOK;
-        },
-
-        [&](const TD_arg &tD) -> rvoe<NoReturnValue> {
-            cmds.append_command(tD.tx, tD.ty, "TD");
-            RETOK;
-        },
-
-        [&](const Tf_arg &tf) -> rvoe<NoReturnValue> {
-            current_font = tf.font;
-            current_pointsize = tf.pointsize;
+        } else if(auto *tc = std::get_if<Tc_arg>(&e)) {
+            cmds.append_command(tc->val, "Tc");
+        } else if(auto *td = std::get_if<Td_arg>(&e)) {
+            cmds.append_command(td->tx, td->ty, "Td");
+        } else if(auto *tD = std::get_if<TD_arg>(&e)) {
+            cmds.append_command(tD->tx, tD->ty, "TD");
+        } else if(auto *tf = std::get_if<Tf_arg>(&e)) {
+            current_font = tf->font;
+            current_pointsize = tf->pointsize;
             auto cmd = pystd2025::format(
                 "/SFont%d %f Tf\n", doc->get(current_font).font_obj, current_pointsize);
             cmds.append(cmd);
@@ -905,59 +894,36 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             fs.subset_id = 0;
             fs.fid = current_font;
             used_subset_fonts.insert(fs);
-            RETOK;
-        },
-
-        [&](const Tj_arg &tj) -> rvoe<NoReturnValue> {
+        } else if(auto *tj = std::get_if<Tj_arg>(&e)) {
             cmds.append_indent();
             cmds.append_raw("<");
             pystd2025::CString tmp;
-            for(const auto c : tj.text) {
+            for(const auto c : tj->text) {
                 ERC(current_subset_glyph, doc->get_subset_glyph(current_font, c, {}));
                 pystd2025::format_append(tmp, "%04X", current_subset_glyph.glyph_id);
             }
             cmds.append_raw(tmp);
             cmds.append_raw("> Tj\n");
-            RETOK;
-        },
-
-        [&](const TJ_arg &tJ) -> rvoe<NoReturnValue> {
-            ERCV((serialize_charsequence(tJ.elements, cmds, current_font)));
-            RETOK;
-        },
-
-        [&](const TL_arg &tL) -> rvoe<NoReturnValue> {
-            cmds.append_command(tL.leading, "TL");
-            RETOK;
-        },
-
-        [&](const Tm_arg &tm) -> rvoe<NoReturnValue> {
+        } else if(auto *tJ = std::get_if<TJ_arg>(&e)) {
+            ERCV((serialize_charsequence(tJ->elements, cmds, current_font)));
+        } else if(auto *tL = std::get_if<TL_arg>(&e)) {
+            cmds.append_command(tL->leading, "TL");
+        } else if(auto *tm_ = std::get_if<Tm_arg>(&e)) {
+            auto &tm = *tm_;
             auto cmd = pystd2025::format(
                 "%f %f %f %f %f %f Tm\n", tm.m.a, tm.m.b, tm.m.c, tm.m.d, tm.m.e, tm.m.f);
             cmds.append(cmd);
-            RETOK;
-        },
-
-        [&](const Tr_arg &tr) -> rvoe<NoReturnValue> {
-            cmds.append_command((int)tr.rmode, "Tr");
-            RETOK;
-        },
-
-        [&](const Ts_arg &ts) -> rvoe<NoReturnValue> {
-            cmds.append_command(ts.rise, "Ts");
-            RETOK;
-        },
-
-        [&](const Tz_arg &tz) -> rvoe<NoReturnValue> {
-            cmds.append_command(tz.scaling, "Tz");
-            RETOK;
-        },
-
-        [&](const StructureItem &sitem) -> rvoe<NoReturnValue> {
+        } else if(auto *tr = std::get_if<Tr_arg>(&e)) {
+            cmds.append_command((int)tr->rmode, "Tr");
+        } else if(auto *ts = std::get_if<Ts_arg>(&e)) {
+            cmds.append_command(ts->rise, "Ts");
+        } else if(auto *tz = std::get_if<Tz_arg>(&e)) {
+            cmds.append_command(tz->scaling, "Tz");
+        } else if(auto *sitem = std::get_if<StructureItem>(&e)) {
             // FIXME, convert to a serialize method and make
             // this and cmd_BDC use that.
-            ERC(mcid_id, add_bcd_structure(sitem.sid));
-            auto item = doc->structure_items.at(sitem.sid.id).stype;
+            ERC(mcid_id, add_bcd_structure(sitem->sid));
+            auto item = doc->structure_items.at(sitem->sid.id).stype;
             if(auto itemid = std::get_if<CapyPDF_Structure_Type>(&item)) {
                 const auto &itemstr = structure_type_names.at(*itemid);
                 auto cmd = pystd2025::format("/%s << /MCID %d >>\n", itemstr, mcid_id);
@@ -974,12 +940,10 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 std::abort();
             }
             ERCV(cmds.indent(DrawStateType::MarkedContent));
-            RETOK;
-        },
-
-        [&](const Emc_arg &) -> rvoe<NoReturnValue> { return cmds.EMC(); },
-
-        [&](const Stroke_arg &sarg) -> rvoe<NoReturnValue> {
+        } else if(std::holds_alternative<Emc_arg>(e)) {
+            cmds.EMC();
+        } else if(auto *sarg_ = std::get_if<Stroke_arg>(&e)) {
+            auto &sarg = *sarg_;
             if(auto rgb = std::get_if<DeviceRGBColor>(&sarg.c)) {
                 ERCV(serialize_RG(rgb->r, rgb->g, rgb->b));
             } else if(auto gray = std::get_if<DeviceGrayColor>(&sarg.c)) {
@@ -1012,10 +976,9 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
             }
-            RETOK;
-        },
+        } else if(auto *nsarg_ = std::get_if<Nonstroke_arg>(&e)) {
+            auto &nsarg = *nsarg_;
 
-        [&](const Nonstroke_arg &nsarg) -> rvoe<NoReturnValue> {
             if(auto rgb = std::get_if<DeviceRGBColor>(&nsarg.c)) {
                 ERCV(serialize_rg(rgb->r, rgb->g, rgb->b));
             } else if(auto gray = std::get_if<DeviceGrayColor>(&nsarg.c)) {
@@ -1044,55 +1007,37 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
-            RETOK;
-        },
-
-        [&](const w_arg &w) -> rvoe<NoReturnValue> {
-            cmds.append_command(w.width, "w");
-            RETOK;
-        },
-        [&](const M_arg &M) -> rvoe<NoReturnValue> {
-            cmds.append_command(M.miterlimit, "M");
-            RETOK;
-        },
-        [&](const j_arg &j) -> rvoe<NoReturnValue> {
-            CHECK_ENUM(j.join_style, CAPY_LJ_BEVEL);
-            cmds.append_command((int)j.join_style, "j");
-            RETOK;
-        },
-        [&](const J_arg &J) -> rvoe<NoReturnValue> {
-            CHECK_ENUM(J.cap_style, CAPY_LC_PROJECTION);
-            cmds.append_command((int)J.cap_style, "J");
-            RETOK;
-        },
-        [&](const d_arg &dash) -> rvoe<NoReturnValue> {
-            if(dash.array.size() == 0) {
+        } else if(auto *w = std::get_if<w_arg>(&e)) {
+            cmds.append_command(w->width, "w");
+        } else if(auto *M = std::get_if<M_arg>(&e)) {
+            cmds.append_command(M->miterlimit, "M");
+        } else if(auto *j = std::get_if<j_arg>(&e)) {
+            CHECK_ENUM(j->join_style, CAPY_LJ_BEVEL);
+            cmds.append_command((int)j->join_style, "j");
+        } else if(auto *J = std::get_if<J_arg>(&e)) {
+            CHECK_ENUM(J->cap_style, CAPY_LC_PROJECTION);
+            cmds.append_command((int)J->cap_style, "J");
+        } else if(auto *dash = std::get_if<d_arg>(&e)) {
+            if(dash->array.size() == 0) {
                 RETERR(ZeroLengthArray);
             }
-            for(auto val : dash.array) {
+            for(auto val : dash->array) {
                 if(val < 0) {
                     RETERR(NegativeDash);
                 }
             }
             std::string cmd = "[ ";
-            for(auto val : dash.array) {
+            for(auto val : dash->array) {
                 pystd2025::format_append(cmd, "%f ", val);
             }
-            pystd2025::format_append(cmd, " ] %f d\n", dash.phase);
+            pystd2025::format_append(cmd, " ] %f d\n", dash->phase);
             cmds.append(cmd);
-            RETOK;
-        },
-        [&](const gs_arg &gs) -> rvoe<NoReturnValue> {
-            CHECK_INDEXNESS(gs.gid.id, doc->document_objects);
-            used_gstates.insert(gs.gid.id);
-            auto cmd = pystd2025::format("/GS%d gs\n", gs.gid.id);
+        } else if(auto *gs = std::get_if<gs_arg>(&e)) {
+            CHECK_INDEXNESS(gs->gid.id, doc->document_objects);
+            used_gstates.insert(gs->gid.id);
+            auto cmd = pystd2025::format("/GS%d gs\n", gs->gid.id);
             cmds.append(cmd);
-            RETOK;
-        },
-    };
-    ERCV(cmds.BT());
-    for(const auto &e : textobj.get_events()) {
-        ERCV(std::visit(visitor, e));
+        }
     }
     ERCV(cmds.ET());
     RETOK;
