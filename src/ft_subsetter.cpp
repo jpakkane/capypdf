@@ -356,15 +356,33 @@ struct SubsetFont {
 };
 
 uint16_t TTMaxp::num_glyphs() const {
-    return std::visit([](const auto &d) { return d.num_glyphs; }, data);
+    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+        return p->num_glyphs;
+    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+        return p->num_glyphs;
+    } else {
+        std::abort();
+    }
 }
 
 void TTMaxp::set_num_glyphs(uint16_t glyph_count) {
-    std::visit([glyph_count](auto &d) { d.num_glyphs = glyph_count; }, data);
+    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+        p->num_glyphs = glyph_count;
+    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+        p->num_glyphs = glyph_count;
+    } else {
+        std::abort();
+    }
 }
 
 void TTMaxp::swap_endian() {
-    std::visit([](auto &d) { d.swap_endian(); }, data);
+    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+        p->swap_endian();
+    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+        p->swap_endian();
+    } else {
+        std::abort();
+    }
 }
 
 namespace {

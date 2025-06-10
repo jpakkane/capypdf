@@ -214,11 +214,23 @@ std::span<std::byte> RawData::span() const {
 }
 
 bool RawData::empty() const {
-    return std::visit([](const auto &d) { return d.empty(); }, storage);
+    if(auto *p = std::get_if<std::string>(&storage)) {
+        return p->empty();
+    } else if(auto *p = std::get_if<std::vector<std::byte>>(&storage)) {
+        return p->empty();
+    } else {
+        std::abort();
+    }
 }
 
 void RawData::clear() {
-    std::visit([](auto &d) { return d.clear(); }, storage);
+    if(auto *p = std::get_if<std::string>(&storage)) {
+        p->clear();
+    } else if(auto *p = std::get_if<std::vector<std::byte>>(&storage)) {
+        p->clear();
+    } else {
+        std::abort();
+    }
 }
 
 void RawData::assign(const char *buf, size_t bufsize) { storage = std::string{buf, bufsize}; }
