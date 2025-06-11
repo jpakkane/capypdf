@@ -233,7 +233,7 @@ private:
     PdfDocument *doc;
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;
-    std::unordered_set<int32_t> used_images;
+    pystd2025::HashSet<int32_t> used_images;
     std::unordered_set<FontSubset> used_subset_fonts;
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;

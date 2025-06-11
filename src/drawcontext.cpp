@@ -142,10 +142,10 @@ void PdfDrawContext::clear() {
 void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
     fmt.begin_dict();
     pystd2025::CString scratch;
-    if(!used_images.empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
+    if(!used_images.is_empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
         fmt.add_token("/XObject");
         fmt.begin_dict();
-        if(!used_images.empty()) {
+        if(!used_images.is_empty()) {
             for(const auto &i : used_images) {
                 scratch = pystd2025::format("/Image%d", i);
                 fmt.add_token(scratch);
