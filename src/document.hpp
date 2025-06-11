@@ -536,23 +536,23 @@ private:
     DocumentProperties docprops;
     PdfColorConverter cm;
     std::vector<ObjectType> document_objects;
-    std::vector<PageOffsets> pages; // Refers to object num.
+    pystd2025::Vector<PageOffsets> pages; // Refers to object num.
     std::vector<PageLabel> page_labels;
     std::vector<ImageInfo> image_info;
     std::unordered_map<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
     std::vector<FontPDFObjects> font_objects;
-    std::vector<int32_t> separation_objects;
+    pystd2025::Vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
     OutlineData outlines;
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
-    std::vector<int32_t> form_widgets;
+    pystd2025::Vector<int32_t> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
-    std::vector<int32_t> annotations;
+    pystd2025::Vector<int32_t> annotations;
     std::vector<StructItem> structure_items;
-    std::vector<int32_t> ocg_items;
-    std::vector<int32_t> transparency_groups;
-    std::vector<int32_t> soft_masks;
+    pystd2025::Vector<int32_t> ocg_items;
+    pystd2025::Vector<int32_t> transparency_groups;
+    pystd2025::Vector<int32_t> soft_masks;
     std::vector<FunctionInfo> functions;
     std::vector<ShadingInfo> shadings;
     std::vector<RolemapEnty> rolemap;

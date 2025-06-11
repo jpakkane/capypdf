@@ -845,7 +845,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         fmt.end_dict();
         fmt.add_token_pair("/NeedAppearances", "true");
     }
-    if(!ocg_items.empty()) {
+    if(!ocg_items.is_empty()) {
         fmt.add_token("/OCProperties");
         fmt.begin_dict();
         fmt.add_token("/OCGs");
