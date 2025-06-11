@@ -122,7 +122,7 @@ private:
 
     CharInfo extract_one_codepoint(const unsigned char *buf);
     const unsigned char *buf;
-    std::optional<CharInfo> char_info;
+    pystd2025::Optional<CharInfo> char_info;
 };
 
 class asciistring {
@@ -229,17 +229,29 @@ struct Point {
 
 class LimitDouble {
 public:
-    LimitDouble() : value(minval) {}
+    LimitDouble() noexcept : value(minval) {}
+    LimitDouble(LimitDouble &&o) noexcept : value(o.value) {}
+    LimitDouble(const LimitDouble &o) noexcept : value(o.value) {}
 
     // No "explicit" because we want the following to work for convenience:
     // DeviceRGBColor{0.0, 0.3, 1.0}
-    LimitDouble(double new_val) : value(new_val) { clamp(); }
+    LimitDouble(double new_val) noexcept : value(new_val) { clamp(); }
 
     double v() const { return value; }
 
     LimitDouble &operator=(double d) {
         value = d;
         clamp();
+        return *this;
+    }
+
+    LimitDouble &operator=(LimitDouble &&o) noexcept {
+        value = o.value;
+        return *this;
+    }
+
+    LimitDouble &operator=(const LimitDouble &o) noexcept {
+        value = o.value;
         return *this;
     }
 
@@ -299,34 +311,34 @@ struct PageId {
 
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
-    std::optional<double> LW;
-    std::optional<CapyPDF_Line_Cap> LC;
-    std::optional<CapyPDF_Line_Join> LJ;
-    std::optional<double> ML;
-    // std::optional<DashArray> D;
-    std::optional<CapyPDF_Rendering_Intent> RI;
-    std::optional<bool> OP;
-    std::optional<bool> op;
-    std::optional<int32_t> OPM;
-    // std::optional<FontSomething> Font;
-    // std::optional<std::string> BG;
-    // std::optional<std::string> BG2;
-    // std::optional<std::string> UCR;
-    // std::optional<std::string> UCR2;
-    // std::optional<std::string> TR;
-    // std::optional<std::string> TR2;
-    // std::optional<str::string> HT;
-    std::optional<double> FL;
-    std::optional<double> SM;
-    std::optional<bool> SA;
-    std::optional<CapyPDF_Blend_Mode> BM;
-    std::optional<CapyPDF_SoftMaskId> SMask;
-    std::optional<LimitDouble> CA;
-    std::optional<LimitDouble> ca;
-    std::optional<bool> AIS;
-    std::optional<bool> TK;
-    // std::optional<CapyPDF_BlackPointComp> UseBlackPtComp;
-    //  std::optional<Point> HTO;
+    pystd2025::Optional<double> LW;
+    pystd2025::Optional<CapyPDF_Line_Cap> LC;
+    pystd2025::Optional<CapyPDF_Line_Join> LJ;
+    pystd2025::Optional<double> ML;
+    // pystd2025::Optional<DashArray> D;
+    pystd2025::Optional<CapyPDF_Rendering_Intent> RI;
+    pystd2025::Optional<bool> OP;
+    pystd2025::Optional<bool> op;
+    pystd2025::Optional<int32_t> OPM;
+    // pystd2025::Optional<FontSomething> Font;
+    // pystd2025::Optional<std::string> BG;
+    // pystd2025::Optional<std::string> BG2;
+    // pystd2025::Optional<std::string> UCR;
+    // pystd2025::Optional<std::string> UCR2;
+    // pystd2025::Optional<std::string> TR;
+    // pystd2025::Optional<std::string> TR2;
+    // pystd2025::Optional<str::string> HT;
+    pystd2025::Optional<double> FL;
+    pystd2025::Optional<double> SM;
+    pystd2025::Optional<bool> SA;
+    pystd2025::Optional<CapyPDF_Blend_Mode> BM;
+    pystd2025::Optional<CapyPDF_SoftMaskId> SMask;
+    pystd2025::Optional<LimitDouble> CA;
+    pystd2025::Optional<LimitDouble> ca;
+    pystd2025::Optional<bool> AIS;
+    pystd2025::Optional<bool> TK;
+    // pystd2025::Optional<CapyPDF_BlackPointComp> UseBlackPtComp;
+    //  pystd2025::Optional<Point> HTO;
 };
 
 struct DeviceRGBColor {
@@ -428,8 +440,8 @@ struct ShadingType2 {
     CapyPDF_Device_Colorspace colorspace;
     double x0, y0, x1, y1;
     CapyPDF_FunctionId function;
-    std::optional<ShadingExtend> extend{};
-    std::optional<ShadingDomain> domain{};
+    pystd2025::Optional<ShadingExtend> extend{};
+    pystd2025::Optional<ShadingDomain> domain{};
 };
 
 // Radial
@@ -437,13 +449,13 @@ struct ShadingType3 {
     CapyPDF_Device_Colorspace colorspace;
     double x0, y0, r0, x1, y1, r1;
     CapyPDF_FunctionId function;
-    std::optional<ShadingExtend> extend{};
-    std::optional<ShadingDomain> domain{};
+    pystd2025::Optional<ShadingExtend> extend{};
+    pystd2025::Optional<ShadingDomain> domain{};
 };
 
 struct ShadingPattern {
     CapyPDF_ShadingId sid;
-    std::optional<PdfMatrix> m;
+    pystd2025::Optional<PdfMatrix> m;
 };
 
 // Gouraud
@@ -503,12 +515,12 @@ struct ShadingType6 {
 typedef std::variant<ShadingType2, ShadingType3, ShadingType4, ShadingType6> PdfShading;
 
 struct TextStateParameters {
-    std::optional<double> char_spacing;
-    std::optional<double> word_spacing;
-    std::optional<double> horizontal_scaling;
-    std::optional<double> leading;
-    std::optional<CapyPDF_Text_Mode> render_mode;
-    std::optional<double> rise;
+    pystd2025::Optional<double> char_spacing;
+    pystd2025::Optional<double> word_spacing;
+    pystd2025::Optional<double> horizontal_scaling;
+    pystd2025::Optional<double> leading;
+    pystd2025::Optional<CapyPDF_Text_Mode> render_mode;
+    pystd2025::Optional<double> rise;
     // Knockout can only be set with gs.
 };
 
@@ -524,13 +536,13 @@ struct FontSubset {
 };
 
 struct Transition {
-    std::optional<CapyPDF_Transition_Type> type;
-    std::optional<double> duration;
-    std::optional<CapyPDF_Transition_Dimension> Dm; // true is horizontal
-    std::optional<CapyPDF_Transition_Motion> M;     // true is inward
-    std::optional<int32_t> Di;                      // FIXME, turn into an enum and add none
-    std::optional<double> SS;
-    std::optional<bool> B;
+    pystd2025::Optional<CapyPDF_Transition_Type> type;
+    pystd2025::Optional<double> duration;
+    pystd2025::Optional<CapyPDF_Transition_Dimension> Dm; // true is horizontal
+    pystd2025::Optional<CapyPDF_Transition_Motion> M;     // true is inward
+    pystd2025::Optional<int32_t> Di;                      // FIXME, turn into an enum and add none
+    pystd2025::Optional<double> SS;
+    pystd2025::Optional<bool> B;
 };
 
 struct OptionalContentGroup {
@@ -542,9 +554,9 @@ struct OptionalContentGroup {
 struct TransparencyGroupProperties {
     // This should eventually be a variant of some sort,
     // because the mixing colorspace can be an ICC one.
-    std::optional<CapyPDF_Device_Colorspace> CS;
-    std::optional<bool> I;
-    std::optional<bool> K;
+    pystd2025::Optional<CapyPDF_Device_Colorspace> CS;
+    pystd2025::Optional<bool> I;
+    pystd2025::Optional<bool> K;
 
     void serialize(ObjectFormatter &fmt) const;
 };
@@ -558,7 +570,7 @@ struct SoftMask {
 
 struct SubPageNavigation {
     CapyPDF_OptionalContentGroupId id;
-    std::optional<Transition> tr;
+    pystd2025::Optional<Transition> tr;
     // backwards transition
 };
 
@@ -596,9 +608,9 @@ struct ImagePDFProperties {
 };
 
 struct DestinationXYZ {
-    std::optional<double> x;
-    std::optional<double> y;
-    std::optional<double> z;
+    pystd2025::Optional<double> x;
+    pystd2025::Optional<double> y;
+    pystd2025::Optional<double> z;
 };
 
 struct DestinationFit {};

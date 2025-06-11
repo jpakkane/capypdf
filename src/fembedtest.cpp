@@ -60,11 +60,11 @@ void video_player() {
 #if 0
     const char *mediafile = "samplemedia.jpg";
     const char *mimetype = "image/jpeg";
-    std::optional<ClipTimes> subplay;
+    pystd2025::Optional<ClipTimes> subplay;
 #else
     const char *mediafile = "samplevideo.mp4";
     asciistring mimetype = asciistring::from_cstr("video/mp4").value();
-    std::optional<ClipTimes> subplay = ClipTimes{14 * 60 + 26, 14 * 60 + 32};
+    pystd2025::Optional<ClipTimes> subplay = ClipTimes{14 * 60 + 26, 14 * 60 + 32};
 #endif
     {
         GenPopper genpop("mediaplayer_test.pdf", opts);

@@ -34,11 +34,12 @@ public:
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
         : ttfile{std::move(ttfile)}, face{face}, subset{std::move(subset)} {}
 
-    rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph, const std::optional<uint32_t> glyph_id);
+    rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph,
+                                          const pystd2025::Optional<uint32_t> glyph_id);
     rvoe<FontSubsetInfo> get_glyph_subset(const u8string &text, const uint32_t glyph_id);
     rvoe<FontSubsetInfo>
     unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
-                                          const std::optional<uint32_t> glyph_id);
+                                          const pystd2025::Optional<uint32_t> glyph_id);
     rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const u8string &text,
                                                                uint32_t glyph_id);
 
@@ -55,9 +56,9 @@ private:
 
     TrueTypeFontFile ttfile;
     FT_Face face;
-    std::optional<FontSubsetInfo> find_existing_glyph(uint32_t gid) const;
-    std::optional<FontSubsetInfo> find_glyph_with_codepoint(uint32_t codepoint) const;
-    std::optional<FontSubsetInfo> find_glyph(const u8string &text) const;
+    pystd2025::Optional<FontSubsetInfo> find_existing_glyph(uint32_t gid) const;
+    pystd2025::Optional<FontSubsetInfo> find_glyph_with_codepoint(uint32_t codepoint) const;
+    pystd2025::Optional<FontSubsetInfo> find_glyph(const u8string &text) const;
 
     FontSubsetData subset;
 };

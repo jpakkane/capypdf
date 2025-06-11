@@ -372,9 +372,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
                                                            uint32_t *start_num) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    std::optional<CapyPDF_Page_Label_Number_Style> opt_style;
-    std::optional<u8string> opt_prefix;
-    std::optional<uint32_t> opt_start_num;
+    pystd2025::Optional<CapyPDF_Page_Label_Number_Style> opt_style;
+    pystd2025::Optional<u8string> opt_prefix;
+    pystd2025::Optional<uint32_t> opt_start_num;
     if(style) {
         opt_style = *style;
     }
@@ -617,11 +617,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    std::optional<CapyPDF_StructureItemId> item_parent;
+    pystd2025::Optional<CapyPDF_StructureItemId> item_parent;
     if(parent) {
         item_parent = *parent;
     }
-    std::optional<StructItemExtraData> ed;
+    pystd2025::Optional<StructItemExtraData> ed;
     if(extra) {
         ed = *reinterpret_cast<StructItemExtraData *>(extra);
     }
@@ -641,11 +641,11 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
                                          CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    std::optional<CapyPDF_StructureItemId> item_parent;
+    pystd2025::Optional<CapyPDF_StructureItemId> item_parent;
     if(parent) {
         item_parent = *parent;
     }
-    std::optional<StructItemExtraData> ed;
+    pystd2025::Optional<StructItemExtraData> ed;
     if(extra) {
         ed = *reinterpret_cast<StructItemExtraData *>(extra);
     }
@@ -1293,7 +1293,7 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
                               const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    std::optional<Transition> transition;
+    pystd2025::Optional<Transition> transition;
     if(tr) {
         transition = *reinterpret_cast<const Transition *>(tr);
     }

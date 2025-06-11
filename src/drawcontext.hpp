@@ -83,7 +83,7 @@ public:
     rvoe<NoReturnValue> cmd_bstar();
     rvoe<NoReturnValue> cmd_Bstar();
     rvoe<NoReturnValue> cmd_BDC(const asciistring &name,
-                                std::optional<CapyPDF_StructureItemId> sid,
+                                pystd2025::Optional<CapyPDF_StructureItemId> sid,
                                 const BDCTags *attributes);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid, const BDCTags *attributes);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
@@ -202,7 +202,7 @@ public:
         return used_structures;
     }
 
-    const std::optional<Transition> &get_transition() const { return transition; }
+    const pystd2025::Optional<Transition> &get_transition() const { return transition; }
 
     const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
 
@@ -211,7 +211,7 @@ public:
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
     rvoe<NoReturnValue> add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
-                                              const std::optional<Transition> &tr);
+                                              const pystd2025::Optional<Transition> &tr);
 
     const PageProperties &get_custom_props() const { return custom_props; }
 
@@ -249,14 +249,14 @@ private:
     std::vector<SubPageNavigation> sub_navigations;
 
     // Not a std::stack because we need to access all entries.
-    std::optional<Transition> transition;
+    pystd2025::Optional<Transition> transition;
 
     PageProperties custom_props;
     // Reminder: If you add stuff here, also add them to .clear().
     bool is_finalized = false;
     bool uses_all_colorspace = false;
     PdfRectangle bbox;
-    std::optional<PdfMatrix> group_matrix;
+    pystd2025::Optional<PdfMatrix> group_matrix;
     CommandStreamFormatter cmds;
 };
 

@@ -116,10 +116,11 @@ public:
     PdfDrawContext *new_color_pattern(const PdfRectangle &rect);
 
     rvoe<PageId> add_page(PdfDrawContext &ctx);
-    rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
-                                          std::optional<CapyPDF_Page_Label_Number_Style> style,
-                                          std::optional<u8string> prefix,
-                                          std::optional<uint32_t> start_num);
+    rvoe<NoReturnValue>
+    add_page_labeling(uint32_t start_page,
+                      pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
+                      pystd2025::Optional<u8string> prefix,
+                      pystd2025::Optional<uint32_t> start_num);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<CapyPDF_PatternId> add_shading_pattern(const ShadingPattern &shp);
     rvoe<CapyPDF_PatternId> add_tiling_pattern(PdfDrawContext &cp);
@@ -130,15 +131,17 @@ public:
 
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o) { return pdoc.add_outline(o); }
 
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_Structure_Type stype,
-                                                     std::optional<CapyPDF_StructureItemId> parent,
-                                                     std::optional<StructItemExtraData> extra) {
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(const CapyPDF_Structure_Type stype,
+                       pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                       pystd2025::Optional<StructItemExtraData> extra) {
         return pdoc.add_structure_item(stype, parent, std::move(extra));
     }
 
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
-                                                     std::optional<CapyPDF_StructureItemId> parent,
-                                                     std::optional<StructItemExtraData> extra) {
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(const CapyPDF_RoleId role,
+                       pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                       pystd2025::Optional<StructItemExtraData> extra) {
         return pdoc.add_structure_item(role, parent, std::move(extra));
     }
 
@@ -148,7 +151,7 @@ public:
 
     int32_t num_pages() const { return (int32_t)pdoc.pages.size(); }
 
-    std::optional<double>
+    pystd2025::Optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }

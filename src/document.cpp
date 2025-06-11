@@ -403,7 +403,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           const std::unordered_set<CapyPDF_FormWidgetId> &fws,
                                           const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                           const std::vector<CapyPDF_StructureItemId> &structs,
-                                          const std::optional<Transition> &transition,
+                                          const pystd2025::Optional<Transition> &transition,
                                           const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
         if(form_use.find(a) != form_use.cend()) {
@@ -460,9 +460,9 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
 
 rvoe<NoReturnValue>
 PdfDocument::add_page_labeling(uint32_t start_page,
-                               std::optional<CapyPDF_Page_Label_Number_Style> style,
-                               std::optional<u8string> prefix,
-                               std::optional<uint32_t> start_num) {
+                               pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
+                               pystd2025::Optional<u8string> prefix,
+                               pystd2025::Optional<uint32_t> start_num) {
     if(!page_labels.empty() && page_labels.back().start_page > start_page) {
         RETERR(NonSequentialPageNumber);
     }
@@ -749,10 +749,10 @@ rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
 
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     ObjectFormatter fmt;
-    std::optional<int32_t> outline_object;
-    std::optional<int32_t> structure_object;
-    std::optional<int32_t> AF_object;
-    std::optional<int32_t> names_object;
+    pystd2025::Optional<int32_t> outline_object;
+    pystd2025::Optional<int32_t> structure_object;
+    pystd2025::Optional<int32_t> AF_object;
+    pystd2025::Optional<int32_t> names_object;
 
     fmt.begin_dict();
 
@@ -970,7 +970,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
 }
 
 void PdfDocument::create_structure_root_dict() {
-    std::optional<CapyPDF_StructureItemId> rootobj;
+    pystd2025::Optional<CapyPDF_StructureItemId> rootobj;
 
     if(!structure_parent_tree_object) {
         fprintf(stderr, "Internal error!\n");
@@ -1028,7 +1028,7 @@ int32_t PdfDocument::add_document_metadata_object() {
     }
 }
 
-std::optional<CapyPDF_IccColorSpaceId>
+pystd2025::Optional<CapyPDF_IccColorSpaceId>
 PdfDocument::find_icc_profile(std::span<std::byte> contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
@@ -1127,7 +1127,7 @@ bool PdfDocument::font_has_character(FT_Face face, uint32_t codepoint) {
 
 rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
                                                 uint32_t codepoint,
-                                                const std::optional<uint32_t> glyph_id) {
+                                                const pystd2025::Optional<uint32_t> glyph_id) {
     if(!glyph_id && !font_has_character(fid, codepoint)) {
         RETERR(MissingGlyph);
     }
@@ -1161,7 +1161,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RawPixelImage image,
                             image.md.h,
                             image.md.pixel_depth,
                             image.md.cs,
-                            std::optional<int32_t>{},
+                            pystd2025::Optional<int32_t>{},
                             params,
                             image.pixels,
                             image.md.compression);
@@ -1176,7 +1176,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
         RETERR(MissingPixels);
     }
     ERCV(validate_format(image));
-    std::optional<int32_t> smask_id;
+    pystd2025::Optional<int32_t> smask_id;
     if(params.as_mask && !image.alpha.empty()) {
         RETERR(MaskAndAlpha);
     }
@@ -1218,7 +1218,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
                                                     uint32_t h,
                                                     uint32_t bits_per_component,
                                                     ImageColorspaceType colorspace,
-                                                    std::optional<int32_t> smask_id,
+                                                    pystd2025::Optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
                                                     std::span<std::byte> original_bytes,
                                                     CapyPDF_Compression compression) {
@@ -1712,7 +1712,7 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
         RETERR(EmptyTitle);
     }
     const auto cur_id = (int32_t)outlines.items.size();
-    const auto par_id = o.parent.value_or(CapyPDF_OutlineId{-1}).id;
+    const auto par_id = o.parent ? o.parent.value().id : -1;
     outlines.parent[cur_id] = par_id;
     outlines.children[par_id].push_back(cur_id);
     outlines.items.emplace_back(o);
@@ -1782,29 +1782,29 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::add_annotation(const Annotation &a) {
 
 rvoe<CapyPDF_StructureItemId>
 PdfDocument::add_structure_item(const CapyPDF_Structure_Type stype,
-                                std::optional<CapyPDF_StructureItemId> parent,
-                                std::optional<StructItemExtraData> extra) {
+                                pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                                pystd2025::Optional<StructItemExtraData> extra) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(
-        StructItem{obj_id, stype, parent, extra.value_or(StructItemExtraData())});
+        StructItem{obj_id, stype, parent, extra ? extra.value() : StructItemExtraData()});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
 rvoe<CapyPDF_StructureItemId>
 PdfDocument::add_structure_item(const CapyPDF_RoleId role,
-                                std::optional<CapyPDF_StructureItemId> parent,
-                                std::optional<StructItemExtraData> extra) {
+                                pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                                pystd2025::Optional<StructItemExtraData> extra) {
     if(parent) {
         CHECK_INDEXNESS_V(parent->id, structure_items);
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
     structure_items.push_back(
-        StructItem{obj_id, role, parent, extra.value_or(StructItemExtraData())});
+        StructItem{obj_id, role, parent, extra ? extra.value() : StructItemExtraData()});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
@@ -1848,7 +1848,7 @@ rvoe<CapyPDF_SoftMaskId> PdfDocument::add_soft_mask(const SoftMask &sm) {
     return CapyPDF_SoftMaskId{(int32_t)soft_masks.size() - 1};
 }
 
-std::optional<double>
+pystd2025::Optional<double>
 PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const {
     FT_Face face = fonts.at(fid.id).fontdata.face.get();
     FT_Set_Char_Size(face, 0, (FT_F26Dot6)(pointsize * 64), 300, 300);

@@ -137,7 +137,7 @@ struct LocalSubrs {
 
 struct CFFPrivateDict {
     CFFDict entries; // Without substr entry.
-    std::optional<CFFIndex> subr;
+    pystd2025::Optional<CFFIndex> subr;
 };
 
 struct CFFFontDict {
@@ -159,8 +159,8 @@ struct CFFont {
     pystd2025::Vector<CFFFontDict> fdarray;
     pystd2025::Vector<CFFSelectRange3> fdselect;
     bool is_cid;
-    std::optional<int32_t> predefined_encoding;
-    std::optional<uint32_t> predefined_charset;
+    pystd2025::Optional<int32_t> predefined_encoding;
+    pystd2025::Optional<uint32_t> predefined_charset;
 
     uint8_t get_fontdict_id(uint16_t glyph_id) const;
 };

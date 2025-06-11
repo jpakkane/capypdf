@@ -41,9 +41,9 @@ struct PageOffsets {
 
 struct PageLabel {
     uint32_t start_page;
-    std::optional<CapyPDF_Page_Label_Number_Style> style;
-    std::optional<u8string> prefix;
-    std::optional<uint32_t> start_num;
+    pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style;
+    pystd2025::Optional<u8string> prefix;
+    pystd2025::Optional<uint32_t> start_num;
 };
 
 struct ImageSize {
@@ -69,15 +69,15 @@ struct FontPDFObjects {
 };
 
 struct PageProperties {
-    std::optional<PdfRectangle> mediabox;
-    std::optional<PdfRectangle> cropbox;
-    std::optional<PdfRectangle> bleedbox;
-    std::optional<PdfRectangle> trimbox;
-    std::optional<PdfRectangle> artbox;
+    pystd2025::Optional<PdfRectangle> mediabox;
+    pystd2025::Optional<PdfRectangle> cropbox;
+    pystd2025::Optional<PdfRectangle> bleedbox;
+    pystd2025::Optional<PdfRectangle> trimbox;
+    pystd2025::Optional<PdfRectangle> artbox;
 
-    std::optional<double> user_unit;
+    pystd2025::Optional<double> user_unit;
 
-    std::optional<TransparencyGroupProperties> transparency_props;
+    pystd2025::Optional<TransparencyGroupProperties> transparency_props;
 
     PageProperties merge_with(const PageProperties &o) const {
         PageProperties result = *this;
@@ -155,10 +155,10 @@ struct DelayedPage {
     int32_t page_num;
     std::vector<CapyPDF_FormWidgetId> used_form_widgets;
     std::vector<CapyPDF_AnnotationId> used_annotations;
-    std::optional<Transition> transition;
-    std::optional<int32_t> subnav_root;
+    pystd2025::Optional<Transition> transition;
+    pystd2025::Optional<int32_t> subnav_root;
     PageProperties custom_props;
-    std::optional<int32_t> structparents;
+    pystd2025::Optional<int32_t> structparents;
 };
 
 struct SubsetGlyph {
@@ -206,10 +206,10 @@ struct DocumentProperties {
 
 struct Outline {
     u8string title;
-    std::optional<Destination> dest;
-    std::optional<DeviceRGBColor> C;
+    pystd2025::Optional<Destination> dest;
+    pystd2025::Optional<DeviceRGBColor> C;
     uint32_t F = 0;
-    std::optional<CapyPDF_OutlineId> parent;
+    pystd2025::Optional<CapyPDF_OutlineId> parent;
 };
 
 class PdfGen;
@@ -263,8 +263,8 @@ struct TextAnnotation {
 struct LinkAnnotation {
     // This should really be an Action object but hove not
     // gotten around to implementing it yet.
-    std::optional<asciistring> URI;
-    std::optional<Destination> Dest;
+    pystd2025::Optional<asciistring> URI;
+    pystd2025::Optional<Destination> Dest;
     // HighlightType H
     // UriAction PA;
     // QuadPoints
@@ -279,7 +279,7 @@ struct ClipTimes {
 struct ScreenAnnotation {
     CapyPDF_EmbeddedFileId mediafile;
     asciistring mimetype;
-    std::optional<ClipTimes> times;
+    pystd2025::Optional<ClipTimes> times;
 };
 
 struct PrintersMarkAnnotation {
@@ -295,7 +295,7 @@ typedef std::variant<TextAnnotation,
 
 struct Annotation {
     AnnotationSubType sub;
-    std::optional<PdfRectangle> rect;
+    pystd2025::Optional<PdfRectangle> rect;
     CapyPDF_Annotation_Flags flags{CAPY_ANNOTATION_FLAG_NONE};
 };
 
@@ -319,7 +319,7 @@ struct StructItemExtraData {
 struct StructItem {
     int32_t obj_id;
     std::variant<CapyPDF_Structure_Type, CapyPDF_RoleId> stype;
-    std::optional<CapyPDF_StructureItemId> parent;
+    pystd2025::Optional<CapyPDF_StructureItemId> parent;
     StructItemExtraData extra;
 };
 
@@ -381,13 +381,14 @@ public:
                                  const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                  const std::vector<CapyPDF_StructureItemId> &structs,
-                                 const std::optional<Transition> &transition,
+                                 const pystd2025::Optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);
 
-    rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
-                                          std::optional<CapyPDF_Page_Label_Number_Style> style,
-                                          std::optional<u8string> prefix,
-                                          std::optional<uint32_t> start_num);
+    rvoe<NoReturnValue>
+    add_page_labeling(uint32_t start_page,
+                      pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
+                      pystd2025::Optional<u8string> prefix,
+                      pystd2025::Optional<uint32_t> start_num);
 
     // Form XObjects
     void add_form_xobject(ObjectFormatter xobj_data, std::string xobj_stream);
@@ -408,7 +409,7 @@ public:
     bool font_has_character(FT_Face face, uint32_t codepoint);
     rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid,
                                        uint32_t codepoint,
-                                       const std::optional<uint32_t> glyph_id);
+                                       const pystd2025::Optional<uint32_t> glyph_id);
     rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t glyph_id);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
@@ -457,12 +458,14 @@ public:
     rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a);
 
     // Structure itemsconst std::array<const char *, 3> colorspace_names
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_Structure_Type stype,
-                                                     std::optional<CapyPDF_StructureItemId> parent,
-                                                     std::optional<StructItemExtraData> extra);
-    rvoe<CapyPDF_StructureItemId> add_structure_item(const CapyPDF_RoleId role,
-                                                     std::optional<CapyPDF_StructureItemId> parent,
-                                                     std::optional<StructItemExtraData> extra);
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(const CapyPDF_Structure_Type stype,
+                       pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                       pystd2025::Optional<StructItemExtraData> extra);
+    rvoe<CapyPDF_StructureItemId>
+    add_structure_item(const CapyPDF_RoleId role,
+                       pystd2025::Optional<CapyPDF_StructureItemId> parent,
+                       pystd2025::Optional<StructItemExtraData> extra);
 
     // Optional content groups
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g);
@@ -473,7 +476,7 @@ public:
     // Soft Mask
     rvoe<CapyPDF_SoftMaskId> add_soft_mask(const SoftMask &sm);
 
-    std::optional<double>
+    pystd2025::Optional<double>
     glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepoint) const;
 
     rvoe<int32_t> create_structure_parent_tree();
@@ -497,7 +500,7 @@ private:
         return ocg_items.at(ocgid.id);
     }
 
-    std::optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::span<std::byte> contents);
+    pystd2025::Optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::span<std::byte> contents);
 
     rvoe<NoReturnValue> create_catalog();
 
@@ -511,7 +514,7 @@ private:
                                            uint32_t h,
                                            uint32_t bits_per_component,
                                            ImageColorspaceType colorspace,
-                                           std::optional<int32_t> smask_id,
+                                           pystd2025::Optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
                                            std::span<std::byte> original_bytes,
                                            CapyPDF_Compression compression);
@@ -562,11 +565,11 @@ private:
     std::unordered_map<CapyPDF_StructureItemId, StructureUsage> structure_use;
     std::vector<std::vector<CapyPDF_StructureItemId>>
         structure_parent_tree_items; // FIXME should be a variant of some sort?
-    std::optional<CapyPDF_IccColorSpaceId> output_profile;
-    std::optional<int32_t> output_intent_object;
-    std::optional<int32_t> structure_root_object;
-    std::optional<int32_t> structure_parent_tree_object;
-    std::optional<int32_t> document_md_object;
+    pystd2025::Optional<CapyPDF_IccColorSpaceId> output_profile;
+    pystd2025::Optional<int32_t> output_intent_object;
+    pystd2025::Optional<int32_t> structure_root_object;
+    pystd2025::Optional<int32_t> structure_parent_tree_object;
+    pystd2025::Optional<int32_t> document_md_object;
     int32_t pages_object;
     bool write_attempted = false;
 };

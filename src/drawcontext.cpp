@@ -286,7 +286,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_Bstar() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
-                                            std::optional<CapyPDF_StructureItemId> sid,
+                                            pystd2025::Optional<CapyPDF_StructureItemId> sid,
                                             const BDCTags *attributes) {
     if(!sid && !attributes) {
         fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
@@ -1044,7 +1044,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) {
-    std::optional<CapyPDF_FontId> font;
+    pystd2025::Optional<CapyPDF_FontId> font;
     for(const auto &e : text.get_events()) {
         if(const auto *Tf = std::get_if<Tf_arg>(&e)) {
             font = Tf->font;
@@ -1156,7 +1156,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
 
 rvoe<NoReturnValue>
 PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
-                                      const std::optional<Transition> &tr) {
+                                      const pystd2025::Optional<Transition> &tr) {
     if(context_type != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }

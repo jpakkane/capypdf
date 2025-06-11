@@ -263,7 +263,7 @@ void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     RawPixelImage result;
-    std::optional<std::string> icc;
+    pystd2025::Optional<std::string> icc;
 
     uint32_t w{}, h{};
     uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{};
