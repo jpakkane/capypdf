@@ -15,23 +15,14 @@
 #include <vector>
 #include <span>
 
-template<> struct std::hash<capypdf::internal::FontSubset> {
-    size_t operator()(capypdf::internal::FontSubset const &s) const noexcept {
-        const size_t x = (size_t)s.fid.id;
-        const size_t y = s.subset_id;
-        if constexpr(sizeof(size_t) == 8) {
-            return (x << 32) + y;
-        } else {
-            return (x << 16) + y;
-        }
-    }
+template<typename Hasher> struct pystd2025::HashFeeder<Hasher, CapyPDF_FontId> {
+    void operator()(Hasher &h, const CapyPDF_FontId &fid) noexcept { h.feed_hash(fid.id); }
 };
 
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::FontSubset> {
     void operator()(Hasher &h, const capypdf::internal::FontSubset &sset) noexcept {
-        HashTemp blub;
-        blub.feed_hash(h, sset.fid.id);
-        blub.feed_hash(h, sset.subset_id);
+        h.feed_hash(sset.fid);
+        h.feed_hash(sset.subset_id);
     }
 };
 
