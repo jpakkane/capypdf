@@ -12,6 +12,7 @@
 #include <vector>
 #include <memory>
 #include <span>
+#include <algorithm>
 
 namespace capypdf::internal {
 
