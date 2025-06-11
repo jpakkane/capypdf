@@ -169,7 +169,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_fonts.empty() || !used_subset_fonts.empty()) {
+    if(!used_fonts.empty() || !used_subset_fonts.is_empty()) {
         fmt.add_token("/Font");
         fmt.begin_dict();
         for(const auto &i : used_fonts) {

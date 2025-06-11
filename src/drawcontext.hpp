@@ -13,7 +13,6 @@
 #include <string_view>
 #include <unordered_set>
 #include <vector>
-#include <optional>
 #include <span>
 
 template<> struct std::hash<capypdf::internal::FontSubset> {
@@ -25,6 +24,14 @@ template<> struct std::hash<capypdf::internal::FontSubset> {
         } else {
             return (x << 16) + y;
         }
+    }
+};
+
+template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::FontSubset> {
+    void operator()(Hasher &h, const capypdf::internal::FontSubset &sset) noexcept {
+        HashTemp blub;
+        blub.feed_hash(h, sset.fid.id);
+        blub.feed_hash(h, sset.subset_id);
     }
 };
 
@@ -234,7 +241,7 @@ private:
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;
     pystd2025::HashSet<int32_t> used_images;
-    std::unordered_set<FontSubset> used_subset_fonts;
+    pystd2025::HashSet<FontSubset> used_subset_fonts;
     std::unordered_set<int32_t> used_fonts;
     std::unordered_set<int32_t> used_colorspaces;
     std::unordered_set<int32_t> used_gstates;
