@@ -92,12 +92,12 @@ struct CFFIndex {
 };
 
 struct CFFDictItem {
-    std::vector<int32_t> operand;
+    pystd2025::Vector<int32_t> operand;
     DictOperator opr; // "operator" is a reserved word
 };
 
 struct CFFDict {
-    std::vector<CFFDictItem> entries;
+    pystd2025::Vector<CFFDictItem> entries;
 };
 
 #pragma pack(push, r1, 1)
@@ -131,8 +131,8 @@ struct DictOutput {
 };
 
 struct LocalSubrs {
-    std::vector<std::byte> data;
-    std::vector<uint32_t> data_offsets;
+    pystd2025::Vector<std::byte> data;
+    pystd2025::Vector<uint32_t> data_offsets;
 };
 
 struct CFFPrivateDict {
@@ -154,10 +154,10 @@ struct CFFont {
     CFFIndex string;
     CFFIndex global_subr;
     CFFIndex char_strings;
-    std::vector<CFFCharsetRange2> charsets;
+    pystd2025::Vector<CFFCharsetRange2> charsets;
     CFFPrivateDict pdict;
-    std::vector<CFFFontDict> fdarray;
-    std::vector<CFFSelectRange3> fdselect;
+    pystd2025::Vector<CFFFontDict> fdarray;
+    pystd2025::Vector<CFFSelectRange3> fdselect;
     bool is_cid;
     std::optional<int32_t> predefined_encoding;
     std::optional<uint32_t> predefined_charset;
@@ -188,7 +188,7 @@ struct Fixups {
 
 class CFFDictWriter {
 public:
-    void append_command(const std::vector<int32_t> &operands, DictOperator op);
+    void append_command(const pystd2025::Vector<int32_t> &operands, DictOperator op);
     void append_command(const CFFDictItem &e) { append_command(e.operand, e.opr); };
 
     DictOutput steal() { return std::move(o); }
@@ -205,11 +205,16 @@ public:
 
     void create();
 
-    std::vector<std::byte> steal() { return std::move(output); }
+    std::vector<std::byte> steal() {
+        std::vector<std::byte> result;
+        result.insert(result.end(), output.begin(), output.end());
+        output.clear();
+        return result;
+    }
 
 private:
-    std::vector<uint32_t> append_index(const CFFIndex &entries);
-    std::vector<uint32_t> append_index(const std::vector<std::vector<std::byte>> &entries);
+    pystd2025::Vector<uint32_t> append_index(const CFFIndex &entries);
+    pystd2025::Vector<uint32_t> append_index(const std::vector<std::vector<std::byte>> &entries);
     void append_charset();
     void append_charstrings();
     void append_fdthings();
@@ -222,7 +227,7 @@ private:
 
     const CFFont &source;
     const std::vector<SubsetGlyphs> &sub;
-    std::vector<std::byte> output;
+    pystd2025::Vector<std::byte> output;
     Fixups fixups;
 };
 

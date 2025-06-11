@@ -5,6 +5,7 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <pystd2025.hpp>
 
 #include <cstring>
 #include <cassert>
@@ -67,7 +68,30 @@ template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) 
     }
 }
 
+template<typename T> void append_bytes(pystd2025::Vector<std::byte> &s, const T &val) {
+    if constexpr(std::is_same_v<T, std::string_view>) {
+        s.append(val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::string>) {
+        s.append(val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::span<std::byte>>) {
+        s.append(val.begin(), val.end());
+    } else if constexpr(std::is_same_v<T, std::span<const std::byte>>) {
+        s.append(val.begin(), val.end());
+    } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {
+        s.append(val.cbegin(), val.cend());
+    } else if constexpr(std::is_same_v<T, std::vector<const std::byte>>) {
+        s.append(val.cbegin(), val.cend());
+    } else {
+        s.append((std::byte *)&val, (std::byte *)&val + sizeof(val));
+    }
+}
+
 template<typename T> void swap_and_append_bytes(std::vector<std::byte> &s, const T &obj) {
+    auto obj2 = byteswap(obj);
+    append_bytes<T>(s, obj2);
+}
+
+template<typename T> void swap_and_append_bytes(pystd2025::Vector<std::byte> &s, const T &obj) {
     auto obj2 = byteswap(obj);
     append_bytes<T>(s, obj2);
 }
