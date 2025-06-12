@@ -342,7 +342,7 @@ typedef std::variant<DummyIndexZero,
     ObjectType;
 
 struct RolemapEnty {
-    std::string name;
+    pystd2025::CString name;
     CapyPDF_Structure_Type builtin;
 };
 
@@ -378,7 +378,7 @@ public:
                                  const PageProperties &custom_props,
                                  const pystd2025::HashSet<CapyPDF_FormWidgetId> &form_widgets,
                                  const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
-                                 const std::vector<CapyPDF_StructureItemId> &structs,
+                                 const pystd2025::Vector<CapyPDF_StructureItemId> &structs,
                                  const pystd2025::Optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);
 
@@ -554,14 +554,14 @@ private:
     pystd2025::Vector<int32_t> ocg_items;
     pystd2025::Vector<int32_t> transparency_groups;
     pystd2025::Vector<int32_t> soft_masks;
-    std::vector<FunctionInfo> functions;
-    std::vector<ShadingInfo> shadings;
-    std::vector<RolemapEnty> rolemap;
+    pystd2025::Vector<FunctionInfo> functions;
+    pystd2025::Vector<ShadingInfo> shadings;
+    pystd2025::Vector<RolemapEnty> rolemap;
     // A form widget can be used on one and only one page.
     pystd2025::HashMap<CapyPDF_FormWidgetId, int32_t> form_use;
     pystd2025::HashMap<CapyPDF_AnnotationId, int32_t> annotation_use;
     pystd2025::HashMap<CapyPDF_StructureItemId, StructureUsage> structure_use;
-    std::vector<std::vector<CapyPDF_StructureItemId>>
+    std::vector<pystd2025::Vector<CapyPDF_StructureItemId>>
         structure_parent_tree_items; // FIXME should be a variant of some sort?
     pystd2025::Optional<CapyPDF_IccColorSpaceId> output_profile;
     pystd2025::Optional<int32_t> output_intent_object;

@@ -191,7 +191,7 @@ public:
     const pystd2025::HashSet<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
-    const std::vector<CapyPDF_StructureItemId> &get_structure_usage() const {
+    const pystd2025::Vector<CapyPDF_StructureItemId> &get_structure_usage() const {
         return used_structures;
     }
 
@@ -236,7 +236,8 @@ private:
     pystd2025::HashSet<int32_t> used_form_xobjects;
     pystd2025::HashSet<CapyPDF_FormWidgetId> used_widgets;
     pystd2025::HashSet<CapyPDF_AnnotationId> used_annotations;
-    std::vector<CapyPDF_StructureItemId> used_structures; // A vector because numbering is relevant.
+    pystd2025::Vector<CapyPDF_StructureItemId>
+        used_structures; // A vector because numbering is relevant.
     pystd2025::HashSet<CapyPDF_OptionalContentGroupId> used_ocgs;
     pystd2025::HashSet<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;

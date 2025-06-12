@@ -54,6 +54,7 @@ std::string pdfname_quote(std::string_view raw_string);
 bool is_ascii(std::string_view text);
 
 std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash = true);
+std::string bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash = true);
 
 std::string create_trailer_id();
 

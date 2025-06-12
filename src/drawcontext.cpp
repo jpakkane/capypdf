@@ -320,7 +320,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
         ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
         return cmd_BDC(astr, sid, attributes);
     } else if(auto role = std::get_if<CapyPDF_RoleId>(&itemtype)) {
-        auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name, false);
+        auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name.view(), false);
         ERC(astr, asciistring::from_cstr(quoted.c_str()));
         return cmd_BDC(astr, sid, attributes);
     } else {
@@ -931,7 +931,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 cmds.append("BDC");
             } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
                 const auto &role = *ri;
-                auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name);
+                auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name.view());
                 auto cmd = pystd2025::format("%s << /MCID %d >>\n", rolename.c_str(), mcid_id);
                 cmds.append(cmd);
                 cmds.append("BDC");

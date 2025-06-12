@@ -402,7 +402,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           const PageProperties &custom_props,
                                           const pystd2025::HashSet<CapyPDF_FormWidgetId> &fws,
                                           const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
-                                          const std::vector<CapyPDF_StructureItemId> &structs,
+                                          const pystd2025::Vector<CapyPDF_StructureItemId> &structs,
                                           const pystd2025::Optional<Transition> &transition,
                                           const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
@@ -439,7 +439,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     if(!subnav.empty()) {
         p.subnav_root = create_subnavigation(subnav);
     }
-    if(!structs.empty()) {
+    if(!structs.is_empty()) {
         p.structparents = (int32_t)structure_parent_tree_items.size();
         structure_parent_tree_items.push_back(structs);
     }
@@ -739,11 +739,11 @@ rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
         RETERR(SlashStart);
     }
     for(const auto &i : rolemap) {
-        if(i.name == name) {
+        if(strcmp(i.name.c_str(), name.c_str()) == 0) {
             RETERR(RoleAlreadyDefined);
         }
     }
-    rolemap.emplace_back(RolemapEnty{std::move(name), builtin_type});
+    rolemap.emplace_back(RolemapEnty{pystd2025::CString(name.c_str()), builtin_type});
     return CapyPDF_RoleId{(int32_t)rolemap.size() - 1};
 }
 
@@ -994,11 +994,12 @@ void PdfDocument::create_structure_root_dict() {
     fmt.end_array();
     fmt.add_token_pair("/ParentTree", structure_parent_tree_object.value());
     fmt.add_token_pair("/ParentTreeNextKey", structure_parent_tree_items.size());
-    if(!rolemap.empty()) {
+    if(!rolemap.is_empty()) {
         fmt.add_token("/RoleMap");
         fmt.begin_dict();
         for(const auto &i : rolemap) {
-            fmt.add_token_pair(bytes2pdfstringliteral(i.name), structure_type_names.at(i.builtin));
+            fmt.add_token_pair(bytes2pdfstringliteral(i.name.view()),
+                               structure_type_names.at(i.builtin));
         }
         fmt.end_dict();
     }

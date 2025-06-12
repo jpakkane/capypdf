@@ -839,7 +839,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
         fmt.add_token_with_slash(structure_type_names.at(*bi));
     } else if(auto ri = std::get_if<CapyPDF_RoleId>(&si.stype)) {
         const auto &role = *ri;
-        fmt.add_token_pair("/S", bytes2pdfstringliteral(doc.rolemap.at(role.id).name));
+        fmt.add_token_pair("/S", bytes2pdfstringliteral(doc.rolemap.at(role.id).name.view()));
     } else {
         fprintf(stderr, "UNREACHABLE.\n");
         std::abort();

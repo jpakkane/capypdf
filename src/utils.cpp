@@ -401,6 +401,10 @@ std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash) {
     return result;
 }
 
+std::string bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash) {
+    return bytes2pdfstringliteral(std::string_view{raw.data(), raw.size()}, add_slash);
+}
+
 std::string create_trailer_id() {
     int num_bytes = 16;
     std::string msg;
