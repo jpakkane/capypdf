@@ -233,12 +233,12 @@ private:
     CapyPDF_Draw_Context_Type context_type;
     pystd2025::HashSet<int32_t> used_images;
     pystd2025::HashSet<FontSubset> used_subset_fonts;
-    std::unordered_set<int32_t> used_fonts;
-    std::unordered_set<int32_t> used_colorspaces;
-    std::unordered_set<int32_t> used_gstates;
-    std::unordered_set<int32_t> used_shadings;
-    std::unordered_set<int32_t> used_patterns;
-    std::unordered_set<int32_t> used_form_xobjects;
+    pystd2025::HashSet<int32_t> used_fonts;
+    pystd2025::HashSet<int32_t> used_colorspaces;
+    pystd2025::HashSet<int32_t> used_gstates;
+    pystd2025::HashSet<int32_t> used_shadings;
+    pystd2025::HashSet<int32_t> used_patterns;
+    pystd2025::HashSet<int32_t> used_form_xobjects;
     std::unordered_set<CapyPDF_FormWidgetId> used_widgets;
     std::unordered_set<CapyPDF_AnnotationId> used_annotations;
     std::vector<CapyPDF_StructureItemId> used_structures; // A vector because numbering is relevant.

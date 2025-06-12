@@ -23,7 +23,7 @@ FontSubsetData create_startstate() {
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
 
-rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
+rvoe<NoReturnValue> add_subglyphs(pystd2025::HashSet<uint32_t> &new_subglyphs,
                                   uint32_t glyph_id,
                                   const TrueTypeFontFile &ttfile) {
     const auto &cur_glyph = ttfile.glyphs.at(glyph_id);
@@ -41,10 +41,14 @@ rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
 }
 
 rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
-    std::unordered_set<uint32_t> new_subglyphs;
+    pystd2025::HashSet<uint32_t> new_subglyphs;
 
     ERCV(add_subglyphs(new_subglyphs, glyph_id, ttfile));
-    std::vector<uint32_t> glyphs(new_subglyphs.cbegin(), new_subglyphs.cend());
+    std::vector<uint32_t> glyphs;
+    glyphs.reserve(new_subglyphs.size());
+    for(const auto &g : new_subglyphs) {
+        glyphs.push_back(g);
+    }
     return glyphs;
 }
 

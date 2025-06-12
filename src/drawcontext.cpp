@@ -142,7 +142,7 @@ void PdfDrawContext::clear() {
 void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
     fmt.begin_dict();
     pystd2025::CString scratch;
-    if(!used_images.is_empty() || !used_form_xobjects.empty() || !used_trgroups.empty()) {
+    if(!used_images.is_empty() || !used_form_xobjects.is_empty() || !used_trgroups.empty()) {
         fmt.add_token("/XObject");
         fmt.begin_dict();
         if(!used_images.is_empty()) {
@@ -152,7 +152,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
                 fmt.add_object_ref(i);
             }
         }
-        if(!used_form_xobjects.empty()) {
+        if(!used_form_xobjects.is_empty()) {
             for(const auto &fx : used_form_xobjects) {
                 scratch = pystd2025::format("/FXO%d", fx);
                 fmt.add_token(scratch);
@@ -169,7 +169,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_fonts.empty() || !used_subset_fonts.is_empty()) {
+    if(!used_fonts.is_empty() || !used_subset_fonts.is_empty()) {
         fmt.add_token("/Font");
         fmt.begin_dict();
         for(const auto &i : used_fonts) {
@@ -186,7 +186,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_colorspaces.empty() || uses_all_colorspace) {
+    if(!used_colorspaces.is_empty() || uses_all_colorspace) {
         fmt.add_token("/ColorSpace");
         fmt.begin_dict();
         if(uses_all_colorspace) {
@@ -200,7 +200,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_gstates.empty()) {
+    if(!used_gstates.is_empty()) {
         fmt.add_token("/ExtGState");
         fmt.begin_dict();
         for(const auto &s : used_gstates) {
@@ -210,7 +210,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_shadings.empty()) {
+    if(!used_shadings.is_empty()) {
         fmt.add_token("/Shading");
         fmt.begin_dict();
         for(const auto &s : used_shadings) {
@@ -220,7 +220,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_patterns.empty()) {
+    if(!used_patterns.is_empty()) {
         fmt.add_token("/Pattern");
         fmt.begin_dict();
         for(const auto &s : used_patterns) {

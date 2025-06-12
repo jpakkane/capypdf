@@ -6,7 +6,6 @@
 #include <ft_subsetter.hpp>
 
 #include <vector>
-#include <optional>
 #include <cstdint>
 #include <unordered_map>
 
