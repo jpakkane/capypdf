@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <optional>
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <colorconverter.hpp>
@@ -13,7 +12,6 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <memory>
 #include <variant>
 
@@ -378,8 +376,8 @@ public:
     rvoe<NoReturnValue> add_page(std::string resource_dict,
                                  std::string command_stream,
                                  const PageProperties &custom_props,
-                                 const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
-                                 const std::unordered_set<CapyPDF_AnnotationId> &annots,
+                                 const pystd2025::HashSet<CapyPDF_FormWidgetId> &form_widgets,
+                                 const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
                                  const std::vector<CapyPDF_StructureItemId> &structs,
                                  const pystd2025::Optional<Transition> &transition,
                                  const std::vector<SubPageNavigation> &subnav);

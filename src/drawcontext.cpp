@@ -142,7 +142,7 @@ void PdfDrawContext::clear() {
 void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
     fmt.begin_dict();
     pystd2025::CString scratch;
-    if(!used_images.is_empty() || !used_form_xobjects.is_empty() || !used_trgroups.empty()) {
+    if(!used_images.is_empty() || !used_form_xobjects.is_empty() || !used_trgroups.is_empty()) {
         fmt.add_token("/XObject");
         fmt.begin_dict();
         if(!used_images.is_empty()) {
@@ -159,7 +159,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
                 fmt.add_object_ref(fx);
             }
         }
-        if(!used_trgroups.empty()) {
+        if(!used_trgroups.is_empty()) {
             for(const auto &tg : used_trgroups) {
                 auto objnum = doc->transparency_groups.at(tg.id);
                 scratch = pystd2025::format("/TG%d", objnum);
@@ -230,7 +230,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_ocgs.empty()) {
+    if(!used_ocgs.is_empty()) {
         fmt.add_token("/Properties");
         fmt.begin_dict();
         for(const auto &ocg : used_ocgs) {
@@ -245,7 +245,7 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
-    if(used_widgets.find(widget) != used_widgets.end()) {
+    if(used_widgets.contains(widget)) {
         RETERR(AnnotationReuse);
     }
     used_widgets.insert(widget);
@@ -253,7 +253,7 @@ rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget)
 }
 
 rvoe<NoReturnValue> PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {
-    if(used_annotations.find(annotation) != used_annotations.end()) {
+    if(used_annotations.contains(annotation)) {
         RETERR(AnnotationReuse);
     }
     used_annotations.insert(annotation);
@@ -1164,7 +1164,7 @@ PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGro
         std::abort();
     }
     for(const auto &sn : navs) {
-        if(used_ocgs.find(sn) == used_ocgs.end()) {
+        if(!used_ocgs.contains(sn)) {
             RETERR(UnusedOcg);
         }
     }

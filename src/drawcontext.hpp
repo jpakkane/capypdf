@@ -11,13 +11,8 @@
 #include <commandstreamformatter.hpp>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <vector>
 #include <span>
-
-template<typename Hasher> struct pystd2025::HashFeeder<Hasher, CapyPDF_FontId> {
-    void operator()(Hasher &h, const CapyPDF_FontId &fid) noexcept { h.feed_hash(fid.id); }
-};
 
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::FontSubset> {
     void operator()(Hasher &h, const capypdf::internal::FontSubset &sset) noexcept {
@@ -192,8 +187,8 @@ public:
 
     int32_t marked_content_depth() const { return cmds.marked_content_depth(); }
 
-    const std::unordered_set<CapyPDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
-    const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
+    const pystd2025::HashSet<CapyPDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
+    const pystd2025::HashSet<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
     const std::vector<CapyPDF_StructureItemId> &get_structure_usage() const {
@@ -239,11 +234,11 @@ private:
     pystd2025::HashSet<int32_t> used_shadings;
     pystd2025::HashSet<int32_t> used_patterns;
     pystd2025::HashSet<int32_t> used_form_xobjects;
-    std::unordered_set<CapyPDF_FormWidgetId> used_widgets;
-    std::unordered_set<CapyPDF_AnnotationId> used_annotations;
+    pystd2025::HashSet<CapyPDF_FormWidgetId> used_widgets;
+    pystd2025::HashSet<CapyPDF_AnnotationId> used_annotations;
     std::vector<CapyPDF_StructureItemId> used_structures; // A vector because numbering is relevant.
-    std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
-    std::unordered_set<CapyPDF_TransparencyGroupId> used_trgroups;
+    pystd2025::HashSet<CapyPDF_OptionalContentGroupId> used_ocgs;
+    pystd2025::HashSet<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;
 
     // Not a std::stack because we need to access all entries.

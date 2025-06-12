@@ -8,7 +8,6 @@
 #include FT_FREETYPE_H
 #include <cstdio>
 #include <cassert>
-#include <unordered_set>
 #include <algorithm>
 
 namespace capypdf::internal {

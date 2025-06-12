@@ -35,6 +35,9 @@
         std::size_t operator()(const TNAME &tobj) const noexcept {                                 \
             return std::hash<int32_t>{}(tobj.id);                                                  \
         }                                                                                          \
+    };                                                                                             \
+    template<typename Hasher> struct pystd2025::HashFeeder<Hasher, TNAME> {                        \
+        void operator()(Hasher &h, const TNAME &fid) noexcept { h.feed_hash(fid.id); }             \
     }
 
 DEF_BASIC_OPERATORS(CapyPDF_ImageId);

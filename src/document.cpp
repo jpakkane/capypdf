@@ -400,8 +400,8 @@ rvoe<NoReturnValue> PdfDocument::init() {
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           std::string command_stream,
                                           const PageProperties &custom_props,
-                                          const std::unordered_set<CapyPDF_FormWidgetId> &fws,
-                                          const std::unordered_set<CapyPDF_AnnotationId> &annots,
+                                          const pystd2025::HashSet<CapyPDF_FormWidgetId> &fws,
+                                          const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
                                           const std::vector<CapyPDF_StructureItemId> &structs,
                                           const pystd2025::Optional<Transition> &transition,
                                           const std::vector<SubPageNavigation> &subnav) {
