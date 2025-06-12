@@ -284,11 +284,11 @@ struct PrintersMarkAnnotation {
     CapyPDF_FormXObjectId appearance;
 };
 
-typedef std::variant<TextAnnotation,
-                     LinkAnnotation,
-                     FileAttachmentAnnotation,
-                     ScreenAnnotation,
-                     PrintersMarkAnnotation>
+typedef pystd2025::Variant<TextAnnotation,
+                           LinkAnnotation,
+                           FileAttachmentAnnotation,
+                           ScreenAnnotation,
+                           PrintersMarkAnnotation>
     AnnotationSubType;
 
 struct Annotation {

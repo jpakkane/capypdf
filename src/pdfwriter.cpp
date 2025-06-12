@@ -674,15 +674,15 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         fmt.add_token("/P");
         fmt.add_object_ref(*loc);
     }
-    if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
+    if(const auto ta = annotation.a.sub.get_if<TextAnnotation>()) {
         fmt.add_token_pair("/Subtype", "/Text");
         fmt.add_token("/Contents");
         fmt.add_token(utf8_to_pdfutf16be(ta->content));
-    } else if(auto faa = std::get_if<FileAttachmentAnnotation>(&annotation.a.sub)) {
+    } else if(auto faa = annotation.a.sub.get_if<FileAttachmentAnnotation>()) {
         fmt.add_token_pair("/Subtype", "/FileAttachment");
         fmt.add_token("/FS");
         fmt.add_object_ref(doc.get(faa->fileid).filespec_obj);
-    } else if(auto linkobj = std::get_if<LinkAnnotation>(&annotation.a.sub)) {
+    } else if(auto linkobj = annotation.a.sub.get_if<LinkAnnotation>()) {
         fmt.add_token_pair("/Subtype", "/Link");
         if(linkobj->URI) {
             assert(!linkobj->Dest);
@@ -702,7 +702,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             serialize_destination(fmt, linkobj->Dest.value(), page_object_number);
         }
 
-    } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
+    } else if(auto sa = annotation.a.sub.get_if<ScreenAnnotation>()) {
         int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {
             fmt.add_token_pair("/Subtype", "/Screen");
@@ -796,7 +796,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         }
     }
 
-    else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
+    else if(auto pma = annotation.a.sub.get_if<PrintersMarkAnnotation>()) {
         fmt.add_token_pair("/Subtype", "/PrinterMark");
         fmt.add_token("/AP");
         fmt.begin_dict();

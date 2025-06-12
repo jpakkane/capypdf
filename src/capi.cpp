@@ -2441,7 +2441,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
     API_BOUNDARY_START;
     auto *a = reinterpret_cast<Annotation *>(annotation);
     auto *dest = reinterpret_cast<const Destination *>(d);
-    if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
+    if(auto *linka = a->sub.get_if<LinkAnnotation>()) {
         linka->Dest = *dest;
         linka->URI.reset();
     } else {
@@ -2460,7 +2460,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation
     if(!urirc) {
         return conv_err(urirc);
     }
-    if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
+    if(auto *linka = a->sub.get_if<LinkAnnotation>()) {
         linka->Dest.reset();
         linka->URI = std::move(urirc.value());
     } else {
