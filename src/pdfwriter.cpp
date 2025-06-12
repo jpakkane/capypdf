@@ -600,8 +600,8 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
 
 rvoe<NoReturnValue>
 PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotation &checkbox) {
-    auto loc = doc.form_use.find(checkbox.widget);
-    if(loc == doc.form_use.end()) {
+    auto loc = doc.form_use.lookup(checkbox.widget);
+    if(!loc) {
         std::abort();
     }
 
@@ -620,7 +620,7 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
     }
     fmt.add_token_pair("/FT", "/Btn");
     fmt.add_token("/P");
-    fmt.add_object_ref(loc->second);
+    fmt.add_object_ref(*loc);
     fmt.add_token("/T");
     fmt.add_token(pdfstring_quote(checkbox.T));
     fmt.add_token_pair("/V", "/Off");
@@ -651,7 +651,7 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
 }
 
 rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnotation &annotation) {
-    auto loc = doc.annotation_use.find(annotation.id);
+    auto *loc = doc.annotation_use.lookup(annotation.id);
     // It is ok for an annotation not to be used.
 
     assert(annotation.a.rect);
@@ -670,9 +670,9 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     fmt.add_token("/F");
     fmt.add_token((int)annotation.a.flags);
 
-    if(loc != doc.annotation_use.end()) {
+    if(loc) {
         fmt.add_token("/P");
-        fmt.add_object_ref(loc->second);
+        fmt.add_object_ref(*loc);
     }
     if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/Text");
@@ -858,9 +858,9 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     } else {
         // FIXME. Maybe not correct? Assumes that a struct item
         // either has children or is used on a page. Not both.
-        const auto it = doc.structure_use.find(dsi.sid);
-        if(it != doc.structure_use.end()) {
-            const auto &[page_num, mcid_num] = it->second;
+        const auto it = doc.structure_use.lookup(dsi.sid);
+        if(it) {
+            const auto &[page_num, mcid_num] = *it;
             fmt.add_token("/Pg");
             fmt.add_object_ref(doc.pages.at(page_num).page_obj_num);
             fmt.add_token_pair("/K", mcid_num);

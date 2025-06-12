@@ -231,7 +231,7 @@ struct DelayedCheckboxWidgetAnnotation {
 struct OutlineData {
     std::vector<Outline> items;
     std::unordered_map<int32_t, std::vector<int32_t>> children;
-    std::unordered_map<int32_t, int32_t> parent;
+    pystd2025::HashMap<int32_t, int32_t> parent;
 };
 
 struct EmbeddedFile {
@@ -540,7 +540,7 @@ private:
     pystd2025::Vector<PageOffsets> pages; // Refers to object num.
     std::vector<PageLabel> page_labels;
     std::vector<ImageInfo> image_info;
-    std::unordered_map<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
+    pystd2025::HashMap<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
     std::vector<FontPDFObjects> font_objects;
     pystd2025::Vector<int32_t> separation_objects;
     std::vector<FontThingy> fonts;
@@ -558,9 +558,9 @@ private:
     std::vector<ShadingInfo> shadings;
     std::vector<RolemapEnty> rolemap;
     // A form widget can be used on one and only one page.
-    std::unordered_map<CapyPDF_FormWidgetId, int32_t> form_use;
-    std::unordered_map<CapyPDF_AnnotationId, int32_t> annotation_use;
-    std::unordered_map<CapyPDF_StructureItemId, StructureUsage> structure_use;
+    pystd2025::HashMap<CapyPDF_FormWidgetId, int32_t> form_use;
+    pystd2025::HashMap<CapyPDF_AnnotationId, int32_t> annotation_use;
+    pystd2025::HashMap<CapyPDF_StructureItemId, StructureUsage> structure_use;
     std::vector<std::vector<CapyPDF_StructureItemId>>
         structure_parent_tree_items; // FIXME should be a variant of some sort?
     pystd2025::Optional<CapyPDF_IccColorSpaceId> output_profile;

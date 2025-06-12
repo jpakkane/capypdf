@@ -58,6 +58,12 @@ DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
 DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
+template<typename Hasher> struct pystd2025::HashFeeder<Hasher, CapyPDF_Builtin_Fonts> {
+    void operator()(Hasher &h, const CapyPDF_Builtin_Fonts &builtin) noexcept {
+        h.feed_hash((int32_t)builtin);
+    }
+};
+
 namespace capypdf::internal {
 
 // If at all possible, never expose this in the public API

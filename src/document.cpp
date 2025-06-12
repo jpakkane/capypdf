@@ -406,17 +406,17 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           const pystd2025::Optional<Transition> &transition,
                                           const std::vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
-        if(form_use.find(a) != form_use.cend()) {
+        if(form_use.contains(a)) {
             RETERR(AnnotationReuse);
         }
     }
     for(const auto &a : annots) {
-        if(annotation_use.find(a) != annotation_use.cend()) {
+        if(annotation_use.lookup(a)) {
             RETERR(AnnotationReuse);
         }
     }
     for(const auto &s : structs) {
-        if(structure_use.find(s) != structure_use.cend()) {
+        if(structure_use.lookup(s)) {
             RETERR(StructureReuse);
         }
     }
@@ -445,14 +445,14 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     }
     const auto page_object_num = add_object(std::move(p));
     for(const auto &fw : fws) {
-        form_use[fw] = page_object_num;
+        form_use.insert(fw, page_object_num);
     }
     for(const auto &a : annots) {
-        annotation_use[a] = page_object_num;
+        annotation_use.insert(a, page_object_num);
     }
     int32_t mcid_num = 0;
     for(const auto &s : structs) {
-        structure_use[s] = StructureUsage{(int32_t)pages.size(), mcid_num++};
+        structure_use.insert(s, StructureUsage{(int32_t)pages.size(), mcid_num++});
     }
     pages.emplace_back(PageOffsets{resource_num, commands_num, page_object_num});
     RETOK;
@@ -833,7 +833,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         fmt.add_object_ref(*output_intent_object);
         fmt.end_array();
     }
-    if(!form_use.empty()) {
+    if(!form_use.is_empty()) {
         fmt.add_token("/AcroForm");
         fmt.begin_dict();
         fmt.add_token("/Fields");
@@ -1094,9 +1094,9 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
 }
 
 CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
-    auto it = builtin_fonts.find(font);
-    if(it != builtin_fonts.end()) {
-        return it->second;
+    auto it = builtin_fonts.lookup(font);
+    if(it) {
+        return *it;
     }
     ObjectFormatter fmt;
     fmt.begin_dict();
@@ -1107,7 +1107,7 @@ CapyPDF_FontId PdfDocument::get_builtin_font_id(CapyPDF_Builtin_Fonts font) {
     font_objects.push_back(
         FontPDFObjects{-1, -1, add_object(FullPDFObject{fmt.steal(), {}}), {}, size_t(-1)});
     auto fontid = CapyPDF_FontId{(int32_t)font_objects.size() - 1};
-    builtin_fonts[font] = fontid;
+    builtin_fonts.insert(font, fontid);
     return fontid;
 }
 
@@ -1713,7 +1713,7 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     }
     const auto cur_id = (int32_t)outlines.items.size();
     const auto par_id = o.parent ? o.parent.value().id : -1;
-    outlines.parent[cur_id] = par_id;
+    outlines.parent.insert(cur_id, par_id);
     outlines.children[par_id].push_back(cur_id);
     outlines.items.emplace_back(o);
     return CapyPDF_OutlineId{cur_id};
