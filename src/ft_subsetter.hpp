@@ -10,7 +10,6 @@
 
 #include <vector>
 #include <variant>
-#include <unordered_map>
 
 typedef struct FT_FaceRec_ *FT_Face;
 
@@ -233,12 +232,12 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
 
 rvoe<NoReturnValue>
 reassign_composite_glyph_numbers(std::span<std::byte> buf,
-                                 const std::unordered_map<uint32_t, uint32_t> &mapping);
+                                 const pystd2025::HashMap<uint32_t, uint32_t> &mapping);
 
 rvoe<std::vector<std::byte>>
 generate_font(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping);
+              const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping);
 
 rvoe<FontData> parse_font_file(DataSource original_data, uint16_t subfont);
 rvoe<FontData> load_and_parse_font_file(const pystd2025::Path &fname, const FontProperties &props);

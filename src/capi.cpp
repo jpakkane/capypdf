@@ -2828,7 +2828,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_add_tag(CapyPDF_BDCTags *tags,
     if(!avalue) {
         return conv_err(avalue.error());
     }
-    (*bt)[akey.value()] = avalue.value();
+    (*bt).insert(akey.value(), avalue.value());
     RETNOERR;
     API_BOUNDARY_END;
 }

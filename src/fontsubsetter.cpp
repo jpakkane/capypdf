@@ -18,7 +18,7 @@ const uint32_t SPACE = ' ';
 
 FontSubsetData create_startstate() {
     std::vector<TTGlyphs> start_state{RegularGlyph{0, (uint32_t)-1}};
-    std::unordered_map<uint32_t, uint32_t> start_mapping{};
+    pystd2025::HashMap<uint32_t, uint32_t> start_mapping{};
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }
 
@@ -138,7 +138,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
     }
     ERCV(handle_subglyphs(glyph_index));
     subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
-    subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
+    subset.font_index_mapping.insert(glyph_index, (uint32_t)subset.glyphs.size() - 1);
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 
@@ -165,12 +165,12 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
             std::abort();
         }
         for(const auto &new_glyph : subglyphs) {
-            if(subset.font_index_mapping.find(new_glyph) != subset.font_index_mapping.end()) {
+            if(subset.font_index_mapping.lookup(new_glyph)) {
                 continue;
             }
             // Composite glyph parts do not necessarily correspond to any Unicode codepoint.
             subset.glyphs.push_back(CompositeGlyph{new_glyph});
-            subset.font_index_mapping[new_glyph] = (uint32_t)subset.glyphs.size() - 1;
+            subset.font_index_mapping.insert(new_glyph, (uint32_t)subset.glyphs.size() - 1);
         }
     }
     RETOK;
@@ -185,11 +185,11 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
         // NOTE: the case where the subset font has fewer than 32 characters
         // is handled when serializing the font.
         subset.glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
-        subset.font_index_mapping[glyph_id] = SPACE;
+        subset.font_index_mapping.insert(glyph_id, SPACE);
     }
     ERCV(handle_subglyphs(glyph_id));
     subset.glyphs.push_back(LigatureGlyph{text, glyph_id});
-    subset.font_index_mapping[glyph_id] = (uint32_t)subset.glyphs.size() - 1;
+    subset.font_index_mapping.insert(glyph_id, (uint32_t)subset.glyphs.size() - 1);
     return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
 }
 

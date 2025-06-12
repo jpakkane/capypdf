@@ -158,6 +158,8 @@ public:
 
     bool operator==(const asciistring &o) const = default;
 
+    size_t size() const { return buf.size(); }
+
 private:
     explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
     std::string buf;
@@ -635,7 +637,7 @@ struct Destination {
     DestinationType loc;
 };
 
-typedef std::unordered_map<asciistring, asciistring> BDCTags;
+typedef pystd2025::HashMap<asciistring, asciistring> BDCTags;
 
 struct FontProperties {
     uint16_t subfont = 0;
@@ -657,5 +659,11 @@ template<> struct std::hash<capypdf::internal::asciistring> {
 template<> struct std::hash<capypdf::internal::u8string> {
     std::size_t operator()(const capypdf::internal::u8string &u8str) const noexcept {
         return std::hash<std::string_view>{}(u8str.sv());
+    }
+};
+
+template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::asciistring> {
+    void operator()(Hasher &h, const capypdf::internal::asciistring &astr) noexcept {
+        h.feed_bytes(astr.c_str(), astr.size());
     }
 };

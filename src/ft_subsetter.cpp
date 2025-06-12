@@ -581,7 +581,7 @@ rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
 rvoe<std::vector<std::vector<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+              const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     // This does not use spans. Create a copy of all data
     // because we need to modify it before writing it
     // out to disk.
@@ -886,7 +886,7 @@ rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) 
 rvoe<std::vector<std::byte>>
 generate_truetype_font(const TrueTypeFontFile &source,
                        const std::vector<TTGlyphs> &glyphs,
-                       const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+                       const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
@@ -930,7 +930,7 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
 rvoe<std::vector<std::byte>>
 generate_font(const TrueTypeFontFile &source,
               const std::vector<TTGlyphs> &glyphs,
-              const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
+              const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     if(source.in_cff_format()) {
         return generate_cff_font(source, glyphs);
     } else {
@@ -984,7 +984,7 @@ rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf) 
 
 rvoe<NoReturnValue>
 reassign_composite_glyph_numbers(std::span<std::byte> buf,
-                                 const std::unordered_map<uint32_t, uint32_t> &mapping) {
+                                 const pystd2025::HashMap<uint32_t, uint32_t> &mapping) {
     const int64_t header_size = 5 * sizeof(int16_t);
 
     auto composite_data = buf.subspan(header_size);
@@ -1006,12 +1006,12 @@ reassign_composite_glyph_numbers(std::span<std::byte> buf,
         } else {
             composite_offset += 2 * sizeof(int8_t);
         }
-        auto it = mapping.find(glyph_index);
-        if(it == mapping.end()) {
+        auto it = mapping.lookup(glyph_index);
+        if(!it) {
             fprintf(stderr, "FAILfailFAIL\n");
             std::abort();
         }
-        glyph_index = it->second;
+        glyph_index = *it;
         byte_swap_inplace(glyph_index);
         memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);

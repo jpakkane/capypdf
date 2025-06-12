@@ -303,7 +303,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
     }
     if(attributes) {
         for(const auto &[key, value] : *attributes) {
-            cmds.append_dict_entry_string(key.c_str(), value.c_str());
+            cmds.append_dict_entry_string(key->c_str(), value->c_str());
         }
     }
     cmds.append(">>");

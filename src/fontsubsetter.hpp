@@ -7,7 +7,6 @@
 
 #include <vector>
 #include <cstdint>
-#include <unordered_map>
 
 typedef struct FT_FaceRec_ *FT_Face;
 
@@ -22,7 +21,7 @@ struct FontSubsetInfo {
 
 struct FontSubsetData {
     std::vector<TTGlyphs> glyphs;
-    std::unordered_map<uint32_t, uint32_t> font_index_mapping;
+    pystd2025::HashMap<uint32_t, uint32_t> font_index_mapping;
 };
 
 class FontSubsetter {
