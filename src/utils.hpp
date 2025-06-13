@@ -57,7 +57,7 @@ bool is_ascii(std::string_view text);
 std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash = true);
 std::string bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash = true);
 
-std::string create_trailer_id();
+pystd2025::CString create_trailer_id();
 
 class ObjectFormatter;
 void serialize_trans(ObjectFormatter &fmt, const Transition &t);

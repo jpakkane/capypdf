@@ -417,17 +417,16 @@ std::string bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash) {
     return bytes2pdfstringliteral(std::string_view{raw.data(), raw.size()}, add_slash);
 }
 
-std::string create_trailer_id() {
+pystd2025::CString create_trailer_id() {
     int num_bytes = 16;
-    std::string msg;
-    msg.reserve(num_bytes * 2 + 2);
-    auto app = std::back_inserter(msg);
+    pystd2025::CString msg;
+    // msg.reserve(num_bytes * 2 + 2);
     msg.push_back('<');
     std::random_device r;
     std::default_random_engine gen(r());
     std::uniform_int_distribution<int> dist(0, 255);
     for(int i = 0; i < num_bytes; ++i) {
-        std::format_to(app, "{:02X}", (unsigned char)dist(gen));
+        pystd2025::format_append(msg, "{:02X}", (unsigned char)dist(gen));
     }
     msg.push_back('>');
     return msg;
