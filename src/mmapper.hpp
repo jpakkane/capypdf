@@ -24,7 +24,7 @@ public:
 
     ~MMapper();
 
-    std::span<std::byte> span() const;
+    pystd2025::BytesView span() const;
     std::string_view sv() const;
 
     MMapper &operator=(MMapper &&o);
@@ -34,10 +34,10 @@ private:
     pystd2025::unique_ptr<MMapperPrivate> d;
 };
 
-typedef std::variant<std::monostate, MMapper, std::vector<std::byte>, std::span<std::byte>>
+typedef std::variant<std::monostate, MMapper, std::vector<std::byte>, pystd2025::BytesView>
     DataSource;
 
-rvoe<std::span<std::byte>> span_of_source(const DataSource &s);
+rvoe<pystd2025::BytesView> span_of_source(const DataSource &s);
 rvoe<std::string_view> view_of_source(const DataSource &s);
 
 rvoe<MMapper> mmap_file(const char *fname);

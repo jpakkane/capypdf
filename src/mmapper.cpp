@@ -23,7 +23,7 @@ public:
         CloseHandle(file_handle);
     }
 
-    std::span<std::byte> span() const { return std::span<std::byte>((std::byte *)buf, bufsize); }
+    pystd2025::BytesView span() const { return pystd2025::BytesView((std::byte *)buf, bufsize); }
 
     std::string_view sv() const { return std::string_view((const char *)buf, bufsize); }
 
@@ -46,7 +46,7 @@ public:
         }
     }
 
-    std::span<std::byte> span() const { return std::span<std::byte>((std::byte *)buf, bufsize); }
+    pystd2025::BytesView span() const { return pystd2025::BytesView(buf, bufsize); }
 
     std::string_view sv() const { return std::string_view(buf, bufsize); }
 
@@ -65,7 +65,7 @@ MMapper::MMapper(MMapper &&o) = default;
 
 MMapper &MMapper::operator=(MMapper &&o) = default;
 
-std::span<std::byte> MMapper::span() const { return d->span(); }
+pystd2025::BytesView MMapper::span() const { return d->span(); }
 
 std::string_view MMapper::sv() const { return d->sv(); }
 
@@ -131,16 +131,16 @@ rvoe<MMapper> mmap_file(const char *fname) {
 
 #endif
 
-rvoe<std::span<std::byte>> span_of_source(const DataSource &s) {
+rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
     if(auto *mm = std::get_if<MMapper>(&s)) {
         return mm->span();
     }
     if(auto *sv = std::get_if<std::vector<std::byte>>(&s)) {
         auto *tmp = const_cast<std::vector<std::byte> *>(sv);
         // FIXME, should be properly const.
-        return std::span<std::byte>(*tmp);
+        return pystd2025::BytesView((const char *)tmp->data(), tmp->size());
     }
-    if(auto *sp = std::get_if<std::span<std::byte>>(&s)) {
+    if(auto *sp = std::get_if<pystd2025::BytesView>(&s)) {
         return *sp;
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");
@@ -151,7 +151,7 @@ rvoe<std::string_view> view_of_source(const DataSource &s) {
     if(auto *mm = std::get_if<MMapper>(&s)) {
         return mm->sv();
     }
-    if(auto *sv = std::get_if<std::span<std::byte>>(&s)) {
+    if(auto *sv = std::get_if<pystd2025::BytesView>(&s)) {
         return span2sv(*sv);
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");

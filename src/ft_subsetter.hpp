@@ -176,7 +176,7 @@ struct TrueTypeFontFile {
     // typical PDF file uses only a subset. Reading all of them
     // into their own vectors would have a lot of memory overhead.
     // Thus we point to the original data instead.
-    std::vector<std::span<std::byte>> glyphs;
+    std::vector<pystd2025::BytesView> glyphs;
     // A TrueType file can be just a container for a
     // CFF file. Note that if it has cff glyphs then it should
     // not have "glyf" glyphs from above.
@@ -186,10 +186,10 @@ struct TrueTypeFontFile {
     TTHmtx hmtx;
     // std::vector<int32_t> loca;
     TTMaxp maxp;
-    std::vector<std::byte> cvt;
-    std::vector<std::byte> fpgm;
-    std::vector<std::byte> prep;
-    std::vector<std::byte> cmap;
+    pystd2025::Bytes cvt;
+    pystd2025::Bytes fpgm;
+    pystd2025::Bytes prep;
+    pystd2025::Bytes cmap;
 
     int32_t num_glyphs() const {
         if(in_cff_format()) {
@@ -203,16 +203,16 @@ struct TrueTypeFontFile {
 
     int num_directory_entries() const {
         int entries = 6;
-        if(!cmap.empty()) {
+        if(!cmap.is_empty()) {
             ++entries;
         }
-        if(!cvt.empty()) {
+        if(!cvt.is_empty()) {
             ++entries;
         }
-        if(!fpgm.empty()) {
+        if(!fpgm.is_empty()) {
             ++entries;
         }
-        if(!prep.empty()) {
+        if(!prep.is_empty()) {
             ++entries;
         }
         return entries;
@@ -227,17 +227,16 @@ struct TrueTypeCollection {
 // In case of TTC, only return the requested subfont.
 typedef std::variant<TrueTypeFontFile, CFFont> FontData;
 
-rvoe<bool> is_composite_glyph(std::span<const std::byte> buf);
-rvoe<std::vector<uint32_t>> composite_subglyphs(std::span<const std::byte> buf);
+rvoe<bool> is_composite_glyph(pystd2025::BytesView buf);
+rvoe<std::vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf);
 
 rvoe<NoReturnValue>
-reassign_composite_glyph_numbers(std::span<std::byte> buf,
+reassign_composite_glyph_numbers(pystd2025::BytesView buf,
                                  const pystd2025::HashMap<uint32_t, uint32_t> &mapping);
 
-rvoe<std::vector<std::byte>>
-generate_font(const TrueTypeFontFile &source,
-              const std::vector<TTGlyphs> &glyphs,
-              const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping);
+rvoe<pystd2025::Bytes> generate_font(const TrueTypeFontFile &source,
+                                     const std::vector<TTGlyphs> &glyphs,
+                                     const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping);
 
 rvoe<FontData> parse_font_file(DataSource original_data, uint16_t subfont);
 rvoe<FontData> load_and_parse_font_file(const pystd2025::Path &fname, const FontProperties &props);

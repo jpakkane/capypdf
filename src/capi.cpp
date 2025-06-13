@@ -680,8 +680,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_icc_profile(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    std::byte *bytebuf = (std::byte *)buf;
-    auto rc = g->add_icc_profile({bytebuf, bufsize}, num_channels);
+    auto rc = g->add_icc_profile({buf, bufsize}, num_channels);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2045,8 +2044,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_pixel_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    auto *byteptr = (std::byte *)buf;
-    b->i.pixels.assign(byteptr, byteptr + bufsize);
+    b->i.pixels.assign(buf, bufsize);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2064,8 +2062,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_set_alpha_data(
     CapyPDF_RasterImageBuilder *builder, const char *buf, uint64_t bufsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
-    auto *byteptr = (std::byte *)buf;
-    b->i.alpha.assign(byteptr, byteptr + bufsize);
+    b->i.alpha.assign(buf, bufsize);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2135,7 +2132,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_has_profile(const CapyPDF_RasterImag
     API_BOUNDARY_START;
     auto *i = reinterpret_cast<const RasterImage *>(image);
     if(auto *raw = std::get_if<RawPixelImage>(i)) {
-        *out_ptr = raw->icc_profile.empty() ? 0 : 1;
+        *out_ptr = raw->icc_profile.is_empty() ? 0 : 1;
     } else {
         return conv_err(ErrorCode::UnsupportedFormat);
     }

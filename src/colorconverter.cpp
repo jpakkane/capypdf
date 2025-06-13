@@ -245,7 +245,7 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     assert(ri.md.h > 0);
     const uint64_t num_pixels = ((uint64_t)ri.md.w) * ri.md.h;
     LcmsHolder icc_holder;
-    if(ri.icc_profile.empty()) {
+    if(ri.icc_profile.is_empty()) {
         input_profile = profile_for(ri.md.cs);
     } else {
         input_profile = cmsOpenProfileFromMem(ri.icc_profile.data(), ri.icc_profile.size());
@@ -272,8 +272,7 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     if(!transform) {
         RETERR(ProfileProblem);
     }
-    converted.pixels =
-        std::vector<std::byte>(num_pixels * num_bytes_for(output_format), std::byte{0});
+    converted.pixels = pystd2025::Bytes(num_pixels * num_bytes_for(output_format), 0);
     cmsDoTransform(transform, ri.pixels.data(), converted.pixels.data(), num_pixels);
     cmsDeleteTransform(transform);
     converted.md.cs = (CapyPDF_Image_Colorspace)output_format;
@@ -281,17 +280,17 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     return converted;
 }
 
-std::span<std::byte> PdfColorConverter::get_rgb() {
-    return std::span<std::byte>(rgb_profile_data.data(), rgb_profile_data.size());
+pystd2025::BytesView PdfColorConverter::get_rgb() {
+    return pystd2025::BytesView(rgb_profile_data.data(), rgb_profile_data.size());
 }
-std::span<std::byte> PdfColorConverter::get_gray() {
-    return std::span<std::byte>(gray_profile_data.data(), gray_profile_data.size());
+pystd2025::BytesView PdfColorConverter::get_gray() {
+    return pystd2025::BytesView(gray_profile_data.data(), gray_profile_data.size());
 }
-std::span<std::byte> PdfColorConverter::get_cmyk() {
-    return std::span<std::byte>(cmyk_profile_data.data(), cmyk_profile_data.size());
+pystd2025::BytesView PdfColorConverter::get_cmyk() {
+    return pystd2025::BytesView(cmyk_profile_data.data(), cmyk_profile_data.size());
 }
 
-rvoe<int> PdfColorConverter::get_num_channels(std::span<std::byte> icc_data) const {
+rvoe<int> PdfColorConverter::get_num_channels(pystd2025::BytesView icc_data) const {
     cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
     if(!h) {
         RETERR(InvalidICCProfile);

@@ -369,19 +369,19 @@ rvoe<NoReturnValue> PdfDocument::init() {
     generate_info_object();
     switch(docprops.output_colorspace) {
     case CAPY_DEVICE_CS_RGB:
-        if(!cm.get_rgb().empty()) {
+        if(!cm.get_rgb().is_empty()) {
             ERC(retval, add_icc_profile(cm.get_rgb(), 3));
             output_profile = retval;
         }
         break;
     case CAPY_DEVICE_CS_GRAY:
-        if(!cm.get_gray().empty()) {
+        if(!cm.get_gray().is_empty()) {
             ERC(retval, add_icc_profile(cm.get_gray(), 1));
             output_profile = retval;
         }
         break;
     case CAPY_DEVICE_CS_CMYK:
-        if(cm.get_cmyk().empty()) {
+        if(cm.get_cmyk().is_empty()) {
             RETERR(OutputProfileMissing);
         }
         ERC(retval, add_icc_profile(cm.get_cmyk(), 4));
@@ -1039,7 +1039,7 @@ int32_t PdfDocument::add_document_metadata_object() {
 }
 
 pystd2025::Optional<CapyPDF_IccColorSpaceId>
-PdfDocument::find_icc_profile(std::span<std::byte> contents) {
+PdfDocument::find_icc_profile(pystd2025::BytesView contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
         if(const auto stream_data = std::get_if<DeflatePDFObject>(&stream_obj)) {
@@ -1054,13 +1054,13 @@ PdfDocument::find_icc_profile(std::span<std::byte> contents) {
     return {};
 }
 
-rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> contents,
+rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(pystd2025::BytesView contents,
                                                            int32_t num_channels) {
     auto existing = find_icc_profile(contents);
     if(existing) {
         return existing.value();
     }
-    if(contents.empty()) {
+    if(contents.is_empty()) {
         return CapyPDF_IccColorSpaceId{-1};
     }
     ObjectFormatter fmt;
@@ -1182,15 +1182,15 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
     if(image.md.w < 1 || image.md.h < 1) {
         RETERR(InvalidImageSize);
     }
-    if(image.pixels.empty()) {
+    if(image.pixels.is_empty()) {
         RETERR(MissingPixels);
     }
     ERCV(validate_format(image));
     pystd2025::Optional<int32_t> smask_id;
-    if(params.as_mask && !image.alpha.empty()) {
+    if(params.as_mask && !image.alpha.is_empty()) {
         RETERR(MaskAndAlpha);
     }
-    if(!image.alpha.empty()) {
+    if(!image.alpha.is_empty()) {
         ERC(imobj,
             add_image_object(image.md.w,
                              image.md.h,
@@ -1202,7 +1202,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
                              image.md.compression));
         smask_id = get(imobj).obj;
     }
-    if(!image.icc_profile.empty()) {
+    if(!image.icc_profile.is_empty()) {
         ERC(icc_id, add_icc_profile(image.icc_profile, num_channels_for(image.md.cs)));
         return add_image_object(image.md.w,
                                 image.md.h,
@@ -1230,10 +1230,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
                                                     ImageColorspaceType colorspace,
                                                     pystd2025::Optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
-                                                    std::span<std::byte> original_bytes,
+                                                    pystd2025::BytesView original_bytes,
                                                     CapyPDF_Compression compression) {
-    std::vector<std::byte> compression_buffer;
-    std::span<std::byte> compressed_bytes;
+    pystd2025::Bytes compression_buffer;
+    pystd2025::BytesView compressed_bytes;
     switch(compression) {
     case CAPY_COMPRESSION_NONE: {
         ERC(trial_compressed, flate_compress(original_bytes));
@@ -1310,7 +1310,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
         fmt.add_token("/Decode");
         fmt.add_array(jpg.domain);
     }
-    if(jpg.icc_profile.empty()) {
+    if(jpg.icc_profile.is_empty()) {
         fmt.add_token_pair("/ColorSpace", colorspace_names.at(jpg.cs));
     } else {
         int32_t expected_channels;

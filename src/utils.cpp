@@ -122,10 +122,10 @@ struct DeflateCloser {
 
 } // namespace
 
-rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
-    std::vector<std::byte> compressed;
+rvoe<pystd2025::Bytes> flate_compress(std::string_view data) {
+    pystd2025::Bytes compressed;
     const int CHUNK = 1024 * 1024;
-    std::vector<std::byte> buf;
+    pystd2025::Bytes buf;
     z_stream strm;
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
@@ -148,7 +148,7 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
         int write_size = CHUNK - strm.avail_out;
         assert(write_size <= (int)buf.size());
         buf.resize(write_size);
-        compressed.insert(compressed.end(), buf.cbegin(), buf.cend());
+        compressed += buf;
     } while(strm.avail_out == 0);
     if(strm.avail_in != 0) { /* all input will be used */
         RETERR(CompressionFailure);
@@ -161,12 +161,12 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
     return compressed;
 }
 
-rvoe<std::vector<std::byte>> flate_compress(pystd2025::CStringView data) {
+rvoe<pystd2025::Bytes> flate_compress(pystd2025::CStringView data) {
     std::string_view sv(data.data(), data.size());
     return flate_compress(sv);
 }
 
-rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data) {
+rvoe<pystd2025::Bytes> flate_compress(pystd2025::BytesView data) {
     std::string_view sv((const char *)data.data(), data.size());
     return flate_compress(sv);
 }
@@ -191,7 +191,7 @@ rvoe<std::string> load_file_as_string(const pystd2025::Path &fname) {
 
 rvoe<std::string> load_file_as_string(FILE *f) { return do_file_load<std::string>(f); }
 
-rvoe<std::vector<std::byte>> load_file_as_bytes(const pystd2025::Path &fname) {
+rvoe<pystd2025::Bytes> load_file_as_bytes(const pystd2025::Path &fname) {
     FILE *f = fopen(fname.c_str(), "rb");
     if(!f) {
         perror(nullptr);
@@ -201,9 +201,7 @@ rvoe<std::vector<std::byte>> load_file_as_bytes(const pystd2025::Path &fname) {
     return load_file_as_bytes(f);
 }
 
-rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f) {
-    return do_file_load<std::vector<std::byte>>(f);
-}
+rvoe<pystd2025::Bytes> load_file_as_bytes(FILE *f) { return do_file_load<pystd2025::Bytes>(f); }
 
 void write_file(const char *ofname, const char *buf, size_t bufsize) {
     FILE *f = fopen(ofname, "wb");
@@ -489,12 +487,11 @@ void quote_xml_element_data_into(const u8string &content, std::string &result) {
     }
 }
 
-std::span<std::byte> str2span(const std::string &s) {
-    auto *ptr = (std::byte *)s.data();
-    return std::span<std::byte>(ptr, ptr + s.size());
+pystd2025::BytesView str2span(const std::string &s) {
+    return pystd2025::BytesView(s.data(), s.size());
 }
 
-std::string_view span2sv(std::span<std::byte> s) {
+std::string_view span2sv(pystd2025::BytesView s) {
     auto *ptr = (const char *)s.data();
     return std::string_view(ptr, s.size());
 }

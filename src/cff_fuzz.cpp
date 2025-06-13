@@ -9,7 +9,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t bufsize) {
         return 0;
     }
     try {
-        std::span<std::byte> data((std::byte *)buf, bufsize);
+        pystd2025::BytesView data((std::byte *)buf, bufsize);
         auto font = capypdf::internal::parse_cff_data(data);
     } catch(const std::exception &) {
     }

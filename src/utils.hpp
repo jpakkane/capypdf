@@ -21,9 +21,9 @@ template<class... Ts> struct overloaded : Ts... {
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 #endif
 
-rvoe<std::vector<std::byte>> flate_compress(std::string_view data);
-rvoe<std::vector<std::byte>> flate_compress(pystd2025::CStringView data);
-rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data);
+rvoe<pystd2025::Bytes> flate_compress(std::string_view data);
+rvoe<pystd2025::Bytes> flate_compress(pystd2025::CStringView data);
+rvoe<pystd2025::Bytes> flate_compress(pystd2025::BytesView data);
 
 rvoe<std::string> load_file_as_string(const char *fname);
 
@@ -31,9 +31,9 @@ rvoe<std::string> load_file_as_string(const pystd2025::Path &fname);
 
 rvoe<std::string> load_file_as_string(FILE *f);
 
-rvoe<std::vector<std::byte>> load_file_as_bytes(const pystd2025::Path &fname);
+rvoe<pystd2025::Bytes> load_file_as_bytes(const pystd2025::Path &fname);
 
-rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f);
+rvoe<pystd2025::Bytes> load_file_as_bytes(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);
 
@@ -64,8 +64,8 @@ void serialize_trans(ObjectFormatter &fmt, const Transition &t);
 
 void quote_xml_element_data_into(const u8string &content, std::string &result);
 
-std::span<std::byte> str2span(const std::string &s);
-std::string_view span2sv(std::span<std::byte> s);
+pystd2025::BytesView str2span(const std::string &s);
+std::string_view span2sv(pystd2025::BytesView s);
 
 struct FileCloser {
     static void del(FILE *f) {

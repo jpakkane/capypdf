@@ -2,10 +2,10 @@
 
 namespace capypdf::internal {
 
-rvoe<std::span<const std::byte>> get_substring(const char *buf,
-                                               const int64_t bufsize,
-                                               const int64_t offset,
-                                               const int64_t substr_size) {
+rvoe<pystd2025::BytesView> get_substring(const char *buf,
+                                         const int64_t bufsize,
+                                         const int64_t offset,
+                                         const int64_t substr_size) {
     if(!buf) {
         RETERR(ArgIsNull);
     }
@@ -19,13 +19,13 @@ rvoe<std::span<const std::byte>> get_substring(const char *buf,
         RETERR(IndexOutOfBounds);
     }
     if(substr_size == 0) {
-        return std::span<const std::byte>{};
+        return pystd2025::BytesView{};
     }
-    return std::span<const std::byte>((const std::byte *)buf + offset, substr_size);
+    return pystd2025::BytesView(buf + offset, substr_size);
 }
 
-rvoe<std::span<const std::byte>>
-get_substring(std::span<const std::byte> sv, const size_t offset, const int64_t substr_size) {
+rvoe<pystd2025::BytesView>
+get_substring(pystd2025::BytesView sv, const size_t offset, const int64_t substr_size) {
     return get_substring((const char *)sv.data(), sv.size(), offset, substr_size);
 }
 

@@ -292,13 +292,13 @@ public:
     explicit RawData(std::string input);
     explicit RawData(std::vector<std::byte> input);
     explicit RawData(std::string_view input);
-    explicit RawData(std::span<std::byte> input);
+    explicit RawData(pystd2025::BytesView input);
 
     const char *data() const;
     size_t size() const;
 
     std::string_view sv() const;
-    std::span<std::byte> span() const;
+    pystd2025::BytesView span() const;
 
     bool empty() const;
     void clear();
@@ -310,7 +310,7 @@ public:
     RawData &operator=(std::vector<std::byte> input);
 
     bool operator==(std::string_view other) const;
-    bool operator==(std::span<std::byte> other) const;
+    bool operator==(pystd2025::BytesView other) const;
 };
 
 // Every resource type has its own id type to avoid
@@ -596,9 +596,9 @@ struct RasterImageMetadata {
 
 struct RawPixelImage {
     RasterImageMetadata md;
-    std::vector<std::byte> pixels;
-    std::vector<std::byte> alpha;
-    std::vector<std::byte> icc_profile;
+    pystd2025::Bytes pixels;
+    pystd2025::Bytes alpha;
+    pystd2025::Bytes icc_profile;
 };
 
 struct jpg_image {
@@ -607,8 +607,8 @@ struct jpg_image {
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
     std::vector<double> domain;
-    std::vector<std::byte> file_contents;
-    std::vector<std::byte> icc_profile;
+    pystd2025::Bytes file_contents;
+    pystd2025::Bytes icc_profile;
 };
 
 typedef std::variant<RawPixelImage, jpg_image> RasterImage;

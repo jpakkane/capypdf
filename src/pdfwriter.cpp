@@ -350,14 +350,14 @@ rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
 
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
-                                                     std::span<std::byte> stream_data) {
+                                                     pystd2025::BytesView stream_data) {
     auto buf = pystd2025::format("%d 0 obj\n", object_number);
     buf += pystd2025::CStringView(dict_data.data(), dict_data.size());
     if(buf.back() != '\n') {
         buf.append('\n');
     }
     ERCV(write_bytes(buf));
-    if(!stream_data.empty()) {
+    if(!stream_data.is_empty()) {
         ERCV(write_bytes("stream\n"));
         ERCV(write_bytes((const char *)stream_data.data(), stream_data.size()));
         // PDF spec says that there must always be a newline before "endstream".
@@ -435,7 +435,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
     assert(ssfont.subset_id == 0);
     ERC(subset_font, font.subsets.generate_subset(font.fontdata.fontdata));
 
-    ERC(compressed_bytes, flate_compress(subset_font));
+    ERC(compressed_bytes, flate_compress(subset_font.view()));
     if(font.fontdata.fontdata.in_cff_format()) {
         ObjectFormatter fmt;
         fmt.begin_dict();

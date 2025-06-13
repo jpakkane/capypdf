@@ -80,7 +80,7 @@ public:
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const pystd2025::Path &fname) {
         return pdoc.load_icc_file(fname);
     }
-    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> bytes,
+    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(pystd2025::BytesView bytes,
                                                   uint32_t num_channels) {
         return pdoc.add_icc_profile(bytes, num_channels);
     }

@@ -28,7 +28,7 @@ void load_rgb_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result
     result.pixels.reserve(result.md.w * result.md.h * 3);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        std::byte *current_row = (std::byte *)rows[row_number];
+        const char *current_row = (const char *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 3; i += 3) {
             result.pixels.push_back(current_row[i]);
             result.pixels.push_back(current_row[i + 1]);
@@ -47,7 +47,7 @@ void load_rgba_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &resul
     result.alpha.reserve(result.md.w * result.md.h);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        std::byte *current_row = (std::byte *)rows[row_number];
+        const char *current_row = (const char *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 4; i += 4) {
             result.pixels.push_back(current_row[i]);
             result.pixels.push_back(current_row[i + 1]);
@@ -65,7 +65,7 @@ void load_gray_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &resul
     result.pixels.reserve(result.md.w * result.md.h);
 
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        std::byte *current_row = (std::byte *)rows[row_number];
+        auto *current_row = (const char *)rows[row_number];
         for(size_t i = 0; i < result.md.w; ++i) {
             result.pixels.push_back(current_row[i]);
         }
@@ -81,7 +81,7 @@ void load_ga_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result)
     result.pixels.reserve(result.md.w * result.md.h);
     result.alpha.reserve(result.md.w * result.md.h);
     for(uint32_t row_number = 0; row_number < result.md.h; ++row_number) {
-        std::byte *current_row = (std::byte *)rows[row_number];
+        const char *current_row = (const char *)rows[row_number];
         for(size_t i = 0; i < result.md.w * 2; i += 2) {
             result.pixels.push_back(current_row[i]);
             result.alpha.push_back(current_row[i + 1]);
@@ -113,7 +113,7 @@ void load_mono_png(png_struct *png_ptr,
             }
             if((i % 8 == 0) && i > 0) {
                 const auto negated = (unsigned char)~current_byte;
-                result.pixels.push_back(std::byte{negated});
+                result.pixels.push_back(negated);
                 current_byte = 0;
             }
         }
@@ -122,7 +122,7 @@ void load_mono_png(png_struct *png_ptr,
         if(num_padding_bits > 0) {
             current_byte <<= num_padding_bits;
         }
-        result.pixels.push_back(std::byte(~current_byte));
+        result.pixels.push_back(~current_byte);
     }
     assert(result.pixels.size() == final_size);
 }
@@ -168,8 +168,8 @@ rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
                 current_mask_byte |= 1;
             }
             if((i % 8 == 0) && i > 0) {
-                result.pixels.push_back(std::byte(~current_byte));
-                result.alpha.push_back(std::byte(~current_mask_byte));
+                result.pixels.push_back(~current_byte);
+                result.alpha.push_back(~current_mask_byte);
                 current_byte = 0;
                 current_mask_byte = 255;
             }
@@ -180,8 +180,8 @@ rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
             current_byte <<= num_padding_bits;
             current_mask_byte <<= num_padding_bits;
         }
-        result.pixels.push_back(std::byte(current_byte));
-        result.alpha.push_back(std::byte(~current_mask_byte));
+        result.pixels.push_back(current_byte);
+        result.alpha.push_back(~current_mask_byte);
     }
     assert(result.pixels.size() == final_size);
     assert(result.alpha.size() == final_size);
@@ -198,8 +198,8 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
     uint32_t icc_length;
     if(png_get_iCCP(png_ptr, info_ptr, &profile_name, &compression_type, &icc, &icc_length) ==
        PNG_INFO_iCCP) {
-        std::byte *icc_data = (std::byte *)(icc);
-        image.icc_profile = std::vector<std::byte>(icc_data, icc_data + icc_length);
+        auto *icc_data = (const char *)(icc);
+        image.icc_profile = pystd2025::Bytes(icc_data, icc_data + icc_length);
     }
     const auto image_format = png_get_color_type(png_ptr, info_ptr);
     if(image_format == PNG_COLOR_TYPE_RGB_ALPHA) {
@@ -247,8 +247,8 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
 void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
     assert(image.md.alpha_depth == 8);
     assert(image.pixels.size() % (num_color_channels + 1) == 0);
-    assert(image.alpha.empty());
-    std::vector<std::byte> colors;
+    assert(image.alpha.is_empty());
+    pystd2025::Bytes colors;
     colors.reserve(image.pixels.size() * num_color_channels / (num_color_channels + 1));
     image.alpha.reserve(image.pixels.size() / (num_color_channels + 1));
     for(size_t i = 0; i < image.pixels.size(); i += (num_color_channels + 1)) {
@@ -308,22 +308,22 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     // Maybe fail for this?
 
     if(TIFFGetField(tif, TIFFTAG_ICCPROFILE, &icc_count, &icc_data) == 1) {
-        result.icc_profile = std::vector<std::byte>((const std::byte *)icc_data,
-                                                    (const std::byte *)icc_data + icc_count);
+        result.icc_profile =
+            pystd2025::Bytes((const char *)icc_data, (const char *)icc_data + icc_count);
     }
 
     result.md.pixel_depth = bitspersample;
     result.md.alpha_depth = bitspersample;
 
     const auto scanlinesize = TIFFScanlineSize64(tif);
-    std::vector<std::byte> line(scanlinesize, std::byte(0));
+    pystd2025::Bytes line(scanlinesize, 0);
     result.pixels.reserve(scanlinesize * h);
     for(uint32_t row = 0; row < h; ++row) {
         if(TIFFReadScanline(tif, line.data(), row) != 1) {
             fprintf(stderr, "TIFF decoding failed.\n");
             RETERR(FileReadError);
         }
-        result.pixels.insert(result.pixels.end(), line.cbegin(), line.cend());
+        result.pixels += line;
     }
     result.md.w = w;
     result.md.h = h;
@@ -580,8 +580,7 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     JOCTET *icc_buf = nullptr;
     unsigned int icc_len;
     if(jpeg_read_icc_profile(&cinfo, &icc_buf, &icc_len)) {
-        std::byte *icc_ptr = (std::byte *)(icc_buf);
-        im.icc_profile.assign(icc_ptr, icc_ptr + icc_len);
+        im.icc_profile.assign((const char *)icc_buf, icc_len);
         free(icc_buf);
     }
     if(im.depth != 8) {
@@ -604,8 +603,7 @@ rvoe<jpg_image> load_jpg_file(const pystd2025::Path &fname) {
 
 rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
     ERC(meta, load_jpg_metadata(nullptr, buf, bufsize));
-    auto *byteptr = (const std::byte *)(buf);
-    meta.file_contents = std::vector<std::byte>(byteptr, byteptr + bufsize);
+    meta.file_contents = pystd2025::Bytes(buf, (size_t)bufsize);
     return meta;
 }
 

@@ -35,7 +35,7 @@ private:
     rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,
                                               std::string_view dict_data,
-                                              std::span<std::byte> stream_data);
+                                              pystd2025::BytesView stream_data);
     rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
                                                const DelayedSubsetFontData &ssfont);
     rvoe<NoReturnValue> write_subset_font_descriptor(int32_t object_num,

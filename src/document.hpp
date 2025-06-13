@@ -404,7 +404,7 @@ public:
                                                  CapyPDF_FunctionId fid);
     rvoe<CapyPDF_LabColorSpaceId> add_lab_colorspace(const LabColorSpace &lab);
     rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const pystd2025::Path &fname);
-    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> contents,
+    rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(pystd2025::BytesView contents,
                                                   int32_t num_channels);
 
     // Fonts
@@ -505,7 +505,7 @@ private:
         return ocg_items.at(ocgid.id);
     }
 
-    pystd2025::Optional<CapyPDF_IccColorSpaceId> find_icc_profile(std::span<std::byte> contents);
+    pystd2025::Optional<CapyPDF_IccColorSpaceId> find_icc_profile(pystd2025::BytesView contents);
 
     rvoe<NoReturnValue> create_catalog();
 
@@ -521,7 +521,7 @@ private:
                                            ImageColorspaceType colorspace,
                                            pystd2025::Optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
-                                           std::span<std::byte> original_bytes,
+                                           pystd2025::BytesView original_bytes,
                                            CapyPDF_Compression compression);
 
     rvoe<NoReturnValue> generate_info_object();

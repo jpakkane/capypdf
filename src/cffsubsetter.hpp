@@ -86,7 +86,7 @@ struct CFFHeader {
 };
 
 struct CFFIndex {
-    std::vector<std::span<std::byte>> entries;
+    std::vector<pystd2025::BytesView> entries;
 
     size_t size() const { return entries.size(); }
 };
@@ -126,7 +126,7 @@ struct CFFCharsetRange2 {
 #pragma pack(pop, r1)
 
 struct DictOutput {
-    std::vector<std::byte> output;
+    pystd2025::Bytes output;
     std::vector<uint16_t> offsets;
 };
 
@@ -205,16 +205,11 @@ public:
 
     void create();
 
-    std::vector<std::byte> steal() {
-        std::vector<std::byte> result;
-        result.insert(result.end(), output.begin(), output.end());
-        output.clear();
-        return result;
-    }
+    pystd2025::Bytes steal() { return output; }
 
 private:
     pystd2025::Vector<uint32_t> append_index(const CFFIndex &entries);
-    pystd2025::Vector<uint32_t> append_index(const std::vector<std::vector<std::byte>> &entries);
+    pystd2025::Vector<uint32_t> append_index(const std::vector<pystd2025::Bytes> &entries);
     void append_charset();
     void append_charstrings();
     void append_fdthings();
@@ -227,7 +222,7 @@ private:
 
     const CFFont &source;
     const std::vector<SubsetGlyphs> &sub;
-    pystd2025::Vector<std::byte> output;
+    pystd2025::Bytes output;
     Fixups fixups;
 };
 

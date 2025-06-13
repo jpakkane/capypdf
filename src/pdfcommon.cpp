@@ -181,8 +181,9 @@ RawData::RawData(std::vector<std::byte> input) : storage(std::move(input)) {}
 
 RawData::RawData(std::string_view input) : storage{std::string(input)} {}
 
-RawData::RawData(std::span<std::byte> input) {
-    std::vector<std::byte> data_copy(input.data(), input.data() + input.size());
+RawData::RawData(pystd2025::BytesView input) {
+    std::vector<std::byte> data_copy((const std::byte *)input.data(),
+                                     (const std::byte *)input.data() + input.size());
     storage = std::move(data_copy);
 }
 
@@ -208,10 +209,7 @@ size_t RawData::size() const {
 
 std::string_view RawData::sv() const { return std::string_view{data(), size()}; }
 
-std::span<std::byte> RawData::span() const {
-    auto *byteptr = (std::byte *)(data());
-    return std::span<std::byte>{byteptr, size()};
-}
+pystd2025::BytesView RawData::span() const { return pystd2025::BytesView{data(), size()}; }
 
 bool RawData::empty() const {
     if(auto *p = std::get_if<std::string>(&storage)) {
@@ -251,7 +249,7 @@ RawData &RawData::operator=(std::vector<std::byte> input) {
 
 bool RawData::operator==(std::string_view other) const { return sv() == other; }
 
-bool RawData::operator==(std::span<std::byte> other) const {
+bool RawData::operator==(pystd2025::BytesView other) const {
     std::string_view other_sv{(const char *)other.data(), other.size()};
     return *this == other_sv;
 }

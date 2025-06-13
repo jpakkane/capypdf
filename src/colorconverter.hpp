@@ -50,11 +50,11 @@ public:
                                          CapyPDF_Device_Colorspace output_format,
                                          CapyPDF_Rendering_Intent intent) const;
 
-    std::span<std::byte> get_rgb();
-    std::span<std::byte> get_gray();
-    std::span<std::byte> get_cmyk();
+    pystd2025::BytesView get_rgb();
+    pystd2025::BytesView get_gray();
+    pystd2025::BytesView get_cmyk();
 
-    rvoe<int> get_num_channels(std::span<std::byte> icc_data) const;
+    rvoe<int> get_num_channels(pystd2025::BytesView icc_data) const;
 
     PdfColorConverter &operator=(PdfColorConverter &&o) = default;
 
@@ -68,7 +68,7 @@ private:
     LcmsHolder gray_profile;
     LcmsHolder cmyk_profile;
 
-    std::vector<std::byte> rgb_profile_data, gray_profile_data, cmyk_profile_data;
+    pystd2025::Bytes rgb_profile_data, gray_profile_data, cmyk_profile_data;
     // FIXME, store transforms so that they don't get recreated all the time.
 };
 

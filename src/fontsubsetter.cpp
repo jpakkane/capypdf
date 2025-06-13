@@ -238,7 +238,7 @@ pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &te
     return {};
 }
 
-rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source) const {
+rvoe<pystd2025::Bytes> FontSubsetter::generate_subset(const TrueTypeFontFile &source) const {
     return generate_font(source, subset.glyphs, subset.font_index_mapping);
 }
 
