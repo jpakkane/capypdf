@@ -177,20 +177,19 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
 }
 
 RawData::RawData(std::string input) : storage{std::move(input)} {};
-RawData::RawData(std::vector<std::byte> input) : storage(std::move(input)) {}
+RawData::RawData(pystd2025::Bytes input) : storage(std::move(input)) {}
 
 RawData::RawData(std::string_view input) : storage{std::string(input)} {}
 
 RawData::RawData(pystd2025::BytesView input) {
-    std::vector<std::byte> data_copy((const std::byte *)input.data(),
-                                     (const std::byte *)input.data() + input.size());
+    pystd2025::Bytes data_copy(input.data(), input.size());
     storage = std::move(data_copy);
 }
 
 const char *RawData::data() const {
     if(auto *d = std::get_if<std::string>(&storage)) {
         return d->data();
-    } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
+    } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
         return (const char *)d->data();
     } else {
         std::abort();
@@ -200,7 +199,7 @@ const char *RawData::data() const {
 size_t RawData::size() const {
     if(auto *d = std::get_if<std::string>(&storage)) {
         return d->size();
-    } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
+    } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
         return d->size();
     } else {
         std::abort();
@@ -214,8 +213,8 @@ pystd2025::BytesView RawData::span() const { return pystd2025::BytesView{data(),
 bool RawData::empty() const {
     if(auto *p = std::get_if<std::string>(&storage)) {
         return p->empty();
-    } else if(auto *p = std::get_if<std::vector<std::byte>>(&storage)) {
-        return p->empty();
+    } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
+        return p->is_empty();
     } else {
         std::abort();
     }
@@ -224,25 +223,21 @@ bool RawData::empty() const {
 void RawData::clear() {
     if(auto *p = std::get_if<std::string>(&storage)) {
         p->clear();
-    } else if(auto *p = std::get_if<std::vector<std::byte>>(&storage)) {
+    } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
         p->clear();
     } else {
         std::abort();
     }
 }
 
-void RawData::assign(const char *buf, size_t bufsize) { storage = std::string{buf, bufsize}; }
-
-void RawData::assign(const std::byte *buf, size_t bufsize) {
-    storage = std::vector<std::byte>{buf, buf + bufsize};
-}
+void RawData::assign(const char *buf, size_t bufsize) { storage = pystd2025::Bytes{buf, bufsize}; }
 
 RawData &RawData::operator=(std::string input) {
     storage = std::move(input);
     return *this;
 }
 
-RawData &RawData::operator=(std::vector<std::byte> input) {
+RawData &RawData::operator=(pystd2025::Bytes input) {
     storage = std::move(input);
     return *this;
 }

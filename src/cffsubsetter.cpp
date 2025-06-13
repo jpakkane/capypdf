@@ -793,8 +793,8 @@ void CFFWriter::create_topdict() {
     const auto original_swapped = byteswap(original_value);
     auto loc = std::search(output.begin(),
                            output.end(),
-                           (std::byte *)&original_swapped,
-                           (std::byte *)&original_swapped + 4);
+                           (const char *)&original_swapped,
+                           (const char *)&original_swapped + 4);
     assert(loc != output.end());
     const auto real_offset = std::distance(output.begin(), loc);
     assert(written_value == original_value);

@@ -5,10 +5,8 @@
 
 #include <errorhandling.hpp>
 
-#include <span>
 #include <string_view>
 #include <variant>
-#include <vector>
 
 #include <pystd2025.hpp>
 
@@ -34,8 +32,7 @@ private:
     pystd2025::unique_ptr<MMapperPrivate> d;
 };
 
-typedef std::variant<std::monostate, MMapper, std::vector<std::byte>, pystd2025::BytesView>
-    DataSource;
+typedef std::variant<std::monostate, MMapper, pystd2025::Bytes, pystd2025::BytesView> DataSource;
 
 rvoe<pystd2025::BytesView> span_of_source(const DataSource &s);
 rvoe<std::string_view> view_of_source(const DataSource &s);

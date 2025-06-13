@@ -23,7 +23,7 @@ public:
         CloseHandle(file_handle);
     }
 
-    pystd2025::BytesView span() const { return pystd2025::BytesView((std::byte *)buf, bufsize); }
+    pystd2025::BytesView span() const { return pystd2025::BytesView((const char *)buf, bufsize); }
 
     std::string_view sv() const { return std::string_view((const char *)buf, bufsize); }
 
@@ -135,10 +135,8 @@ rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
     if(auto *mm = std::get_if<MMapper>(&s)) {
         return mm->span();
     }
-    if(auto *sv = std::get_if<std::vector<std::byte>>(&s)) {
-        auto *tmp = const_cast<std::vector<std::byte> *>(sv);
-        // FIXME, should be properly const.
-        return pystd2025::BytesView((const char *)tmp->data(), tmp->size());
+    if(auto *by = std::get_if<pystd2025::Bytes>(&s)) {
+        return by->view();
     }
     if(auto *sp = std::get_if<pystd2025::BytesView>(&s)) {
         return *sp;

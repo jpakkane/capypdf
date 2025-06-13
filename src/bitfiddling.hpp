@@ -1,7 +1,6 @@
 #pragma once
 
 #include <errorhandling.hpp>
-#include <span>
 #include <vector>
 #include <string_view>
 #include <string>
@@ -50,24 +49,6 @@ template<typename T> rvoe<T> extract_and_swap(pystd2025::BytesView bf, const siz
     return byteswap(obj);
 }
 
-template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) {
-    if constexpr(std::is_same_v<T, std::string_view>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::string>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, pystd2025::BytesView>) {
-        s.insert(s.end(), val.begin(), val.end());
-    } else if constexpr(std::is_same_v<T, pystd2025::BytesView>) {
-        s.insert(s.end(), val.begin(), val.end());
-    } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::vector<const std::byte>>) {
-        s.insert(s.end(), val.cbegin(), val.cend());
-    } else {
-        s.insert(s.end(), (std::byte *)&val, (std::byte *)&val + sizeof(val));
-    }
-}
-
 template<typename T> void append_bytes(pystd2025::Bytes &s, const T &val) {
     if constexpr(std::is_same_v<T, std::string_view>) {
         s.append(val.cbegin(), val.cend());
@@ -77,26 +58,12 @@ template<typename T> void append_bytes(pystd2025::Bytes &s, const T &val) {
         s.append(val.begin(), val.end());
     } else if constexpr(std::is_same_v<T, pystd2025::BytesView>) {
         s.append(val.begin(), val.end());
-    } else if constexpr(std::is_same_v<T, std::vector<std::byte>>) {
-        s.append(val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::vector<const std::byte>>) {
-        s.append(val.cbegin(), val.cend());
     } else {
         s.append((const char *)&val, (const char *)&val + sizeof(val));
     }
 }
 
-template<typename T> void swap_and_append_bytes(std::vector<std::byte> &s, const T &obj) {
-    auto obj2 = byteswap(obj);
-    append_bytes<T>(s, obj2);
-}
-
 template<typename T> void swap_and_append_bytes(pystd2025::Bytes &s, const T &obj) {
-    auto obj2 = byteswap(obj);
-    append_bytes<T>(s, obj2);
-}
-
-template<typename T> void swap_and_append_bytes(pystd2025::Vector<std::byte> &s, const T &obj) {
     auto obj2 = byteswap(obj);
     append_bytes<T>(s, obj2);
 }

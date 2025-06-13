@@ -285,12 +285,12 @@ private:
 
 class RawData {
 private:
-    std::variant<std::string, std::vector<std::byte>> storage;
+    std::variant<std::string, pystd2025::Bytes> storage;
 
 public:
     RawData() : storage{} {}
     explicit RawData(std::string input);
-    explicit RawData(std::vector<std::byte> input);
+    explicit RawData(pystd2025::Bytes input);
     explicit RawData(std::string_view input);
     explicit RawData(pystd2025::BytesView input);
 
@@ -304,10 +304,9 @@ public:
     void clear();
 
     void assign(const char *buf, size_t bufsize);
-    void assign(const std::byte *buf, size_t bufsize);
 
     RawData &operator=(std::string input);
-    RawData &operator=(std::vector<std::byte> input);
+    RawData &operator=(pystd2025::Bytes input);
 
     bool operator==(std::string_view other) const;
     bool operator==(pystd2025::BytesView other) const;

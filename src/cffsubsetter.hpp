@@ -131,7 +131,7 @@ struct DictOutput {
 };
 
 struct LocalSubrs {
-    pystd2025::Vector<std::byte> data;
+    pystd2025::Bytes data;
     pystd2025::Vector<uint32_t> data_offsets;
 };
 
