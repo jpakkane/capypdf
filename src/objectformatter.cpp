@@ -8,7 +8,7 @@
 
 namespace capypdf::internal {
 
-ObjectFormatter::ObjectFormatter(std::string_view base_indent)
+ObjectFormatter::ObjectFormatter(pystd2025::CStringView base_indent)
     : state{pystd2025::CString{base_indent.data(), base_indent.size()}, 0, 0} {}
 
 void ObjectFormatter::begin_array(int32_t max_element) {
@@ -61,10 +61,6 @@ void ObjectFormatter::add_token(const char *raw_text) {
     added_item();
 }
 
-void ObjectFormatter::add_token(std::string_view raw_text) {
-    add_token(pystd2025::CStringView(raw_text.data(), raw_text.size()));
-}
-
 void ObjectFormatter::add_token(pystd2025::CStringView raw_text) {
     check_indent();
     buf += raw_text;
@@ -102,7 +98,7 @@ void ObjectFormatter::add_token_with_slash(const char *name) {
     added_item();
 }
 
-void ObjectFormatter::add_token_with_slash(std::string_view name) {
+void ObjectFormatter::add_token_with_slash(pystd2025::CStringView name) {
     check_indent();
     assert(name[0] != '/');
     pystd2025::CStringView tmp(name.data(), name.size());
@@ -154,12 +150,12 @@ void ObjectFormatter::added_item() {
     }
 }
 
-std::string ObjectFormatter::steal() {
+pystd2025::CString ObjectFormatter::steal() {
     assert(stack.is_empty());
     if(buf.is_empty() || (!buf.is_empty() && buf.back() != '\n')) {
         buf.append('\n');
     }
-    std::string res(buf.c_str());
+    pystd2025::CString res(buf.c_str());
     buf.clear();
     return res;
 }

@@ -25,8 +25,8 @@ namespace {
 const std::array<const char *, 2> PDF_header_strings = {"%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
                                                         "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
 
-std::string fontname2pdfname(std::string_view original) {
-    std::string out;
+pystd2025::CString fontname2pdfname(pystd2025::CStringView original) {
+    pystd2025::CString out;
     out.reserve(original.size());
     for(const auto c : original) {
         if(c == ' ') {
@@ -41,8 +41,9 @@ std::string fontname2pdfname(std::string_view original) {
     return out;
 }
 
-std::string subsetfontname2pdfname(std::string_view original, const int32_t subset_number) {
-    std::string out;
+pystd2025::CString subsetfontname2pdfname(pystd2025::CStringView original,
+                                          const int32_t subset_number) {
+    pystd2025::CString out;
     const int bufsize = 10;
     char buf[bufsize];
     snprintf(buf, bufsize, "%06d", subset_number);
@@ -321,7 +322,7 @@ PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offse
 rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
     const int32_t info = 1;                               // Info object is the first printed.
     const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
-    std::string buf;
+    pystd2025::CString buf;
     auto documentid = create_trailer_id();
     ObjectFormatter fmt;
     fmt.begin_dict();
@@ -349,7 +350,7 @@ rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
 }
 
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
-                                                     std::string_view dict_data,
+                                                     pystd2025::CStringView dict_data,
                                                      pystd2025::BytesView stream_data) {
     auto buf = pystd2025::format("%d 0 obj\n", object_number);
     buf += pystd2025::CStringView(dict_data.data(), dict_data.size());

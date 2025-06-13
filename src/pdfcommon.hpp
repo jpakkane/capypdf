@@ -8,8 +8,6 @@
 
 #include <vector>
 #include <array>
-#include <string>
-#include <string_view>
 #include <functional>
 #include <variant>
 #include <iterator>
@@ -138,29 +136,33 @@ public:
     asciistring(asciistring &&o) = default;
     asciistring(const asciistring &o) = default;
 
-    std::string_view sv() const { return buf; }
+    pystd2025::CStringView sv() const { return buf.view(); }
     const char *c_str() const { return buf.c_str(); }
 
     static rvoe<asciistring> from_cstr(const char *cstr);
-    static rvoe<asciistring> from_cstr(const std::string &str) {
-        return asciistring::from_view(std::string_view(str));
+    static rvoe<asciistring> from_cstr(const pystd2025::CString &str) {
+        return asciistring::from_view(str.view());
     }
-    static rvoe<asciistring> from_view(std::string_view sv);
+    static rvoe<asciistring> from_view(pystd2025::CStringView sv);
     static rvoe<asciistring> from_view(const char *buf, uint32_t bufsize) {
-        return asciistring::from_view(std::string_view(buf, bufsize));
+        return asciistring::from_view(pystd2025::CStringView(buf, bufsize));
     }
-    bool empty() const { return buf.empty(); }
+    bool empty() const { return buf.is_empty(); }
 
     asciistring &operator=(asciistring &&o) = default;
-    asciistring &operator=(const asciistring &o) = default;
+    asciistring &operator=(const asciistring &o) {
+        asciistring tmp(o);
+        (*this) = pystd2025::move(tmp);
+        return *this;
+    }
 
     bool operator==(const asciistring &o) const = default;
 
     size_t size() const { return buf.size(); }
 
 private:
-    explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
-    std::string buf;
+    explicit asciistring(pystd2025::CStringView prevalidated_ascii) : buf(prevalidated_ascii) {}
+    pystd2025::CString buf;
 };
 
 class u8string {
@@ -169,20 +171,20 @@ public:
     u8string(u8string &&o) = default;
     u8string(const u8string &o) = default;
 
-    std::string_view sv() const { return buf; }
+    pystd2025::CStringView sv() const { return buf.view(); }
 
     static rvoe<u8string> from_cstr(const char *cstr);
-    static rvoe<u8string> from_cstr(const std::string &str) {
+    static rvoe<u8string> from_cstr(const pystd2025::CString &str) {
         return u8string::from_cstr(str.c_str());
     }
 
-    static rvoe<u8string> from_view(std::string_view sv);
+    static rvoe<u8string> from_view(pystd2025::CStringView sv);
     static rvoe<u8string> from_view(const char *buf, uint32_t bufsize) {
-        return u8string::from_view(std::string_view(buf, bufsize));
+        return u8string::from_view(pystd2025::CStringView(buf, bufsize));
     }
 
-    bool empty() const { return buf.empty(); }
-    size_t length() const { return buf.length(); }
+    bool empty() const { return buf.is_empty(); }
+    size_t length() const { return buf.size(); }
     size_t size() const { return buf.size(); }
     const char *c_str() const { return buf.c_str(); }
 
@@ -195,13 +197,17 @@ public:
     }
 
     u8string &operator=(u8string &&o) = default;
-    u8string &operator=(const u8string &o) = default;
+    u8string &operator=(const u8string &o) {
+        u8string tmp(o);
+        (*this) = pystd2025::move(tmp);
+        return *this;
+    }
 
     bool operator==(const u8string &other) const = default;
 
 private:
-    explicit u8string(std::string_view prevalidated_utf8) : buf(prevalidated_utf8) {}
-    std::string buf;
+    explicit u8string(pystd2025::CStringView prevalidated_utf8) : buf(prevalidated_utf8) {}
+    pystd2025::CString buf;
 };
 
 struct PdfBox {
@@ -283,19 +289,19 @@ private:
 
 class RawData {
 private:
-    std::variant<std::string, pystd2025::Bytes> storage;
+    std::variant<pystd2025::CString, pystd2025::Bytes> storage;
 
 public:
     RawData() : storage{} {}
-    explicit RawData(std::string input);
+    explicit RawData(pystd2025::CString input);
     explicit RawData(pystd2025::Bytes input);
-    explicit RawData(std::string_view input);
+    explicit RawData(pystd2025::CStringView input);
     explicit RawData(pystd2025::BytesView input);
 
     const char *data() const;
     size_t size() const;
 
-    std::string_view sv() const;
+    pystd2025::CStringView sv() const;
     pystd2025::BytesView span() const;
 
     bool empty() const;
@@ -303,10 +309,10 @@ public:
 
     void assign(const char *buf, size_t bufsize);
 
-    RawData &operator=(std::string input);
+    RawData &operator=(pystd2025::CString input);
     RawData &operator=(pystd2025::Bytes input);
 
-    bool operator==(std::string_view other) const;
+    bool operator==(pystd2025::CStringView other) const;
     bool operator==(pystd2025::BytesView other) const;
 };
 
@@ -329,12 +335,12 @@ struct GraphicsState {
     pystd2025::Optional<bool> op;
     pystd2025::Optional<int32_t> OPM;
     // pystd2025::Optional<FontSomething> Font;
-    // pystd2025::Optional<std::string> BG;
-    // pystd2025::Optional<std::string> BG2;
-    // pystd2025::Optional<std::string> UCR;
-    // pystd2025::Optional<std::string> UCR2;
-    // pystd2025::Optional<std::string> TR;
-    // pystd2025::Optional<std::string> TR2;
+    // pystd2025::Optional<pystd2025::CString> BG;
+    // pystd2025::Optional<pystd2025::CString> BG2;
+    // pystd2025::Optional<pystd2025::CString> UCR;
+    // pystd2025::Optional<pystd2025::CString> UCR2;
+    // pystd2025::Optional<pystd2025::CString> TR;
+    // pystd2025::Optional<pystd2025::CString> TR2;
     // pystd2025::Optional<str::string> HT;
     pystd2025::Optional<double> FL;
     pystd2025::Optional<double> SM;
@@ -428,7 +434,7 @@ struct FunctionType3 {
 struct FunctionType4 {
     std::vector<double> domain;
     std::vector<double> range;
-    std::string code;
+    pystd2025::CString code;
 };
 
 typedef std::variant<FunctionType2, FunctionType3, FunctionType4> PdfFunction;
@@ -554,8 +560,8 @@ struct Transition {
 };
 
 struct OptionalContentGroup {
-    std::string name;
-    // std::string intent;
+    pystd2025::CString name;
+    // pystd2025::CString intent;
     //  Usage usage;
 };
 
@@ -646,19 +652,19 @@ struct FontProperties {
 };
 
 } // namespace capypdf::internal
-
+/*
 template<> struct std::hash<capypdf::internal::asciistring> {
     std::size_t operator()(const capypdf::internal::asciistring &astr) const noexcept {
-        return std::hash<std::string_view>{}(astr.sv());
+        return std::hash<pystd2025::CStringView>{}(astr.sv());
     }
 };
 
 template<> struct std::hash<capypdf::internal::u8string> {
     std::size_t operator()(const capypdf::internal::u8string &u8str) const noexcept {
-        return std::hash<std::string_view>{}(u8str.sv());
+        return std::hash<pystd2025::CStringView>{}(u8str.sv());
     }
 };
-
+*/
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::asciistring> {
     void operator()(Hasher &h, const capypdf::internal::asciistring &astr) noexcept {
         h.feed_bytes(astr.c_str(), astr.size());

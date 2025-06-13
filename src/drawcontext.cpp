@@ -4,7 +4,6 @@
 #include <drawcontext.hpp>
 #include <generator.hpp>
 #include <ft2build.h>
-#include <string_view>
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
@@ -336,12 +335,12 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_OptionalContentGroupId ocgid
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(std::string_view tag) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_BMC(pystd2025::CStringView tag) {
     if(tag.size() < 2 || tag.front() == '/') {
         RETERR(SlashStart);
     }
     ERCV(cmds.indent(DrawStateType::MarkedContent));
-    std::string tag_(tag);
+    pystd2025::CString tag_(tag);
     auto cmd = pystd2025::format("/%s BMC\n", tag_.c_str());
     cmds.append(cmd);
     RETOK;
@@ -361,12 +360,12 @@ PdfDrawContext::cmd_cm(double m1, double m2, double m3, double m4, double m5, do
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_CS(std::string_view cspace_name) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_CS(pystd2025::CStringView cspace_name) {
     cmds.append_command(cspace_name, "CS");
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::cmd_cs(std::string_view cspace_name) {
+rvoe<NoReturnValue> PdfDrawContext::cmd_cs(pystd2025::CStringView cspace_name) {
     cmds.append_command(cspace_name, "cs");
     RETOK;
 }
@@ -957,7 +956,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(IncorrectColorChannelCount);
                 }
                 used_colorspaces.insert(icc_info.object_num);
-                std::string cmd;
+                pystd2025::CString cmd;
                 pystd2025::format_append(cmd, "/CSpace%d CS\n", icc_info.object_num);
                 cmds.append(cmd);
                 cmd.clear();
@@ -1026,7 +1025,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                     RETERR(NegativeDash);
                 }
             }
-            std::string cmd = "[ ";
+            pystd2025::CString cmd("[ ");
             for(auto val : dash->array) {
                 pystd2025::format_append(cmd, "%f ", val);
             }
@@ -1106,7 +1105,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
         prev_y = g.y;
         cmd.clear();
         pystd2025::format_append(cmd, "<%04x>", (unsigned char)current_subset_glyph.glyph_id);
-        cmds.append_command(std::string_view(cmd.data(), cmd.size()), "Tj");
+        cmds.append_command(pystd2025::CStringView(cmd.data(), cmd.size()), "Tj");
     }
     ERCV(cmds.dedent(DrawStateType::Text));
     cmds.append("ET");

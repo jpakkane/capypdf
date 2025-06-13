@@ -18,9 +18,6 @@ private:
 
     rvoe<NoReturnValue> write_bytes(const char *buf,
                                     size_t buf_size = (size_t)-1); // With error checking.
-    rvoe<NoReturnValue> write_bytes(std::string_view view) {
-        return write_bytes(view.data(), view.size());
-    }
     rvoe<NoReturnValue> write_bytes(pystd2025::CStringView view) {
         return write_bytes(view.data(), view.size());
     }
@@ -34,7 +31,7 @@ private:
     rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
     rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,
-                                              std::string_view dict_data,
+                                              pystd2025::CStringView dict_data,
                                               pystd2025::BytesView stream_data);
     rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
                                                const DelayedSubsetFontData &ssfont);

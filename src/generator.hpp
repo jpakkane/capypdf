@@ -8,8 +8,6 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <string_view>
-
 namespace capypdf::internal {
 
 class PdfGen;
@@ -88,7 +86,7 @@ public:
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,
                                                     CapyPDF_FormXObjectId onstate,
                                                     CapyPDF_FormXObjectId offstate,
-                                                    std::string_view partial_name) {
+                                                    pystd2025::CStringView partial_name) {
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
@@ -156,7 +154,8 @@ public:
 
     rvoe<double> utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const;
 
-    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type) {
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(pystd2025::CString name,
+                                           CapyPDF_Structure_Type builtin_type) {
         return pdoc.add_rolemap_entry(std::move(name), builtin_type);
     }
 

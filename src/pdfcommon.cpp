@@ -116,15 +116,15 @@ void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
 }
 
 rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
-    return asciistring::from_view(std::string_view(cstr));
+    return asciistring::from_view(pystd2025::CStringView(cstr));
 }
 
-rvoe<asciistring> asciistring::from_view(std::string_view sv) {
+rvoe<asciistring> asciistring::from_view(pystd2025::CStringView sv) {
     if(!is_ascii(sv)) {
         RETERR(NotASCII);
     }
     auto astr = asciistring(sv);
-    if(astr.sv().find('\0') != std::string_view::npos) {
+    if(astr.sv().find('\0') != (size_t)-1) {
         RETERR(EmbeddedNullInString);
     }
     return astr;
@@ -134,15 +134,15 @@ rvoe<u8string> u8string::from_cstr(const char *cstr) {
     if(!is_valid_utf8(cstr)) {
         RETERR(BadUtf8);
     }
-    return u8string(cstr);
+    return u8string{cstr};
 }
 
-rvoe<u8string> u8string::from_view(std::string_view sv) {
+rvoe<u8string> u8string::from_view(pystd2025::CStringView sv) {
     if(!is_valid_utf8(sv)) {
         RETERR(BadUtf8);
     }
     auto ustr = u8string(sv);
-    if(ustr.sv().find('\0') != std::string_view::npos) {
+    if(ustr.sv().find('\0') != (size_t)-1) {
         RETERR(EmbeddedNullInString);
     }
     return ustr;
@@ -176,10 +176,10 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
 
-RawData::RawData(std::string input) : storage{std::move(input)} {};
+RawData::RawData(pystd2025::CString input) : storage{std::move(input)} {};
 RawData::RawData(pystd2025::Bytes input) : storage(std::move(input)) {}
 
-RawData::RawData(std::string_view input) : storage{std::string(input)} {}
+RawData::RawData(pystd2025::CStringView input) : storage{pystd2025::CString(input)} {}
 
 RawData::RawData(pystd2025::BytesView input) {
     pystd2025::Bytes data_copy(input.data(), input.size());
@@ -187,7 +187,7 @@ RawData::RawData(pystd2025::BytesView input) {
 }
 
 const char *RawData::data() const {
-    if(auto *d = std::get_if<std::string>(&storage)) {
+    if(auto *d = std::get_if<pystd2025::CString>(&storage)) {
         return d->data();
     } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
         return (const char *)d->data();
@@ -197,7 +197,7 @@ const char *RawData::data() const {
 }
 
 size_t RawData::size() const {
-    if(auto *d = std::get_if<std::string>(&storage)) {
+    if(auto *d = std::get_if<pystd2025::CString>(&storage)) {
         return d->size();
     } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
         return d->size();
@@ -206,13 +206,13 @@ size_t RawData::size() const {
     }
 }
 
-std::string_view RawData::sv() const { return std::string_view{data(), size()}; }
+pystd2025::CStringView RawData::sv() const { return pystd2025::CStringView{data(), size()}; }
 
 pystd2025::BytesView RawData::span() const { return pystd2025::BytesView{data(), size()}; }
 
 bool RawData::empty() const {
-    if(auto *p = std::get_if<std::string>(&storage)) {
-        return p->empty();
+    if(auto *p = std::get_if<pystd2025::CString>(&storage)) {
+        return p->is_empty();
     } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
         return p->is_empty();
     } else {
@@ -221,7 +221,7 @@ bool RawData::empty() const {
 }
 
 void RawData::clear() {
-    if(auto *p = std::get_if<std::string>(&storage)) {
+    if(auto *p = std::get_if<pystd2025::CString>(&storage)) {
         p->clear();
     } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
         p->clear();
@@ -232,7 +232,7 @@ void RawData::clear() {
 
 void RawData::assign(const char *buf, size_t bufsize) { storage = pystd2025::Bytes{buf, bufsize}; }
 
-RawData &RawData::operator=(std::string input) {
+RawData &RawData::operator=(pystd2025::CString input) {
     storage = std::move(input);
     return *this;
 }
@@ -242,10 +242,10 @@ RawData &RawData::operator=(pystd2025::Bytes input) {
     return *this;
 }
 
-bool RawData::operator==(std::string_view other) const { return sv() == other; }
+bool RawData::operator==(pystd2025::CStringView other) const { return sv() == other; }
 
 bool RawData::operator==(pystd2025::BytesView other) const {
-    std::string_view other_sv{(const char *)other.data(), other.size()};
+    pystd2025::CStringView other_sv{(const char *)other.data(), other.size()};
     return *this == other_sv;
 }
 

@@ -292,7 +292,7 @@ void print_string(const CFFont &cff, int32_t string_number) {
     } else {
         const uint32_t strindex = string_number - NUM_STANDARD_STRINGS;
         auto sv = span2sv(cff.string.entries.at(strindex));
-        std::string tmp{sv};
+        pystd2025::CString tmp{sv};
         printf("%s\n", tmp.c_str());
     }
 }

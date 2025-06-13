@@ -8,9 +8,7 @@
 #include <colorconverter.hpp>
 #include <objectformatter.hpp>
 
-#include <string_view>
 #include <vector>
-#include <string>
 #include <unordered_map>
 #include <variant>
 
@@ -117,7 +115,7 @@ struct PageProperties {
 struct DummyIndexZero {};
 
 struct FullPDFObject {
-    std::string dictionary;
+    pystd2025::CString dictionary;
     RawData stream;
 };
 
@@ -232,7 +230,7 @@ struct DelayedCheckboxWidgetAnnotation {
     // uint32_t F; // Annotation flags;
 
     // Field dict values.
-    std::string T;
+    pystd2025::CString T;
 };
 
 struct OutlineData {
@@ -380,8 +378,8 @@ public:
     friend class PdfWriter;
 
     // Pages
-    rvoe<NoReturnValue> add_page(std::string resource_dict,
-                                 std::string command_stream,
+    rvoe<NoReturnValue> add_page(pystd2025::CString resource_dict,
+                                 pystd2025::CString command_stream,
                                  const PageProperties &custom_props,
                                  const pystd2025::HashSet<CapyPDF_FormWidgetId> &form_widgets,
                                  const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
@@ -396,7 +394,7 @@ public:
                       pystd2025::Optional<uint32_t> start_num);
 
     // Form XObjects
-    void add_form_xobject(ObjectFormatter xobj_data, std::string xobj_stream);
+    void add_form_xobject(ObjectFormatter xobj_data, pystd2025::CString xobj_stream);
 
     // Colors
     rvoe<CapyPDF_SeparationId> create_separation(const asciistring &name,
@@ -454,7 +452,7 @@ public:
     rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,
                                                     CapyPDF_FormXObjectId onstate,
                                                     CapyPDF_FormXObjectId offstate,
-                                                    std::string_view partial_name);
+                                                    pystd2025::CStringView partial_name);
 
     // Raw files
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);
@@ -486,7 +484,8 @@ public:
 
     rvoe<int32_t> create_structure_parent_tree();
 
-    rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type);
+    rvoe<CapyPDF_RoleId> add_rolemap_entry(pystd2025::CString name,
+                                           CapyPDF_Structure_Type builtin_type);
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

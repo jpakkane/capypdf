@@ -1,9 +1,6 @@
 #pragma once
 
 #include <errorhandling.hpp>
-#include <vector>
-#include <string_view>
-#include <string>
 #include <pystd2025.hpp>
 
 #include <cstring>
@@ -50,9 +47,9 @@ template<typename T> rvoe<T> extract_and_swap(pystd2025::BytesView bf, const siz
 }
 
 template<typename T> void append_bytes(pystd2025::Bytes &s, const T &val) {
-    if constexpr(std::is_same_v<T, std::string_view>) {
+    if constexpr(std::is_same_v<T, pystd2025::CStringView>) {
         s.append(val.cbegin(), val.cend());
-    } else if constexpr(std::is_same_v<T, std::string>) {
+    } else if constexpr(std::is_same_v<T, pystd2025::CString>) {
         s.append(val.cbegin(), val.cend());
     } else if constexpr(std::is_same_v<T, pystd2025::Bytes>) {
         s.append(val.begin(), val.end());

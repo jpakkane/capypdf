@@ -8,7 +8,7 @@ namespace capypdf::internal {
 
 namespace {
 
-pystd2025::CStringView sv2csv(std::string_view v) {
+pystd2025::CStringView sv2csv(pystd2025::CStringView v) {
     return pystd2025::CStringView(v.data(), v.size());
 }
 
@@ -16,10 +16,10 @@ pystd2025::CStringView sv2csv(std::string_view v) {
 
 CommandStreamFormatter::CommandStreamFormatter() {}
 
-// CommandStreamFormatter::CommandStreamFormatter(std::string_view start_indent)
+// CommandStreamFormatter::CommandStreamFormatter(pystd2025::CStringView start_indent)
 //     : lead{start_indent.data(), start_indent.size()} {}
 
-void CommandStreamFormatter::append(std::string_view line_of_text_) {
+void CommandStreamFormatter::append(pystd2025::CStringView line_of_text_) {
     auto line_of_text = sv2csv(line_of_text_);
     if(!line_of_text.is_empty()) {
         buf += lead;
@@ -30,7 +30,7 @@ void CommandStreamFormatter::append(std::string_view line_of_text_) {
     }
 }
 
-void CommandStreamFormatter::append_command(std::string_view arg, const char *command) {
+void CommandStreamFormatter::append_command(pystd2025::CStringView arg, const char *command) {
     buf += lead;
     buf += sv2csv(arg);
     buf += ' ';
@@ -63,7 +63,7 @@ void CommandStreamFormatter::append_command(int32_t arg, const char *command) {
     pystd2025::format_append(buf, "%s%d %s\n", lead.c_str(), arg, command);
 }
 
-void CommandStreamFormatter::append_dict_entry(const char *key, std::string_view value) {
+void CommandStreamFormatter::append_dict_entry(const char *key, pystd2025::CStringView value) {
     assert(key[0] == '/');
     buf += lead;
     buf += key;
@@ -156,11 +156,11 @@ bool CommandStreamFormatter::has_state(DrawStateType stype) {
     return false;
 }
 
-rvoe<std::string> CommandStreamFormatter::steal() {
+rvoe<pystd2025::CString> CommandStreamFormatter::steal() {
     if(!stack.is_empty()) {
         RETERR(DrawStateEndMismatch);
     }
-    auto tmpres = std::string(buf.c_str());
+    auto tmpres = pystd2025::CString(buf.c_str());
     buf.clear();
     return tmpres;
 }

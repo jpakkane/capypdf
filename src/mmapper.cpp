@@ -25,7 +25,7 @@ public:
 
     pystd2025::BytesView span() const { return pystd2025::BytesView((const char *)buf, bufsize); }
 
-    std::string_view sv() const { return std::string_view((const char *)buf, bufsize); }
+    pystd2025::CStringView sv() const { return pystd2025::CStringView((const char *)buf, bufsize); }
 
 private:
     HANDLE file_handle;
@@ -48,7 +48,7 @@ public:
 
     pystd2025::BytesView span() const { return pystd2025::BytesView(buf, bufsize); }
 
-    std::string_view sv() const { return std::string_view(buf, bufsize); }
+    pystd2025::CStringView sv() const { return pystd2025::CStringView(buf, bufsize); }
 
 private:
     const char *buf;
@@ -67,7 +67,7 @@ MMapper &MMapper::operator=(MMapper &&o) = default;
 
 pystd2025::BytesView MMapper::span() const { return d->span(); }
 
-std::string_view MMapper::sv() const { return d->sv(); }
+pystd2025::CStringView MMapper::sv() const { return d->sv(); }
 
 #ifdef _WIN32
 
@@ -145,7 +145,7 @@ rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
     std::abort();
 }
 
-rvoe<std::string_view> view_of_source(const DataSource &s) {
+rvoe<pystd2025::CStringView> view_of_source(const DataSource &s) {
     if(auto *mm = std::get_if<MMapper>(&s)) {
         return mm->sv();
     }

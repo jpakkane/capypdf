@@ -2,7 +2,7 @@
 // Copyright 2023-2024 Jussi Pakkanen
 
 #include <capypdf.h>
-#include <cstring>
+#include <string.h>
 #include <generator.hpp>
 #include <drawcontext.hpp>
 #include <errorhandling.hpp>
@@ -78,6 +78,9 @@ handle_exception() {
         return conv_err(ec);
     } catch(const std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
+        return conv_err(ErrorCode::DynamicError);
+    } catch(const pystd2025::PyException &e) {
+        fprintf(stderr, "%s\n", e.what().c_str());
         return conv_err(ErrorCode::DynamicError);
     } catch(const char *msg) {
         fprintf(stderr, "%s\n", msg);
@@ -783,7 +786,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->add_rolemap_entry(name, builtin);
+    auto rc = g->add_rolemap_entry(pystd2025::CString(name), builtin);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2209,7 +2212,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
     *out_ptr = reinterpret_cast<CapyPDF_Function *>(
         new PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
                                       std::vector<double>(range, range + range_size),
-                                      std::string{code}}});
+                                      pystd2025::CString{code}}});
     RETNOERR;
     API_BOUNDARY_END;
 }

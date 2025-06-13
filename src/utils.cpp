@@ -5,7 +5,7 @@
 #include <objectformatter.hpp>
 #include <zlib.h>
 #include <cassert>
-#include <cstring>
+#include <string.h>
 #ifdef _WIN32
 #include <time.h>
 #include <windows.h>
@@ -40,7 +40,7 @@ struct UtfDecodeStep {
     uint32_t num_subsequent_bytes;
 };
 
-bool is_valid_uf8_character(std::string_view input, size_t cur, const UtfDecodeStep &par) {
+bool is_valid_uf8_character(pystd2025::CStringView input, size_t cur, const UtfDecodeStep &par) {
     const uint32_t byte1 = uint32_t((unsigned char)input[cur]);
     const uint32_t subsequent_header_mask = 0b011000000;
     const uint32_t subsequent_header_value = 0b10000000;
@@ -102,7 +102,14 @@ template<typename T> rvoe<T> do_file_load(FILE *f) {
         perror(nullptr);
         RETERR(FileReadError);
     }
-    if(fread(contents.data(), 1, fsize, f) != (size_t)fsize) {
+    size_t rc;
+    if constexpr(pystd2025::is_same_v<T, pystd2025::CString>) {
+        // FIXME, check for embedded nulls.
+        rc = fread(contents.mutable_data(), 1, fsize, f);
+    } else {
+        rc = fread(contents.data(), 1, fsize, f);
+    }
+    if(rc != (size_t)fsize) {
         perror(nullptr);
         RETERR(FileReadError);
     }
@@ -122,7 +129,7 @@ struct DeflateCloser {
 
 } // namespace
 
-rvoe<pystd2025::Bytes> flate_compress(std::string_view data) {
+rvoe<pystd2025::Bytes> flate_compress(pystd2025::CStringView data) {
     pystd2025::Bytes compressed;
     const int CHUNK = 1024 * 1024;
     pystd2025::Bytes buf;
@@ -161,17 +168,12 @@ rvoe<pystd2025::Bytes> flate_compress(std::string_view data) {
     return compressed;
 }
 
-rvoe<pystd2025::Bytes> flate_compress(pystd2025::CStringView data) {
-    std::string_view sv(data.data(), data.size());
-    return flate_compress(sv);
-}
-
 rvoe<pystd2025::Bytes> flate_compress(pystd2025::BytesView data) {
-    std::string_view sv((const char *)data.data(), data.size());
+    pystd2025::CStringView sv((const char *)data.data(), data.size());
     return flate_compress(sv);
 }
 
-rvoe<std::string> load_file_as_string(const char *fname) {
+rvoe<pystd2025::CString> load_file_as_string(const char *fname) {
     FILE *f = fopen(fname, "rb");
     if(!f) {
         perror(nullptr);
@@ -181,7 +183,7 @@ rvoe<std::string> load_file_as_string(const char *fname) {
     return load_file_as_string(f);
 }
 
-rvoe<std::string> load_file_as_string(const pystd2025::Path &fname) {
+rvoe<pystd2025::CString> load_file_as_string(const pystd2025::Path &fname) {
     if(!fname.is_file()) {
         RETERR(FileDoesNotExist);
     }
@@ -189,7 +191,9 @@ rvoe<std::string> load_file_as_string(const pystd2025::Path &fname) {
     return load_file_as_string(fname.c_str());
 }
 
-rvoe<std::string> load_file_as_string(FILE *f) { return do_file_load<std::string>(f); }
+rvoe<pystd2025::CString> load_file_as_string(FILE *f) {
+    return do_file_load<pystd2025::CString>(f);
+}
 
 rvoe<pystd2025::Bytes> load_file_as_bytes(const pystd2025::Path &fname) {
     FILE *f = fopen(fname.c_str(), "rb");
@@ -234,7 +238,7 @@ pystd2025::CString utf8_to_pdfutf16be(const u8string &input, bool add_adornments
     return encoded;
 }
 
-bool is_valid_utf8(std::string_view input) {
+bool is_valid_utf8(pystd2025::CStringView input) {
     UtfDecodeStep par;
     // clang-format off
     const uint32_t twobyte_header_mask    = 0b11100000;
@@ -268,7 +272,7 @@ bool is_valid_utf8(std::string_view input) {
     return true;
 }
 
-std::string current_date_string() {
+pystd2025::CString current_date_string() {
     const int bufsize = 128;
     char buf[bufsize];
     time_t timepoint;
@@ -287,11 +291,11 @@ std::string current_date_string() {
         std::abort();
     }
     strftime(buf, bufsize, "(D:%Y%m%d%H%M%SZ)", &utctime);
-    return std::string(buf);
+    return pystd2025::CString(buf);
 }
 
-std::string pdfstring_quote(std::string_view raw_string) {
-    std::string result;
+pystd2025::CString pdfstring_quote(pystd2025::CStringView raw_string) {
+    pystd2025::CString result;
     result.reserve(raw_string.size() * 2 + 2);
     result.push_back('(');
     for(const char c : raw_string) {
@@ -310,11 +314,11 @@ std::string pdfstring_quote(std::string_view raw_string) {
     return result;
 }
 
-std::string u8str2u8textstring(const u8string &str) { return u8str2u8textstring(str.sv()); }
+pystd2025::CString u8str2u8textstring(const u8string &str) { return u8str2u8textstring(str.sv()); }
 
 // PDF 2.0 spec 7.9.2.2
-std::string u8str2u8textstring(std::string_view u8string) {
-    std::string result;
+pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8string) {
+    pystd2025::CString result;
     result.reserve(u8string.size() + 10);
     result.push_back('(');
     result.push_back(char(239));
@@ -336,8 +340,8 @@ std::string u8str2u8textstring(std::string_view u8string) {
     return result;
 }
 
-std::string u8str2filespec(const u8string &str) {
-    std::string result;
+pystd2025::CString u8str2filespec(const u8string &str) {
+    pystd2025::CString result;
     const char escaped_slash[4] = {'\\', '\\', '/', 0};
     result.reserve(str.size() + 10);
     result.push_back('(');
@@ -363,8 +367,8 @@ std::string u8str2filespec(const u8string &str) {
     return result;
 }
 
-std::string pdfname_quote(std::string_view raw_string) {
-    std::string result;
+pystd2025::CString pdfname_quote(pystd2025::CStringView raw_string) {
+    pystd2025::CString result;
     result.reserve(raw_string.size() + 10);
     for(const char c : raw_string) {
         switch(c) {
@@ -381,7 +385,7 @@ std::string pdfname_quote(std::string_view raw_string) {
     return result;
 }
 
-bool is_ascii(std::string_view text) {
+bool is_ascii(pystd2025::CStringView text) {
     for(const auto c : text) {
         auto ci = int32_t((unsigned char)c);
         if(ci > 127) {
@@ -392,8 +396,8 @@ bool is_ascii(std::string_view text) {
 }
 
 // As in PDF 2.0 spec 7.3.5
-std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash) {
-    std::string result;
+pystd2025::CString bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash) {
+    pystd2025::CString result;
     char buf[10];
     result.reserve(raw.size() + 1);
     if(add_slash) {
@@ -413,20 +417,17 @@ std::string bytes2pdfstringliteral(std::string_view raw, bool add_slash) {
     return result;
 }
 
-std::string bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_slash) {
-    return bytes2pdfstringliteral(std::string_view{raw.data(), raw.size()}, add_slash);
-}
-
 pystd2025::CString create_trailer_id() {
-    int num_bytes = 16;
+    const int num_bytes = 16;
     pystd2025::CString msg;
-    // msg.reserve(num_bytes * 2 + 2);
+    msg.reserve(num_bytes * 2 + 2);
+    msg.reserve(num_bytes * 2 + 2);
     msg.push_back('<');
     std::random_device r;
     std::default_random_engine gen(r());
     std::uniform_int_distribution<int> dist(0, 255);
     for(int i = 0; i < num_bytes; ++i) {
-        pystd2025::format_append(msg, "{:02X}", (unsigned char)dist(gen));
+        pystd2025::format_append(msg, "%02X", (unsigned char)dist(gen));
     }
     msg.push_back('>');
     return msg;
@@ -466,7 +467,7 @@ void serialize_trans(ObjectFormatter &fmt, const Transition &t) {
     fmt.end_dict();
 }
 
-void quote_xml_element_data_into(const u8string &content, std::string &result) {
+void quote_xml_element_data_into(const u8string &content, pystd2025::CString &result) {
     auto content_view = content.sv();
     for(char c : content_view) {
         switch(c) {
@@ -486,13 +487,13 @@ void quote_xml_element_data_into(const u8string &content, std::string &result) {
     }
 }
 
-pystd2025::BytesView str2span(const std::string &s) {
+pystd2025::BytesView str2span(const pystd2025::CString &s) {
     return pystd2025::BytesView(s.data(), s.size());
 }
 
-std::string_view span2sv(pystd2025::BytesView s) {
+pystd2025::CStringView span2sv(pystd2025::BytesView s) {
     auto *ptr = (const char *)s.data();
-    return std::string_view(ptr, s.size());
+    return pystd2025::CStringView(ptr, s.size());
 }
 
 } // namespace capypdf::internal

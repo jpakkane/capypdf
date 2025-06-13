@@ -9,10 +9,7 @@
 #include <colorconverter.hpp>
 #include <document.hpp>
 #include <commandstreamformatter.hpp>
-#include <string>
-#include <string_view>
 #include <vector>
-#include <span>
 
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::FontSubset> {
     void operator()(Hasher &h, const capypdf::internal::FontSubset &sset) noexcept {
@@ -37,13 +34,13 @@ struct GstatePopper {
 };
 
 struct SerializedBasicContext {
-    std::string resource_dict;
-    std::string command_stream;
+    pystd2025::CString resource_dict;
+    pystd2025::CString command_stream;
 };
 
 struct SerializedXObject {
     ObjectFormatter dict;
-    std::string command_stream;
+    pystd2025::CString command_stream;
 };
 
 typedef std::variant<SerializedBasicContext, SerializedXObject> DCSerialization;
@@ -80,16 +77,16 @@ public:
                                 const BDCTags *attributes);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid, const BDCTags *attributes);
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_OptionalContentGroupId id);
-    rvoe<NoReturnValue> cmd_BMC(std::string_view tag);
+    rvoe<NoReturnValue> cmd_BMC(pystd2025::CStringView tag);
     rvoe<NoReturnValue> cmd_c(double x1, double y1, double x2, double y2, double x3, double y3);
     rvoe<NoReturnValue> cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
-    rvoe<NoReturnValue> cmd_CS(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_CS(pystd2025::CStringView cspace_name);
     rvoe<NoReturnValue> cmd_CS(pystd2025::CString &cspace_name) {
-        return cmd_CS(std::string_view(cspace_name.data(), cspace_name.size()));
+        return cmd_CS(pystd2025::CStringView(cspace_name.data(), cspace_name.size()));
     }
-    rvoe<NoReturnValue> cmd_cs(std::string_view cspace_name);
+    rvoe<NoReturnValue> cmd_cs(pystd2025::CStringView cspace_name);
     rvoe<NoReturnValue> cmd_cs(pystd2025::CString &cspace_name) {
-        return cmd_cs(std::string_view(cspace_name.data(), cspace_name.size()));
+        return cmd_cs(pystd2025::CStringView(cspace_name.data(), cspace_name.size()));
     }
     rvoe<NoReturnValue> cmd_d(double *dash_array, size_t dash_array_length, double phase);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_FormXObjectId fxoid);

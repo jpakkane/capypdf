@@ -5,7 +5,6 @@
 
 #include <cstdint>
 #include <pystd2025.hpp>
-#include <string>
 
 namespace capypdf::internal {
 
@@ -27,16 +26,17 @@ class asciistring;
 
 class ObjectFormatter {
 public:
-    explicit ObjectFormatter(std::string_view base_indent = {});
+    explicit ObjectFormatter(pystd2025::CStringView base_indent = {});
 
     ObjectFormatter(const ObjectFormatter &o) = delete;
     ObjectFormatter(ObjectFormatter &&o)
-        : state{std::move(o.state)}, stack{std::move(o.stack)}, buf{std::move(o.buf)} {}
+        : state{pystd2025::move(o.state)}, stack{pystd2025::move(o.stack)},
+          buf{pystd2025::move(o.buf)} {}
 
     ObjectFormatter &operator=(ObjectFormatter &&o) {
-        state = std::move(o.state);
-        stack = std::move(o.stack);
-        buf = std::move(o.buf);
+        state = pystd2025::move(o.state);
+        stack = pystd2025::move(o.stack);
+        buf = pystd2025::move(o.buf);
         return *this;
     }
     ObjectFormatter &operator=(const ObjectFormatter &o) = delete;
@@ -55,13 +55,12 @@ public:
     }
 
     void add_token_pair(const char *t1, const char *t2);
-    template<typename T> void add_token_pair(std::string_view key, T &&vtype) {
+    template<typename T> void add_token_pair(pystd2025::CStringView key, T &&vtype) {
         add_token(key);
         add_token(vtype);
     }
 
     void add_token(const char *raw_text);
-    void add_token(std::string_view raw_text);
     void add_token(pystd2025::CStringView raw_text);
     void add_token(const pystd2025::CString &raw_text) { add_token(raw_text.view()); }
     void add_token(int32_t number);
@@ -70,11 +69,11 @@ public:
     void add_token(double number);
 
     void add_token_with_slash(const char *name);
-    void add_token_with_slash(std::string_view name);
+    void add_token_with_slash(pystd2025::CStringView name);
     void add_object_ref(int32_t onum);
     void add_pdfstring(const asciistring &str);
 
-    std::string steal();
+    pystd2025::CString steal();
 
     const pystd2025::CString &current_indent() const { return state.indent; }
     size_t depth() const { return stack.size(); }

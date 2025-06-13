@@ -22,7 +22,7 @@ int main1(int argc, char **argv) {
         printf("Num chars: %d\n", (int)cff.char_strings.size());
         printf("All strings:\n");
         for(const auto &s : cff.string.entries) {
-            std::string tmpstr((const char *)s.data(), s.size());
+            pystd2025::CString tmpstr((const char *)s.data(), s.size());
             printf("%s\n", tmpstr.c_str());
         }
     } else if(ext == ".ttc") {

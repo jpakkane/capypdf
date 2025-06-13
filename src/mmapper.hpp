@@ -5,7 +5,6 @@
 
 #include <errorhandling.hpp>
 
-#include <string_view>
 #include <variant>
 
 #include <pystd2025.hpp>
@@ -23,7 +22,7 @@ public:
     ~MMapper();
 
     pystd2025::BytesView span() const;
-    std::string_view sv() const;
+    pystd2025::CStringView sv() const;
 
     MMapper &operator=(MMapper &&o);
     MMapper &operator=(const MMapper &o) = delete;
@@ -35,7 +34,7 @@ private:
 typedef std::variant<std::monostate, MMapper, pystd2025::Bytes, pystd2025::BytesView> DataSource;
 
 rvoe<pystd2025::BytesView> span_of_source(const DataSource &s);
-rvoe<std::string_view> view_of_source(const DataSource &s);
+rvoe<pystd2025::CStringView> view_of_source(const DataSource &s);
 
 rvoe<MMapper> mmap_file(const char *fname);
 

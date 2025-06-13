@@ -15,10 +15,10 @@ namespace capypdf::internal {
 
 namespace {
 
-const std::string_view PNG_SIG("\x89PNG\r\n\x1a\n", 8);
-const std::string_view JPG_SIG("\xff\xd8\xff", 3);
-const std::string_view TIF_SIG1("II*", 3);
-const std::string_view TIF_SIG2("MM", 2);
+const pystd2025::CStringView PNG_SIG("\x89PNG\r\n\x1a\n", 8);
+const pystd2025::CStringView JPG_SIG("\xff\xd8\xff", 3);
+const pystd2025::CStringView TIF_SIG1("II*", 3);
+const pystd2025::CStringView TIF_SIG2("MM", 2);
 
 void load_rgb_png(png_struct *png_ptr, png_info *info_ptr, RawPixelImage &result) {
     unsigned char **rows = png_get_rows(png_ptr, info_ptr);
@@ -261,7 +261,7 @@ void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     RawPixelImage result;
-    pystd2025::Optional<std::string> icc;
+    pystd2025::Optional<pystd2025::CString> icc;
 
     uint32_t w{}, h{};
     uint16_t bitspersample{}, samplesperpixel{}, photometric{}, planarconf{};
@@ -635,7 +635,7 @@ rvoe<RasterImage> load_image_file(const pystd2025::Path &fname) {
     if(rc != bufsize) {
         RETERR(UnsupportedFormat);
     }
-    std::string_view v(buf, buf + bufsize);
+    pystd2025::CStringView v(buf, buf + bufsize);
 
     if(v.starts_with(PNG_SIG)) {
         return load_png_file(fname);
@@ -658,7 +658,7 @@ rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
         RETERR(UnsupportedFormat);
     }
 
-    std::string_view v(buf, buf + bufsize);
+    pystd2025::CStringView v(buf, buf + bufsize);
 
     if(v.starts_with(PNG_SIG)) {
         return load_png_from_memory(buf, bufsize);

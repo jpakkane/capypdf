@@ -119,7 +119,7 @@ const std::array<const char *, 16> blend_mode_names{
     "/Luminosity",
 };
 
-template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
+template<typename T> rvoe<NoReturnValue> append_floatvalue(pystd2025::Bytes &buf, double v) {
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
     }
@@ -130,8 +130,8 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, dou
     RETOK;
 }
 
-rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
-    std::string s;
+rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
+    pystd2025::Bytes s;
     for(const auto &e : shade.elements) {
         const double xratio =
             std::clamp((e.sp.p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
@@ -170,11 +170,11 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
             std::abort();
         }
     }
-    return rvoe<std::string>{std::move(s)};
+    return rvoe<pystd2025::Bytes>{std::move(s)};
 }
 
-rvoe<std::string> serialize_shade6(const ShadingType6 &shade) {
-    std::string s;
+rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
+    pystd2025::Bytes s;
     for(const auto &eh : shade.elements) {
         if(!std::holds_alternative<FullCoonsPatch>(eh)) {
             fprintf(stderr, "Continuation patches not yet supported.\n");
@@ -268,7 +268,7 @@ template<typename T1, typename T2> static void append_value_or_null(T1 &fmt, con
 }
 
 struct NameProxy {
-    std::string_view name;
+    pystd2025::CStringView name;
     int i;
 
     bool operator<(const NameProxy &o) const { return name < o.name; }
@@ -406,8 +406,8 @@ rvoe<NoReturnValue> PdfDocument::init() {
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
-                                          std::string command_stream,
+rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
+                                          pystd2025::CString command_stream,
                                           const PageProperties &custom_props,
                                           const pystd2025::HashSet<CapyPDF_FormWidgetId> &fws,
                                           const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
@@ -480,7 +480,7 @@ PdfDocument::add_page_labeling(uint32_t start_page,
 }
 
 // Form XObjects
-void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, std::string xobj_stream) {
+void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, pystd2025::CString xobj_stream) {
     const auto xobj_num =
         add_object(DeflatePDFObject{std::move(xobj_dict), RawData(std::move(xobj_stream)), true});
 
@@ -742,9 +742,9 @@ rvoe<int32_t> PdfDocument::create_structure_parent_tree() {
     return add_object(FullPDFObject{fmt.steal(), {}});
 }
 
-rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
+rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(pystd2025::CString name,
                                                     CapyPDF_Structure_Type builtin_type) {
-    if(name.empty() || name.front() == '/') {
+    if(name.is_empty() || name.front() == '/') {
         RETERR(SlashStart);
     }
     for(const auto &i : rolemap) {
@@ -1030,7 +1030,7 @@ int32_t PdfDocument::add_document_metadata_object() {
             pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
         fmt.add_token_pair("/Length", stream.size());
         fmt.end_dict();
-        return add_object(FullPDFObject{fmt.steal(), RawData(std::string(stream.c_str()))});
+        return add_object(FullPDFObject{fmt.steal(), RawData(pystd2025::CString(stream.c_str()))});
     } else {
         fmt.add_token_pair("/Length", docprops.metadata_xml.length());
         fmt.end_dict();
@@ -1068,7 +1068,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(pystd2025::BytesView 
     fmt.add_token_pair("/N", num_channels);
     auto stream_obj_id = add_object(DeflatePDFObject{std::move(fmt), RawData(contents)});
     auto str = pystd2025::format("[ /ICCBased %d 0 R ]\n", stream_obj_id);
-    auto obj_id = add_object(FullPDFObject{std::string(str.c_str()), {}});
+    auto obj_id = add_object(FullPDFObject{pystd2025::CString(str.c_str()), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
     return CapyPDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
@@ -1092,7 +1092,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
         fmt.add_token_pair("/CreationDate", current_date);
     }
     if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&docprops.subtype)) {
-        std::string parname("(");
+        pystd2025::CString parname("(");
         parname += pdfx_names.at(*xptr);
         parname += ")\n";
         fmt.add_token_pair("/GTS_PDFXVersion", parname);
@@ -1610,7 +1610,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType4 &shade) {
     fmt.add_token_pair("/BitsPerCoordinate", 32);
     fmt.add_token_pair("/BitsPerComponent", 16);
     fmt.add_token_pair("/BitsPerFlag", 8);
-    fmt.add_token_pair("/Length", serialized.length());
+    fmt.add_token_pair("/Length", serialized.size());
     fmt.add_token("/Decode");
     fmt.begin_array(2);
     fmt.add_token(shade.minx);
@@ -1646,7 +1646,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType6 &shade) {
     fmt.add_token_pair("/BitsPerCoordinate", 32);
     fmt.add_token_pair("/BitsPerComponent", 16);
     fmt.add_token_pair("/BitsPerFlag", 8);
-    fmt.add_token_pair("/Length", serialized.length());
+    fmt.add_token_pair("/Length", serialized.size());
     fmt.add_token("/Decode");
     fmt.begin_array(2);
     fmt.add_token(shade.minx);
@@ -1732,11 +1732,11 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
 rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
                                                              CapyPDF_FormXObjectId onstate,
                                                              CapyPDF_FormXObjectId offstate,
-                                                             std::string_view partial_name) {
+                                                             pystd2025::CStringView partial_name) {
     CHECK_INDEXNESS_V(onstate.id, form_xobjects);
     CHECK_INDEXNESS_V(offstate.id, form_xobjects);
     DelayedCheckboxWidgetAnnotation formobj{
-        {(int32_t)form_widgets.size()}, loc, onstate, offstate, std::string{partial_name}};
+        {(int32_t)form_widgets.size()}, loc, onstate, offstate, pystd2025::CString{partial_name}};
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
