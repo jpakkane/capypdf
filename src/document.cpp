@@ -19,6 +19,15 @@
 
 namespace capypdf::internal {
 
+void FontCloser::del(FT_Face f) {
+    if(f) {
+        auto rc = FT_Done_Face(f);
+        if(rc != 0) {
+            fprintf(stderr, "Warning: closing Freetype font failed.\n");
+        }
+    }
+}
+
 const std::array<const char *, 3> colorspace_names{
     "/DeviceRGB",
     "/DeviceGray",
@@ -65,14 +74,6 @@ const std::array<const char *, 9> pdfx_names{
 
 const std::array<const char, 10> pdfa_part{'1', '1', '2', '2', '2', '3', '3', '3', '4', '4'};
 const std::array<const char, 10> pdfa_conformance{'A', 'B', 'A', 'B', 'U', 'A', 'B', 'U', 'F', 'E'};
-
-FT_Error guarded_face_close(FT_Face face) {
-    // Freetype segfaults if you give it a null pointer.
-    if(face) {
-        return FT_Done_Face(face);
-    }
-    return 0;
-}
 
 const std::array<const char *, 14> font_names{
     "/Times-Roman",
@@ -1863,8 +1864,7 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 rvoe<CapyPDF_FontId>
 PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperties props) {
     FT_Face face;
-    TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
-                {}};
+    TtfFont ttf{pystd2025::unique_ptr<FT_FaceRec_, FontCloser>{nullptr}, {}};
     auto error = FT_New_Face(ft, fname.c_str(), props.subfont, &face);
     if(error) {
         // By default Freetype is compiled without
@@ -1913,6 +1913,11 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
     }
     CapyPDF_FontId font_source_id{(int32_t)fonts.size()};
     ERC(fss, FontSubsetter::construct(fname, face, props));
+    {
+        pystd2025::unique_ptr<FT_FaceRec_, FontCloser> a(pystd2025::move(ttf.face));
+        assert(ttf.face.get() == nullptr);
+        ttf.face = pystd2025::move(a);
+    }
     fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
 
     const int32_t subset_num = 0;

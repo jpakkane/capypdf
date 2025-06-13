@@ -111,6 +111,17 @@ template<typename T> rvoe<T> do_file_load(FILE *f) {
     return contents;
 }
 
+struct DeflateCloser {
+    static void del(z_stream *zs) {
+        if(zs) {
+            auto rc = deflateEnd(zs);
+            if(rc != Z_OK) {
+                fprintf(stderr, "Zlib error when closing: %s\n", zs->msg);
+            }
+        }
+    }
+};
+
 } // namespace
 
 rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
@@ -126,7 +137,7 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
     if(ret != Z_OK) {
         RETERR(CompressionFailure);
     }
-    std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
+    pystd2025::unique_ptr<z_stream, DeflateCloser> zcloser(&strm);
     strm.avail_in = data.size();
     strm.next_in = (Bytef *)(data.data()); // Very unsafe.
 
@@ -163,7 +174,7 @@ rvoe<std::string> load_file_as_string(const char *fname) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     return load_file_as_string(f);
 }
 
@@ -183,7 +194,7 @@ rvoe<std::vector<std::byte>> load_file_as_bytes(const pystd2025::Path &fname) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     return load_file_as_bytes(f);
 }
 

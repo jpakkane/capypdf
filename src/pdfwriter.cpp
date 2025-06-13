@@ -172,7 +172,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const pystd2025::Path &ofilename) {
         perror(nullptr);
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(out_file, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(out_file);
 
     ERCV(write_to_file(out_file));
     if(fflush(out_file) != 0) {

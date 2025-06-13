@@ -26,8 +26,12 @@ FT_Error guarded_face_close(FT_Face face);
 
 namespace capypdf::internal {
 
+struct FontCloser {
+    static void del(FT_Face f);
+};
+
 struct TtfFont {
-    std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)> face;
+    pystd2025::unique_ptr<FT_FaceRec_, FontCloser> face;
     TrueTypeFontFile fontdata;
 };
 
