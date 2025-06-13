@@ -805,7 +805,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     ERC(head, load_head(directory, original_data));
     tf.head = head;
     ERC(maxp, load_maxp(directory, original_data));
-    tf.maxp = maxp;
+    tf.maxp = pystd2025::move(maxp);
 #ifdef CAPYFUZZING
     if(tf.maxp.num_glyphs() > 1024) {
         RETERR(MalformedFontFile);
@@ -825,7 +825,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     auto *cff = find_entry(directory, "CFF ");
     if(cff) {
         ERC(cffg, load_CFF_glyphs(cff->offset, original_data, tf.maxp.num_glyphs()))
-        tf.cff = std::move(cffg);
+        tf.cff = pystd2025::move(cffg);
     }
     ERC(cvt, load_raw_table(directory, original_data, "cvt "));
     tf.cvt = cvt;
@@ -892,7 +892,7 @@ generate_truetype_font(const TrueTypeFontFile &source,
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
     dest.head.checksum_adjustment = 0;
     dest.hhea = source.hhea;
-    dest.maxp = source.maxp;
+    dest.maxp = TTMaxp{source.maxp};
     dest.maxp.set_num_glyphs(subglyphs.size());
     dest.hmtx = subset_hmtx(source, glyphs);
     dest.hhea.num_hmetrics = dest.hmtx.longhor.size();

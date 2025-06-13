@@ -61,9 +61,11 @@ MMapper::MMapper(MMapperPrivate *priv) : d{priv} {}
 
 MMapper::~MMapper() = default;
 
-MMapper::MMapper(MMapper &&o) = default;
+MMapper::MMapper(MMapper &&o) noexcept = default;
 
-MMapper &MMapper::operator=(MMapper &&o) = default;
+MMapper::MMapper(const MMapper &o) { throw "Nope, can not copy these."; }
+
+MMapper &MMapper::operator=(MMapper &&o) noexcept = default;
 
 pystd2025::BytesView MMapper::span() const { return d->span(); }
 
@@ -132,13 +134,13 @@ rvoe<MMapper> mmap_file(const char *fname) {
 #endif
 
 rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
-    if(auto *mm = std::get_if<MMapper>(&s)) {
+    if(auto *mm = s.get_if<MMapper>()) {
         return mm->span();
     }
-    if(auto *by = std::get_if<pystd2025::Bytes>(&s)) {
+    if(auto *by = s.get_if<pystd2025::Bytes>()) {
         return by->view();
     }
-    if(auto *sp = std::get_if<pystd2025::BytesView>(&s)) {
+    if(auto *sp = s.get_if<pystd2025::BytesView>()) {
         return *sp;
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");
@@ -146,10 +148,10 @@ rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
 }
 
 rvoe<pystd2025::CStringView> view_of_source(const DataSource &s) {
-    if(auto *mm = std::get_if<MMapper>(&s)) {
+    if(auto *mm = s.get_if<MMapper>()) {
         return mm->sv();
     }
-    if(auto *sv = std::get_if<pystd2025::BytesView>(&s)) {
+    if(auto *sv = s.get_if<pystd2025::BytesView>()) {
         return span2sv(*sv);
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");

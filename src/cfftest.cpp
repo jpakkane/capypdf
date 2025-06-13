@@ -29,10 +29,10 @@ int main1(int argc, char **argv) {
         // /usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc
         capypdf::internal::FontProperties fprops;
         auto cff = capypdf::internal::load_and_parse_font_file(fontfile, fprops).value();
-        if(auto *plaincff = std::get_if<capypdf::internal::CFFont>(&cff)) {
+        if(auto *plaincff = cff.get_if<capypdf::internal::CFFont>()) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }
-        if(auto *ttc = std::get_if<capypdf::internal::TrueTypeFontFile>(&cff)) {
+        if(auto *ttc = cff.get_if<capypdf::internal::TrueTypeFontFile>()) {
             std::vector<capypdf::internal::SubsetGlyphs> glyphs;
             glyphs.emplace_back(0, 0);
             glyphs.emplace_back(1024, 1024);

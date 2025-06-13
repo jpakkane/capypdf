@@ -57,7 +57,7 @@ rvoe<FontSubsetter> FontSubsetter::construct(const pystd2025::Path &fontfile,
                                              FT_Face face,
                                              const FontProperties &props) {
     ERC(font, load_and_parse_font_file(fontfile, props));
-    if(auto *ttffile = std::get_if<TrueTypeFontFile>(&font)) {
+    if(auto *ttffile = font.get_if<TrueTypeFontFile>()) {
         return FontSubsetter(std::move(*ttffile), face, create_startstate());
     } else {
         fprintf(stderr, "Only basic Truetype fonts supported currently.\n");

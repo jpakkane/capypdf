@@ -100,9 +100,16 @@ struct TTMaxp10 {
 
 class TTMaxp {
 public:
-    TTMaxp() : data{TTMaxp10{}} {}
-    explicit TTMaxp(const TTMaxp05 &t) : data{t} {}
-    explicit TTMaxp(const TTMaxp10 &t) : data{t} {}
+    TTMaxp() noexcept : data{TTMaxp10{}} {}
+    explicit TTMaxp(const TTMaxp05 &t) noexcept : data{t} {}
+    explicit TTMaxp(const TTMaxp10 &t) noexcept : data{t} {}
+    TTMaxp(TTMaxp &&o) noexcept : data{pystd2025::move(o.data)} {}
+    TTMaxp(const TTMaxp &o) noexcept : data{o.data} {}
+
+    TTMaxp &operator=(TTMaxp &&o) noexcept {
+        data = pystd2025::move(o.data);
+        return *this;
+    }
 
     uint16_t num_glyphs() const;
     void set_num_glyphs(uint16_t glyph_count);
@@ -169,7 +176,7 @@ struct TrueTypeFontFile {
     // A TrueType file can be just a container for a
     // CFF file. Note that if it has cff glyphs then it should
     // not have "glyf" glyphs from above.
-    std::optional<CFFont> cff;
+    pystd2025::Optional<CFFont> cff;
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
@@ -188,7 +195,7 @@ struct TrueTypeFontFile {
         }
     }
 
-    bool in_cff_format() const { return cff.has_value(); }
+    bool in_cff_format() const { return cff; }
 
     int num_directory_entries() const {
         int entries = 6;
@@ -214,7 +221,7 @@ struct TrueTypeCollection {
 };
 
 // In case of TTC, only return the requested subfont.
-typedef std::variant<TrueTypeFontFile, CFFont> FontData;
+typedef pystd2025::Variant<TrueTypeFontFile, CFFont> FontData;
 
 rvoe<bool> is_composite_glyph(pystd2025::BytesView buf);
 rvoe<std::vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf);

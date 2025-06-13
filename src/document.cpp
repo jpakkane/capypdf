@@ -1893,8 +1893,8 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
         RETERR(UnsupportedFormat);
     }
     ERC(fontdata, load_and_parse_font_file(fname, props));
-    assert(std::holds_alternative<TrueTypeFontFile>(fontdata));
-    ttf.fontdata = std::move(std::get<TrueTypeFontFile>(fontdata));
+    assert(fontdata.contains<TrueTypeFontFile>());
+    ttf.fontdata = std::move(fontdata.get<TrueTypeFontFile>());
 
     if(!(strcmp(font_format, "TrueType") || strcmp(font_format, "CFF"))) {
         fprintf(stderr,
