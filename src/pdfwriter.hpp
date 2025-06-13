@@ -17,9 +17,15 @@ private:
     rvoe<NoReturnValue> write_to_file_impl();
 
     rvoe<NoReturnValue> write_bytes(const char *buf,
-                                    size_t buf_size); // With error checking.
+                                    size_t buf_size = (size_t)-1); // With error checking.
     rvoe<NoReturnValue> write_bytes(std::string_view view) {
         return write_bytes(view.data(), view.size());
+    }
+    rvoe<NoReturnValue> write_bytes(pystd2025::CStringView view) {
+        return write_bytes(view.data(), view.size());
+    }
+    rvoe<NoReturnValue> write_bytes(const pystd2025::CString &str) {
+        return write_bytes(str.data(), str.size());
     }
 
     rvoe<std::vector<uint64_t>> write_objects();

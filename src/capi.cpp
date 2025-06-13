@@ -79,6 +79,9 @@ handle_exception() {
     } catch(const std::exception &e) {
         fprintf(stderr, "%s\n", e.what());
         return conv_err(ErrorCode::DynamicError);
+    } catch(const char *msg) {
+        fprintf(stderr, "%s\n", msg);
+        return conv_err(ErrorCode::DynamicError);
     } catch(...) {
         fprintf(stderr, "An error of an unknown type occurred.\n");
         return conv_err(ErrorCode::DynamicError);

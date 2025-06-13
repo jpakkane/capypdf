@@ -13,7 +13,6 @@
 #include <sys/time.h>
 #endif
 
-#include <format>
 #include <random>
 #include <chrono>
 
@@ -162,6 +161,11 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
     return compressed;
 }
 
+rvoe<std::vector<std::byte>> flate_compress(pystd2025::CStringView data) {
+    std::string_view sv(data.data(), data.size());
+    return flate_compress(sv);
+}
+
 rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data) {
     std::string_view sv((const char *)data.data(), data.size());
     return flate_compress(sv);
@@ -212,10 +216,9 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-std::string utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
-    std::string encoded = add_adornments ? "<FEFF" : ""; // PDF 2.0 spec, 7.9.2.2.1
+pystd2025::CString utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
+    pystd2025::CString encoded(add_adornments ? "<FEFF" : ""); // PDF 2.0 spec, 7.9.2.2.1
 
-    auto bi = std::back_inserter(encoded);
     std::vector<uint16_t> u16buf;
     for(const auto codepoint : input) {
         u16buf.clear();
@@ -223,7 +226,8 @@ std::string utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
         for(const auto &u16 : u16buf) {
             const auto *lower_byte = (const unsigned char *)&u16;
             const auto *upper_byte = lower_byte + 1;
-            std::format_to(bi, "{:02X}{:02X}", *upper_byte, *lower_byte);
+            pystd2025::format_append(
+                encoded, "%02X%02X", (uint32_t)*upper_byte, (uint32_t)*lower_byte);
         }
     }
     if(add_adornments) {

@@ -5,7 +5,6 @@
 #include <utils.hpp>
 #include <objectformatter.hpp>
 
-#include <format>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
@@ -65,13 +64,8 @@ void write_rectangle(ObjectFormatter &fmt, const char *boxname, const PdfRectang
     fmt.end_array();
 }
 
-void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &box) {
-    std::format_to(
-        appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
-}
-
-std::string create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
-    std::string buf = std::format(R"(/CIDInit /ProcSet findresource begin
+pystd2025::CString create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
+    auto buf = pystd2025::format(R"(/CIDInit /ProcSet findresource begin
 12 dict begin
 begincmap
 /CIDSystemInfo
@@ -84,23 +78,22 @@ begincmap
 1 begincodespacerange
 <0000> <ffff>
 endcodespacerange
-{} beginbfchar
+%d beginbfchar
 )",
-                                  glyphs.size() - 1);
+                                 glyphs.size() - 1);
     // Glyph zero is not mapped.
-    auto appender = std::back_inserter(buf);
     for(size_t i = 1; i < glyphs.size(); ++i) {
         const auto &g = glyphs[i];
         if(std::holds_alternative<LigatureGlyph>(g)) {
             const auto &lg = std::get<LigatureGlyph>(g);
             const auto u16repr = utf8_to_pdfutf16be(lg.text, false);
-            std::format_to(appender, "<{:04X}> <{}>\n", i, u16repr);
+            pystd2025::format_append(buf, "<%04X> <%s>\n", i, u16repr.c_str());
         } else {
             uint32_t unicode_codepoint = 0;
             if(std::holds_alternative<RegularGlyph>(g)) {
                 unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
             }
-            std::format_to(appender, "<{:04X}> <{:04X}>\n", i, unicode_codepoint);
+            pystd2025::format_append(buf, "<%04X> <%04X>\n", i, unicode_codepoint);
         }
     }
     buf += R"(endbfchar
@@ -112,10 +105,9 @@ end
     return buf;
 }
 
-rvoe<std::string>
+rvoe<pystd2025::CString>
 build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool is_cff = false) {
-    std::string arr{"[ "};
-    auto bi = std::back_inserter(arr);
+    pystd2025::CString arr("[ ");
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
     for(const auto &glyph : glyphs) {
         const auto glyph_id = font_id_for_glyph(glyph);
@@ -131,7 +123,8 @@ build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool
         // They produce the correct results with all fonts I had.
         //
         // Determined via debugging empirism.
-        std::format_to(bi, "{} ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
+        pystd2025::format_append(
+            arr, "%d ", (int32_t)(double(horiadvance) * 1000 / face->units_per_EM));
     }
     arr += "]";
     return arr;
@@ -235,6 +228,9 @@ rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
 }
 
 rvoe<NoReturnValue> PdfWriter::write_bytes(const char *buf, size_t buf_size) {
+    if(buf_size == (size_t)-1) {
+        buf_size = strlen(buf);
+    }
     if(fwrite(buf, 1, buf_size, ofile) != buf_size) {
         perror(nullptr);
         RETERR(FileWriteError);
@@ -305,20 +301,18 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
 
 rvoe<NoReturnValue>
 PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
-    std::string buf;
-    auto app = std::back_inserter(buf);
-    std::format_to(app,
-                   R"(xref
+    auto buf = pystd2025::format(
+        R"(xref
 0 {}
 )",
-                   object_offsets.size());
+        object_offsets.size());
     bool first = true;
     for(const auto &i : object_offsets) {
         if(first) {
             buf += "0000000000 65535 f \n"; // The end of line whitespace is significant.
             first = false;
         } else {
-            std::format_to(app, "{:010} 00000 n \n", i);
+            pystd2025::format_append(buf, "{%010d} 00000 n \n", i);
         }
     }
     return write_bytes(buf);
@@ -344,11 +338,11 @@ rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
     fmt.add_token(documentid);
     fmt.end_array();
     fmt.end_dict();
-    auto ending = std::format(R"(startxref
-{}
+    auto ending = pystd2025::format(R"(startxref
+%ld
 %%EOF
 )",
-                              xref_offset);
+                                    xref_offset);
     ERCV(write_bytes("trailer\n"));
     ERCV(write_bytes(fmt.steal()));
     return write_bytes(ending);
@@ -357,25 +351,20 @@ rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
                                                      std::span<std::byte> stream_data) {
-    std::string buf;
-    auto appender = std::back_inserter(buf);
-    std::format_to(appender, "{} 0 obj\n", object_number);
-    buf += dict_data;
+    auto buf = pystd2025::format("%d 0 obj\n", object_number);
+    buf += pystd2025::CStringView(dict_data.data(), dict_data.size());
+    if(buf.back() != '\n') {
+        buf.append('\n');
+    }
+    ERCV(write_bytes(buf));
     if(!stream_data.empty()) {
-        if(buf.back() != '\n') {
-            buf += '\n';
-        }
-        buf += "stream\n";
-        buf += span2sv(stream_data);
+        ERCV(write_bytes("stream\n"));
+        ERCV(write_bytes((const char *)stream_data.data(), stream_data.size()));
         // PDF spec says that there must always be a newline before "endstream".
         // It is not counted in the /Length key in the object dictionary.
-        buf += "\nendstream\n";
+        ERCV(write_bytes("\nendstream\n"));
     }
-    if(buf.back() != '\n') {
-        buf += '\n';
-    }
-    buf += "endobj\n";
-    return write_bytes(buf);
+    return write_bytes("endobj\n");
 }
 
 rvoe<NoReturnValue>
@@ -501,7 +490,7 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
 
 rvoe<NoReturnValue> PdfWriter::write_subset_cmap(int32_t object_num, const FontThingy &font) {
     auto cmap = create_cidfont_subset_cmap(font.subsets.get_subset());
-    ERC(compressed_cmap, flate_compress(cmap));
+    ERC(compressed_cmap, flate_compress(cmap.view()));
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Filter", "/FlateDecode");

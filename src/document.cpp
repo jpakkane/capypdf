@@ -10,7 +10,6 @@
 #include <cassert>
 #include <array>
 #include <algorithm>
-#include <format>
 #include <ft2build.h>
 #include <variant>
 #include FT_FREETYPE_H
@@ -57,8 +56,8 @@ constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreS
 <x:xmpmeta xmlns:x="adobe:ns:meta/">
  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-   <pdfaid:part>{}</pdfaid:part>
-   <pdfaid:conformance>{}</pdfaid:conformance>
+   <pdfaid:part>%c</pdfaid:part>
+   <pdfaid:conformance>%c</pdfaid:conformance>
   </rdf:Description>
  </rdf:RDF>
 </x:xmpmeta>
@@ -1027,11 +1026,11 @@ int32_t PdfDocument::add_document_metadata_object() {
         if(!aptr) {
             std::abort();
         }
-        auto stream = std::format(
+        auto stream = pystd2025::format(
             pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
-        fmt.add_token_pair("/Length", stream.length());
+        fmt.add_token_pair("/Length", stream.size());
         fmt.end_dict();
-        return add_object(FullPDFObject{fmt.steal(), RawData(std::move(stream))});
+        return add_object(FullPDFObject{fmt.steal(), RawData(std::string(stream.c_str()))});
     } else {
         fmt.add_token_pair("/Length", docprops.metadata_xml.length());
         fmt.end_dict();
@@ -1068,8 +1067,8 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(std::span<std::byte> 
     fmt.begin_dict();
     fmt.add_token_pair("/N", num_channels);
     auto stream_obj_id = add_object(DeflatePDFObject{std::move(fmt), RawData(contents)});
-    auto obj_id =
-        add_object(FullPDFObject{std::format("[ /ICCBased {} 0 R ]\n", stream_obj_id), {}});
+    auto str = pystd2025::format("[ /ICCBased %d 0 R ]\n", stream_obj_id);
+    auto obj_id = add_object(FullPDFObject{std::string(str.c_str()), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
     return CapyPDF_IccColorSpaceId{(int32_t)icc_profiles.size() - 1};
 }
