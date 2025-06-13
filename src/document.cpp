@@ -301,7 +301,7 @@ DocumentProperties::DocumentProperties() {
 }
 
 PdfVersion DocumentProperties::version() const {
-    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+    if(auto *pdfa = subtype.get_if<CapyPDF_PDFA_Type>()) {
         if(*pdfa >= CAPY_PDFA_4f) {
             return PdfVersion::v20;
         }
@@ -310,7 +310,7 @@ PdfVersion DocumentProperties::version() const {
 }
 
 bool DocumentProperties::use_rdf_metadata() const {
-    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+    if(auto *pdfa = subtype.get_if<CapyPDF_PDFA_Type>()) {
         if(*pdfa >= CAPY_PDFA_4f) {
             return true;
         }
@@ -319,7 +319,7 @@ bool DocumentProperties::use_rdf_metadata() const {
 }
 
 bool DocumentProperties::require_embedded_files() const {
-    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&subtype)) {
+    if(auto *pdfa = subtype.get_if<CapyPDF_PDFA_Type>()) {
         if(*pdfa >= CAPY_PDFA_4f) {
             return true;
         }
@@ -390,7 +390,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
     }
     document_objects.push_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
-    if(!std::holds_alternative<std::monostate>(docprops.subtype)) {
+    if(!docprops.subtype.contains<pystd2025::Monostate>()) {
         if(!output_profile) {
             RETERR(OutputProfileMissing);
         }
@@ -399,8 +399,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
         }
         create_output_intent();
     }
-    if(!docprops.metadata_xml.empty() ||
-       std::holds_alternative<CapyPDF_PDFA_Type>(docprops.subtype)) {
+    if(!docprops.metadata_xml.empty() || docprops.subtype.contains<CapyPDF_PDFA_Type>()) {
         document_md_object = add_document_metadata_object();
     }
     RETOK;
@@ -882,9 +881,8 @@ void PdfDocument::create_output_intent() {
     assert(output_profile);
     ObjectFormatter fmt;
 
-    assert(!std::holds_alternative<std::monostate>(docprops.subtype));
-    const char *gts =
-        std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
+    assert(!docprops.subtype.contains<pystd2025::Monostate>());
+    const char *gts = docprops.subtype.contains<CapyPDF_PDFX_Type>() ? "/GTS_PDFX" : "/GTS_PDFA1";
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "OutputIntent");
     fmt.add_token_pair("/S", gts);
@@ -1022,7 +1020,7 @@ int32_t PdfDocument::add_document_metadata_object() {
     fmt.add_token_pair("/Type", "/Metadata");
     fmt.add_token_pair("/Subtype", "/XML");
     if(docprops.metadata_xml.empty()) {
-        auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
+        auto *aptr = docprops.subtype.get_if<CapyPDF_PDFA_Type>();
         if(!aptr) {
             std::abort();
         }
@@ -1091,7 +1089,7 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
         fmt.add_token_pair("/Producer", "(CapyPDF " CAPYPDF_VERSION_STR ")");
         fmt.add_token_pair("/CreationDate", current_date);
     }
-    if(auto xptr = std::get_if<CapyPDF_PDFX_Type>(&docprops.subtype)) {
+    if(auto xptr = docprops.subtype.get_if<CapyPDF_PDFX_Type>()) {
         pystd2025::CString parname("(");
         parname += pdfx_names.at(*xptr);
         parname += ")\n";
@@ -1945,7 +1943,7 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
 
 rvoe<NoReturnValue> PdfDocument::validate_format(const RawPixelImage &ri) const {
     // Check that the image has the correct format.
-    if(std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype)) {
+    if(docprops.subtype.contains<CapyPDF_PDFX_Type>()) {
         if(ri.md.cs == CAPY_IMAGE_CS_RGB) {
             // Later versions of PDFX permit rgb images with ICC colors, but let's start simple.
             RETERR(ImageFormatNotPermitted);

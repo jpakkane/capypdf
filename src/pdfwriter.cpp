@@ -876,7 +876,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
 }
 
 bool PdfWriter::add_info_key_to_trailer() const {
-    if(auto *pdfa = std::get_if<CapyPDF_PDFA_Type>(&doc.docprops.subtype)) {
+    if(auto *pdfa = doc.docprops.subtype.get_if<CapyPDF_PDFA_Type>()) {
         if(*pdfa >= CAPY_PDFA_4f) {
             // FIXME, should be true if there is a PieceInfo.
             return false;

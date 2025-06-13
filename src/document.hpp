@@ -201,7 +201,7 @@ struct DocumentProperties {
     bool is_tagged = false;
     CapyPDF_Device_Colorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
-    std::variant<std::monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
+    pystd2025::Variant<pystd2025::Monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
     u8string metadata_xml;
     u8string intent_condition_identifier;
     bool compress_streams = true;

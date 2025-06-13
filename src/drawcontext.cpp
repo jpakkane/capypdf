@@ -1117,7 +1117,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
                                                                double pointsize,
                                                                double x,
                                                                double y) {
-    if(!std::holds_alternative<std::monostate>(doc->docprops.subtype)) {
+    if(!doc->docprops.subtype.contains<pystd2025::Monostate>()) {
         RETERR(BadOperationForIntent);
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));

@@ -293,7 +293,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto dp = reinterpret_cast<DocumentProperties *>(docprops);
-    dp->subtype = xtype;
+    dp->subtype = pystd2025::move(xtype);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -302,7 +302,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto dp = reinterpret_cast<DocumentProperties *>(docprops);
-    dp->subtype = atype;
+    dp->subtype = pystd2025::move(atype);
     RETNOERR;
     API_BOUNDARY_END;
 }
