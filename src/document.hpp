@@ -321,7 +321,7 @@ struct StructItemExtraData {
 
 struct StructItem {
     int32_t obj_id;
-    std::variant<CapyPDF_Structure_Type, CapyPDF_RoleId> stype;
+    pystd2025::Variant<CapyPDF_Structure_Type, CapyPDF_RoleId> stype;
     pystd2025::Optional<CapyPDF_StructureItemId> parent;
     StructItemExtraData extra;
 };
@@ -462,11 +462,11 @@ public:
 
     // Structure itemsconst std::array<const char *, 3> colorspace_names
     rvoe<CapyPDF_StructureItemId>
-    add_structure_item(const CapyPDF_Structure_Type stype,
+    add_structure_item(CapyPDF_Structure_Type stype,
                        pystd2025::Optional<CapyPDF_StructureItemId> parent,
                        pystd2025::Optional<StructItemExtraData> extra);
     rvoe<CapyPDF_StructureItemId>
-    add_structure_item(const CapyPDF_RoleId role,
+    add_structure_item(CapyPDF_RoleId role,
                        pystd2025::Optional<CapyPDF_StructureItemId> parent,
                        pystd2025::Optional<StructItemExtraData> extra);
 

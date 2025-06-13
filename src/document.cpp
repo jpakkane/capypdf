@@ -1789,7 +1789,7 @@ rvoe<CapyPDF_AnnotationId> PdfDocument::add_annotation(const Annotation &a) {
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(const CapyPDF_Structure_Type stype,
+PdfDocument::add_structure_item(CapyPDF_Structure_Type stype,
                                 pystd2025::Optional<CapyPDF_StructureItemId> parent,
                                 pystd2025::Optional<StructItemExtraData> extra) {
     if(parent) {
@@ -1797,13 +1797,13 @@ PdfDocument::add_structure_item(const CapyPDF_Structure_Type stype,
     }
     auto stritem_id = (int32_t)structure_items.size();
     auto obj_id = add_object(DelayedStructItem{stritem_id});
-    structure_items.push_back(
-        StructItem{obj_id, stype, parent, extra ? extra.value() : StructItemExtraData()});
+    structure_items.push_back(StructItem{
+        obj_id, pystd2025::move(stype), parent, extra ? extra.value() : StructItemExtraData()});
     return CapyPDF_StructureItemId{(int32_t)structure_items.size() - 1};
 }
 
 rvoe<CapyPDF_StructureItemId>
-PdfDocument::add_structure_item(const CapyPDF_RoleId role,
+PdfDocument::add_structure_item(CapyPDF_RoleId role,
                                 pystd2025::Optional<CapyPDF_StructureItemId> parent,
                                 pystd2025::Optional<StructItemExtraData> extra) {
     if(parent) {

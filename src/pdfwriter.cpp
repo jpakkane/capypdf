@@ -824,10 +824,10 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/StructElem");
-    if(auto bi = std::get_if<CapyPDF_Structure_Type>(&si.stype)) {
+    if(auto bi = si.stype.get_if<CapyPDF_Structure_Type>()) {
         fmt.add_token("/S");
         fmt.add_token_with_slash(structure_type_names.at(*bi));
-    } else if(auto ri = std::get_if<CapyPDF_RoleId>(&si.stype)) {
+    } else if(auto ri = si.stype.get_if<CapyPDF_RoleId>()) {
         const auto &role = *ri;
         fmt.add_token_pair("/S", bytes2pdfstringliteral(doc.rolemap.at(role.id).name.view()));
     } else {

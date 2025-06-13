@@ -315,10 +315,10 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
 rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
                                             const BDCTags *attributes) {
     const auto &itemtype = doc->structure_items.at(sid.id).stype;
-    if(auto builtin = std::get_if<CapyPDF_Structure_Type>(&itemtype)) {
+    if(auto builtin = itemtype.get_if<CapyPDF_Structure_Type>()) {
         ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
         return cmd_BDC(astr, sid, attributes);
-    } else if(auto role = std::get_if<CapyPDF_RoleId>(&itemtype)) {
+    } else if(auto role = itemtype.get_if<CapyPDF_RoleId>()) {
         auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name.view(), false);
         ERC(astr, asciistring::from_cstr(quoted.c_str()));
         return cmd_BDC(astr, sid, attributes);
@@ -922,13 +922,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             // FIXME, convert to a serialize method and make
             // this and cmd_BDC use that.
             ERC(mcid_id, add_bcd_structure(sitem->sid));
-            auto item = doc->structure_items.at(sitem->sid.id).stype;
-            if(auto itemid = std::get_if<CapyPDF_Structure_Type>(&item)) {
+            auto &item = doc->structure_items.at(sitem->sid.id).stype;
+            if(auto itemid = item.get_if<CapyPDF_Structure_Type>()) {
                 const auto &itemstr = structure_type_names.at(*itemid);
                 auto cmd = pystd2025::format("/%s << /MCID %d >>\n", itemstr, mcid_id);
                 cmds.append(cmd);
                 cmds.append("BDC");
-            } else if(auto ri = std::get_if<CapyPDF_RoleId>(&item)) {
+            } else if(auto ri = item.get_if<CapyPDF_RoleId>()) {
                 const auto &role = *ri;
                 auto rolename = bytes2pdfstringliteral(doc->rolemap.at(role.id).name.view());
                 auto cmd = pystd2025::format("%s << /MCID %d >>\n", rolename.c_str(), mcid_id);
