@@ -38,13 +38,13 @@ struct ActualTextStart {
 
 struct ActualTextEnd {};
 
-typedef std::variant<KerningValue,
-                     UnicodeCharacter,
-                     u8string,
-                     GlyphItem,
-                     GlyphTextItem,
-                     ActualTextStart,
-                     ActualTextEnd>
+typedef pystd2025::Variant<KerningValue,
+                           UnicodeCharacter,
+                           u8string,
+                           GlyphItem,
+                           GlyphTextItem,
+                           ActualTextStart,
+                           ActualTextEnd>
     TextAtom;
 typedef std::vector<TextAtom> TextEvents;
 
@@ -194,28 +194,28 @@ struct gs_arg {
     CapyPDF_GraphicsStateId gid;
 };
 
-typedef std::variant<TStar_arg,
-                     Tc_arg,
-                     Td_arg,
-                     TD_arg,
-                     Tf_arg,
-                     Tj_arg,
-                     TJ_arg,
-                     TL_arg,
-                     Tm_arg,
-                     Tr_arg,
-                     Ts_arg,
-                     Tz_arg,
-                     StructureItem,
-                     Emc_arg,
-                     Stroke_arg,
-                     Nonstroke_arg,
-                     M_arg,
-                     w_arg,
-                     j_arg,
-                     J_arg,
-                     d_arg,
-                     gs_arg>
+typedef pystd2025::Variant<TStar_arg,
+                           Tc_arg,
+                           Td_arg,
+                           TD_arg,
+                           Tf_arg,
+                           Tj_arg,
+                           TJ_arg,
+                           TL_arg,
+                           Tm_arg,
+                           Tr_arg,
+                           Ts_arg,
+                           Tz_arg,
+                           StructureItem,
+                           Emc_arg,
+                           Stroke_arg,
+                           Nonstroke_arg,
+                           M_arg,
+                           w_arg,
+                           j_arg,
+                           J_arg,
+                           d_arg,
+                           gs_arg>
     TextEvent;
 
 class PdfText {

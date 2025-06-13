@@ -807,18 +807,18 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             serialisation.append_raw(glyphid);
         };
     for(const auto &e : charseq) {
-        if(auto kval = std::get_if<KerningValue>(&e)) {
+        if(auto kval = e.get_if<KerningValue>()) {
             if(is_first) {
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
             }
             auto v = pystd2025::format("%d ", kval->v);
             serialisation.append_raw(v);
-        } else if(auto uglyph = std::get_if<UnicodeCharacter>(&e)) {
+        } else if(auto uglyph = e.get_if<UnicodeCharacter>()) {
             const auto codepoint = uglyph->codepoint;
             ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
             glyph_appender_lambda(current_subset_glyph);
-        } else if(auto u8str = std::get_if<u8string>(&e)) {
+        } else if(auto u8str = e.get_if<u8string>()) {
             if(u8str->empty()) {
                 continue;
             }
@@ -835,21 +835,21 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 serialisation.append_raw(cmd);
             }
             serialisation.append_raw("> ");
-        } else if(auto actualtext = std::get_if<ActualTextStart>(&e)) {
+        } else if(auto actualtext = e.get_if<ActualTextStart>()) {
             auto u16 = utf8_to_pdfutf16be(actualtext->text);
             serialisation.append_raw("] TJ\n");
             auto cmd = pystd2025::format("/Span << /ActualText %s >> BDC", u16.c_str());
             serialisation.append(cmd);
             serialisation.append_raw("[");
-        } else if(std::holds_alternative<ActualTextEnd>(e)) {
+        } else if(e.contains<ActualTextEnd>()) {
             serialisation.append_raw("] TJ\n");
             serialisation.append("EMC [");
-        } else if(auto glyphitem = std::get_if<GlyphItem>(&e)) {
+        } else if(auto glyphitem = e.get_if<GlyphItem>()) {
             ERC(current_subset_glyph,
                 doc->get_subset_glyph(
                     current_font, glyphitem->unicode_codepoint, glyphitem->glyph_id));
             glyph_appender_lambda(current_subset_glyph);
-        } else if(auto glyphtextitem = std::get_if<GlyphTextItem>(&e)) {
+        } else if(auto glyphtextitem = e.get_if<GlyphTextItem>()) {
             ERC(current_subset_glyph,
                 doc->get_subset_glyph(
                     current_font, glyphtextitem->source_text, glyphtextitem->glyph_id));
@@ -875,15 +875,15 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 
     ERCV(cmds.BT());
     for(const auto &e : textobj.get_events()) {
-        if(std::holds_alternative<TStar_arg>(e)) {
+        if(e.contains<TStar_arg>()) {
             cmds.append("T*");
-        } else if(auto *tc = std::get_if<Tc_arg>(&e)) {
+        } else if(auto *tc = e.get_if<Tc_arg>()) {
             cmds.append_command(tc->val, "Tc");
-        } else if(auto *td = std::get_if<Td_arg>(&e)) {
+        } else if(auto *td = e.get_if<Td_arg>()) {
             cmds.append_command(td->tx, td->ty, "Td");
-        } else if(auto *tD = std::get_if<TD_arg>(&e)) {
+        } else if(auto *tD = e.get_if<TD_arg>()) {
             cmds.append_command(tD->tx, tD->ty, "TD");
-        } else if(auto *tf = std::get_if<Tf_arg>(&e)) {
+        } else if(auto *tf = e.get_if<Tf_arg>()) {
             current_font = tf->font;
             current_pointsize = tf->pointsize;
             auto cmd = pystd2025::format(
@@ -893,7 +893,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             fs.subset_id = 0;
             fs.fid = current_font;
             used_subset_fonts.insert(fs);
-        } else if(auto *tj = std::get_if<Tj_arg>(&e)) {
+        } else if(auto *tj = e.get_if<Tj_arg>()) {
             cmds.append_indent();
             cmds.append_raw("<");
             pystd2025::CString tmp;
@@ -903,22 +903,22 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             }
             cmds.append_raw(tmp);
             cmds.append_raw("> Tj\n");
-        } else if(auto *tJ = std::get_if<TJ_arg>(&e)) {
+        } else if(auto *tJ = e.get_if<TJ_arg>()) {
             ERCV((serialize_charsequence(tJ->elements, cmds, current_font)));
-        } else if(auto *tL = std::get_if<TL_arg>(&e)) {
+        } else if(auto *tL = e.get_if<TL_arg>()) {
             cmds.append_command(tL->leading, "TL");
-        } else if(auto *tm_ = std::get_if<Tm_arg>(&e)) {
+        } else if(auto *tm_ = e.get_if<Tm_arg>()) {
             auto &tm = *tm_;
             auto cmd = pystd2025::format(
                 "%f %f %f %f %f %f Tm\n", tm.m.a, tm.m.b, tm.m.c, tm.m.d, tm.m.e, tm.m.f);
             cmds.append(cmd);
-        } else if(auto *tr = std::get_if<Tr_arg>(&e)) {
+        } else if(auto *tr = e.get_if<Tr_arg>()) {
             cmds.append_command((int)tr->rmode, "Tr");
-        } else if(auto *ts = std::get_if<Ts_arg>(&e)) {
+        } else if(auto *ts = e.get_if<Ts_arg>()) {
             cmds.append_command(ts->rise, "Ts");
-        } else if(auto *tz = std::get_if<Tz_arg>(&e)) {
+        } else if(auto *tz = e.get_if<Tz_arg>()) {
             cmds.append_command(tz->scaling, "Tz");
-        } else if(auto *sitem = std::get_if<StructureItem>(&e)) {
+        } else if(auto *sitem = e.get_if<StructureItem>()) {
             // FIXME, convert to a serialize method and make
             // this and cmd_BDC use that.
             ERC(mcid_id, add_bcd_structure(sitem->sid));
@@ -939,9 +939,9 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 std::abort();
             }
             ERCV(cmds.indent(DrawStateType::MarkedContent));
-        } else if(std::holds_alternative<Emc_arg>(e)) {
+        } else if(e.contains<Emc_arg>()) {
             cmds.EMC();
-        } else if(auto *sarg_ = std::get_if<Stroke_arg>(&e)) {
+        } else if(auto *sarg_ = e.get_if<Stroke_arg>()) {
             auto &sarg = *sarg_;
             if(auto rgb = std::get_if<DeviceRGBColor>(&sarg.c)) {
                 ERCV(serialize_RG(rgb->r, rgb->g, rgb->b));
@@ -975,7 +975,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text stroke colorspace not supported yet.\n");
                 std::abort();
             }
-        } else if(auto *nsarg_ = std::get_if<Nonstroke_arg>(&e)) {
+        } else if(auto *nsarg_ = e.get_if<Nonstroke_arg>()) {
             auto &nsarg = *nsarg_;
 
             if(auto rgb = std::get_if<DeviceRGBColor>(&nsarg.c)) {
@@ -1006,17 +1006,17 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 printf("Given text nonstroke colorspace not supported yet.\n");
                 std::abort();
             }
-        } else if(auto *w = std::get_if<w_arg>(&e)) {
+        } else if(auto *w = e.get_if<w_arg>()) {
             cmds.append_command(w->width, "w");
-        } else if(auto *M = std::get_if<M_arg>(&e)) {
+        } else if(auto *M = e.get_if<M_arg>()) {
             cmds.append_command(M->miterlimit, "M");
-        } else if(auto *j = std::get_if<j_arg>(&e)) {
+        } else if(auto *j = e.get_if<j_arg>()) {
             CHECK_ENUM(j->join_style, CAPY_LJ_BEVEL);
             cmds.append_command((int)j->join_style, "j");
-        } else if(auto *J = std::get_if<J_arg>(&e)) {
+        } else if(auto *J = e.get_if<J_arg>()) {
             CHECK_ENUM(J->cap_style, CAPY_LC_PROJECTION);
             cmds.append_command((int)J->cap_style, "J");
-        } else if(auto *dash = std::get_if<d_arg>(&e)) {
+        } else if(auto *dash = e.get_if<d_arg>()) {
             if(dash->array.size() == 0) {
                 RETERR(ZeroLengthArray);
             }
@@ -1031,7 +1031,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             }
             pystd2025::format_append(cmd, " ] %f d\n", dash->phase);
             cmds.append(cmd);
-        } else if(auto *gs = std::get_if<gs_arg>(&e)) {
+        } else if(auto *gs = e.get_if<gs_arg>()) {
             CHECK_INDEXNESS(gs->gid.id, doc->document_objects);
             used_gstates.insert(gs->gid.id);
             auto cmd = pystd2025::format("/GS%d gs\n", gs->gid.id);
@@ -1045,9 +1045,9 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
 rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) {
     pystd2025::Optional<CapyPDF_FontId> font;
     for(const auto &e : text.get_events()) {
-        if(const auto *Tf = std::get_if<Tf_arg>(&e)) {
+        if(const auto *Tf = e.get_if<Tf_arg>()) {
             font = Tf->font;
-        } else if(const auto *text_arg = std::get_if<Tj_arg>(&e)) {
+        } else if(const auto *text_arg = e.get_if<Tj_arg>()) {
             if(!font) {
                 RETERR(FontNotSpecified);
                 for(const auto &codepoint : text_arg->text) {
@@ -1056,15 +1056,15 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
                     }
                 }
             }
-        } else if(const auto *TJ = std::get_if<TJ_arg>(&e)) {
+        } else if(const auto *TJ = e.get_if<TJ_arg>()) {
             if(!font) {
                 RETERR(FontNotSpecified);
             }
             for(const auto &te : TJ->elements) {
-                if(const auto *unicode = std::get_if<UnicodeCharacter>(&te)) {
+                if(const auto *unicode = te.get_if<UnicodeCharacter>()) {
                     if(!doc->font_has_character(font.value(), unicode->codepoint)) {
                         RETERR(MissingGlyph);
-                    } else if(const auto *u8str = std::get_if<u8string>(&te)) {
+                    } else if(const auto *u8str = te.get_if<u8string>()) {
                         for(const auto &codepoint : *u8str) {
                             if(!doc->font_has_character(font.value(), codepoint)) {
                                 RETERR(MissingGlyph);
