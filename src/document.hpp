@@ -12,7 +12,6 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <memory>
 #include <variant>
 
 // To avoid pulling all of LittleCMS in this file.
@@ -28,6 +27,10 @@ namespace capypdf::internal {
 
 struct FontCloser {
     static void del(FT_Face f);
+};
+
+struct FreetypeCloser {
+    static void del(FT_LibraryRec_ *);
 };
 
 struct TtfFont {

@@ -8,9 +8,7 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <vector>
 #include <string_view>
-#include <optional>
 
 namespace capypdf::internal {
 
@@ -35,8 +33,8 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    static rvoe<std::unique_ptr<PdfGen>> construct(const pystd2025::Path &ofname,
-                                                   const DocumentProperties &d);
+    static rvoe<pystd2025::unique_ptr<PdfGen>> construct(const pystd2025::Path &ofname,
+                                                         const DocumentProperties &d);
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
@@ -164,17 +162,17 @@ public:
 
 private:
     PdfGen(pystd2025::Path ofilename,
-           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
+           pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft,
            PdfDocument pdoc)
         : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
 
     pystd2025::Path ofilename;
-    std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;
+    pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft;
     PdfDocument pdoc;
 };
 
 struct GenPopper {
-    std::unique_ptr<PdfGen> g;
+    pystd2025::unique_ptr<PdfGen> g;
     GenPopper(const pystd2025::Path &ofname, const DocumentProperties &d) : g() {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {

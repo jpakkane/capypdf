@@ -28,6 +28,15 @@ void FontCloser::del(FT_Face f) {
     }
 }
 
+void FreetypeCloser::del(FT_LibraryRec_ *ft) {
+    if(ft) {
+        auto rc = FT_Done_FreeType(ft);
+        if(rc != 0) {
+            fprintf(stderr, "Closing Freetype failed.\n");
+        }
+    }
+}
+
 const std::array<const char *, 3> colorspace_names{
     "/DeviceRGB",
     "/DeviceGray",

@@ -35,19 +35,19 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const pystd2025::Path &ofname,
-                                                const DocumentProperties &d) {
+rvoe<pystd2025::unique_ptr<PdfGen>> PdfGen::construct(const pystd2025::Path &ofname,
+                                                      const DocumentProperties &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {
         RETERR(FreeTypeError);
     }
-    std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
+    pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft(ft_);
     ERC(cm,
         PdfColorConverter::construct(
             d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
     ERC(pdoc, PdfDocument::construct(d, std::move(cm)));
-    return std::unique_ptr<PdfGen>(new PdfGen(ofname, std::move(ft), std::move(pdoc)));
+    return pystd2025::unique_ptr<PdfGen>(new PdfGen(ofname, pystd2025::move(ft), std::move(pdoc)));
 }
 
 PdfGen::~PdfGen() {

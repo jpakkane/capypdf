@@ -9,7 +9,6 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
-#include <memory>
 #include <span>
 #include <algorithm>
 
@@ -417,6 +416,14 @@ int tiffmmapfunc(thandle_t h, tdata_t *base, toff_t *psize) {
 
 void tiffunmapfunc(thandle_t, tdata_t, toff_t) {}
 
+struct TIFFCloser {
+    static void del(TIFF *t) {
+        if(t) {
+            TIFFClose(t);
+        }
+    }
+};
+
 rvoe<RasterImage> load_tif_from_memory(const char *buf, int64_t bufsize) {
     assert(bufsize > 0);
     TifBuf tb{buf, bufsize, 0};
@@ -433,7 +440,7 @@ rvoe<RasterImage> load_tif_from_memory(const char *buf, int64_t bufsize) {
     if(!tif) {
         RETERR(FileReadError);
     }
-    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
+    pystd2025::unique_ptr<TIFF, TIFFCloser> tiffcloser(tif);
     return do_tiff_load(tif);
 }
 
@@ -464,7 +471,7 @@ rvoe<RasterImage> load_png_file(const pystd2025::Path &fname) {
     if(!f) {
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     return load_png_file(f);
 }
 
@@ -478,7 +485,7 @@ rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
     if(!f) {
         RETERR(CouldNotOpenFile);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     fwrite(buf, 1, bufsize, f);
     fseek(f, 0, SEEK_SET);
     return load_png_file(f);
@@ -489,7 +496,7 @@ rvoe<RasterImage> load_tif_file(const pystd2025::Path &fname) {
     if(!tif) {
         RETERR(FileReadError);
     }
-    std::unique_ptr<TIFF, decltype(&TIFFClose)> tiffcloser(tif, TIFFClose);
+    pystd2025::unique_ptr<TIFF, TIFFCloser> tiffcloser(tif);
     return do_tiff_load(tif);
 }
 
@@ -502,6 +509,14 @@ void jpegErrorExit(j_common_ptr cinfo) {
     JpegError *e = (JpegError *)cinfo->err;
     longjmp(e->buf, 1);
 }
+
+struct JpegCloser {
+    static void del(jpeg_decompress_struct *j) {
+        if(j) {
+            jpeg_destroy_decompress(j);
+        }
+    }
+};
 
 rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     assert(f == nullptr || buf == nullptr);
@@ -517,8 +532,7 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
 
     cinfo.err = jpeg_std_error(&jerr.jmgr);
     jerr.jmgr.error_exit = jpegErrorExit;
-    std::unique_ptr<jpeg_decompress_struct, decltype(&jpeg_destroy_decompress)> jpgcloser(
-        &cinfo, &jpeg_destroy_decompress);
+    pystd2025::unique_ptr<jpeg_decompress_struct, JpegCloser> jpgcloser(&cinfo);
     if(setjmp(jerr.buf)) {
         RETERR(UnsupportedFormat);
     }
@@ -581,7 +595,7 @@ rvoe<jpg_image> load_jpg_file(const pystd2025::Path &fname) {
     if(!f) {
         RETERR(FileDoesNotExist);
     }
-    std::unique_ptr<FILE, int (*)(FILE *)> fcloser(f, fclose);
+    pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     ERC(meta, load_jpg_metadata(f, nullptr, 0));
     ERC(file_contents, load_file_as_bytes(f));
     meta.file_contents = std::move(file_contents);

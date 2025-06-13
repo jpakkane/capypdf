@@ -5,11 +5,12 @@
 
 #include <errorhandling.hpp>
 
-#include <memory>
 #include <span>
 #include <string_view>
 #include <variant>
 #include <vector>
+
+#include <pystd2025.hpp>
 
 namespace capypdf::internal {
 
@@ -30,7 +31,7 @@ public:
     MMapper &operator=(const MMapper &o) = delete;
 
 private:
-    std::unique_ptr<MMapperPrivate> d;
+    pystd2025::unique_ptr<MMapperPrivate> d;
 };
 
 typedef std::variant<std::monostate, MMapper, std::vector<std::byte>, std::span<std::byte>>

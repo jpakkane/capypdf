@@ -14,7 +14,6 @@
 #endif
 
 #include <format>
-#include <memory>
 #include <random>
 #include <chrono>
 

@@ -126,7 +126,7 @@ int draw_group_doc() {
     auto gsid = gen.add_graphics_state(gs).value();
     {
         PdfRectangle bbox{0, 0, 100, 100};
-        std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
+        pystd2025::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
         groupctx->cmd_w(10);
         groupctx->cmd_rg(0.9, 0.1, 0.1);
         groupctx->cmd_RG(0.1, 0.9, 0.2);
@@ -191,7 +191,7 @@ int draw_transp_doc() {
             ctx.render_pdfdoc_text_builtin("Non-knockout", CAPY_FONT_HELVETICA, 8, 200, 5);
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
+                pystd2025::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupProperties ex;
                 ex.I = false;
@@ -204,7 +204,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
+                pystd2025::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupProperties ex;
                 ex.I = true;
@@ -217,7 +217,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
+                pystd2025::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupProperties ex;
                 ex.I = false;
@@ -230,7 +230,7 @@ int draw_transp_doc() {
             }
             {
                 PdfRectangle bbox{0, 0, 80, 80};
-                std::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
+                pystd2025::unique_ptr<PdfDrawContext> groupctx{gen.new_transparency_group(bbox)};
                 draw_circles(*groupctx, gsid);
                 TransparencyGroupProperties ex;
                 ex.I = true;
