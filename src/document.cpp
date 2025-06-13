@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include <array>
-#include <algorithm>
 #include <ft2build.h>
 #include <variant>
 #include FT_FREETYPE_H
@@ -1040,7 +1039,7 @@ pystd2025::Optional<CapyPDF_IccColorSpaceId>
 PdfDocument::find_icc_profile(pystd2025::BytesView contents) {
     for(size_t i = 0; i < icc_profiles.size(); ++i) {
         const auto &stream_obj = document_objects.at(icc_profiles.at(i).stream_num);
-        if(const auto stream_data = std::get_if<DeflatePDFObject>(&stream_obj)) {
+        if(const auto stream_data = stream_obj.get_if<DeflatePDFObject>()) {
             if(stream_data->stream == contents) {
                 return CapyPDF_IccColorSpaceId{(int32_t)i};
             }
@@ -1265,9 +1264,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     if(params.as_mask) {
         fmt.add_token_pair("/ImageMask", " true");
     } else {
-        if(auto cs = std::get_if<CapyPDF_Image_Colorspace>(&colorspace)) {
+        if(auto cs = colorspace.get_if<CapyPDF_Image_Colorspace>()) {
             fmt.add_token_pair("/ColorSpace", colorspace_names.at(*cs));
-        } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
+        } else if(auto icc = colorspace.get_if<CapyPDF_IccColorSpaceId>()) {
             const auto icc_obj = get(*icc).object_num;
             fmt.add_token("/ColorSpace");
             fmt.add_object_ref(icc_obj);

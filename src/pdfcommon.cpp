@@ -187,9 +187,9 @@ RawData::RawData(pystd2025::BytesView input) {
 }
 
 const char *RawData::data() const {
-    if(auto *d = std::get_if<pystd2025::CString>(&storage)) {
+    if(auto *d = storage.get_if<pystd2025::CString>()) {
         return d->data();
-    } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
+    } else if(auto *d = storage.get_if<pystd2025::Bytes>()) {
         return (const char *)d->data();
     } else {
         std::abort();
@@ -197,9 +197,9 @@ const char *RawData::data() const {
 }
 
 size_t RawData::size() const {
-    if(auto *d = std::get_if<pystd2025::CString>(&storage)) {
+    if(auto *d = storage.get_if<pystd2025::CString>()) {
         return d->size();
-    } else if(auto *d = std::get_if<pystd2025::Bytes>(&storage)) {
+    } else if(auto *d = storage.get_if<pystd2025::Bytes>()) {
         return d->size();
     } else {
         std::abort();
@@ -211,9 +211,9 @@ pystd2025::CStringView RawData::sv() const { return pystd2025::CStringView{data(
 pystd2025::BytesView RawData::span() const { return pystd2025::BytesView{data(), size()}; }
 
 bool RawData::empty() const {
-    if(auto *p = std::get_if<pystd2025::CString>(&storage)) {
+    if(auto *p = storage.get_if<pystd2025::CString>()) {
         return p->is_empty();
-    } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
+    } else if(auto *p = storage.get_if<pystd2025::Bytes>()) {
         return p->is_empty();
     } else {
         std::abort();
@@ -221,9 +221,9 @@ bool RawData::empty() const {
 }
 
 void RawData::clear() {
-    if(auto *p = std::get_if<pystd2025::CString>(&storage)) {
+    if(auto *p = storage.get_if<pystd2025::CString>()) {
         p->clear();
-    } else if(auto *p = std::get_if<pystd2025::Bytes>(&storage)) {
+    } else if(auto *p = storage.get_if<pystd2025::Bytes>()) {
         p->clear();
     } else {
         std::abort();

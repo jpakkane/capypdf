@@ -249,11 +249,11 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
     for(size_t i = 0; i < doc.document_objects.size(); ++i) {
         object_offsets.push_back(ftell(ofile));
         auto &obj = doc.document_objects.at(i);
-        if(std::holds_alternative<DummyIndexZero>(obj)) {
+        if(obj.contains<DummyIndexZero>()) {
 
-        } else if(auto *pobj = std::get_if<FullPDFObject>(&obj)) {
+        } else if(auto *pobj = obj.get_if<FullPDFObject>()) {
             ERCV(write_finished_object(i, pobj->dictionary, pobj->stream.span()));
-        } else if(auto *pobj_ = std::get_if<DeflatePDFObject>(&obj)) {
+        } else if(auto *pobj_ = obj.get_if<DeflatePDFObject>()) {
             auto &pobj = *pobj_;
             ObjectFormatter &fmt = const_cast<ObjectFormatter &>(pobj.unclosed_dictionary);
             if(pobj.leave_uncompressed_in_debug && !doc.docprops.compress_streams) {
@@ -268,29 +268,29 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
                 fmt.end_dict();
                 ERCV(write_finished_object(i, fmt.steal(), compressed));
             }
-        } else if(auto *ssfont = std::get_if<DelayedSubsetFontData>(&obj)) {
+        } else if(auto *ssfont = obj.get_if<DelayedSubsetFontData>()) {
             ERCV(write_subset_font_data(i, *ssfont));
-        } else if(auto *ssfontd = std::get_if<DelayedSubsetFontDescriptor>(&obj)) {
+        } else if(auto *ssfontd = obj.get_if<DelayedSubsetFontDescriptor>()) {
             ERCV(write_subset_font_descriptor(i,
                                               doc.fonts.at(ssfontd->fid.id).fontdata,
                                               ssfontd->subfont_data_obj,
                                               ssfontd->subset_num));
-        } else if(auto *sscmap = std::get_if<DelayedSubsetCMap>(&obj)) {
+        } else if(auto *sscmap = obj.get_if<DelayedSubsetCMap>()) {
             assert(sscmap->subset_id == 0);
             ERCV(write_subset_cmap(i, doc.fonts.at(sscmap->fid.id)));
-        } else if(auto *ssfont = std::get_if<DelayedSubsetFont>(&obj)) {
+        } else if(auto *ssfont = obj.get_if<DelayedSubsetFont>()) {
             ERCV(write_subset_font(i, doc.fonts.at(ssfont->fid.id), ssfont->subfont_cmap_obj));
-        } else if(auto *ciddict = std::get_if<DelayedCIDDictionary>(&obj)) {
+        } else if(auto *ciddict = obj.get_if<DelayedCIDDictionary>()) {
             ERCV(write_cid_dict(i, ciddict->fid, ciddict->subfont_descriptor_obj));
-        } else if(std::holds_alternative<DelayedPages>(obj)) {
+        } else if(obj.contains<DelayedPages>()) {
             ERCV(write_pages_root());
-        } else if(auto *dp = std::get_if<DelayedPage>(&obj)) {
+        } else if(auto *dp = obj.get_if<DelayedPage>()) {
             ERCV(write_delayed_page(*dp));
-        } else if(auto *checkbox = std::get_if<DelayedCheckboxWidgetAnnotation>(&obj)) {
+        } else if(auto *checkbox = obj.get_if<DelayedCheckboxWidgetAnnotation>()) {
             ERCV(write_checkbox_widget(i, *checkbox));
-        } else if(auto *anno = std::get_if<DelayedAnnotation>(&obj)) {
+        } else if(auto *anno = obj.get_if<DelayedAnnotation>()) {
             ERCV(write_annotation(i, *anno));
-        } else if(auto *si = std::get_if<DelayedStructItem>(&obj)) {
+        } else if(auto *si = obj.get_if<DelayedStructItem>()) {
             ERCV(write_delayed_structure_item(i, *si));
         } else {
             fprintf(stderr, "Unreachable variant visit.\n");

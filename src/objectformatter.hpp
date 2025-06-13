@@ -12,8 +12,8 @@ enum class ContainerType { Array, Dictionary };
 
 struct FormatState {
     pystd2025::CString indent;
-    int array_elems_per_line;
-    int num_entries;
+    int array_elems_per_line = 0;
+    int num_entries = 0;
 };
 
 struct FormatStash {
@@ -26,14 +26,15 @@ class asciistring;
 
 class ObjectFormatter {
 public:
-    explicit ObjectFormatter(pystd2025::CStringView base_indent = {});
+    ObjectFormatter() noexcept = default;
+    explicit ObjectFormatter(pystd2025::CStringView base_indent);
 
     ObjectFormatter(const ObjectFormatter &o) = delete;
-    ObjectFormatter(ObjectFormatter &&o)
+    ObjectFormatter(ObjectFormatter &&o) noexcept
         : state{pystd2025::move(o.state)}, stack{pystd2025::move(o.stack)},
           buf{pystd2025::move(o.buf)} {}
 
-    ObjectFormatter &operator=(ObjectFormatter &&o) {
+    ObjectFormatter &operator=(ObjectFormatter &&o) noexcept {
         state = pystd2025::move(o.state);
         stack = pystd2025::move(o.stack);
         buf = pystd2025::move(o.buf);

@@ -10,7 +10,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <variant>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -331,19 +330,19 @@ struct StructureUsage {
     int32_t mcid_num;
 };
 
-typedef std::variant<DummyIndexZero,
-                     FullPDFObject,
-                     DeflatePDFObject,
-                     DelayedSubsetFontData,
-                     DelayedSubsetFontDescriptor,
-                     DelayedSubsetCMap,
-                     DelayedSubsetFont,
-                     DelayedCIDDictionary,
-                     DelayedPages,
-                     DelayedPage,
-                     DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
-                     DelayedAnnotation,
-                     DelayedStructItem>
+typedef pystd2025::Variant<DummyIndexZero,
+                           FullPDFObject,
+                           DeflatePDFObject,
+                           DelayedSubsetFontData,
+                           DelayedSubsetFontDescriptor,
+                           DelayedSubsetCMap,
+                           DelayedSubsetFont,
+                           DelayedCIDDictionary,
+                           DelayedPages,
+                           DelayedPage,
+                           DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
+                           DelayedAnnotation,
+                           DelayedStructItem>
     ObjectType;
 
 struct RolemapEnty {
@@ -361,7 +360,7 @@ struct ShadingInfo {
     int32_t object_number;
 };
 
-typedef std::variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
+typedef pystd2025::Variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
 // Not really the best place for this but it'll do for now.
 rvoe<NoReturnValue>

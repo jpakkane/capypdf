@@ -289,10 +289,10 @@ private:
 
 class RawData {
 private:
-    std::variant<pystd2025::CString, pystd2025::Bytes> storage;
+    pystd2025::Variant<pystd2025::CString, pystd2025::Bytes> storage;
 
 public:
-    RawData() : storage{} {}
+    RawData() noexcept : storage{} {}
     explicit RawData(pystd2025::CString input);
     explicit RawData(pystd2025::Bytes input);
     explicit RawData(pystd2025::CStringView input);
