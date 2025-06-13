@@ -203,8 +203,9 @@ public:
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
 
-    rvoe<NoReturnValue> add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
-                                              const pystd2025::Optional<Transition> &tr);
+    rvoe<NoReturnValue>
+    add_simple_navigation(pystd2025::Span<const CapyPDF_OptionalContentGroupId> navs,
+                          const pystd2025::Optional<Transition> &tr);
 
     const PageProperties &get_custom_props() const { return custom_props; }
 

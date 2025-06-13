@@ -1155,7 +1155,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
 }
 
 rvoe<NoReturnValue>
-PdfDrawContext::add_simple_navigation(std::span<const CapyPDF_OptionalContentGroupId> navs,
+PdfDrawContext::add_simple_navigation(pystd2025::Span<const CapyPDF_OptionalContentGroupId> navs,
                                       const pystd2025::Optional<Transition> &tr) {
     if(context_type != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);

@@ -1299,7 +1299,7 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
     if(tr) {
         transition = *reinterpret_cast<const Transition *>(tr);
     }
-    std::span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, ocgarray + array_size);
+    pystd2025::Span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, array_size);
     auto rc = dc->add_simple_navigation(ocgspan, transition);
     return conv_err(rc);
     API_BOUNDARY_END;

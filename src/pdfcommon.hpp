@@ -6,7 +6,6 @@
 #include <capypdf.h>
 #include <errorhandling.hpp>
 
-#include <optional>
 #include <vector>
 #include <array>
 #include <string>
@@ -14,7 +13,6 @@
 #include <functional>
 #include <variant>
 #include <iterator>
-#include <span>
 #include <pystd2025.hpp>
 
 #include <cstdint>

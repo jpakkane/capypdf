@@ -8,7 +8,6 @@
 #include <optional>
 #include <vector>
 
-#include <span>
 #include <stdint.h>
 
 #include <pystd2025.hpp>

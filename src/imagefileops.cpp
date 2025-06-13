@@ -9,7 +9,6 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
-#include <span>
 #include <algorithm>
 
 namespace capypdf::internal {
@@ -94,7 +93,7 @@ bool is_white(const png_color &c) { return is_white(&c); }
 
 void load_mono_png(png_struct *png_ptr,
                    png_info *info_ptr,
-                   std::span<png_color> palette,
+                   pystd2025::Span<png_color> palette,
                    RawPixelImage &result) {
     unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     const size_t final_size = (result.md.w + 7) / 8 * result.md.h;
@@ -127,7 +126,7 @@ void load_mono_png(png_struct *png_ptr,
     assert(result.pixels.size() == final_size);
 }
 
-template<typename T> bool span_contains(std::span<T> &span, const T &value) {
+template<typename T> bool span_contains(pystd2025::Span<T> &span, const T &value) {
     for(const auto &e : span) {
         if(e == value) {
             return true;
@@ -139,8 +138,8 @@ template<typename T> bool span_contains(std::span<T> &span, const T &value) {
 // Special case for images that have 1-bit monochrome colors and a 1-bit alpha channel.
 rvoe<NoReturnValue> try_load_mono_alpha_png(png_struct *png_ptr,
                                             png_info *info_ptr,
-                                            std::span<png_color> palette,
-                                            std::span<unsigned char> alpha,
+                                            pystd2025::Span<png_color> palette,
+                                            pystd2025::Span<unsigned char> alpha,
                                             RawPixelImage &result) {
     unsigned char **rows = png_get_rows(png_ptr, info_ptr);
     result.md.pixel_depth = 1;
@@ -214,7 +213,7 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
         png_color *palette;
         int palette_size;
         png_get_PLTE(png_ptr, info_ptr, &palette, &palette_size);
-        std::span<png_color> pspan(palette, palette_size);
+        pystd2025::Span<png_color> pspan(palette, palette_size);
         unsigned char *trans;
         int num_trans;
         png_color_16p trcolor;
@@ -232,7 +231,7 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
             // white
             load_mono_png(png_ptr, info_ptr, pspan, image);
         } else if((palette_size == 3 || palette_size == 4) && trns_rc == PNG_INFO_tRNS) {
-            std::span<unsigned char> aspan(trans, num_trans);
+            pystd2025::Span<unsigned char> aspan(trans, num_trans);
             image.icc_profile.clear();
             ERCV(try_load_mono_alpha_png(png_ptr, info_ptr, pspan, aspan, image));
         } else {
