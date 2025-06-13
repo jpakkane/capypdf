@@ -109,23 +109,12 @@ public:
     void swap_endian();
 
 private:
-    std::variant<TTMaxp05, TTMaxp10> data;
+    pystd2025::Variant<TTMaxp05, TTMaxp10> data;
 };
-
-typedef std::variant<uint8_t, int16_t> CoordInfo;
 
 struct TTHmtx {
     std::vector<TTLongHorMetric> longhor;
     std::vector<int16_t> left_side_bearings;
-};
-
-struct SimpleGlyph {
-    std::vector<uint16_t> contour_end_points;
-    uint16_t instruction_length;
-    std::vector<uint8_t> instructions;
-    std::vector<uint8_t> flags;
-    std::vector<CoordInfo> xcoord;
-    std::vector<CoordInfo> ycoord;
 };
 
 struct RegularGlyph {
@@ -147,7 +136,7 @@ struct CompositeGlyph {
     uint32_t glyph_index;
 };
 
-typedef std::variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
+typedef pystd2025::Variant<RegularGlyph, CompositeGlyph, LigatureGlyph> TTGlyphs;
 
 /* Mandatory TTF tables according to The Internet.
  *

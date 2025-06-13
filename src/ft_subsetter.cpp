@@ -12,7 +12,6 @@
 #include <cassert>
 #include <cmath>
 
-#include <variant>
 #include <expected>
 
 namespace capypdf::internal {
@@ -356,32 +355,32 @@ struct SubsetFont {
 };
 
 uint16_t TTMaxp::num_glyphs() const {
-    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+    if(auto *p = data.get_if<TTMaxp05>()) {
         return p->num_glyphs;
-    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+    } else if(auto *p = data.get_if<TTMaxp10>()) {
         return p->num_glyphs;
     } else {
-        std::abort();
+        abort();
     }
 }
 
 void TTMaxp::set_num_glyphs(uint16_t glyph_count) {
-    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+    if(auto *p = data.get_if<TTMaxp05>()) {
         p->num_glyphs = glyph_count;
-    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+    } else if(auto *p = data.get_if<TTMaxp10>()) {
         p->num_glyphs = glyph_count;
     } else {
-        std::abort();
+        abort();
     }
 }
 
 void TTMaxp::swap_endian() {
-    if(auto *p = std::get_if<TTMaxp05>(&data)) {
+    if(auto *p = data.get_if<TTMaxp05>()) {
         p->swap_endian();
-    } else if(auto *p = std::get_if<TTMaxp10>(&data)) {
+    } else if(auto *p = data.get_if<TTMaxp10>()) {
         p->swap_endian();
     } else {
-        std::abort();
+        abort();
     }
 }
 
@@ -585,7 +584,7 @@ subset_glyphs(const TrueTypeFontFile &source,
     // because we need to modify it before writing it
     // out to disk.
     std::vector<pystd2025::Bytes> subset;
-    assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
+    assert(glyphs[0].get<RegularGlyph>().unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
         uint32_t gid = font_id_for_glyph(g);
@@ -886,7 +885,7 @@ generate_truetype_font(const TrueTypeFontFile &source,
                        const std::vector<TTGlyphs> &glyphs,
                        const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
-    assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
+    assert(glyphs[0].get<RegularGlyph>().unicode_codepoint == 0);
     ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
 
     dest.head = source.head;
@@ -913,7 +912,7 @@ rvoe<pystd2025::Bytes> generate_cff_font(const TrueTypeFontFile &source,
     std::vector<SubsetGlyphs> converted;
     converted.reserve(glyphs.size());
     for(const auto &g : glyphs) {
-        const auto &tmp = std::get<RegularGlyph>(g);
+        const auto &tmp = g.get<RegularGlyph>();
         if(tmp.unicode_codepoint == 0) {
             converted.emplace_back(0, 0);
         } else {
@@ -1018,17 +1017,17 @@ reassign_composite_glyph_numbers(pystd2025::BytesView buf,
 }
 
 uint32_t font_id_for_glyph(const TTGlyphs &g) {
-    if(std::holds_alternative<RegularGlyph>(g)) {
-        auto &rg = std::get<RegularGlyph>(g);
+    if(g.contains<RegularGlyph>()) {
+        auto &rg = g.get<RegularGlyph>();
         if(rg.unicode_codepoint == 0) {
             return 0;
         } else {
             return rg.glyph_index;
         }
-    } else if(std::holds_alternative<CompositeGlyph>(g)) {
-        return std::get<CompositeGlyph>(g).glyph_index;
-    } else if(std::holds_alternative<LigatureGlyph>(g)) {
-        return std::get<LigatureGlyph>(g).glyph_index;
+    } else if(g.contains<CompositeGlyph>()) {
+        return g.get<CompositeGlyph>().glyph_index;
+    } else if(g.contains<LigatureGlyph>()) {
+        return g.get<LigatureGlyph>().glyph_index;
     } else {
         std::abort();
     }

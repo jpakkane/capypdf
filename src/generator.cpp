@@ -102,8 +102,8 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
         RETERR(DrawStateEndMismatch);
     }
     ERC(sc_var, ctx.serialize());
-    assert(std::holds_alternative<SerializedBasicContext>(sc_var));
-    auto &sc = std::get<SerializedBasicContext>(sc_var);
+    assert(sc_var.contains<SerializedBasicContext>());
+    auto &sc = sc_var.get<SerializedBasicContext>();
     ERCV(pdoc.add_page(std::move(sc.resource_dict),
                        std::move(sc.command_stream),
                        ctx.get_custom_props(),
@@ -131,8 +131,8 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
         RETERR(UnclosedMarkedContent);
     }
     ERC(sc_var, ctx.serialize());
-    assert(std::holds_alternative<SerializedXObject>(sc_var));
-    auto &sc = std::get<SerializedXObject>(sc_var);
+    assert(sc_var.contains<SerializedXObject>());
+    auto &sc = sc_var.get<SerializedXObject>();
     pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.command_stream));
     ctx.clear();
     CapyPDF_FormXObjectId fxoid;

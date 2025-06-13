@@ -71,7 +71,7 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
         auto existing_gid = find_existing_glyph(*glyph_id);
         if(existing_gid) {
             const auto &existing_definition = subset.glyphs.at(existing_gid->offset);
-            if(const auto *d = std::get_if<RegularGlyph>(&existing_definition)) {
+            if(const auto *d = existing_definition.get_if<RegularGlyph>()) {
                 if(d->unicode_codepoint != codepoint) {
                     fprintf(
                         stderr,
@@ -102,7 +102,7 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const u8string &text,
     auto existing_gid = find_existing_glyph(glyph_id);
     if(existing_gid) {
         const auto &existing_definition = subset.glyphs.at(existing_gid->offset);
-        if(const auto *d = std::get_if<LigatureGlyph>(&existing_definition)) {
+        if(const auto *d = existing_definition.get_if<LigatureGlyph>()) {
             if(d->text != text) {
                 fprintf(stderr,
                         "Tried to map glyph %d twice.\n Old value: %s\n New value: %s.\nUsing the "
@@ -196,8 +196,8 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
 pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) const {
     auto loc =
         std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&gid](const TTGlyphs &ttg) {
-            if(std::holds_alternative<RegularGlyph>(ttg)) {
-                if(std::get<RegularGlyph>(ttg).glyph_index == gid) {
+            if(ttg.contains<RegularGlyph>()) {
+                if(ttg.get<RegularGlyph>().glyph_index == gid) {
                     return true;
                 }
             }
@@ -213,8 +213,8 @@ pystd2025::Optional<FontSubsetInfo>
 FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
     auto loc = std::find_if(
         subset.glyphs.cbegin(), subset.glyphs.cend(), [&codepoint](const TTGlyphs &ttg) {
-            if(std::holds_alternative<RegularGlyph>(ttg)) {
-                return std::get<RegularGlyph>(ttg).unicode_codepoint == codepoint;
+            if(ttg.contains<RegularGlyph>()) {
+                return ttg.get<RegularGlyph>().unicode_codepoint == codepoint;
             }
             return false;
         });
@@ -227,8 +227,8 @@ FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
 pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) const {
     auto loc =
         std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&text](const TTGlyphs &ttg) {
-            if(std::holds_alternative<LigatureGlyph>(ttg)) {
-                return std::get<LigatureGlyph>(ttg).text == text;
+            if(ttg.contains<LigatureGlyph>()) {
+                return ttg.get<LigatureGlyph>().text == text;
             }
             return false;
         });

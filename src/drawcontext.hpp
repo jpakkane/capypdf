@@ -43,7 +43,7 @@ struct SerializedXObject {
     pystd2025::CString command_stream;
 };
 
-typedef std::variant<SerializedBasicContext, SerializedXObject> DCSerialization;
+typedef pystd2025::Variant<SerializedBasicContext, SerializedXObject> DCSerialization;
 
 struct PdfGlyph {
     uint32_t codepoint;

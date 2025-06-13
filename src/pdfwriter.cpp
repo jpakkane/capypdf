@@ -85,14 +85,14 @@ endcodespacerange
     // Glyph zero is not mapped.
     for(size_t i = 1; i < glyphs.size(); ++i) {
         const auto &g = glyphs[i];
-        if(std::holds_alternative<LigatureGlyph>(g)) {
-            const auto &lg = std::get<LigatureGlyph>(g);
+        if(g.contains<LigatureGlyph>()) {
+            const auto &lg = g.get<LigatureGlyph>();
             const auto u16repr = utf8_to_pdfutf16be(lg.text, false);
             pystd2025::format_append(buf, "<%04X> <%s>\n", i, u16repr.c_str());
         } else {
             uint32_t unicode_codepoint = 0;
-            if(std::holds_alternative<RegularGlyph>(g)) {
-                unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
+            if(g.contains<RegularGlyph>()) {
+                unicode_codepoint = g.get<RegularGlyph>().unicode_codepoint;
             }
             pystd2025::format_append(buf, "<%04X> <%04X>\n", i, unicode_codepoint);
         }
