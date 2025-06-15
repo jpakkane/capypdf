@@ -9,7 +9,6 @@
 #include <objectformatter.hpp>
 
 #include <vector>
-#include <unordered_map>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
@@ -234,7 +233,7 @@ struct DelayedCheckboxWidgetAnnotation {
 
 struct OutlineData {
     std::vector<Outline> items;
-    std::unordered_map<int32_t, std::vector<int32_t>> children;
+    pystd2025::HashMap<int32_t, pystd2025::Vector<int32_t>> children;
     pystd2025::HashMap<int32_t, int32_t> parent;
 };
 

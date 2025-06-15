@@ -944,9 +944,9 @@ rvoe<int32_t> PdfDocument::create_outlines() {
                 fmt.add_token(first_obj_num + *nextloc);
             }
         }
-        auto childs = outlines.children.find(cur_id);
-        if(childs != outlines.children.end()) {
-            const auto &children = childs->second;
+        auto childs = outlines.children.lookup(cur_id);
+        if(childs) {
+            const auto &children = *childs;
             fmt.add_token("/First");
             fmt.add_object_ref(first_obj_num + children.front());
             fmt.add_token("/Last");
@@ -1735,7 +1735,14 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     const auto cur_id = (int32_t)outlines.items.size();
     const auto par_id = o.parent ? o.parent.value().id : -1;
     outlines.parent.insert(cur_id, par_id);
-    outlines.children[par_id].push_back(cur_id);
+    auto c = outlines.children.lookup(par_id);
+    if(!c) {
+        pystd2025::Vector<int32_t> v;
+        v.push_back(cur_id);
+        outlines.children.insert(par_id, pystd2025::move(v));
+    } else {
+        c->push_back(cur_id);
+    }
     outlines.items.emplace_back(o);
     return CapyPDF_OutlineId{cur_id};
 }
