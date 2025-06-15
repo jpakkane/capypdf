@@ -8,7 +8,6 @@
 #include FT_FREETYPE_H
 #include <cstdio>
 #include <cassert>
-#include <algorithm>
 
 namespace capypdf::internal {
 
@@ -194,8 +193,8 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
 }
 
 pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) const {
-    auto loc =
-        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&gid](const TTGlyphs &ttg) {
+    auto loc = pystd2025::find_if(
+        subset.glyphs.cbegin(), subset.glyphs.cend(), [&gid](const TTGlyphs &ttg) {
             if(ttg.contains<RegularGlyph>()) {
                 if(ttg.get<RegularGlyph>().glyph_index == gid) {
                     return true;
@@ -211,7 +210,7 @@ pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t 
 
 pystd2025::Optional<FontSubsetInfo>
 FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
-    auto loc = std::find_if(
+    auto loc = pystd2025::find_if(
         subset.glyphs.cbegin(), subset.glyphs.cend(), [&codepoint](const TTGlyphs &ttg) {
             if(ttg.contains<RegularGlyph>()) {
                 return ttg.get<RegularGlyph>().unicode_codepoint == codepoint;
@@ -225,8 +224,8 @@ FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
 }
 
 pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) const {
-    auto loc =
-        std::find_if(subset.glyphs.cbegin(), subset.glyphs.cend(), [&text](const TTGlyphs &ttg) {
+    auto loc = pystd2025::find_if(
+        subset.glyphs.cbegin(), subset.glyphs.cend(), [&text](const TTGlyphs &ttg) {
             if(ttg.contains<LigatureGlyph>()) {
                 return ttg.get<LigatureGlyph>().text == text;
             }

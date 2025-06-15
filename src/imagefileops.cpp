@@ -9,7 +9,6 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
-#include <algorithm>
 
 namespace capypdf::internal {
 

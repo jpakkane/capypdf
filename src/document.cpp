@@ -929,7 +929,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
             serialize_destination(fmt, dest, page_object_number);
         }
         if(siblings.size() > 1) {
-            auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
+            auto loc = pystd2025::find(siblings.begin(), siblings.end(), cur_id);
             assert(loc != siblings.end());
             if(loc != siblings.begin()) {
                 auto prevloc = loc;
