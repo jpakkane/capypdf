@@ -7,7 +7,6 @@
 #include <pdfcommon.hpp>
 #include <cstdint>
 #include <errorhandling.hpp>
-#include <vector>
 
 namespace capypdf::internal {
 
@@ -45,7 +44,7 @@ typedef pystd2025::Variant<KerningValue,
                            ActualTextStart,
                            ActualTextEnd>
     TextAtom;
-typedef std::vector<TextAtom> TextEvents;
+typedef pystd2025::Vector<TextAtom> TextEvents;
 
 class TextSequence {
 
@@ -185,7 +184,7 @@ struct J_arg {
 };
 
 struct d_arg {
-    std::vector<double> array;
+    pystd2025::Vector<double> array;
     double phase;
 };
 
@@ -324,8 +323,7 @@ public:
         RETOK;
     }
     rvoe<NoReturnValue> cmd_d(double *dash_array, int32_t array_size, double phase) {
-        std::vector<double> array;
-        array.assign(dash_array, dash_array + array_size);
+        pystd2025::Vector<double> array(dash_array, dash_array + array_size);
         events.emplace_back(d_arg{std::move(array), phase});
         RETOK;
     }
@@ -335,11 +333,11 @@ public:
     }
 
     PdfDrawContext *creator() const { return dc; }
-    const std::vector<TextEvent> &get_events() const { return events; }
+    const pystd2025::Vector<TextEvent> &get_events() const { return events; }
 
 private:
     PdfDrawContext *dc;
-    std::vector<TextEvent> events;
+    pystd2025::Vector<TextEvent> events;
 };
 
 } // namespace capypdf::internal

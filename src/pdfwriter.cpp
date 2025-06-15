@@ -246,8 +246,8 @@ rvoe<NoReturnValue> PdfWriter::write_header() {
     return write_bytes(header, strlen(header));
 }
 
-rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
-    std::vector<uint64_t> object_offsets;
+rvoe<pystd2025::Vector<uint64_t>> PdfWriter::write_objects() {
+    pystd2025::Vector<uint64_t> object_offsets;
     for(size_t i = 0; i < doc.document_objects.size(); ++i) {
         object_offsets.push_back(ftell(ofile));
         auto &obj = doc.document_objects.at(i);
@@ -303,7 +303,7 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
 }
 
 rvoe<NoReturnValue>
-PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
+PdfWriter::write_cross_reference_table(const pystd2025::Vector<uint64_t> &object_offsets) {
     auto buf = pystd2025::format(
         R"(xref
 0 {}
@@ -806,7 +806,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
 
 rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
                                                             const DelayedStructItem &dsi) {
-    std::vector<CapyPDF_StructureItemId> children;
+    pystd2025::Vector<CapyPDF_StructureItemId> children;
     const auto &si = doc.structure_items.at(dsi.sid.id);
     assert(doc.structure_root_object);
     int32_t parent_object = *doc.structure_root_object;
@@ -839,7 +839,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
     fmt.add_token("/P");
     fmt.add_object_ref(parent_object);
 
-    if(!children.empty()) {
+    if(!children.is_empty()) {
         fmt.add_token("/K");
         fmt.begin_array(1);
 

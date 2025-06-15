@@ -67,7 +67,7 @@ bool is_valid_uf8_character(pystd2025::CStringView input, size_t cur, const UtfD
     return true;
 }
 
-void append_glyph_to_utf16be(uint32_t glyph, std::vector<uint16_t> &u16buf) {
+void append_glyph_to_utf16be(uint32_t glyph, pystd2025::Vector<uint16_t> &u16buf) {
     if(glyph < 0x10000) {
         u16buf.push_back((uint16_t)glyph);
     } else {
@@ -224,7 +224,7 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
 pystd2025::CString utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
     pystd2025::CString encoded(add_adornments ? "<FEFF" : ""); // PDF 2.0 spec, 7.9.2.2.1
 
-    std::vector<uint16_t> u16buf;
+    pystd2025::Vector<uint16_t> u16buf;
     for(const auto codepoint : input) {
         u16buf.clear();
         append_glyph_to_utf16be(codepoint, u16buf);
