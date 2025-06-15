@@ -36,25 +36,25 @@ rvoe<asciistring> validate_ascii(const char *buf, int32_t strsize) {
     if(strsize < -1) {
         RETERR(InvalidBufsize);
     }
-    if(strsize == -1) {
-        return asciistring::from_cstr(buf);
-    } else {
-        return asciistring::from_view(buf, strsize);
+    auto maybe = ascii_from_raw(buf, strsize);
+    if(maybe) {
+        return pystd2025::move(maybe.value());
     }
+    RETERR(DynamicError);
 }
 
-rvoe<u8string> validate_utf8(const char *buf, int32_t strsize) {
+rvoe<pystd2025::U8String> validate_utf8(const char *buf, int32_t strsize) {
     if(!buf) {
         RETERR(ArgIsNull);
     }
     if(strsize < -1) {
         RETERR(InvalidBufsize);
     }
-    if(strsize == -1) {
-        return u8string::from_cstr(buf);
-    } else {
-        return u8string::from_view(buf, strsize);
+    auto maybe = pystd2025::u8_from_bytes(buf, strsize);
+    if(maybe) {
+        return pystd2025::move(maybe.value());
     }
+    RETERR(DynamicError);
 }
 
 #if defined(__cpp_exceptions)
@@ -378,7 +378,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
     pystd2025::Optional<CapyPDF_Page_Label_Number_Style> opt_style;
-    pystd2025::Optional<u8string> opt_prefix;
+    pystd2025::Optional<pystd2025::U8String> opt_prefix;
     pystd2025::Optional<uint32_t> opt_start_num;
     if(style) {
         opt_style = *style;
@@ -1332,7 +1332,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto bbox = PdfRectangle::construct(l, b, r, t);
+    auto bbox = construct_rect(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
     }
@@ -1346,7 +1346,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto bbox = PdfRectangle::construct(l, b, r, t);
+    auto bbox = construct_rect(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
     }
@@ -1363,7 +1363,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
                                                           double t) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto bbox = PdfRectangle::construct(l, b, r, t);
+    auto bbox = construct_rect(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
     }

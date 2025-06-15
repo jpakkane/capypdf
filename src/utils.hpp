@@ -5,7 +5,7 @@
 
 #include <errorhandling.hpp>
 #include <pdfcommon.hpp>
-#include <cstdio>
+#include <stdio.h>
 #include <pystd2025.hpp>
 
 namespace capypdf::internal {
@@ -33,7 +33,7 @@ rvoe<pystd2025::Bytes> load_file_as_bytes(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);
 
-pystd2025::CString utf8_to_pdfutf16be(const u8string &input, bool add_adornments = true);
+pystd2025::CString utf8_to_pdfutf16be(const pystd2025::U8String &input, bool add_adornments = true);
 
 bool is_valid_utf8(pystd2025::CStringView input);
 
@@ -42,9 +42,9 @@ pystd2025::CString current_date_string();
 pystd2025::CString pdfstring_quote(pystd2025::CStringView raw_string);
 
 // UTF-8 strings were added in PDF 2.0.
-pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8string);
-pystd2025::CString u8str2u8textstring(const u8string &str);
-pystd2025::CString u8str2filespec(const u8string &str);
+pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8str);
+pystd2025::CString u8str2u8textstring(const pystd2025::U8String &str);
+pystd2025::CString u8str2filespec(const pystd2025::U8String &str);
 
 pystd2025::CString pdfname_quote(pystd2025::CStringView raw_string);
 
@@ -57,7 +57,7 @@ pystd2025::CString create_trailer_id();
 class ObjectFormatter;
 void serialize_trans(ObjectFormatter &fmt, const Transition &t);
 
-void quote_xml_element_data_into(const u8string &content, pystd2025::CString &result);
+void quote_xml_element_data_into(const pystd2025::U8String &content, pystd2025::CString &result);
 
 pystd2025::BytesView str2span(const pystd2025::CString &s);
 pystd2025::CStringView span2sv(pystd2025::BytesView s);

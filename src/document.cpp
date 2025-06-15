@@ -289,7 +289,7 @@ pystd2025::Vector<NameProxy> sort_names(const pystd2025::Vector<EmbeddedFileObje
     result.reserve(names.size());
     int num = 0;
     for(const auto &n : names) {
-        result.emplace_back(NameProxy{n.ef.pdfname.sv(), num});
+        result.emplace_back(NameProxy{n.ef.pdfname.byteview(), num});
         ++num;
     }
     pystd2025::insertion_sort(result.begin(), result.end());
@@ -366,9 +366,9 @@ serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t pag
     RETOK;
 }
 
-rvoe<PdfDocument> PdfDocument::construct(const DocumentProperties &d, PdfColorConverter cm) {
-    rvoe<PdfDocument> newdoc{PdfDocument(d, pystd2025::move(cm))};
-    ERCV(newdoc->init());
+rvoe<PdfDocument> construct_document(const DocumentProperties &d, PdfColorConverter cm) {
+    PdfDocument newdoc(d, pystd2025::move(cm));
+    ERCV(newdoc.init());
     return newdoc;
 }
 
@@ -482,7 +482,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
 rvoe<NoReturnValue>
 PdfDocument::add_page_labeling(uint32_t start_page,
                                pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
-                               pystd2025::Optional<u8string> prefix,
+                               pystd2025::Optional<pystd2025::U8String> prefix,
                                pystd2025::Optional<uint32_t> start_num) {
     if(!page_labels.is_empty() && page_labels.back().start_page > start_page) {
         RETERR(NonSequentialPageNumber);
@@ -1043,9 +1043,9 @@ int32_t PdfDocument::add_document_metadata_object() {
         fmt.end_dict();
         return add_object(FullPDFObject{fmt.steal(), RawData(pystd2025::CString(stream.c_str()))});
     } else {
-        fmt.add_token_pair("/Length", docprops.metadata_xml.length());
+        fmt.add_token_pair("/Length", docprops.metadata_xml.size_bytes());
         fmt.end_dict();
-        return add_object(FullPDFObject{fmt.steal(), RawData(docprops.metadata_xml.sv())});
+        return add_object(FullPDFObject{fmt.steal(), RawData(docprops.metadata_xml.byteview())});
     }
 }
 
@@ -1090,13 +1090,13 @@ rvoe<NoReturnValue> PdfDocument::generate_info_object() {
     fmt.begin_dict();
     fmt.add_token_pair("/ModDate", current_date);
     if(!docprops.use_rdf_metadata()) {
-        if(!docprops.title.empty()) {
+        if(!docprops.title.is_empty()) {
             fmt.add_token_pair("/Title ", utf8_to_pdfutf16be(docprops.title));
         }
-        if(!docprops.author.empty()) {
+        if(!docprops.author.is_empty()) {
             fmt.add_token_pair("/Author ", utf8_to_pdfutf16be(docprops.author));
         }
-        if(!docprops.creator.empty()) {
+        if(!docprops.creator.is_empty()) {
             fmt.add_token_pair("/Creator ", utf8_to_pdfutf16be(docprops.creator));
         }
         fmt.add_token_pair("/Producer", "(CapyPDF " CAPYPDF_VERSION_STR ")");
@@ -1160,8 +1160,9 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
     return fss;
 }
 
-rvoe<SubsetGlyph>
-PdfDocument::get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t glyph_id) {
+rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
+                                                const pystd2025::U8String &text,
+                                                uint32_t glyph_id) {
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(text, glyph_id));
     SubsetGlyph fss;
     fss.ss.fid = fid;
@@ -1787,7 +1788,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
         ObjectFormatter fmt;
         fmt.begin_dict();
         fmt.add_token_pair("/Type", "/Filespec");
-        fmt.add_token_pair("/F", pdfstring_quote(ef.pdfname.sv()));
+        fmt.add_token_pair("/F", pdfstring_quote(ef.pdfname.byteview()));
         fmt.add_token("/EF");
         fmt.begin_dict();
         fmt.add_token("/F");
@@ -1940,7 +1941,7 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
         RETERR(UnsupportedFormat);
     }
     CapyPDF_FontId font_source_id{(int32_t)fonts.size()};
-    ERC(fss, FontSubsetter::construct(fname, face, props));
+    ERC(fss, construct_subsetter(fname, face, props));
     {
         pystd2025::unique_ptr<FT_FaceRec_, FontCloser> a(pystd2025::move(ttf.face));
         assert(ttf.face.get() == nullptr);

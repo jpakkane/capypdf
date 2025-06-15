@@ -6,8 +6,8 @@
 #include <png.h>
 #include <jpeglib.h>
 #include <tiffio.h>
-#include <cstring>
-#include <cassert>
+#include <string.h>
+#include <assert.h>
 
 namespace capypdf::internal {
 

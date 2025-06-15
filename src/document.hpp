@@ -41,7 +41,7 @@ struct PageOffsets {
 struct PageLabel {
     uint32_t start_page;
     pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style;
-    pystd2025::Optional<u8string> prefix;
+    pystd2025::Optional<pystd2025::U8String> prefix;
     pystd2025::Optional<uint32_t> start_num;
 };
 
@@ -190,21 +190,21 @@ struct DocumentProperties {
     bool require_embedded_files() const;
 
     PageProperties default_page_properties;
-    u8string title;
-    u8string author;
-    u8string creator;
+    pystd2025::U8String title;
+    pystd2025::U8String author;
+    pystd2025::U8String creator;
     asciistring lang;
     bool is_tagged = false;
     CapyPDF_Device_Colorspace output_colorspace = CAPY_DEVICE_CS_RGB;
     ColorProfiles prof;
     pystd2025::Variant<pystd2025::Monostate, CapyPDF_PDFX_Type, CapyPDF_PDFA_Type> subtype;
-    u8string metadata_xml;
-    u8string intent_condition_identifier;
+    pystd2025::U8String metadata_xml;
+    pystd2025::U8String intent_condition_identifier;
     bool compress_streams = true;
 };
 
 struct Outline {
-    u8string title;
+    pystd2025::U8String title;
     pystd2025::Optional<Destination> dest;
     pystd2025::Optional<DeviceRGBColor> C;
     uint32_t F = 0;
@@ -237,9 +237,9 @@ struct OutlineData {
 
 struct EmbeddedFile {
     pystd2025::Path path;
-    u8string pdfname;
+    pystd2025::U8String pdfname;
     asciistring subtype; // actually MIME
-    u8string description;
+    pystd2025::U8String description;
     // bool compress;
 };
 
@@ -256,7 +256,7 @@ struct FileAttachmentAnnotation {
 };
 
 struct TextAnnotation {
-    u8string content;
+    pystd2025::U8String content;
 };
 
 struct LinkAnnotation {
@@ -309,10 +309,10 @@ struct DelayedStructItem {
 
 // 14.7.2 table 355
 struct StructItemExtraData {
-    u8string T;
+    pystd2025::U8String T;
     asciistring Lang;
-    u8string Alt;
-    u8string ActualText;
+    pystd2025::U8String Alt;
+    pystd2025::U8String ActualText;
 };
 
 struct StructItem {
@@ -365,9 +365,11 @@ serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t pag
 
 class PdfDocument {
 public:
-    static rvoe<PdfDocument> construct(const DocumentProperties &d, PdfColorConverter cm);
+    PdfDocument() noexcept = default;
+    PdfDocument(PdfDocument &&o) noexcept = default;
+    PdfDocument &operator=(PdfDocument &&o) noexcept = default;
 
-    PdfDocument(PdfDocument &&o) = default;
+    PdfDocument(const DocumentProperties &d, PdfColorConverter cm);
 
     friend class PdfGen;
     friend class PdfDrawContext;
@@ -386,7 +388,7 @@ public:
     rvoe<NoReturnValue>
     add_page_labeling(uint32_t start_page,
                       pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
-                      pystd2025::Optional<u8string> prefix,
+                      pystd2025::Optional<pystd2025::U8String> prefix,
                       pystd2025::Optional<uint32_t> start_num);
 
     // Form XObjects
@@ -409,7 +411,8 @@ public:
     rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid,
                                        uint32_t codepoint,
                                        const pystd2025::Optional<uint32_t> glyph_id);
-    rvoe<SubsetGlyph> get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t glyph_id);
+    rvoe<SubsetGlyph>
+    get_subset_glyph(CapyPDF_FontId fid, const pystd2025::U8String &text, uint32_t glyph_id);
     uint32_t glyph_for_codepoint(FT_Face face, uint32_t ucs4);
     CapyPDF_FontId get_builtin_font_id(CapyPDF_Builtin_Fonts font);
 
@@ -482,10 +485,9 @@ public:
     rvoe<CapyPDF_RoleId> add_rolemap_entry(pystd2025::CString name,
                                            CapyPDF_Structure_Type builtin_type);
 
-private:
-    PdfDocument(const DocumentProperties &d, PdfColorConverter cm);
     rvoe<NoReturnValue> init();
 
+private:
     int32_t add_object(ObjectType object);
 
     int32_t create_subnavigation(const pystd2025::Vector<SubPageNavigation> &subnav);
@@ -572,5 +574,7 @@ private:
     int32_t pages_object;
     bool write_attempted = false;
 };
+
+rvoe<PdfDocument> construct_document(const DocumentProperties &d, PdfColorConverter cm);
 
 } // namespace capypdf::internal

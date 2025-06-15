@@ -2,7 +2,7 @@
 // Copyright 2023-2024 Jussi Pakkanen
 
 #include <generator.hpp>
-#include <cmath>
+#include <math.h>
 
 using namespace capypdf::internal;
 
@@ -10,8 +10,8 @@ int draw_simple_form() {
     DocumentProperties opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
-    opts.title = u8string::from_cstr("Form XObject test").value();
-    opts.author = u8string::from_cstr("Test Person").value();
+    opts.title = pystd2025::u8_from_bytes("Form XObject test").value();
+    opts.author = pystd2025::u8_from_bytes("Test Person").value();
     opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     {
         GenPopper genpop("form_test.pdf", opts);
@@ -113,8 +113,8 @@ int draw_group_doc() {
 
     opts.default_page_properties.mediabox->x2 = 200;
     opts.default_page_properties.mediabox->y2 = 200;
-    opts.title = u8string::from_cstr("Transparency group test").value();
-    opts.author = u8string::from_cstr("Test Person").value();
+    opts.title = pystd2025::u8_from_bytes("Transparency group test").value();
+    opts.author = pystd2025::u8_from_bytes("Test Person").value();
     opts.output_colorspace = CAPY_DEVICE_CS_RGB;
     GenPopper genpop("tr_test.pdf", opts);
     PdfGen &gen = *genpop.g;
@@ -156,8 +156,8 @@ int draw_transp_doc() {
 
     opts.default_page_properties.mediabox->x2 = 300;
     opts.default_page_properties.mediabox->y2 = 200;
-    opts.title = u8string::from_cstr("Transparency group test").value();
-    opts.author = u8string::from_cstr("Test Person").value();
+    opts.title = pystd2025::u8_from_bytes("Transparency group test").value();
+    opts.author = pystd2025::u8_from_bytes("Test Person").value();
     opts.output_colorspace = CAPY_DEVICE_CS_CMYK;
     opts.prof.cmyk_profile_file = icc_out;
     {

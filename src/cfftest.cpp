@@ -28,7 +28,8 @@ int main1(int argc, char **argv) {
     } else if(ext == ".ttc") {
         // /usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc
         capypdf::internal::FontProperties fprops;
-        auto cff = capypdf::internal::load_and_parse_font_file(fontfile, fprops).value();
+        const auto cff =
+            pystd2025::move(capypdf::internal::load_and_parse_font_file(fontfile, fprops).value());
         if(auto *plaincff = cff.get_if<capypdf::internal::CFFont>()) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }

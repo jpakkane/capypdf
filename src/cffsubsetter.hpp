@@ -5,7 +5,6 @@
 
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
-#include <optional>
 
 #include <stdint.h>
 

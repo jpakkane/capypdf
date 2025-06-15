@@ -132,7 +132,7 @@ struct RegularGlyph {
 // We need to store this info in the cmap table so that
 // text extraction and copypaste work.
 struct LigatureGlyph {
-    u8string text;
+    pystd2025::U8String text;
     uint32_t glyph_index;
 };
 

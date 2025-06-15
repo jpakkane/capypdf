@@ -10,7 +10,7 @@
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
 
-#include <cassert>
+#include <assert.h>
 
 #ifdef _WIN32
 #include <io.h>

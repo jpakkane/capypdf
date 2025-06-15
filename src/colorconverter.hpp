@@ -31,13 +31,20 @@ struct LcmsHolder {
     }
 };
 
+struct cmsdata {
+    LcmsHolder rgb_profile;
+    LcmsHolder gray_profile;
+    LcmsHolder cmyk_profile;
+
+    pystd2025::Bytes rgb_profile_data, gray_profile_data, cmyk_profile_data;
+};
+
 class PdfColorConverter {
 public:
-    static rvoe<PdfColorConverter> construct(const pystd2025::Path &rgb_profile_fname,
-                                             const pystd2025::Path &gray_profile_fname,
-                                             const pystd2025::Path &cmyk_profile_fname);
+    PdfColorConverter() noexcept;
 
-    PdfColorConverter(PdfColorConverter &&o) = default;
+    PdfColorConverter(PdfColorConverter &&o) noexcept = default;
+    PdfColorConverter(cmsdata d_) noexcept : d(pystd2025::move(d_)) {}
     ~PdfColorConverter();
 
     rvoe<DeviceRGBColor> to_rgb(const DeviceCMYKColor &cmyk);
@@ -56,20 +63,18 @@ public:
 
     rvoe<int> get_num_channels(pystd2025::BytesView icc_data) const;
 
-    PdfColorConverter &operator=(PdfColorConverter &&o) = default;
+    PdfColorConverter &operator=(PdfColorConverter &&o) noexcept = default;
 
 private:
-    PdfColorConverter();
-
     cmsHPROFILE profile_for(CapyPDF_Device_Colorspace cs) const;
     cmsHPROFILE profile_for(CapyPDF_Image_Colorspace cs) const;
 
-    LcmsHolder rgb_profile;
-    LcmsHolder gray_profile;
-    LcmsHolder cmyk_profile;
-
-    pystd2025::Bytes rgb_profile_data, gray_profile_data, cmyk_profile_data;
+    cmsdata d;
     // FIXME, store transforms so that they don't get recreated all the time.
 };
+
+rvoe<PdfColorConverter> construct_colorconverter(const pystd2025::Path &rgb_profile_fname,
+                                                 const pystd2025::Path &gray_profile_fname,
+                                                 const pystd2025::Path &cmyk_profile_fname);
 
 } // namespace capypdf::internal

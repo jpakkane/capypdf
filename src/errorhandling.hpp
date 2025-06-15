@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <expected>
+#include <pystd2025.hpp>
 
 namespace capypdf::internal {
 
@@ -136,7 +135,9 @@ template<typename T> struct rvoe {
 // All errors are returned as std::unexpecteds and propagated manually.
 
 // This error exists solely so you can put a breakpoint in it.
-inline std::unexpected<ErrorCode> create_error(ErrorCode code) { return std::unexpected(code); }
+inline pystd2025::Unexpected<ErrorCode> create_error(ErrorCode code) {
+    return pystd2025::Unexpected(code);
+}
 
 #define RETERR(code) return create_error(ErrorCode::code)
 
@@ -145,12 +146,12 @@ inline std::unexpected<ErrorCode> create_error(ErrorCode code) { return std::une
 
 // Return value or error.
 // Would be nice to tag  [[nodiscard]] but it does not seem to be possible.
-template<typename T> using rvoe = std::expected<T, ErrorCode>;
+template<typename T> using rvoe = pystd2025::Expected<T, ErrorCode>;
 
 #define ERC(varname, func)                                                                         \
     auto varname##_variant = func;                                                                 \
     if(!(varname##_variant)) {                                                                     \
-        return std::unexpected(varname##_variant.error());                                         \
+        return pystd2025::Unexpected(varname##_variant.error());                                   \
     }                                                                                              \
     auto &varname = varname##_variant.value();
 
@@ -160,7 +161,7 @@ template<typename T> using rvoe = std::expected<T, ErrorCode>;
     {                                                                                              \
         auto placeholder_name_variant = func;                                                      \
         if(!(placeholder_name_variant)) {                                                          \
-            return std::unexpected(placeholder_name_variant.error());                              \
+            return pystd2025::Unexpected(placeholder_name_variant.error());                        \
         }                                                                                          \
     }
 

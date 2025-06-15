@@ -9,10 +9,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <cassert>
-#include <cmath>
-
-#include <expected>
+#include <assert.h>
+#include <math.h>
 
 namespace capypdf::internal {
 
@@ -552,7 +550,7 @@ rvoe<CFFont> load_CFF_glyphs(uint32_t offset, pystd2025::BytesView buf, uint16_t
     auto cff_span = buf.subview(offset);
     auto cff = parse_cff_data(cff_span);
     if(cff.has_value()) {
-        assert(cff->char_strings.size() == num_glyphs);
+        assert(cff.value().char_strings.size() == num_glyphs);
     }
     return cff;
 }

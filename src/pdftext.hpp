@@ -5,7 +5,7 @@
 
 #include <capypdf.h>
 #include <pdfcommon.hpp>
-#include <cstdint>
+#include <stdint.h>
 #include <errorhandling.hpp>
 
 namespace capypdf::internal {
@@ -27,18 +27,18 @@ struct GlyphItem {
 
 struct GlyphTextItem {
     uint32_t glyph_id;
-    u8string source_text;
+    pystd2025::U8String source_text;
 };
 
 struct ActualTextStart {
-    u8string text;
+    pystd2025::U8String text;
 };
 
 struct ActualTextEnd {};
 
 typedef pystd2025::Variant<KerningValue,
                            UnicodeCharacter,
-                           u8string,
+                           pystd2025::U8String,
                            GlyphItem,
                            GlyphTextItem,
                            ActualTextStart,
@@ -59,7 +59,7 @@ public:
         RETOK;
     }
 
-    rvoe<NoReturnValue> append_string(u8string str) {
+    rvoe<NoReturnValue> append_string(pystd2025::U8String str) {
         e.emplace_back(pystd2025::move(str));
         RETOK;
     }
@@ -69,12 +69,12 @@ public:
         RETOK;
     }
 
-    rvoe<NoReturnValue> append_ligature_glyph(uint32_t glyph_id, u8string text) {
+    rvoe<NoReturnValue> append_ligature_glyph(uint32_t glyph_id, pystd2025::U8String text) {
         e.emplace_back(GlyphTextItem{glyph_id, pystd2025::move(text)});
         RETOK;
     }
 
-    rvoe<NoReturnValue> append_actualtext_start(const u8string &at) {
+    rvoe<NoReturnValue> append_actualtext_start(const pystd2025::U8String &at) {
         if(is_actualtext()) {
             RETERR(DrawStateEndMismatch);
         }
@@ -126,7 +126,7 @@ struct Tf_arg {
 };
 
 struct Tj_arg {
-    u8string text;
+    pystd2025::U8String text;
 };
 
 struct TJ_arg {
@@ -255,7 +255,7 @@ public:
         RETOK;
     }
 
-    rvoe<NoReturnValue> cmd_Tj(const u8string &text) {
+    rvoe<NoReturnValue> cmd_Tj(const pystd2025::U8String &text) {
         events.emplace_back(Tj_arg{text});
         RETOK;
     }

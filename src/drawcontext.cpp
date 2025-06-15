@@ -7,8 +7,8 @@
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
-#include <cmath>
-#include <cassert>
+#include <math.h>
+#include <assert.h>
 
 namespace capypdf::internal {
 
@@ -57,7 +57,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
             write_matrix(fmt, group_matrix.value());
         }
         ERC(commands, cmds.steal());
-        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
+        return DCSerialization(SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)});
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -80,7 +80,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         ERC(commands, cmds.steal());
-        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
+        return DCSerialization(SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)});
     } else if(context_type == CAPY_DC_COLOR_TILING) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -103,7 +103,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         ERC(commands, cmds.steal());
-        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
+        return DCSerialization(SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)});
     } else {
         assert(!group_matrix);
         SerializedBasicContext sc;
@@ -315,11 +315,11 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
                                             const BDCTags *attributes) {
     const auto &itemtype = doc->structure_items.at(sid.id).stype;
     if(auto builtin = itemtype.get_if<CapyPDF_Structure_Type>()) {
-        ERC(astr, asciistring::from_cstr(structure_type_names.at(*builtin)));
+        ERC(astr, ascii_from_raw(structure_type_names.at(*builtin)));
         return cmd_BDC(astr, sid, attributes);
     } else if(auto role = itemtype.get_if<CapyPDF_RoleId>()) {
         auto quoted = bytes2pdfstringliteral(doc->rolemap.at(role->id).name.view(), false);
-        ERC(astr, asciistring::from_cstr(quoted.c_str()));
+        ERC(astr, ascii_from_raw(quoted.c_str()));
         return cmd_BDC(astr, sid, attributes);
     } else {
         abort();
@@ -782,7 +782,7 @@ void PdfDrawContext::rotate(double angle) {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::render_text(
-    const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
+    const pystd2025::U8String &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t(this);
     t.cmd_Tf(fid, pointsize);
     t.cmd_Td(x, y);
@@ -817,7 +817,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             const auto codepoint = uglyph->codepoint;
             ERC(current_subset_glyph, doc->get_subset_glyph(current_font, codepoint, {}));
             glyph_appender_lambda(current_subset_glyph);
-        } else if(auto u8str = e.get_if<u8string>()) {
+        } else if(auto u8str = e.get_if<pystd2025::U8String>()) {
             if(u8str->empty()) {
                 continue;
             }
@@ -1063,7 +1063,7 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
                 if(const auto *unicode = te.get_if<UnicodeCharacter>()) {
                     if(!doc->font_has_character(font.value(), unicode->codepoint)) {
                         RETERR(MissingGlyph);
-                    } else if(const auto *u8str = te.get_if<u8string>()) {
+                    } else if(const auto *u8str = te.get_if<pystd2025::U8String>()) {
                         for(const auto &codepoint : *u8str) {
                             if(!doc->font_has_character(font.value(), codepoint)) {
                                 RETERR(MissingGlyph);

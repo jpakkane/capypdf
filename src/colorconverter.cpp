@@ -4,7 +4,7 @@
 #include <colorconverter.hpp>
 #include <utils.hpp>
 #include <lcms2.h>
-#include <cassert>
+#include <assert.h>
 
 namespace {
 
@@ -82,10 +82,10 @@ void LcmsHolder::deallocate() {
     h = nullptr;
 }
 
-rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_profile_fname,
-                                                     const pystd2025::Path &gray_profile_fname,
-                                                     const pystd2025::Path &cmyk_profile_fname) {
-    PdfColorConverter conv;
+rvoe<PdfColorConverter> construct_colorconverter(const pystd2025::Path &rgb_profile_fname,
+                                                 const pystd2025::Path &gray_profile_fname,
+                                                 const pystd2025::Path &cmyk_profile_fname) {
+    cmsdata conv;
     if(!rgb_profile_fname.is_empty()) {
         ERC(rgb, load_file_as_bytes(rgb_profile_fname));
         conv.rgb_profile_data = pystd2025::move(rgb);
@@ -138,22 +138,22 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_
         // is an error.
     }
     cmsSetLogErrorHandler(print_lcms_errors);
-    return rvoe<PdfColorConverter>(pystd2025::move(conv));
+    return PdfColorConverter(pystd2025::move(conv));
 }
 
-PdfColorConverter::PdfColorConverter() {}
+PdfColorConverter::PdfColorConverter() noexcept {}
 
 PdfColorConverter::~PdfColorConverter() {}
 
 rvoe<DeviceRGBColor> PdfColorConverter::to_rgb(const DeviceCMYKColor &cmyk) {
-    if(!cmyk_profile.h) {
+    if(!d.cmyk_profile.h) {
         RETERR(OutputProfileMissing);
     }
-    assert(rgb_profile.h);
+    assert(d.rgb_profile.h);
     DeviceRGBColor rgb;
-    auto transform = cmsCreateTransform(cmyk_profile.h,
+    auto transform = cmsCreateTransform(d.cmyk_profile.h,
                                         TYPE_CMYK_DBL,
-                                        rgb_profile.h,
+                                        d.rgb_profile.h,
                                         TYPE_RGB_DBL,
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
@@ -164,9 +164,9 @@ rvoe<DeviceRGBColor> PdfColorConverter::to_rgb(const DeviceCMYKColor &cmyk) {
 
 DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
     DeviceGrayColor gray;
-    auto transform = cmsCreateTransform(rgb_profile.h,
+    auto transform = cmsCreateTransform(d.rgb_profile.h,
                                         TYPE_RGB_DBL,
-                                        gray_profile.h,
+                                        d.gray_profile.h,
                                         TYPE_GRAY_DBL,
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
@@ -176,14 +176,14 @@ DeviceGrayColor PdfColorConverter::to_gray(const DeviceRGBColor &rgb) {
 }
 
 rvoe<DeviceGrayColor> PdfColorConverter::to_gray(const DeviceCMYKColor &cmyk) {
-    if(!cmyk_profile.h) {
+    if(!d.cmyk_profile.h) {
         RETERR(OutputProfileMissing);
     }
-    assert(gray_profile.h);
+    assert(d.gray_profile.h);
     DeviceGrayColor gray;
-    auto transform = cmsCreateTransform(cmyk_profile.h,
+    auto transform = cmsCreateTransform(d.cmyk_profile.h,
                                         TYPE_CMYK_DBL,
-                                        gray_profile.h,
+                                        d.gray_profile.h,
                                         TYPE_GRAY_DBL,
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
@@ -193,15 +193,15 @@ rvoe<DeviceGrayColor> PdfColorConverter::to_gray(const DeviceCMYKColor &cmyk) {
 }
 
 rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
-    if(!cmyk_profile.h) {
+    if(!d.cmyk_profile.h) {
         RETERR(NoCmykProfile);
     }
-    assert(rgb_profile.h);
+    assert(d.rgb_profile.h);
     DeviceCMYKColor cmyk;
     double buf[4]; // PDF uses values [0, 1] but littlecms seems to use [0, 100].
-    auto transform = cmsCreateTransform(rgb_profile.h,
+    auto transform = cmsCreateTransform(d.rgb_profile.h,
                                         TYPE_RGB_DBL,
-                                        cmyk_profile.h,
+                                        d.cmyk_profile.h,
                                         TYPE_CMYK_DBL,
                                         ri2lcms.at(CAPY_RI_RELATIVE_COLORIMETRIC),
                                         0);
@@ -217,11 +217,11 @@ rvoe<DeviceCMYKColor> PdfColorConverter::to_cmyk(const DeviceRGBColor &rgb) {
 cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Device_Colorspace cs) const {
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
-        return rgb_profile.h;
+        return d.rgb_profile.h;
     case CAPY_DEVICE_CS_GRAY:
-        return gray_profile.h;
+        return d.gray_profile.h;
     case CAPY_DEVICE_CS_CMYK:
-        return cmyk_profile.h;
+        return d.cmyk_profile.h;
     }
     abort();
 }
@@ -282,13 +282,13 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
 }
 
 pystd2025::BytesView PdfColorConverter::get_rgb() {
-    return pystd2025::BytesView(rgb_profile_data.data(), rgb_profile_data.size());
+    return pystd2025::BytesView(d.rgb_profile_data.data(), d.rgb_profile_data.size());
 }
 pystd2025::BytesView PdfColorConverter::get_gray() {
-    return pystd2025::BytesView(gray_profile_data.data(), gray_profile_data.size());
+    return pystd2025::BytesView(d.gray_profile_data.data(), d.gray_profile_data.size());
 }
 pystd2025::BytesView PdfColorConverter::get_cmyk() {
-    return pystd2025::BytesView(cmyk_profile_data.data(), cmyk_profile_data.size());
+    return pystd2025::BytesView(d.cmyk_profile_data.data(), d.cmyk_profile_data.size());
 }
 
 rvoe<int> PdfColorConverter::get_num_channels(pystd2025::BytesView icc_data) const {

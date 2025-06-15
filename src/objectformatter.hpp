@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 #include <pystd2025.hpp>
 
 namespace capypdf::internal {
@@ -21,7 +21,6 @@ struct FormatStash {
     FormatState params;
 };
 
-class u8string;
 class asciistring;
 
 class ObjectFormatter {

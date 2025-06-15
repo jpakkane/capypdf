@@ -4,7 +4,7 @@
 #include <objectformatter.hpp>
 #include <pdfcommon.hpp>
 
-#include <cassert>
+#include <assert.h>
 
 namespace capypdf::internal {
 

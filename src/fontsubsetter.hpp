@@ -26,19 +26,17 @@ struct FontSubsetData {
 class FontSubsetter {
 public:
     FontSubsetter() noexcept { face = nullptr; }
-    static rvoe<FontSubsetter>
-    construct(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props);
 
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
         : ttfile{pystd2025::move(ttfile)}, face{face}, subset{pystd2025::move(subset)} {}
 
     rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph,
                                           const pystd2025::Optional<uint32_t> glyph_id);
-    rvoe<FontSubsetInfo> get_glyph_subset(const u8string &text, const uint32_t glyph_id);
+    rvoe<FontSubsetInfo> get_glyph_subset(const pystd2025::U8String &text, const uint32_t glyph_id);
     rvoe<FontSubsetInfo>
     unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
                                           const pystd2025::Optional<uint32_t> glyph_id);
-    rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const u8string &text,
+    rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const pystd2025::U8String &text,
                                                                uint32_t glyph_id);
 
     const pystd2025::Vector<TTGlyphs> &get_subset() const { return subset.glyphs; }
@@ -56,9 +54,12 @@ private:
     FT_Face face;
     pystd2025::Optional<FontSubsetInfo> find_existing_glyph(uint32_t gid) const;
     pystd2025::Optional<FontSubsetInfo> find_glyph_with_codepoint(uint32_t codepoint) const;
-    pystd2025::Optional<FontSubsetInfo> find_glyph(const u8string &text) const;
+    pystd2025::Optional<FontSubsetInfo> find_glyph(const pystd2025::U8String &text) const;
 
     FontSubsetData subset;
 };
+
+rvoe<FontSubsetter>
+construct_subsetter(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props);
 
 } // namespace capypdf::internal

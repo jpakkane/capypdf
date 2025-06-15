@@ -5,9 +5,9 @@
 #include <pdfwriter.hpp>
 #include <imagefileops.hpp>
 #include <utils.hpp>
-#include <cstring>
-#include <cerrno>
-#include <cassert>
+#include <string.h>
+#include <errno.h>
+#include <assert.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
@@ -44,9 +44,9 @@ rvoe<pystd2025::unique_ptr<PdfGen>> PdfGen::construct(const pystd2025::Path &ofn
     }
     pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft(ft_);
     ERC(cm,
-        PdfColorConverter::construct(
+        construct_colorconverter(
             d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
-    ERC(pdoc, PdfDocument::construct(d, pystd2025::move(cm)));
+    ERC(pdoc, construct_document(d, pystd2025::move(cm)));
     return pystd2025::unique_ptr<PdfGen>(
         new PdfGen(ofname, pystd2025::move(ft), pystd2025::move(pdoc)));
 }
@@ -119,7 +119,7 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
 rvoe<NoReturnValue>
 PdfGen::add_page_labeling(uint32_t start_page,
                           pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
-                          pystd2025::Optional<u8string> prefix,
+                          pystd2025::Optional<pystd2025::U8String> prefix,
                           pystd2025::Optional<uint32_t> start_num) {
     return pdoc.add_page_labeling(start_page, style, prefix, start_num);
 }
@@ -170,8 +170,9 @@ PdfDrawContext *PdfGen::new_color_pattern(const PdfRectangle &rect) {
     return new PdfDrawContext(&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, rect);
 }
 
-rvoe<double>
-PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const {
+rvoe<double> PdfGen::utf8_text_width(const pystd2025::U8String &txt,
+                                     CapyPDF_FontId fid,
+                                     double pointsize) const {
     if(txt.empty()) {
         return 0;
     }

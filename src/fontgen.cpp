@@ -3,12 +3,12 @@
 
 #include <generator.hpp>
 #include <pdftext.hpp>
-#include <cmath>
+#include <math.h>
 
 using namespace capypdf::internal;
 
 void center_test() {
-    u8string text = u8string::from_cstr("Centered text!").value();
+    pystd2025::U8String text = pystd2025::u8_from_bytes("Centered text!").value();
     const double pt = 12;
     DocumentProperties opts;
     opts.output_colorspace = CAPY_DEVICE_CS_GRAY;
@@ -62,7 +62,7 @@ int test1(int argc, char **argv) {
     opts.mediabox.w = 200;
     opts.mediabox.h = 200;
     */
-    opts.title = u8string::from_cstr("Over 255 letters").value();
+    opts.title = pystd2025::u8_from_bytes("Over 255 letters").value();
     GenPopper genpop("fonttest.pdf", opts);
     PdfGen &gen = *genpop.g;
     FontProperties fprops;
@@ -71,31 +71,40 @@ int test1(int argc, char **argv) {
     auto ctxguard = gen.guarded_page_context();
     auto &ctx = ctxguard.ctx;
     ctx.set_nonstroke_color(DeviceGrayColor{0.0});
-    ctx.render_text(
-        u8string::from_cstr("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ").value(), regular_fid, 12, 20, 800);
-    ctx.render_text(
-        u8string::from_cstr("abcdefghijklmnopqrstuvwxyzåäö").value(), regular_fid, 12, 20, 780);
-    ctx.render_text(
-        u8string::from_cstr("0123456789!\"#¤%&/()=+?-.,;:'*~").value(), regular_fid, 12, 20, 760);
-    ctx.render_text(u8string::from_cstr("бгджзиклмнптфцч").value(), regular_fid, 12, 20, 740);
-    ctx.render_text(u8string::from_cstr("ΓΔΖΗΛΞΠΣΥΦΧΨΩ").value(), regular_fid, 12, 20, 720);
+    ctx.render_text(pystd2025::u8_from_bytes("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ").value(),
+                    regular_fid,
+                    12,
+                    20,
+                    800);
+    ctx.render_text(pystd2025::u8_from_bytes("abcdefghijklmnopqrstuvwxyzåäö").value(),
+                    regular_fid,
+                    12,
+                    20,
+                    780);
+    ctx.render_text(pystd2025::u8_from_bytes("0123456789!\"#¤%&/()=+?-.,;:'*~").value(),
+                    regular_fid,
+                    12,
+                    20,
+                    760);
+    ctx.render_text(pystd2025::u8_from_bytes("бгджзиклмнптфцч").value(), regular_fid, 12, 20, 740);
+    ctx.render_text(pystd2025::u8_from_bytes("ΓΔΖΗΛΞΠΣΥΦΧΨΩ").value(), regular_fid, 12, 20, 720);
     {
         auto statepop = ctx.push_gstate();
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 24);
         text.cmd_Td(20, 650);
         text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 0.0});
-        text.cmd_Tj(u8string::from_cstr("C").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("C").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
-        text.cmd_Tj(u8string::from_cstr("o").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("o").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 0.0, 1.0});
-        text.cmd_Tj(u8string::from_cstr("l").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("l").value());
         text.nonstroke_color(DeviceRGBColor{1.0, 1.0, 0.0});
-        text.cmd_Tj(u8string::from_cstr("o").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("o").value());
         text.nonstroke_color(DeviceRGBColor{1.0, 0.0, 1.0});
-        text.cmd_Tj(u8string::from_cstr("r").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("r").value());
         text.nonstroke_color(DeviceRGBColor{0.0, 1.0, 0.0});
-        text.cmd_Tj(u8string::from_cstr("!").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("!").value());
         ctx.render_text(text);
     }
     {
@@ -123,7 +132,7 @@ int test1(int argc, char **argv) {
         text.cmd_TJ(kerned_text);
         text.cmd_Tstar();
         text.cmd_Tj(
-            u8string::from_cstr(
+            pystd2025::u8_from_bytes(
                 "This is some text using a text object. It uses Freetype kerning (i.e. not GPOS).")
                 .value());
         ctx.render_text(text);
@@ -132,11 +141,11 @@ int test1(int argc, char **argv) {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 600);
-        text.cmd_Tj(u8string::from_cstr("How about some ").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("How about some ").value());
         text.cmd_Tf(italic_fid, 12);
-        text.cmd_Tj(u8string::from_cstr("italic").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("italic").value());
         text.cmd_Tf(regular_fid, 12);
-        text.cmd_Tj(u8string::from_cstr(" text?").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes(" text?").value());
         ctx.render_text(text);
     }
 
@@ -144,11 +153,11 @@ int test1(int argc, char **argv) {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 550);
-        text.cmd_Tj(u8string::from_cstr("How about some ").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("How about some ").value());
         text.cmd_Ts(4);
-        text.cmd_Tj(u8string::from_cstr("raised").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("raised").value());
         text.cmd_Ts(0);
-        text.cmd_Tj(u8string::from_cstr(" text?").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes(" text?").value());
         ctx.render_text(text);
     }
 
@@ -156,10 +165,10 @@ int test1(int argc, char **argv) {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 500);
-        text.cmd_Tj(u8string::from_cstr("Character spacing").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("Character spacing").value());
         text.cmd_Tstar();
         text.cmd_Tc(1);
-        text.cmd_Tj(u8string::from_cstr("Character spacing").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("Character spacing").value());
         ctx.render_text(text);
     }
 
@@ -167,10 +176,10 @@ int test1(int argc, char **argv) {
         PdfText text(&ctx);
         text.cmd_Tf(regular_fid, 12);
         text.cmd_Td(20, 400);
-        text.cmd_Tj(u8string::from_cstr("Character scaling.").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("Character scaling.").value());
         text.cmd_Tstar();
         text.cmd_Tz(150);
-        text.cmd_Tj(u8string::from_cstr("Character scaling.").value());
+        text.cmd_Tj(pystd2025::u8_from_bytes("Character scaling.").value());
         text.cmd_Tz(100);
         ctx.render_text(text);
     }
@@ -181,7 +190,7 @@ int test1(int argc, char **argv) {
         text.cmd_Td(20, 300);
         for(int i = 1; i < 20; ++i) {
             text.cmd_Tf(regular_fid, 2 * i);
-            text.cmd_Tj(u8string::from_cstr("X").value());
+            text.cmd_Tj(pystd2025::u8_from_bytes("X").value());
         }
         ctx.render_text(text);
     }
@@ -197,7 +206,7 @@ int test2(int argc, char **argv) {
     } else {
         regularfont = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
     }
-    opts.title = u8string::from_cstr("Ligaturing").value();
+    opts.title = pystd2025::u8_from_bytes("Ligaturing").value();
     GenPopper genpop("ligaturetest.pdf", opts);
     PdfGen &gen = *genpop.g;
     FontProperties fprops;
@@ -208,7 +217,7 @@ int test2(int argc, char **argv) {
         PdfText text(&ctx);
         TextSequence ts;
         ts.append_unicode('A');
-        auto ffi = u8string::from_cstr("ffi").value();
+        auto ffi = pystd2025::u8_from_bytes("ffi").value();
 
         ts.append_ligature_glyph(2132, ffi);
         ts.append_unicode('x');

@@ -154,8 +154,8 @@ public:
     void scale(double xscale, double yscale);
     void translate(double xtran, double ytran);
     void rotate(double angle);
-    rvoe<NoReturnValue>
-    render_text(const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y);
+    rvoe<NoReturnValue> render_text(
+        const pystd2025::U8String &text, CapyPDF_FontId fid, double pointsize, double x, double y);
     rvoe<NoReturnValue> render_text(const PdfText &textobj);
     rvoe<NoReturnValue>
     render_glyphs(const pystd2025::Vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);

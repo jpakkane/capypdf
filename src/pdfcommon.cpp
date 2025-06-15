@@ -4,7 +4,7 @@
 #include <pdfcommon.hpp>
 #include <objectformatter.hpp>
 #include <utils.hpp>
-#include <cassert>
+#include <assert.h>
 
 namespace capypdf::internal {
 
@@ -88,7 +88,7 @@ const char *structure_type_names_data[CAPY_STRUCTURE_TYPE_NUM_ITEMS] = {
 const pystd2025::Span<const char *> structure_type_names(structure_type_names_data,
                                                          sizeof(structure_type_names_data));
 
-rvoe<PdfRectangle> PdfRectangle::construct(double l, double b, double r, double t) {
+rvoe<PdfRectangle> construct_rect(double l, double b, double r, double t) {
     if(r <= l) {
         RETERR(InvalidBBox);
     }
@@ -118,38 +118,21 @@ void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
     fmt.end_dict();
 }
 
-rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
-    return asciistring::from_view(pystd2025::CStringView(cstr));
-}
-
-rvoe<asciistring> asciistring::from_view(pystd2025::CStringView sv) {
+asciistring::asciistring(pystd2025::CStringView sv) : buf(sv) {
     if(!is_ascii(sv)) {
-        RETERR(NotASCII);
+        throw pystd2025::PyException("Not ASCII.");
     }
-    auto astr = asciistring(sv);
-    if(astr.sv().find('\0') != (size_t)-1) {
-        RETERR(EmbeddedNullInString);
-    }
-    return astr;
 }
 
-rvoe<u8string> u8string::from_cstr(const char *cstr) {
-    if(!is_valid_utf8(cstr)) {
-        RETERR(BadUtf8);
-    }
-    return u8string{cstr};
+rvoe<asciistring> ascii_from_raw(const char *cstr, size_t strsize) {
+    return ascii_from_raw(pystd2025::CStringView(cstr, strsize));
 }
 
-rvoe<u8string> u8string::from_view(pystd2025::CStringView sv) {
-    if(!is_valid_utf8(sv)) {
-        RETERR(BadUtf8);
-    }
-    auto ustr = u8string(sv);
-    if(ustr.sv().find('\0') != (size_t)-1) {
-        RETERR(EmbeddedNullInString);
-    }
-    return ustr;
+rvoe<asciistring> ascii_from_raw(const pystd2025::CString &str) {
+    return ascii_from_raw(str.view());
 }
+
+rvoe<asciistring> ascii_from_raw(pystd2025::CStringView sv) { return asciistring(sv); }
 
 CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsigned char *buf) {
     UtfDecodeStep par;

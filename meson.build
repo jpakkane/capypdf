@@ -39,7 +39,7 @@ if get_option('devtools')
 endif
 if not get_option('fuzzing')
   subdir('python')
-  subdir('benchmark')
+  #subdir('benchmark')
   subdir('test')
 endif
 

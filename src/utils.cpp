@@ -4,7 +4,7 @@
 #include <utils.hpp>
 #include <objectformatter.hpp>
 #include <zlib.h>
-#include <cassert>
+#include <assert.h>
 #include <string.h>
 #include <time.h>
 #ifdef _WIN32
@@ -218,7 +218,7 @@ void write_file(const char *ofname, const char *buf, size_t bufsize) {
     fclose(f);
 }
 
-pystd2025::CString utf8_to_pdfutf16be(const u8string &input, bool add_adornments) {
+pystd2025::CString utf8_to_pdfutf16be(const pystd2025::U8String &input, bool add_adornments) {
     pystd2025::CString encoded(add_adornments ? "<FEFF" : ""); // PDF 2.0 spec, 7.9.2.2.1
 
     pystd2025::Vector<uint16_t> u16buf;
@@ -317,17 +317,19 @@ pystd2025::CString pdfstring_quote(pystd2025::CStringView raw_string) {
     return result;
 }
 
-pystd2025::CString u8str2u8textstring(const u8string &str) { return u8str2u8textstring(str.sv()); }
+pystd2025::CString u8str2u8textstring(const pystd2025::U8String &str) {
+    return u8str2u8textstring(str.byteview());
+}
 
 // PDF 2.0 spec 7.9.2.2
-pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8string) {
+pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8str) {
     pystd2025::CString result;
-    result.reserve(u8string.size() + 10);
+    result.reserve(u8str.size() + 10);
     result.push_back('(');
     result.push_back(char(239));
     result.push_back(char(187));
     result.push_back(char(191));
-    for(const char c : u8string) {
+    for(const char c : u8str) {
         switch(c) {
         case '(':
         case ')':
@@ -343,15 +345,15 @@ pystd2025::CString u8str2u8textstring(pystd2025::CStringView u8string) {
     return result;
 }
 
-pystd2025::CString u8str2filespec(const u8string &str) {
+pystd2025::CString u8str2filespec(const pystd2025::U8String &str) {
     pystd2025::CString result;
     const char escaped_slash[4] = {'\\', '\\', '/', 0};
-    result.reserve(str.size() + 10);
+    result.reserve(str.size_bytes() + 10);
     result.push_back('(');
     result.push_back(char(239));
     result.push_back(char(187));
     result.push_back(char(191));
-    for(const char c : str.sv()) {
+    for(const char c : str.byteview()) {
         switch(c) {
         case '(':
         case ')':
@@ -470,8 +472,8 @@ void serialize_trans(ObjectFormatter &fmt, const Transition &t) {
     fmt.end_dict();
 }
 
-void quote_xml_element_data_into(const u8string &content, pystd2025::CString &result) {
-    auto content_view = content.sv();
+void quote_xml_element_data_into(const pystd2025::U8String &content, pystd2025::CString &result) {
+    auto content_view = content.byteview();
     for(char c : content_view) {
         switch(c) {
         case '<':

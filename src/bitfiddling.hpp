@@ -3,8 +3,8 @@
 #include <errorhandling.hpp>
 #include <pystd2025.hpp>
 
-#include <cstring>
-#include <cassert>
+#include <string.h>
+#include <assert.h>
 
 namespace capypdf::internal {
 

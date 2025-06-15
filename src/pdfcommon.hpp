@@ -9,8 +9,8 @@
 #include <pystd2025.hpp>
 #include <math.h>
 
-#include <cstdint>
-#include <cmath>
+#include <stdint.h>
+#include <math.h>
 
 // This macro must not be used from within a namespace.
 #define DEF_BASIC_OPERATORS(TNAME)                                                                 \
@@ -123,18 +123,11 @@ public:
     asciistring() = default;
     asciistring(asciistring &&o) = default;
     asciistring(const asciistring &o) = default;
+    asciistring(pystd2025::CStringView cs);
 
     pystd2025::CStringView sv() const { return buf.view(); }
     const char *c_str() const { return buf.c_str(); }
 
-    static rvoe<asciistring> from_cstr(const char *cstr);
-    static rvoe<asciistring> from_cstr(const pystd2025::CString &str) {
-        return asciistring::from_view(str.view());
-    }
-    static rvoe<asciistring> from_view(pystd2025::CStringView sv);
-    static rvoe<asciistring> from_view(const char *buf, uint32_t bufsize) {
-        return asciistring::from_view(pystd2025::CStringView(buf, bufsize));
-    }
     bool empty() const { return buf.is_empty(); }
 
     asciistring &operator=(asciistring &&o) = default;
@@ -149,54 +142,14 @@ public:
     size_t size() const { return buf.size(); }
 
 private:
-    explicit asciistring(pystd2025::CStringView prevalidated_ascii) : buf(prevalidated_ascii) {}
+    //    explicit asciistring(pystd2025::CStringView prevalidated_ascii) : buf(prevalidated_ascii)
+    //    {}
     pystd2025::CString buf;
 };
 
-class u8string {
-public:
-    u8string() = default;
-    u8string(u8string &&o) = default;
-    u8string(const u8string &o) = default;
-
-    pystd2025::CStringView sv() const { return buf.view(); }
-
-    static rvoe<u8string> from_cstr(const char *cstr);
-    static rvoe<u8string> from_cstr(const pystd2025::CString &str) {
-        return u8string::from_cstr(str.c_str());
-    }
-
-    static rvoe<u8string> from_view(pystd2025::CStringView sv);
-    static rvoe<u8string> from_view(const char *buf, uint32_t bufsize) {
-        return u8string::from_view(pystd2025::CStringView(buf, bufsize));
-    }
-
-    bool empty() const { return buf.is_empty(); }
-    size_t length() const { return buf.size(); }
-    size_t size() const { return buf.size(); }
-    const char *c_str() const { return buf.c_str(); }
-
-    CodepointIterator begin() const {
-        return CodepointIterator((const unsigned char *)buf.c_str());
-    }
-
-    CodepointIterator end() const {
-        return CodepointIterator((const unsigned char *)buf.c_str() + buf.size());
-    }
-
-    u8string &operator=(u8string &&o) = default;
-    u8string &operator=(const u8string &o) {
-        u8string tmp(o);
-        (*this) = pystd2025::move(tmp);
-        return *this;
-    }
-
-    bool operator==(const u8string &other) const = default;
-
-private:
-    explicit u8string(pystd2025::CStringView prevalidated_utf8) : buf(prevalidated_utf8) {}
-    pystd2025::CString buf;
-};
+rvoe<asciistring> ascii_from_raw(const char *cstr, size_t strsize = -1);
+rvoe<asciistring> ascii_from_raw(const pystd2025::CString &str);
+rvoe<asciistring> ascii_from_raw(pystd2025::CStringView sv);
 
 struct PdfBox {
     double x{};
@@ -215,11 +168,11 @@ struct PdfRectangle {
 
     static PdfRectangle a4() { return PdfRectangle{0, 0, 595.28, 841.89}; }
 
-    static rvoe<PdfRectangle> construct(double l, double b, double r, double t);
-
     double w() const { return y2 - y1; }
     double h() const { return x2 - x1; }
 };
+
+rvoe<PdfRectangle> construct_rect(double l, double b, double r, double t);
 
 // In PDF only 6 of the 9 values are stored.
 struct PdfMatrix {

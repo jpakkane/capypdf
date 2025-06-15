@@ -2,8 +2,8 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <errorhandling.hpp>
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace capypdf::internal {
 

@@ -2,7 +2,7 @@
 // Copyright 2023-2024 Jussi Pakkanen
 
 #include <generator.hpp>
-#include <cmath>
+#include <math.h>
 
 using namespace capypdf::internal;
 
@@ -10,14 +10,14 @@ void file_embed() {
     DocumentProperties opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
-    opts.title = u8string::from_cstr("File embedding test").value();
-    opts.author = u8string::from_cstr("Test Person").value();
+    opts.title = pystd2025::u8_from_bytes("File embedding test").value();
+    opts.author = pystd2025::u8_from_bytes("Test Person").value();
     {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         EmbeddedFile ef;
         ef.path = "embed.txt";
-        ef.pdfname = u8string::from_cstr("embed.txt").value();
+        ef.pdfname = pystd2025::u8_from_bytes("embed.txt").value();
         auto efid = gen.embed_file(ef).value();
         auto fileannoid = gen.add_annotation(Annotation{FileAttachmentAnnotation{efid},
                                                         PdfRectangle{35, 95, 45, 105}})
@@ -32,19 +32,19 @@ void file_embed() {
             auto textannoid =
                 gen
                     .add_annotation(Annotation{
-                        TextAnnotation{u8string::from_cstr("This is a text ännotation").value()},
+                        TextAnnotation{
+                            pystd2025::u8_from_bytes("This is a text ännotation").value()},
                         PdfRectangle{150, 60, 180, 90}})
                     .value();
             ctx.annotate(textannoid);
             ctx.cmd_rg(0, 0, 1);
             ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
-                gen.add_annotation(
-                       Annotation{LinkAnnotation{asciistring::from_cstr("https://github.com/"
-                                                                        "mesonbuild/meson")
-                                                     .value(),
-                                                 {}},
-                                  PdfRectangle{10, 10, 32, 20}})
+                gen.add_annotation(Annotation{LinkAnnotation{ascii_from_raw("https://github.com/"
+                                                                            "mesonbuild/meson")
+                                                                 .value(),
+                                                             {}},
+                                              PdfRectangle{10, 10, 32, 20}})
                     .value();
             ctx.annotate(linkannoid);
         }
@@ -55,15 +55,15 @@ void video_player() {
     DocumentProperties opts;
 
     opts.default_page_properties.mediabox->x2 = opts.default_page_properties.mediabox->y2 = 200;
-    opts.title = u8string::from_cstr("Video player test").value();
-    opts.author = u8string::from_cstr("Test Person").value();
+    opts.title = pystd2025::u8_from_bytes("Video player test").value();
+    opts.author = pystd2025::u8_from_bytes("Test Person").value();
 #if 0
     const char *mediafile = "samplemedia.jpg";
     const char *mimetype = "image/jpeg";
     pystd2025::Optional<ClipTimes> subplay;
 #else
     const char *mediafile = "samplevideo.mp4";
-    asciistring mimetype = asciistring::from_cstr("video/mp4").value();
+    asciistring mimetype = ascii_from_raw("video/mp4").value();
     pystd2025::Optional<ClipTimes> subplay = ClipTimes{14 * 60 + 26, 14 * 60 + 32};
 #endif
     {
@@ -71,7 +71,7 @@ void video_player() {
         PdfGen &gen = *genpop.g;
         EmbeddedFile ef;
         ef.path = mediafile;
-        ef.pdfname = u8string::from_cstr(mediafile).value();
+        ef.pdfname = pystd2025::u8_from_bytes(mediafile).value();
         auto efid = gen.embed_file(ef).value();
         {
             auto ctxguard = gen.guarded_page_context();

@@ -5,8 +5,8 @@
 
 #include <drawcontext.hpp>
 
-#include <cstdio>
-#include <cstdint>
+#include <stdio.h>
+#include <stdint.h>
 
 namespace capypdf::internal {
 
@@ -115,7 +115,7 @@ public:
     rvoe<NoReturnValue>
     add_page_labeling(uint32_t start_page,
                       pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
-                      pystd2025::Optional<u8string> prefix,
+                      pystd2025::Optional<pystd2025::U8String> prefix,
                       pystd2025::Optional<uint32_t> start_num);
     rvoe<CapyPDF_FormXObjectId> add_form_xobject(PdfDrawContext &ctx);
     rvoe<CapyPDF_PatternId> add_shading_pattern(const ShadingPattern &shp);
@@ -152,7 +152,8 @@ public:
         return pdoc.glyph_advance(fid, pointsize, codepoint);
     }
 
-    rvoe<double> utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const;
+    rvoe<double>
+    utf8_text_width(const pystd2025::U8String &txt, CapyPDF_FontId fid, double pointsize) const;
 
     rvoe<CapyPDF_RoleId> add_rolemap_entry(pystd2025::CString name,
                                            CapyPDF_Structure_Type builtin_type) {

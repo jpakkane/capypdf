@@ -6,8 +6,8 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <cstdio>
-#include <cassert>
+#include <stdio.h>
+#include <assert.h>
 
 namespace capypdf::internal {
 
@@ -54,9 +54,8 @@ rvoe<pystd2025::Vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id,
 
 } // namespace
 
-rvoe<FontSubsetter> FontSubsetter::construct(const pystd2025::Path &fontfile,
-                                             FT_Face face,
-                                             const FontProperties &props) {
+rvoe<FontSubsetter>
+construct_subsetter(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props) {
     ERC(font, load_and_parse_font_file(fontfile, props));
     if(auto *ttffile = font.get_if<TrueTypeFontFile>()) {
         return FontSubsetter(pystd2025::move(*ttffile), face, create_startstate());
@@ -98,7 +97,7 @@ rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(uint32_t codepoint,
     return unchecked_insert_glyph_to_last_subset(codepoint, glyph_id);
 }
 
-rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const u8string &text,
+rvoe<FontSubsetInfo> FontSubsetter::get_glyph_subset(const pystd2025::U8String &text,
                                                      const uint32_t glyph_id) {
     auto existing_gid = find_existing_glyph(glyph_id);
     if(existing_gid) {
@@ -177,8 +176,9 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
     RETOK;
 }
 
-rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const u8string &text,
-                                                                          uint32_t glyph_id) {
+rvoe<FontSubsetInfo>
+FontSubsetter::unchecked_insert_glyph_to_last_subset(const pystd2025::U8String &text,
+                                                     uint32_t glyph_id) {
     if(subset.glyphs.size() >= max_glyphs) {
         RETERR(TooManyGlyphsUsed);
     }
@@ -225,7 +225,8 @@ FontSubsetter::find_glyph_with_codepoint(uint32_t codepoint) const {
     return {};
 }
 
-pystd2025::Optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) const {
+pystd2025::Optional<FontSubsetInfo>
+FontSubsetter::find_glyph(const pystd2025::U8String &text) const {
     auto loc = pystd2025::find_if(
         subset.glyphs.cbegin(), subset.glyphs.cend(), [&text](const TTGlyphs &ttg) {
             if(ttg.contains<LigatureGlyph>()) {
