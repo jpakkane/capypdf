@@ -5,8 +5,6 @@
 
 #include <errorhandling.hpp>
 
-#include <variant>
-
 #include <pystd2025.hpp>
 
 namespace capypdf::internal {

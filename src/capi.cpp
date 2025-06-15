@@ -545,7 +545,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *image = reinterpret_cast<const RasterImage *>(source);
-    if(auto *raw = std::get_if<RawPixelImage>(image)) {
+    if(auto *raw = image->get_if<RawPixelImage>()) {
         auto rc = g->convert_image_to_cs(*raw, output_cs, ri);
         if(rc) {
             *out_ptr =
@@ -2106,10 +2106,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *
                                                      uint32_t *h) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = i->get_if<RawPixelImage>()) {
         *w = raw->md.w;
         *h = raw->md.h;
-    } else if(auto *jpg = std::get_if<jpg_image>(i)) {
+    } else if(auto *jpg = i->get_if<jpg_image>()) {
         *w = jpg->w;
         *h = jpg->h;
     } else {
@@ -2123,7 +2123,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
     const CapyPDF_RasterImage *image, CapyPDF_Image_Colorspace *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = i->get_if<RawPixelImage>()) {
         *out_ptr = raw->md.cs;
     } else {
         return conv_err(ErrorCode::UnsupportedFormat);
@@ -2136,7 +2136,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_has_profile(const CapyPDF_RasterImag
                                                         int32_t *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = i->get_if<RawPixelImage>()) {
         *out_ptr = raw->icc_profile.is_empty() ? 0 : 1;
     } else {
         return conv_err(ErrorCode::UnsupportedFormat);
@@ -2241,9 +2241,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
     CHECK_BOOLEAN(ending);
 
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
+    if(auto *ptr = sh->get_if<ShadingType2>()) {
         ptr->extend = ShadingExtend{starting != 0, ending != 0};
-    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
+    } else if(auto *ptr = sh->get_if<ShadingType3>()) {
         ptr->extend = ShadingExtend{starting != 0, ending != 0};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
@@ -2257,9 +2257,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
                                                   double ending) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
+    if(auto *ptr = sh->get_if<ShadingType2>()) {
         ptr->domain = ShadingDomain{starting, ending};
-    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
+    } else if(auto *ptr = sh->get_if<ShadingType3>()) {
         ptr->domain = ShadingDomain{starting, ending};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
@@ -2303,7 +2303,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
     CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh4 = std::get_if<ShadingType4>(sh);
+    auto *sh4 = sh->get_if<ShadingType4>();
     if(!sh) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
@@ -2322,7 +2322,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh4 = std::get_if<ShadingType4>(sh);
+    auto *sh4 = sh->get_if<ShadingType4>();
     if(!sh) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
@@ -2363,7 +2363,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
     CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh6 = std::get_if<ShadingType6>(sh);
+    auto *sh6 = sh->get_if<ShadingType6>();
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
@@ -2381,7 +2381,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
                                                     const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh6 = std::get_if<ShadingType6>(sh);
+    auto *sh6 = sh->get_if<ShadingType6>();
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }

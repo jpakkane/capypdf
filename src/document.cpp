@@ -186,11 +186,11 @@ rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
 rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
     pystd2025::Bytes s;
     for(const auto &eh : shade.elements) {
-        if(!std::holds_alternative<FullCoonsPatch>(eh)) {
+        if(!eh.contains<FullCoonsPatch>()) {
             fprintf(stderr, "Continuation patches not yet supported.\n");
             std::abort();
         }
-        const auto &e = std::get<FullCoonsPatch>(eh);
+        const auto &e = eh.get<FullCoonsPatch>();
         char flag = 0; //(char)e.flag;
         assert(flag >= 0 && flag < 3);
         const char *ptr;
@@ -345,14 +345,14 @@ serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t pag
     fmt.add_token("/Dest");
     fmt.begin_array();
     fmt.add_object_ref(page_object_number);
-    if(auto xyz = std::get_if<DestinationXYZ>(&dest.loc)) {
+    if(auto xyz = dest.loc.get_if<DestinationXYZ>()) {
         fmt.add_token("/XYZ");
         append_value_or_null(fmt, xyz->x);
         append_value_or_null(fmt, xyz->y);
         append_value_or_null(fmt, xyz->z);
-    } else if(std::holds_alternative<DestinationFit>(dest.loc)) {
+    } else if(dest.loc.contains<DestinationFit>()) {
         fmt.add_token("/Fit");
-    } else if(auto r = std::get_if<DestinationFitR>(&dest.loc)) {
+    } else if(auto r = dest.loc.get_if<DestinationFitR>()) {
         fmt.add_token("/FitR");
         fmt.add_token(r->left);
         fmt.add_token(r->bottom);
@@ -613,7 +613,7 @@ rvoe<CapyPDF_SeparationId> PdfDocument::create_separation(const asciistring &nam
                                                           CapyPDF_Device_Colorspace cs,
                                                           const CapyPDF_FunctionId fid) {
     const auto &f4 = functions.at(fid.id);
-    if(!std::holds_alternative<FunctionType4>(f4.original)) {
+    if(!f4.original.contains<FunctionType4>()) {
         RETERR(IncorrectFunctionType);
     }
     ObjectFormatter fmt;
@@ -1512,13 +1512,13 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
 
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
     int32_t object_number;
-    if(auto *f2 = std::get_if<FunctionType2>(&f)) {
+    if(auto *f2 = f.get_if<FunctionType2>()) {
         ERC(rc, serialize_function(*f2));
         object_number = rc;
-    } else if(auto *f3 = std::get_if<FunctionType3>(&f)) {
+    } else if(auto *f3 = f.get_if<FunctionType3>()) {
         ERC(rc, serialize_function(*f3));
         object_number = rc;
-    } else if(auto *f4 = std::get_if<FunctionType4>(&f)) {
+    } else if(auto *f4 = f.get_if<FunctionType4>()) {
         ERC(rc, serialize_function(*f4));
         object_number = rc;
     } else {
@@ -1530,13 +1530,13 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
 }
 
 rvoe<int32_t> PdfDocument::serialize_shading(const PdfShading &shade) {
-    if(auto *sh2 = std::get_if<ShadingType2>(&shade)) {
+    if(auto *sh2 = shade.get_if<ShadingType2>()) {
         return serialize_shading(*sh2);
-    } else if(auto *sh3 = std::get_if<ShadingType3>(&shade)) {
+    } else if(auto *sh3 = shade.get_if<ShadingType3>()) {
         return serialize_shading(*sh3);
-    } else if(auto *sh4 = std::get_if<ShadingType4>(&shade)) {
+    } else if(auto *sh4 = shade.get_if<ShadingType4>()) {
         return serialize_shading(*sh4);
-    } else if(auto *sh6 = std::get_if<ShadingType6>(&shade)) {
+    } else if(auto *sh6 = shade.get_if<ShadingType6>()) {
         return serialize_shading(*sh6);
     }
     fprintf(stderr, "Shading type not supported yet.\n");

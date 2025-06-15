@@ -69,13 +69,13 @@ rvoe<RasterImage> PdfGen::load_image(const char *buf, int64_t bufsize) {
 }
 
 rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImagePDFProperties &params) {
-    if(auto *raster = std::get_if<RawPixelImage>(&image)) {
+    if(auto *raster = image.get_if<RawPixelImage>()) {
         if(params.as_mask) {
             return pdoc.add_mask_image(std::move(*raster), params);
         } else {
             return pdoc.add_image(std::move(*raster), params);
         }
-    } else if(auto *jpg = std::get_if<jpg_image>(&image)) {
+    } else if(auto *jpg = image.get_if<jpg_image>()) {
         return pdoc.embed_jpg(std::move(*jpg), params);
     } else {
         RETERR(Unreachable);

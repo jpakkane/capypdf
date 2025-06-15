@@ -6,8 +6,6 @@
 #include <capypdf.h>
 #include <errorhandling.hpp>
 
-#include <variant>
-#include <iterator>
 #include <pystd2025.hpp>
 #include <math.h>
 
@@ -20,16 +18,10 @@
         return object_number_1.id == object_number_2.id;                                           \
     }                                                                                              \
                                                                                                    \
-    inline std::strong_ordering operator<=>(const TNAME &object_number_1,                          \
-                                            const TNAME &object_number_2) {                        \
-        return object_number_1.id <=> object_number_2.id;                                          \
+    inline bool operator<(const TNAME &object_number_1, const TNAME &object_number_2) {            \
+        return object_number_1.id < object_number_2.id;                                            \
     }                                                                                              \
                                                                                                    \
-    template<> struct std::hash<TNAME> {                                                           \
-        std::size_t operator()(const TNAME &tobj) const noexcept {                                 \
-            return std::hash<int32_t>{}(tobj.id);                                                  \
-        }                                                                                          \
-    };                                                                                             \
     template<typename Hasher> struct pystd2025::HashFeeder<Hasher, TNAME> {                        \
         void operator()(Hasher &h, const TNAME &fid) noexcept { h.feed_hash(fid.id); }             \
     }
@@ -435,7 +427,7 @@ struct FunctionType4 {
     pystd2025::CString code;
 };
 
-typedef std::variant<FunctionType2, FunctionType3, FunctionType4> PdfFunction;
+typedef pystd2025::Variant<FunctionType2, FunctionType3, FunctionType4> PdfFunction;
 
 struct ShadingExtend {
     bool starting;
@@ -513,7 +505,7 @@ struct ContinuationCoonsPatch {
     Color c[2];
 };
 
-typedef std::variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;
+typedef pystd2025::Variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;
 
 struct ShadingType6 {
     pystd2025::Vector<CoonsPatches> elements;
@@ -524,7 +516,7 @@ struct ShadingType6 {
     CapyPDF_Device_Colorspace colorspace = CAPY_DEVICE_CS_RGB;
 };
 
-typedef std::variant<ShadingType2, ShadingType3, ShadingType4, ShadingType6> PdfShading;
+typedef pystd2025::Variant<ShadingType2, ShadingType3, ShadingType4, ShadingType6> PdfShading;
 
 struct TextStateParameters {
     pystd2025::Optional<double> char_spacing;
@@ -612,7 +604,7 @@ struct jpg_image {
     pystd2025::Bytes icc_profile;
 };
 
-typedef std::variant<RawPixelImage, jpg_image> RasterImage;
+typedef pystd2025::Variant<RawPixelImage, jpg_image> RasterImage;
 
 struct ImagePDFProperties {
     CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;
@@ -631,7 +623,7 @@ struct DestinationFitR {
     double left, bottom, top, right;
 };
 
-typedef std::variant<DestinationXYZ, DestinationFit, DestinationFitR> DestinationType;
+typedef pystd2025::Variant<DestinationXYZ, DestinationFit, DestinationFitR> DestinationType;
 
 struct Destination {
     int32_t page;
