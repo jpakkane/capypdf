@@ -2387,7 +2387,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
     }
     auto **cc = reinterpret_cast<const Color **>(colors);
     if(flag == 1 || flag == 2 || flag == 3) {
-        if(sh6->elements.empty()) {
+        if(sh6->elements.is_empty()) {
             return conv_err(ErrorCode::BadStripStart);
         }
         ContinuationCoonsPatch ccp;

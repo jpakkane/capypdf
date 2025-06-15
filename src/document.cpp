@@ -1316,7 +1316,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     fmt.add_token_pair("/Length", jpg.file_contents.size());
     fmt.add_token_pair("/Filter", "/DCTDecode");
 
-    if(!jpg.domain.empty()) {
+    if(!jpg.domain.is_empty()) {
         assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
         fmt.add_token("/Decode");
         fmt.add_array(jpg.domain);

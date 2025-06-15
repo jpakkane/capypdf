@@ -517,7 +517,7 @@ struct ContinuationCoonsPatch {
 typedef std::variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;
 
 struct ShadingType6 {
-    std::vector<CoonsPatches> elements;
+    pystd2025::Vector<CoonsPatches> elements;
     double minx = 0;
     double miny = 0;
     double maxx = 200;
@@ -608,7 +608,7 @@ struct jpg_image {
     uint32_t h;
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
-    std::vector<double> domain;
+    pystd2025::Vector<double> domain;
     pystd2025::Bytes file_contents;
     pystd2025::Bytes icc_profile;
 };

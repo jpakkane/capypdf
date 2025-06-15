@@ -517,6 +517,7 @@ struct JpegCloser {
 };
 
 rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
+    const double inv_domain[8] = {1, 0, 1, 0, 1, 0, 1, 0};
     assert(f == nullptr || buf == nullptr);
     jpg_image im;
     // Libjpeg kills the process on invalid input.
@@ -564,11 +565,11 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
         im.cs = CAPY_DEVICE_CS_CMYK;
         // FIXME: should detect whether to invert or not:
         // https://graphicdesign.stackexchange.com/questions/12894/cmyk-jpegs-extracted-from-pdf-appear-inverted
-        im.domain = std::vector<double>{1, 0, 1, 0, 1, 0, 1, 0};
+        im.domain = pystd2025::Vector<double>(inv_domain, inv_domain + sizeof(inv_domain));
         break;
     case JCS_YCCK:
         im.cs = CAPY_DEVICE_CS_CMYK;
-        im.domain = std::vector<double>{1, 0, 1, 0, 1, 0, 1, 0};
+        im.domain = pystd2025::Vector<double>(inv_domain, inv_domain + sizeof(inv_domain));
         break;
     default:
         RETERR(UnsupportedFormat);
