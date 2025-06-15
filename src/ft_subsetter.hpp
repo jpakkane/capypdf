@@ -8,8 +8,6 @@
 #include <mmapper.hpp>
 #include <cffsubsetter.hpp>
 
-#include <vector>
-
 typedef struct FT_FaceRec_ *FT_Face;
 
 namespace capypdf::internal {
@@ -179,7 +177,7 @@ struct TrueTypeFontFile {
     TTHead head;
     TTHhea hhea;
     TTHmtx hmtx;
-    // std::vector<int32_t> loca;
+    // pystd2025::Vector<int32_t> loca;
     TTMaxp maxp;
     pystd2025::Bytes cvt;
     pystd2025::Bytes fpgm;

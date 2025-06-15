@@ -284,8 +284,8 @@ struct NameProxy {
     bool operator<(const NameProxy &o) const { return name < o.name; }
 };
 
-std::vector<NameProxy> sort_names(const pystd2025::Vector<EmbeddedFileObject> &names) {
-    std::vector<NameProxy> result;
+pystd2025::Vector<NameProxy> sort_names(const pystd2025::Vector<EmbeddedFileObject> &names) {
+    pystd2025::Vector<NameProxy> result;
     result.reserve(names.size());
     int num = 0;
     for(const auto &n : names) {

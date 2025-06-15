@@ -39,11 +39,12 @@ rvoe<NoReturnValue> add_subglyphs(pystd2025::HashSet<uint32_t> &new_subglyphs,
     RETOK;
 }
 
-rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
+rvoe<pystd2025::Vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id,
+                                                    const TrueTypeFontFile &ttfile) {
     pystd2025::HashSet<uint32_t> new_subglyphs;
 
     ERCV(add_subglyphs(new_subglyphs, glyph_id, ttfile));
-    std::vector<uint32_t> glyphs;
+    pystd2025::Vector<uint32_t> glyphs;
     glyphs.reserve(new_subglyphs.size());
     for(const auto &g : new_subglyphs) {
         glyphs.push_back(g);

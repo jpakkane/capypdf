@@ -8,8 +8,6 @@
 #include <colorconverter.hpp>
 #include <objectformatter.hpp>
 
-#include <vector>
-
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;
 // Ditto for Freetype

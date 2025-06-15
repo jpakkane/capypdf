@@ -645,7 +645,7 @@ pystd2025::Bytes serialize_font(TrueTypeFontFile &tf,
     odata.reserve(1024 * 1024);
     TTDirEntry e;
     TTOffsetTable off;
-    std::vector<TTDirEntry> directory;
+    pystd2025::Vector<TTDirEntry> directory;
 
     off.set_table_size(tf.num_directory_entries());
     const auto num_tables = off.num_tables;
@@ -683,7 +683,7 @@ pystd2025::Bytes serialize_font(TrueTypeFontFile &tf,
     directory.push_back(write_raw_table(
         odata, "maxp", pystd2025::BytesView((const char *)&tf.maxp, sizeof(tf.maxp))));
     // glyph time
-    std::vector<int32_t> loca;
+    pystd2025::Vector<int32_t> loca;
     size_t glyphs_start = odata.size();
     // All new glyph data should be in the "subglyphs" parameter.
     assert(tf.glyphs.is_empty());
@@ -746,7 +746,7 @@ pystd2025::Bytes gen_cmap(const pystd2025::Vector<TTGlyphs> &glyphs) {
     glyphencoding.length = sizeof(glyphencoding) + sizeof(uint16_t) * glyphs.size();
     glyphencoding.firstCode = 0;
     glyphencoding.entryCount = glyphs.size();
-    std::vector<uint16_t> glyphids;
+    pystd2025::Vector<uint16_t> glyphids;
     glyphids.reserve(glyphs.size());
     for(size_t i = 0; i < glyphs.size(); ++i) {
         glyphids.push_back(byteswap(uint16_t(i)));
@@ -863,7 +863,7 @@ rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing, const FontProperties &
     ERC(original_data, span_of_source(backing));
     ERC(header, extract<TTCHeader>(original_data, 0));
     header.swap_endian();
-    std::vector<uint32_t> offsets;
+    pystd2025::Vector<uint32_t> offsets;
     offsets.reserve(header.num_fonts);
     for(uint32_t i = 0; i < header.num_fonts; ++i) {
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
@@ -911,14 +911,14 @@ generate_truetype_font(const TrueTypeFontFile &source,
 rvoe<pystd2025::Bytes> generate_cff_font(const TrueTypeFontFile &source,
                                          const pystd2025::Vector<TTGlyphs> &glyphs) {
     const auto &source_data = source.cff.value();
-    std::vector<SubsetGlyphs> converted;
+    pystd2025::Vector<SubsetGlyphs> converted;
     converted.reserve(glyphs.size());
     for(const auto &g : glyphs) {
         const auto &tmp = g.get<RegularGlyph>();
         if(tmp.unicode_codepoint == 0) {
-            converted.emplace_back(0, 0);
+            converted.emplace_back(SubsetGlyphs{0, 0});
         } else {
-            converted.emplace_back(tmp.unicode_codepoint, tmp.glyph_index);
+            converted.emplace_back(SubsetGlyphs{tmp.unicode_codepoint, (uint16_t)tmp.glyph_index});
         }
     }
     CFFWriter w(source_data, converted);

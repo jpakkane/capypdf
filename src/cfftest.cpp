@@ -33,9 +33,9 @@ int main1(int argc, char **argv) {
             printf("Num chars: %d\n", (int)plaincff->char_strings.size());
         }
         if(auto *ttc = cff.get_if<capypdf::internal::TrueTypeFontFile>()) {
-            std::vector<capypdf::internal::SubsetGlyphs> glyphs;
-            glyphs.emplace_back(0, 0);
-            glyphs.emplace_back(1024, 1024);
+            pystd2025::Vector<capypdf::internal::SubsetGlyphs> glyphs;
+            glyphs.emplace_back(capypdf::internal::SubsetGlyphs{0, 0});
+            glyphs.emplace_back(capypdf::internal::SubsetGlyphs{1024, 1024});
             capypdf::internal::CFFWriter wr(ttc->cff.value(), glyphs);
             wr.create();
             auto sfont = wr.steal();

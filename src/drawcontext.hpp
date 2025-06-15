@@ -9,7 +9,6 @@
 #include <colorconverter.hpp>
 #include <document.hpp>
 #include <commandstreamformatter.hpp>
-#include <vector>
 
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::FontSubset> {
     void operator()(Hasher &h, const capypdf::internal::FontSubset &sset) noexcept {

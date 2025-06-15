@@ -6,7 +6,6 @@
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
 #include <optional>
-#include <vector>
 
 #include <stdint.h>
 
@@ -85,7 +84,7 @@ struct CFFHeader {
 };
 
 struct CFFIndex {
-    std::vector<pystd2025::BytesView> entries;
+    pystd2025::Vector<pystd2025::BytesView> entries;
 
     size_t size() const { return entries.size(); }
 };
@@ -126,7 +125,7 @@ struct CFFCharsetRange2 {
 
 struct DictOutput {
     pystd2025::Bytes output;
-    std::vector<uint16_t> offsets;
+    pystd2025::Vector<uint16_t> offsets;
 };
 
 struct LocalSubrs {
@@ -200,7 +199,7 @@ private:
 
 class CFFWriter {
 public:
-    CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub);
+    CFFWriter(const CFFont &source, const pystd2025::Vector<SubsetGlyphs> &sub);
 
     void create();
 
@@ -208,7 +207,7 @@ public:
 
 private:
     pystd2025::Vector<uint32_t> append_index(const CFFIndex &entries);
-    pystd2025::Vector<uint32_t> append_index(const std::vector<pystd2025::Bytes> &entries);
+    pystd2025::Vector<uint32_t> append_index(const pystd2025::Vector<pystd2025::Bytes> &entries);
     void append_charset();
     void append_charstrings();
     void append_fdthings();
@@ -220,7 +219,7 @@ private:
     void write_fix(const OffsetPatch &p);
 
     const CFFont &source;
-    const std::vector<SubsetGlyphs> &sub;
+    const pystd2025::Vector<SubsetGlyphs> &sub;
     pystd2025::Bytes output;
     Fixups fixups;
 };

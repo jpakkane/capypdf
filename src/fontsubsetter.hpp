@@ -5,8 +5,7 @@
 
 #include <ft_subsetter.hpp>
 
-#include <vector>
-#include <cstdint>
+#include <stdint.h>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

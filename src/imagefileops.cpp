@@ -8,7 +8,6 @@
 #include <tiffio.h>
 #include <cstring>
 #include <cassert>
-#include <vector>
 
 namespace capypdf::internal {
 

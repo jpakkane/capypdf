@@ -95,7 +95,7 @@ rvoe<CFFIndex> load_index(pystd2025::BytesView dataspan, size_t &offset) {
     offset += sizeof(uint16_t);
     ERC(offSize, extract<uint8_t>(dataspan, offset));
     ++offset;
-    std::vector<size_t> offsets;
+    pystd2025::Vector<size_t> offsets;
     offsets.reserve(count + 1);
     if(offSize > 5) {
         RETERR(MalformedFontFile);
@@ -105,7 +105,7 @@ rvoe<CFFIndex> load_index(pystd2025::BytesView dataspan, size_t &offset) {
         if(c <= 0) {
             RETERR(MalformedFontFile);
         }
-        if(!offsets.empty()) {
+        if(!offsets.is_empty()) {
             if(offsets.back() > c) {
                 /*
                 fprintf(stderr,
@@ -131,7 +131,7 @@ rvoe<CFFIndex> load_index(pystd2025::BytesView dataspan, size_t &offset) {
             RETERR(MalformedFontFile);
         }
         ERC(entry, safe_subspan(dataspan, offset + offsets[i], entrysize));
-        index.entries.emplace_back(entry);
+        index.entries.emplace_back(pystd2025::move(entry));
     }
     offset += offsets.back();
     return index;
@@ -236,7 +236,7 @@ rvoe<pystd2025::Vector<CFFCharsetRange2>> unpack_charsets(const CFFont &f,
     if(format == 0) {
         const auto num_glyphs = (int32_t)f.char_strings.size() - 1;
         assert(num_glyphs >= 0);
-        std::vector<uint16_t> glyphlist;
+        pystd2025::Vector<uint16_t> glyphlist;
         for(int32_t i = 0; i < num_glyphs; ++i) {
             ERC(value, extract<uint16_t>(dataspan, offset + i * sizeof(uint16_t)));
             value = byteswap(value);
@@ -398,7 +398,7 @@ size_t write_private_dict(pystd2025::Bytes &output, const CFFPrivateDict &pd) {
 }
 
 pystd2025::Vector<CFFSelectRange3> build_fdselect3(const CFFont &source,
-                                                   const std::vector<SubsetGlyphs> &sub) {
+                                                   const pystd2025::Vector<SubsetGlyphs> &sub) {
     pystd2025::Vector<CFFSelectRange3> result;
     result.reserve(10);
     if(source.is_cid) {
@@ -454,7 +454,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     f.name = std::move(name_index);
     ERC(topdict_index, load_index(dataspan, offset));
     f.top_dict_data = std::move(topdict_index);
-    if(f.top_dict_data.entries.empty()) {
+    if(f.top_dict_data.entries.is_empty()) {
         RETERR(MalformedFontFile);
     }
     ERC(tc, unpack_dictionary(f.top_dict_data.entries.front()));
@@ -589,7 +589,7 @@ void CFFDictWriter::append_command(const pystd2025::Vector<int32_t> &operands, D
     o.output.push_back((uint16_t)op & 0xFF);
 }
 
-CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
+CFFWriter::CFFWriter(const CFFont &source, const pystd2025::Vector<SubsetGlyphs> &sub)
     : source{source}, sub{sub} {
     output.reserve(100 * 1024);
 }
@@ -614,10 +614,10 @@ void CFFWriter::create() {
 }
 
 void CFFWriter::append_fdthings() {
-    std::vector<pystd2025::Bytes> fontdicts;
-    pystd2025::Bytes privatedict_buffer;     // Stores concatenated private dict/localsubr pairs.
-    std::vector<size_t> privatedict_offsets; // within the above buffer
-    std::vector<size_t> privatereference_offsets; // where the correct value shall be written
+    pystd2025::Vector<pystd2025::Bytes> fontdicts;
+    pystd2025::Bytes privatedict_buffer; // Stores concatenated private dict/localsubr pairs.
+    pystd2025::Vector<size_t> privatedict_offsets;      // within the above buffer
+    pystd2025::Vector<size_t> privatereference_offsets; // where the correct value shall be written
     if(source.is_cid) {
         for(const auto &source_dict : source.fdarray) {
             // Why is this so complicated you ask?
@@ -776,7 +776,8 @@ void CFFWriter::create_topdict() {
                    DictOperator::CharStrings); // offset needs to be fixed in post.
     // copy_dict_item(topdict, DictOperator::UnderlinePosition);
     auto serialization = topdict.steal();
-    std::vector<pystd2025::Bytes> wrapper{std::move(serialization.output)};
+    pystd2025::Vector<pystd2025::Bytes> wrapper;
+    wrapper.emplace_back(pystd2025::move(serialization.output));
     auto offsets = append_index(wrapper);
     assert(offsets.size() == 1);
     const auto dict_start = offsets.front();
@@ -811,11 +812,12 @@ pystd2025::Vector<uint32_t> CFFWriter::append_index(const CFFIndex &index) {
     return append_index_to(output, index);
 }
 
-pystd2025::Vector<uint32_t> CFFWriter::append_index(const std::vector<pystd2025::Bytes> &entries) {
+pystd2025::Vector<uint32_t>
+CFFWriter::append_index(const pystd2025::Vector<pystd2025::Bytes> &entries) {
     CFFIndex converter;
     converter.entries.reserve(entries.size());
     for(const auto &e : entries) {
-        converter.entries.emplace_back((const char *)e.data(), e.size());
+        converter.entries.emplace_back(pystd2025::BytesView((const char *)e.data(), e.size()));
     }
     return append_index(converter);
 }
