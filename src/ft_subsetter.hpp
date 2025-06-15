@@ -119,8 +119,8 @@ private:
 };
 
 struct TTHmtx {
-    std::vector<TTLongHorMetric> longhor;
-    std::vector<int16_t> left_side_bearings;
+    pystd2025::Vector<TTLongHorMetric> longhor;
+    pystd2025::Vector<int16_t> left_side_bearings;
 };
 
 struct RegularGlyph {
@@ -171,7 +171,7 @@ struct TrueTypeFontFile {
     // typical PDF file uses only a subset. Reading all of them
     // into their own vectors would have a lot of memory overhead.
     // Thus we point to the original data instead.
-    std::vector<pystd2025::BytesView> glyphs;
+    pystd2025::Vector<pystd2025::BytesView> glyphs;
     // A TrueType file can be just a container for a
     // CFF file. Note that if it has cff glyphs then it should
     // not have "glyf" glyphs from above.
@@ -216,21 +216,21 @@ struct TrueTypeFontFile {
 
 struct TrueTypeCollection {
     DataSource original_data;
-    std::vector<TrueTypeFontFile> entries;
+    pystd2025::Vector<TrueTypeFontFile> entries;
 };
 
 // In case of TTC, only return the requested subfont.
 typedef pystd2025::Variant<TrueTypeFontFile, CFFont> FontData;
 
 rvoe<bool> is_composite_glyph(pystd2025::BytesView buf);
-rvoe<std::vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf);
+rvoe<pystd2025::Vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf);
 
 rvoe<NoReturnValue>
 reassign_composite_glyph_numbers(pystd2025::BytesView buf,
                                  const pystd2025::HashMap<uint32_t, uint32_t> &mapping);
 
 rvoe<pystd2025::Bytes> generate_font(const TrueTypeFontFile &source,
-                                     const std::vector<TTGlyphs> &glyphs,
+                                     const pystd2025::Vector<TTGlyphs> &glyphs,
                                      const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping);
 
 rvoe<FontData> parse_font_file(DataSource original_data, uint16_t subfont);

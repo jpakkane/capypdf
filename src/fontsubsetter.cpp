@@ -16,7 +16,8 @@ namespace {
 const uint32_t SPACE = ' ';
 
 FontSubsetData create_startstate() {
-    std::vector<TTGlyphs> start_state{RegularGlyph{0, (uint32_t)-1}};
+    pystd2025::Vector<TTGlyphs> start_state;
+    start_state.emplace_back(RegularGlyph{0, (uint32_t)-1});
     pystd2025::HashMap<uint32_t, uint32_t> start_mapping{};
     return FontSubsetData{std::move(start_state), std::move(start_mapping)};
 }

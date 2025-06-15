@@ -343,7 +343,7 @@ static_assert(sizeof(TTDirEntry) == 4 * 4);
 struct SubsetFont {
     TTOffsetTable offset;
     TTHead head;
-    std::vector<TTDirEntry> directory;
+    pystd2025::Vector<TTDirEntry> directory;
 
     void swap_endian() {
         offset.swap_endian();
@@ -394,7 +394,7 @@ uint32_t str2tag(const unsigned char *txt) {
 uint32_t str2tag(const char *txt) { return str2tag((const unsigned char *)txt); }
 */
 
-const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag) {
+const TTDirEntry *find_entry(const pystd2025::Vector<TTDirEntry> &dir, const char *tag) {
     for(const auto &e : dir) {
         if(e.tag_is(tag)) {
             return &e;
@@ -403,7 +403,7 @@ const TTDirEntry *find_entry(const std::vector<TTDirEntry> &dir, const char *tag
     return nullptr;
 }
 
-rvoe<TTMaxp> load_maxp(const std::vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
+rvoe<TTMaxp> load_maxp(const pystd2025::Vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
     auto e = find_entry(dir, "maxp");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -426,7 +426,7 @@ rvoe<TTMaxp> load_maxp(const std::vector<TTDirEntry> &dir, pystd2025::BytesView 
     RETERR(UnsupportedFormat);
 }
 
-rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
+rvoe<TTHead> load_head(const pystd2025::Vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
     auto e = find_entry(dir, "head");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -439,16 +439,16 @@ rvoe<TTHead> load_head(const std::vector<TTDirEntry> &dir, pystd2025::BytesView 
     return head;
 }
 
-rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
-                                     pystd2025::BytesView buf,
-                                     uint16_t index_to_loc_format,
-                                     uint16_t num_glyphs) {
+rvoe<pystd2025::Vector<int32_t>> load_loca(const pystd2025::Vector<TTDirEntry> &dir,
+                                           pystd2025::BytesView buf,
+                                           uint16_t index_to_loc_format,
+                                           uint16_t num_glyphs) {
     auto loca = find_entry(dir, "loca");
     if(!loca) {
         // Truetype collection files do not seem to contain loca entries.
-        return std::vector<int32_t>{};
+        return pystd2025::Vector<int32_t>{};
     }
-    std::vector<int32_t> offsets;
+    pystd2025::Vector<int32_t> offsets;
     offsets.reserve(num_glyphs);
     if(index_to_loc_format == 0) {
         for(uint16_t i = 0; i <= num_glyphs; ++i) {
@@ -473,7 +473,7 @@ rvoe<std::vector<int32_t>> load_loca(const std::vector<TTDirEntry> &dir,
     return offsets;
 }
 
-rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
+rvoe<TTHhea> load_hhea(const pystd2025::Vector<TTDirEntry> &dir, pystd2025::BytesView buf) {
     auto e = find_entry(dir, "hhea");
     if(!e) {
         RETERR(MalformedFontFile);
@@ -494,7 +494,7 @@ rvoe<TTHhea> load_hhea(const std::vector<TTDirEntry> &dir, pystd2025::BytesView 
     return hhea;
 }
 
-rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
+rvoe<TTHmtx> load_hmtx(const pystd2025::Vector<TTDirEntry> &dir,
                        pystd2025::BytesView buf,
                        uint16_t num_glyphs,
                        uint16_t num_hmetrics) {
@@ -524,11 +524,12 @@ rvoe<TTHmtx> load_hmtx(const std::vector<TTDirEntry> &dir,
     return hmtx;
 }
 
-rvoe<std::vector<pystd2025::BytesView>> load_GLYF_glyphs(uint32_t offset,
-                                                         pystd2025::BytesView buf,
-                                                         uint16_t num_glyphs,
-                                                         const std::vector<int32_t> &loca) {
-    std::vector<pystd2025::BytesView> glyph_data;
+rvoe<pystd2025::Vector<pystd2025::BytesView>>
+load_GLYF_glyphs(uint32_t offset,
+                 pystd2025::BytesView buf,
+                 uint16_t num_glyphs,
+                 const pystd2025::Vector<int32_t> &loca) {
+    pystd2025::Vector<pystd2025::BytesView> glyph_data;
     if(offset > buf.size_bytes()) {
         RETERR(MalformedFontFile);
     }
@@ -556,8 +557,9 @@ rvoe<CFFont> load_CFF_glyphs(uint32_t offset, pystd2025::BytesView buf, uint16_t
     return cff;
 }
 
-rvoe<pystd2025::Bytes>
-load_raw_table(const std::vector<TTDirEntry> &dir, pystd2025::BytesView buf, const char *tag) {
+rvoe<pystd2025::Bytes> load_raw_table(const pystd2025::Vector<TTDirEntry> &dir,
+                                      pystd2025::BytesView buf,
+                                      const char *tag) {
     auto e = find_entry(dir, tag);
     if(!e) {
         return pystd2025::Bytes{};
@@ -576,14 +578,14 @@ load_raw_table(const std::vector<TTDirEntry> &dir, pystd2025::BytesView buf, con
     return pystd2025::Bytes(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-rvoe<std::vector<pystd2025::Bytes>>
+rvoe<pystd2025::Vector<pystd2025::Bytes>>
 subset_glyphs(const TrueTypeFontFile &source,
-              const std::vector<TTGlyphs> glyphs,
+              const pystd2025::Vector<TTGlyphs> glyphs,
               const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     // This does not use spans. Create a copy of all data
     // because we need to modify it before writing it
     // out to disk.
-    std::vector<pystd2025::Bytes> subset;
+    pystd2025::Vector<pystd2025::Bytes> subset;
     assert(glyphs[0].get<RegularGlyph>().unicode_codepoint == 0);
     assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
@@ -602,11 +604,11 @@ subset_glyphs(const TrueTypeFontFile &source,
     return subset;
 }
 
-TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &glyphs) {
+TTHmtx subset_hmtx(const TrueTypeFontFile &source, const pystd2025::Vector<TTGlyphs> &glyphs) {
     TTHmtx subset;
     assert(source.hmtx.longhor.size() + source.hmtx.left_side_bearings.size() ==
            source.maxp.num_glyphs());
-    assert(!source.hmtx.longhor.empty());
+    assert(!source.hmtx.longhor.is_empty());
     for(const auto &g : glyphs) {
         const auto gid = font_id_for_glyph(g);
         if(gid < source.hmtx.longhor.size()) {
@@ -623,7 +625,7 @@ TTHmtx subset_hmtx(const TrueTypeFontFile &source, const std::vector<TTGlyphs> &
             }
         }
     }
-    assert(subset.left_side_bearings.empty());
+    assert(subset.left_side_bearings.is_empty());
     return subset;
 }
 
@@ -638,7 +640,7 @@ TTDirEntry write_raw_table(pystd2025::Bytes &odata, const char *tag, pystd2025::
 }
 
 pystd2025::Bytes serialize_font(TrueTypeFontFile &tf,
-                                const std::vector<pystd2025::Bytes> &subglyphs) {
+                                const pystd2025::Vector<pystd2025::Bytes> &subglyphs) {
     pystd2025::Bytes odata;
     odata.reserve(1024 * 1024);
     TTDirEntry e;
@@ -684,7 +686,7 @@ pystd2025::Bytes serialize_font(TrueTypeFontFile &tf,
     std::vector<int32_t> loca;
     size_t glyphs_start = odata.size();
     // All new glyph data should be in the "subglyphs" parameter.
-    assert(tf.glyphs.empty());
+    assert(tf.glyphs.is_empty());
     for(const auto &g : subglyphs) {
         const auto offset = (int32_t)(odata.size() - glyphs_start);
         loca.push_back(offset);
@@ -736,7 +738,7 @@ pystd2025::Bytes serialize_font(TrueTypeFontFile &tf,
     return odata;
 }
 
-pystd2025::Bytes gen_cmap(const std::vector<TTGlyphs> &glyphs) {
+pystd2025::Bytes gen_cmap(const pystd2025::Vector<TTGlyphs> &glyphs) {
     assert(glyphs.size() < 65535);
     TTEncodingSubtable6 glyphencoding;
     glyphencoding.format = 6;
@@ -788,7 +790,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     }
     ERC(off, extract<TTOffsetTable>(header_span, 0));
     off.swap_endian();
-    std::vector<TTDirEntry> directory;
+    pystd2025::Vector<TTDirEntry> directory;
     for(int i = 0; i < off.num_tables; ++i) {
         ERC(e, extract<TTDirEntry>(header_span, sizeof(off) + i * sizeof(TTDirEntry)));
         e.swap_endian();
@@ -814,13 +816,13 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
     ERC(loca,
         load_loca(directory, original_data, tf.head.index_to_loc_format, tf.maxp.num_glyphs()));
     ERC(hhea, load_hhea(directory, original_data))
-    tf.hhea = hhea;
+    tf.hhea = pystd2025::move(hhea);
     ERC(hmtx, load_hmtx(directory, original_data, tf.maxp.num_glyphs(), tf.hhea.num_hmetrics))
-    tf.hmtx = hmtx;
+    tf.hmtx = pystd2025::move(hmtx);
     auto *glyf = find_entry(directory, "glyf");
     if(glyf) {
         ERC(glyphs, load_GLYF_glyphs(glyf->offset, original_data, tf.maxp.num_glyphs(), loca))
-        tf.glyphs = glyphs;
+        tf.glyphs = pystd2025::move(glyphs);
     }
     auto *cff = find_entry(directory, "CFF ");
     if(cff) {
@@ -882,7 +884,7 @@ rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) 
 
 rvoe<pystd2025::Bytes>
 generate_truetype_font(const TrueTypeFontFile &source,
-                       const std::vector<TTGlyphs> &glyphs,
+                       const pystd2025::Vector<TTGlyphs> &glyphs,
                        const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(glyphs[0].get<RegularGlyph>().unicode_codepoint == 0);
@@ -907,7 +909,7 @@ generate_truetype_font(const TrueTypeFontFile &source,
 }
 
 rvoe<pystd2025::Bytes> generate_cff_font(const TrueTypeFontFile &source,
-                                         const std::vector<TTGlyphs> &glyphs) {
+                                         const pystd2025::Vector<TTGlyphs> &glyphs) {
     const auto &source_data = source.cff.value();
     std::vector<SubsetGlyphs> converted;
     converted.reserve(glyphs.size());
@@ -925,7 +927,7 @@ rvoe<pystd2025::Bytes> generate_cff_font(const TrueTypeFontFile &source,
 }
 
 rvoe<pystd2025::Bytes> generate_font(const TrueTypeFontFile &source,
-                                     const std::vector<TTGlyphs> &glyphs,
+                                     const pystd2025::Vector<TTGlyphs> &glyphs,
                                      const pystd2025::HashMap<uint32_t, uint32_t> &comp_mapping) {
     if(source.in_cff_format()) {
         return generate_cff_font(source, glyphs);
@@ -952,8 +954,8 @@ rvoe<bool> is_composite_glyph(const pystd2025::Bytes &buf) {
     return is_composite_glyph(sp);
 }
 
-rvoe<std::vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf) {
-    std::vector<uint32_t> subglyphs;
+rvoe<pystd2025::Vector<uint32_t>> composite_subglyphs(pystd2025::BytesView buf) {
+    pystd2025::Vector<uint32_t> subglyphs;
     assert(num_contours(buf).value() < 0);
     auto composite_data = pystd2025::BytesView(buf).subview(5 * sizeof(int16_t));
     int64_t composite_offset = 0;

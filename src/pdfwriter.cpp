@@ -67,7 +67,7 @@ void write_rectangle(ObjectFormatter &fmt, const char *boxname, const PdfRectang
     fmt.end_array();
 }
 
-pystd2025::CString create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
+pystd2025::CString create_cidfont_subset_cmap(const pystd2025::Vector<TTGlyphs> &glyphs) {
     auto buf = pystd2025::format(R"(/CIDInit /ProcSet findresource begin
 12 dict begin
 begincmap
@@ -108,8 +108,9 @@ end
     return buf;
 }
 
-rvoe<pystd2025::CString>
-build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool is_cff = false) {
+rvoe<pystd2025::CString> build_subset_width_array(FT_Face face,
+                                                  const pystd2025::Vector<TTGlyphs> &glyphs,
+                                                  bool is_cff = false) {
     pystd2025::CString arr("[ ");
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
     for(const auto &glyph : glyphs) {

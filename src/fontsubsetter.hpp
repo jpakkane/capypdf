@@ -20,7 +20,7 @@ struct FontSubsetInfo {
 };
 
 struct FontSubsetData {
-    std::vector<TTGlyphs> glyphs;
+    pystd2025::Vector<TTGlyphs> glyphs;
     pystd2025::HashMap<uint32_t, uint32_t> font_index_mapping;
 };
 
@@ -42,9 +42,9 @@ public:
     rvoe<FontSubsetInfo> unchecked_insert_glyph_to_last_subset(const u8string &text,
                                                                uint32_t glyph_id);
 
-    const std::vector<TTGlyphs> &get_subset() const { return subset.glyphs; }
+    const pystd2025::Vector<TTGlyphs> &get_subset() const { return subset.glyphs; }
 
-    std::vector<TTGlyphs> &get_subset() { return subset.glyphs; }
+    pystd2025::Vector<TTGlyphs> &get_subset() { return subset.glyphs; }
 
     size_t subset_size() const { return subset.glyphs.size(); }
 

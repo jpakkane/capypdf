@@ -28,7 +28,8 @@ private:
     rvoe<pystd2025::Vector<uint64_t>> write_objects();
 
     rvoe<NoReturnValue> write_header();
-    rvoe<NoReturnValue> write_cross_reference_table(const pystd2025::Vector<uint64_t> &object_offsets);
+    rvoe<NoReturnValue>
+    write_cross_reference_table(const pystd2025::Vector<uint64_t> &object_offsets);
     rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,
                                               pystd2025::CStringView dict_data,
