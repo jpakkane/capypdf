@@ -146,7 +146,7 @@ CapyPDF_EC capy_document_properties_set_title(CapyPDF_DocumentProperties *docpro
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_title, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->title = std::move(rc.value());
+        reinterpret_cast<DocumentProperties *>(docprops)->title = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -158,7 +158,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(CapyPDF_DocumentPr
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_author, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->author = std::move(rc.value());
+        reinterpret_cast<DocumentProperties *>(docprops)->author = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -170,7 +170,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(CapyPDF_DocumentP
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_creator, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->creator = std::move(rc.value());
+        reinterpret_cast<DocumentProperties *>(docprops)->creator = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -181,7 +181,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
     API_BOUNDARY_START;
     auto rc = validate_ascii(lang, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->lang = std::move(rc.value());
+        reinterpret_cast<DocumentProperties *>(docprops)->lang = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -286,7 +286,7 @@ capy_document_properties_set_output_intent(CapyPDF_DocumentProperties *docprops,
     if(!rc) {
         return conv_err(rc.error());
     }
-    dp->intent_condition_identifier = std::move(rc.value());
+    dp->intent_condition_identifier = pystd2025::move(rc.value());
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -340,7 +340,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
     if(!rx) {
         return conv_err(rx.error());
     }
-    dp->metadata_xml = std::move(rx.value());
+    dp->metadata_xml = pystd2025::move(rx.value());
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -391,7 +391,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
         if(!u8_prefix) {
             return conv_err(u8_prefix);
         }
-        opt_prefix = std::move(*u8_prefix);
+        opt_prefix = pystd2025::move(*u8_prefix);
     }
     if(start_num) {
         opt_start_num = *start_num;
@@ -513,7 +513,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
     pystd2025::Path f(fname);
     auto rc = g->load_image(f);
     if(rc) {
-        auto *result = new RasterImage(std::move(rc.value()));
+        auto *result = new RasterImage(pystd2025::move(rc.value()));
         *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);
     }
     return conv_err(rc);
@@ -529,7 +529,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image_from_memory(CapyPDF_Generato
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto rc = g->load_image(buf, bufsize);
     if(rc) {
-        auto *result = new RasterImage(std::move(rc.value()));
+        auto *result = new RasterImage(pystd2025::move(rc.value()));
         *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);
     }
     return conv_err(rc);
@@ -548,8 +548,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
     if(auto *raw = image->get_if<RawPixelImage>()) {
         auto rc = g->convert_image_to_cs(*raw, output_cs, ri);
         if(rc) {
-            *out_ptr =
-                reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(rc.value())));
+            *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(
+                new RasterImage(pystd2025::move(rc.value())));
         }
         return conv_err(rc);
     } else {
@@ -566,7 +566,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *im = reinterpret_cast<RasterImage *>(image);
     auto *par = reinterpret_cast<const ImagePDFProperties *>(params);
-    auto rc = g->add_image(std::move(*im), *par);
+    auto rc = g->add_image(pystd2025::move(*im), *par);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -633,7 +633,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
     if(extra) {
         ed = *reinterpret_cast<StructItemExtraData *>(extra);
     }
-    auto rc = g->add_structure_item(stype, item_parent, std::move(ed));
+    auto rc = g->add_structure_item(stype, item_parent, pystd2025::move(ed));
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -657,7 +657,7 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
     if(extra) {
         ed = *reinterpret_cast<StructItemExtraData *>(extra);
     }
-    auto rc = g->add_structure_item(role, item_parent, std::move(ed));
+    auto rc = g->add_structure_item(role, item_parent, pystd2025::move(ed));
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -1402,7 +1402,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_string(CapyPDF_TextSequence 
     if(!u8) {
         return conv_err(u8);
     }
-    auto rc = ts->append_string(std::move(u8.value()));
+    auto rc = ts->append_string(pystd2025::move(u8.value()));
     return conv_err(rc);
     API_BOUNDARY_END;
 }
@@ -1466,7 +1466,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(CapyPDF_TextS
     if(!txt) {
         return conv_err(txt);
     }
-    auto rc = ts->append_ligature_glyph(glyph_id, std::move(txt.value()));
+    auto rc = ts->append_ligature_glyph(glyph_id, pystd2025::move(txt.value()));
     return conv_err(rc);
     API_BOUNDARY_END;
 }
@@ -1699,7 +1699,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_icc(CapyPDF_Color *color,
     ICCColor icc;
     icc.id = icc_id;
     icc.values.assign(values, values + num_values);
-    *reinterpret_cast<capypdf::internal::Color *>(color) = std::move(icc);
+    *reinterpret_cast<capypdf::internal::Color *>(color) = pystd2025::move(icc);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2095,7 +2095,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
     API_BOUNDARY_START;
     auto *b = reinterpret_cast<RasterImageBuilder *>(builder);
     // FIXME. Check validity.
-    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(b->i)));
+    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(pystd2025::move(b->i)));
     b->i = RawPixelImage{};
     RETNOERR;
     API_BOUNDARY_END;
@@ -2370,7 +2370,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
     auto **cc = reinterpret_cast<const Color **>(colors);
     FullCoonsPatch cp;
     grab_coons_data(cp, coords, cc);
-    sh6->elements.emplace_back(std::move(cp));
+    sh6->elements.emplace_back(pystd2025::move(cp));
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2392,7 +2392,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
         }
         ContinuationCoonsPatch ccp;
         grab_coons_data(ccp, coords, cc);
-        sh6->elements.emplace_back(std::move(ccp));
+        sh6->elements.emplace_back(pystd2025::move(ccp));
     } else {
         return conv_err(ErrorCode::BadEnum);
     }
@@ -2411,7 +2411,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
         return conv_err(u8str);
     }
     *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(
-        new Annotation{TextAnnotation{std::move(u8str.value())}, {}});
+        new Annotation{TextAnnotation{pystd2025::move(u8str.value())}, {}});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2467,7 +2467,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation
     }
     if(auto *linka = a->sub.get_if<LinkAnnotation>()) {
         linka->Dest.reset();
-        linka->URI = std::move(urirc.value());
+        linka->URI = pystd2025::move(urirc.value());
     } else {
         return conv_err(ErrorCode::IncorrectAnnotationType);
     }
@@ -2515,7 +2515,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemEx
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(ttext, strsize);
     if(rc) {
-        ed->T = std::move(rc.value());
+        ed->T = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -2528,7 +2528,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructIte
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
     auto rc = validate_ascii(lang, strsize);
     if(rc) {
-        ed->Lang = std::move(rc.value());
+        ed->Lang = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -2541,7 +2541,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItem
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(alt, strsize);
     if(rc) {
-        ed->Alt = std::move(rc.value());
+        ed->Alt = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -2553,7 +2553,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
     auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(actual, strsize);
     if(rc) {
-        ed->ActualText = std::move(rc.value());
+        ed->ActualText = pystd2025::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -2677,7 +2677,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
     if(!u8str) {
         return conv_err(u8str);
     }
-    o->title = std::move(u8str.value());
+    o->title = pystd2025::move(u8str.value());
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2783,8 +2783,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
         return conv_err(rc);
     }
     auto *eobj = new EmbeddedFile();
-    eobj->path = std::move(fspath);
-    eobj->pdfname = std::move(rc.value());
+    eobj->path = pystd2025::move(fspath);
+    eobj->pdfname = pystd2025::move(rc.value());
     *out_ptr = reinterpret_cast<CapyPDF_EmbeddedFile *>(eobj);
     RETNOERR;
     API_BOUNDARY_END;
@@ -2799,7 +2799,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
     if(!rc) {
         return conv_err(rc);
     }
-    eobj->subtype = std::move(rc.value());
+    eobj->subtype = pystd2025::move(rc.value());
     RETNOERR;
     API_BOUNDARY_END;
 }

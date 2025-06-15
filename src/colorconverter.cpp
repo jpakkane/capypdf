@@ -88,7 +88,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_
     PdfColorConverter conv;
     if(!rgb_profile_fname.is_empty()) {
         ERC(rgb, load_file_as_bytes(rgb_profile_fname));
-        conv.rgb_profile_data = std::move(rgb);
+        conv.rgb_profile_data = pystd2025::move(rgb);
         cmsHPROFILE h =
             cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
         if(!h) {
@@ -104,7 +104,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_
     }
     if(!gray_profile_fname.is_empty()) {
         ERC(gray, load_file_as_bytes(gray_profile_fname));
-        conv.gray_profile_data = std::move(gray);
+        conv.gray_profile_data = pystd2025::move(gray);
         auto h =
             cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
         if(!h) {
@@ -122,7 +122,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_
     }
     if(!cmyk_profile_fname.is_empty()) {
         ERC(cmyk, load_file_as_bytes(cmyk_profile_fname));
-        conv.cmyk_profile_data = std::move(cmyk);
+        conv.cmyk_profile_data = pystd2025::move(cmyk);
         auto h =
             cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());
         if(!h) {
@@ -138,7 +138,7 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const pystd2025::Path &rgb_
         // is an error.
     }
     cmsSetLogErrorHandler(print_lcms_errors);
-    return rvoe<PdfColorConverter>(std::move(conv));
+    return rvoe<PdfColorConverter>(pystd2025::move(conv));
 }
 
 PdfColorConverter::PdfColorConverter() {}
@@ -238,7 +238,7 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
                                                         CapyPDF_Rendering_Intent intent) const {
     RawPixelImage converted;
     converted.md = ri.md;
-    converted.alpha = std::move(ri.alpha);
+    converted.alpha = pystd2025::move(ri.alpha);
     cmsHPROFILE input_profile;
     const uint32_t input_pixelformat = pixelformat_for(ri.md.cs);
     const uint32_t output_pixelformat = pixelformat_for(output_format);

@@ -180,7 +180,7 @@ rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
             std::abort();
         }
     }
-    return rvoe<pystd2025::Bytes>{std::move(s)};
+    return rvoe<pystd2025::Bytes>{pystd2025::move(s)};
 }
 
 rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
@@ -367,13 +367,13 @@ serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t pag
 }
 
 rvoe<PdfDocument> PdfDocument::construct(const DocumentProperties &d, PdfColorConverter cm) {
-    rvoe<PdfDocument> newdoc{PdfDocument(d, std::move(cm))};
+    rvoe<PdfDocument> newdoc{PdfDocument(d, pystd2025::move(cm))};
     ERCV(newdoc->init());
     return newdoc;
 }
 
 PdfDocument::PdfDocument(const DocumentProperties &d, PdfColorConverter cm)
-    : docprops{d}, cm{std::move(cm)} {}
+    : docprops{d}, cm{pystd2025::move(cm)} {}
 
 rvoe<NoReturnValue> PdfDocument::init() {
     // PDF uses 1-based indexing so add a dummy thing in this vector
@@ -443,10 +443,10 @@ rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
     }
     ObjectFormatter fmt;
     fmt.begin_dict();
-    const auto resource_num = add_object(FullPDFObject{std::move(resource_dict), {}});
+    const auto resource_num = add_object(FullPDFObject{pystd2025::move(resource_dict), {}});
     int32_t commands_num{-1};
-    commands_num =
-        add_object(DeflatePDFObject{std::move(fmt), RawData{std::move(command_stream)}, true});
+    commands_num = add_object(
+        DeflatePDFObject{pystd2025::move(fmt), RawData{pystd2025::move(command_stream)}, true});
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
     p.custom_props = custom_props;
@@ -464,7 +464,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
         p.structparents = (int32_t)structure_parent_tree_items.size();
         structure_parent_tree_items.push_back(structs);
     }
-    const auto page_object_num = add_object(std::move(p));
+    const auto page_object_num = add_object(pystd2025::move(p));
     for(const auto &fw : fws) {
         form_use.insert(fw, page_object_num);
     }
@@ -487,14 +487,14 @@ PdfDocument::add_page_labeling(uint32_t start_page,
     if(!page_labels.is_empty() && page_labels.back().start_page > start_page) {
         RETERR(NonSequentialPageNumber);
     }
-    page_labels.emplace_back(PageLabel{start_page, style, std::move(prefix), start_num});
+    page_labels.emplace_back(PageLabel{start_page, style, pystd2025::move(prefix), start_num});
     return NoReturnValue{};
 }
 
 // Form XObjects
 void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, pystd2025::CString xobj_stream) {
-    const auto xobj_num =
-        add_object(DeflatePDFObject{std::move(xobj_dict), RawData(std::move(xobj_stream)), true});
+    const auto xobj_num = add_object(
+        DeflatePDFObject{pystd2025::move(xobj_dict), RawData(pystd2025::move(xobj_stream)), true});
 
     form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
 }
@@ -605,7 +605,7 @@ int32_t PdfDocument::create_subnavigation(const pystd2025::Vector<SubPageNavigat
 
 int32_t PdfDocument::add_object(ObjectType object) {
     auto object_num = (int32_t)document_objects.size();
-    document_objects.emplace_back(std::move(object));
+    document_objects.emplace_back(pystd2025::move(object));
     return object_num;
 }
 
@@ -1077,7 +1077,7 @@ rvoe<CapyPDF_IccColorSpaceId> PdfDocument::add_icc_profile(pystd2025::BytesView 
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/N", num_channels);
-    auto stream_obj_id = add_object(DeflatePDFObject{std::move(fmt), RawData(contents)});
+    auto stream_obj_id = add_object(DeflatePDFObject{pystd2025::move(fmt), RawData(contents)});
     auto str = pystd2025::format("[ /ICCBased %d 0 R ]\n", stream_obj_id);
     auto obj_id = add_object(FullPDFObject{pystd2025::CString(str.c_str()), {}});
     icc_profiles.emplace_back(IccInfo{stream_obj_id, obj_id, num_channels});
@@ -1248,7 +1248,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     switch(compression) {
     case CAPY_COMPRESSION_NONE: {
         ERC(trial_compressed, flate_compress(original_bytes));
-        compression_buffer = std::move(trial_compressed);
+        compression_buffer = pystd2025::move(trial_compressed);
         compressed_bytes = compression_buffer;
         break;
     }
@@ -1296,7 +1296,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     fmt.end_dict();
     int32_t im_id;
     if(compression == CAPY_COMPRESSION_NONE) {
-        im_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(compression_buffer))});
+        im_id =
+            add_object(FullPDFObject{fmt.steal(), RawData(pystd2025::move(compression_buffer))});
     } else {
         // FIXME. Makes a copy. Fix to grab original data instead.
         im_id = add_object(FullPDFObject{fmt.steal(), RawData(original_bytes)});
@@ -1354,7 +1355,8 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     // FIXME, add other properties too?
 
     fmt.end_dict();
-    auto im_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(jpg.file_contents))});
+    auto im_id =
+        add_object(FullPDFObject{fmt.steal(), RawData(pystd2025::move(jpg.file_contents))});
     image_info.emplace_back(ImageInfo{{jpg.w, jpg.h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
@@ -1507,7 +1509,7 @@ rvoe<int32_t> PdfDocument::serialize_function(const FunctionType4 &func) {
         fmt.add_token(r);
     }
     fmt.end_array();
-    return add_object(DeflatePDFObject{std::move(fmt), RawData{func.code}});
+    return add_object(DeflatePDFObject{pystd2025::move(fmt), RawData{func.code}});
 }
 
 rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
@@ -1525,7 +1527,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
         fprintf(stderr, "Function type not implemented yet.\n");
         std::abort();
     }
-    functions.emplace_back(FunctionInfo{std::move(f), object_number});
+    functions.emplace_back(FunctionInfo{pystd2025::move(f), object_number});
     return CapyPDF_FunctionId{(int32_t)functions.size() - 1};
 }
 
@@ -1644,7 +1646,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType4 &shade) {
         std::abort();
     }
     fmt.end_array();
-    return add_object(DeflatePDFObject{std::move(fmt), RawData(std::move(serialized))});
+    return add_object(DeflatePDFObject{pystd2025::move(fmt), RawData(pystd2025::move(serialized))});
 }
 
 rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType6 &shade) {
@@ -1680,12 +1682,12 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType6 &shade) {
         std::abort();
     }
     fmt.end_array();
-    return add_object(DeflatePDFObject{std::move(fmt), RawData(std::move(serialized))});
+    return add_object(DeflatePDFObject{pystd2025::move(fmt), RawData(pystd2025::move(serialized))});
 }
 
 rvoe<CapyPDF_ShadingId> PdfDocument::add_shading(PdfShading sh) {
     ERC(pdf_obj, serialize_shading(sh));
-    shadings.emplace_back(ShadingInfo{std::move(sh), pdf_obj});
+    shadings.emplace_back(ShadingInfo{pystd2025::move(sh), pdf_obj});
     return CapyPDF_ShadingId{(int32_t)shadings.size() - 1};
 }
 
@@ -1723,8 +1725,8 @@ rvoe<CapyPDF_PatternId> PdfDocument::add_tiling_pattern(PdfDrawContext &ctx) {
     }
     ERC(sc_var, ctx.serialize());
     auto &d = sc_var.get<SerializedXObject>();
-    auto objid =
-        add_object(DeflatePDFObject{std::move(d.dict), RawData(std::move(d.command_stream)), true});
+    auto objid = add_object(DeflatePDFObject{
+        pystd2025::move(d.dict), RawData(pystd2025::move(d.command_stream)), true});
     return CapyPDF_PatternId{objid};
 }
 
@@ -1755,7 +1757,7 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     CHECK_INDEXNESS_V(offstate.id, form_xobjects);
     DelayedCheckboxWidgetAnnotation formobj{
         {(int32_t)form_widgets.size()}, loc, onstate, offstate, pystd2025::CString{partial_name}};
-    auto obj_id = add_object(std::move(formobj));
+    auto obj_id = add_object(pystd2025::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
@@ -1778,7 +1780,7 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
             fmt.add_token_pair("/Subtype", quoted);
         }
         fmt.end_dict();
-        fileobj_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(contents))});
+        fileobj_id = add_object(FullPDFObject{fmt.steal(), RawData(pystd2025::move(contents))});
     }
 
     {
@@ -1857,8 +1859,8 @@ rvoe<CapyPDF_TransparencyGroupId> PdfDocument::add_transparency_group(PdfDrawCon
     }
     ERC(sc_var, ctx.serialize());
     auto &d = sc_var.get<SerializedXObject>();
-    auto objid =
-        add_object(DeflatePDFObject{std::move(d.dict), RawData(std::move(d.command_stream)), true});
+    auto objid = add_object(DeflatePDFObject{
+        pystd2025::move(d.dict), RawData(pystd2025::move(d.command_stream)), true});
     transparency_groups.push_back(objid);
     return CapyPDF_TransparencyGroupId{(int32_t)transparency_groups.size() - 1};
 }
@@ -1915,7 +1917,7 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
     }
     ERC(fontdata, load_and_parse_font_file(fname, props));
     assert(fontdata.contains<TrueTypeFontFile>());
-    ttf.fontdata = std::move(fontdata.get<TrueTypeFontFile>());
+    ttf.fontdata = pystd2025::move(fontdata.get<TrueTypeFontFile>());
 
     if(!(strcmp(font_format, "TrueType") || strcmp(font_format, "CFF"))) {
         fprintf(stderr,
@@ -1944,7 +1946,7 @@ PdfDocument::load_font(FT_Library ft, const pystd2025::Path &fname, FontProperti
         assert(ttf.face.get() == nullptr);
         ttf.face = pystd2025::move(a);
     }
-    fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
+    fonts.emplace_back(FontThingy{pystd2025::move(ttf), pystd2025::move(fss)});
 
     const int32_t subset_num = 0;
     auto subfont_data_obj = add_object(DelayedSubsetFontData{font_source_id, subset_num});

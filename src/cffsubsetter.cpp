@@ -139,14 +139,14 @@ rvoe<CFFIndex> load_index(pystd2025::BytesView dataspan, size_t &offset) {
 
 rvoe<CFFPrivateDict>
 build_pdict_from_dict(pystd2025::BytesView dataspan, size_t priv_dict_offset, CFFDict raw_pdict) {
-    CFFPrivateDict priv(std::move(raw_pdict), {});
+    CFFPrivateDict priv(pystd2025::move(raw_pdict), {});
     if(priv.entries.entries.size() > 0) {
         // This seems to always be last.
         const auto &subrs = priv.entries.entries.back();
         if(subrs.opr == DictOperator::Subrs) {
             size_t local_subrs_offset = priv_dict_offset + subrs.operand.front();
             ERC(rsdata, load_index(dataspan, local_subrs_offset));
-            priv.subr = std::move(rsdata);
+            priv.subr = pystd2025::move(rsdata);
             priv.entries.entries.pop_back();
         }
     }
@@ -170,7 +170,7 @@ rvoe<CFFDict> unpack_dictionary(pystd2025::BytesView dataspan_orig) {
                 unpacked_operator = b0 << 8 | b1;
             }
             dict.entries.emplace_back(
-                CFFDictItem(std::move(operands), (DictOperator)unpacked_operator));
+                CFFDictItem(pystd2025::move(operands), (DictOperator)unpacked_operator));
             operands.clear();
         } else if((b0 >= 28 && b0 <= 30) || (b0 >= 32 && b0 <= 254)) {
             // Is an operand.
@@ -345,7 +345,7 @@ load_private_dict(pystd2025::BytesView dataspan, size_t dict_offset, size_t dict
             const auto &subr_offset = e.operand.front();
             size_t from_the_top = dict_offset + subr_offset;
             ERC(subr_index, load_index(dataspan, from_the_top));
-            pdict.subr = std::move(subr_index);
+            pdict.subr = pystd2025::move(subr_index);
         } else {
             pdict.entries.entries.push_back(e);
         }
@@ -364,7 +364,7 @@ rvoe<CFFFontDict> load_fdarray_entry(pystd2025::BytesView dataspan, pystd2025::B
             const auto &local_dsize = e.operand.front();
             const auto &local_offset = e.operand.back();
             ERC(priv, load_private_dict(dataspan, local_offset, local_dsize));
-            fdict.priv = std::move(priv);
+            fdict.priv = pystd2025::move(priv);
         } else {
             fdict.entries.entries.push_back(e);
         }
@@ -433,7 +433,7 @@ void CFFCharsetRange2::swap_endian() {
 
 rvoe<CFFont> parse_cff_data(DataSource source) {
     CFFont f;
-    f.original_data = std::move(source);
+    f.original_data = pystd2025::move(source);
     ERC(dataspan, span_of_source(f.original_data));
     ERC(h, extract<CFFHeader>(dataspan, 0));
     if(h.major != 1) {
@@ -451,9 +451,9 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     }
     size_t offset = f.header.hdrsize;
     ERC(name_index, load_index(dataspan, offset));
-    f.name = std::move(name_index);
+    f.name = pystd2025::move(name_index);
     ERC(topdict_index, load_index(dataspan, offset));
-    f.top_dict_data = std::move(topdict_index);
+    f.top_dict_data = pystd2025::move(topdict_index);
     if(f.top_dict_data.entries.is_empty()) {
         RETERR(MalformedFontFile);
     }
@@ -461,11 +461,11 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     if(tc.entries.is_empty()) {
         RETERR(MalformedFontFile);
     }
-    f.top_dict = std::move(tc);
+    f.top_dict = pystd2025::move(tc);
     ERC(string_index, load_index(dataspan, offset));
-    f.string = std::move(string_index);
+    f.string = pystd2025::move(string_index);
     ERC(global_subr_index, load_index(dataspan, offset));
-    f.global_subr = std::move(global_subr_index);
+    f.global_subr = pystd2025::move(global_subr_index);
 
     if(false) {
         print_info(f);
@@ -479,7 +479,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
     }
     offset = cse->operand.front();
     ERC(cstring, load_index(dataspan, offset));
-    f.char_strings = std::move(cstring);
+    f.char_strings = pystd2025::move(cstring);
 
     auto *ence = find_command(f, DictOperator::Encoding);
     if(ence) {
@@ -496,7 +496,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         RETERR(MalformedFontFile);
     }
     ERC(charsets, unpack_charsets(f, dataspan.subview(cste->operand[0])));
-    f.charsets = std::move(charsets);
+    f.charsets = pystd2025::move(charsets);
 
     auto *priv = find_command(f, DictOperator::Private);
     if(priv) {
@@ -507,7 +507,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         auto dict_size = priv->operand[0];
         ERC(raw_pdict, unpack_dictionary(dataspan.subview(dict_offset, dict_size)));
         ERC(processed_pdict, build_pdict_from_dict(dataspan, dict_offset, raw_pdict));
-        f.pdict = std::move(processed_pdict);
+        f.pdict = pystd2025::move(processed_pdict);
     }
 
     auto *fda = find_command(f, DictOperator::FDArray);
@@ -528,7 +528,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         ERC(fdastr, load_index(dataspan, offset))
         for(const auto dstr : fdastr.entries) {
             ERC(fdentry, load_fdarray_entry(dataspan, dstr));
-            f.fdarray.emplace_back(std::move(fdentry));
+            f.fdarray.emplace_back(pystd2025::move(fdentry));
         }
         if(!fds || fds->operand.is_empty()) {
             RETERR(UnsupportedFormat);
@@ -538,7 +538,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
             RETERR(MalformedFontFile);
         }
         ERC(fdsstr, unpack_fdselect(dataspan.subview(offset), f.char_strings.size()));
-        f.fdselect = std::move(fdsstr);
+        f.fdselect = pystd2025::move(fdsstr);
     }
     return f;
 }
@@ -574,7 +574,7 @@ uint8_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
 
 rvoe<CFFont> parse_cff_file(const pystd2025::Path &fname) {
     ERC(source, mmap_file(fname.c_str()));
-    return parse_cff_data(std::move(source));
+    return parse_cff_data(pystd2025::move(source));
 }
 
 void CFFDictWriter::append_command(const pystd2025::Vector<int32_t> &operands, DictOperator op) {
@@ -664,7 +664,7 @@ void CFFWriter::append_fdthings() {
                 privatereference_offsets.push_back(-1);
             }
             auto serialization = fdarray_dict_writer.steal();
-            fontdicts.emplace_back(std::move(serialization.output));
+            fontdicts.emplace_back(pystd2025::move(serialization.output));
         }
     } else {
         // Create a FDArray that has only one element that all glyphs use.
@@ -680,7 +680,7 @@ void CFFWriter::append_fdthings() {
         e.opr = DictOperator::Private;
         fdarray_dict_writer.append_command(e);
         auto serialization = fdarray_dict_writer.steal();
-        fontdicts.emplace_back(std::move(serialization.output));
+        fontdicts.emplace_back(pystd2025::move(serialization.output));
     }
     fixups.fdarray.value = output.size();
     auto fdarray_index_offsets = append_index(fontdicts);

@@ -238,7 +238,7 @@ rvoe<RasterImage> do_png_load(png_struct *png_ptr, png_info *info_ptr) {
     } else {
         RETERR(UnsupportedFormat);
     }
-    return RasterImage(std::move(image));
+    return RasterImage(pystd2025::move(image));
 }
 
 void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
@@ -254,7 +254,7 @@ void separate_tif_alpha(RawPixelImage &image, const size_t num_color_channels) {
         }
         image.alpha.push_back(image.pixels[num_color_channels]);
     }
-    image.pixels = std::move(colors);
+    image.pixels = pystd2025::move(colors);
 }
 
 rvoe<RasterImage> do_tiff_load(TIFF *tif) {
@@ -358,7 +358,7 @@ rvoe<RasterImage> do_tiff_load(TIFF *tif) {
     default:
         RETERR(UnsupportedTIFF);
     }
-    return RasterImage(std::move(result));
+    return RasterImage(pystd2025::move(result));
 }
 
 struct TifBuf {
@@ -595,7 +595,7 @@ rvoe<jpg_image> load_jpg_file(const pystd2025::Path &fname) {
     pystd2025::unique_ptr<FILE, FileCloser> fcloser(f);
     ERC(meta, load_jpg_metadata(f, nullptr, 0));
     ERC(file_contents, load_file_as_bytes(f));
-    meta.file_contents = std::move(file_contents);
+    meta.file_contents = pystd2025::move(file_contents);
     return meta;
 }
 
@@ -620,7 +620,7 @@ rvoe<RasterImage> load_image_file(const pystd2025::Path &fname) {
     }
     if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
         ERC(jpeg_image, load_jpg_file(fname));
-        return RasterImage(std::move(jpeg_image));
+        return RasterImage(pystd2025::move(jpeg_image));
     }
 
     // If the input file was created with `tmpfile` or something similar, it might
@@ -644,7 +644,7 @@ rvoe<RasterImage> load_image_file(const pystd2025::Path &fname) {
     }
     if(v.starts_with(JPG_SIG)) {
         ERC(jpegfile, load_jpg_file(fname));
-        return RasterImage{std::move(jpegfile)};
+        return RasterImage{pystd2025::move(jpegfile)};
     }
     RETERR(UnsupportedFormat);
 }
@@ -667,7 +667,7 @@ rvoe<RasterImage> load_image_from_memory(const char *buf, int64_t bufsize) {
     }
     if(v.starts_with(JPG_SIG)) {
         ERC(jpegfile, load_jpg_from_memory(buf, bufsize));
-        return RasterImage{std::move(jpegfile)};
+        return RasterImage{pystd2025::move(jpegfile)};
     }
     RETERR(UnsupportedFormat);
 }

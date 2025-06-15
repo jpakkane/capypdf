@@ -189,7 +189,7 @@ public:
     void append_command(const pystd2025::Vector<int32_t> &operands, DictOperator op);
     void append_command(const CFFDictItem &e) { append_command(e.operand, e.opr); };
 
-    DictOutput steal() { return std::move(o); }
+    DictOutput steal() { return pystd2025::move(o); }
 
     size_t current_size() const { return o.output.size(); }
 

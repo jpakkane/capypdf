@@ -782,7 +782,7 @@ rvoe<int16_t> num_contours(pystd2025::BytesView buf) {
 
 rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_offset) {
     TrueTypeFontFile tf;
-    tf.original_data = std::move(backing);
+    tf.original_data = pystd2025::move(backing);
     ERC(original_data, span_of_source(tf.original_data));
     auto header_span = original_data.subview(header_offset);
     if(header_span.size() < sizeof(TTOffsetTable)) {
@@ -802,7 +802,7 @@ rvoe<TrueTypeFontFile> parse_truetype_file(DataSource backing, uint64_t header_o
             ttf_checksum(pystd2025::BytesView(original_data.data() + e.offset, e.length));
         (void)checksum;
 #endif
-        directory.emplace_back(std::move(e));
+        directory.emplace_back(pystd2025::move(e));
     }
     ERC(head, load_head(directory, original_data));
     tf.head = head;
@@ -869,17 +869,17 @@ rvoe<TrueTypeFontFile> parse_ttc_file(DataSource backing, const FontProperties &
         ERC(off, extract<uint32_t>(original_data, sizeof(TTCHeader) + i * sizeof(uint32_t)));
         offsets.push_back(byteswap(off));
     }
-    return parse_truetype_file(std::move(backing), offsets.at(props.subfont));
+    return parse_truetype_file(pystd2025::move(backing), offsets.at(props.subfont));
 }
 
 rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) {
     ERC(view, view_of_source(backing));
     if(view.starts_with("ttcf")) {
-        ERC(ttc, parse_ttc_file(std::move(backing), props))
-        return FontData{std::move(ttc)};
+        ERC(ttc, parse_ttc_file(pystd2025::move(backing), props))
+        return FontData{pystd2025::move(ttc)};
     }
-    ERC(ttf, parse_truetype_file(std::move(backing)));
-    return FontData{std::move(ttf)};
+    ERC(ttf, parse_truetype_file(pystd2025::move(backing)));
+    return FontData{pystd2025::move(ttf)};
 }
 
 rvoe<pystd2025::Bytes>
@@ -938,7 +938,7 @@ rvoe<pystd2025::Bytes> generate_font(const TrueTypeFontFile &source,
 
 rvoe<FontData> load_and_parse_font_file(const pystd2025::Path &fname, const FontProperties &props) {
     ERC(mmapdata, mmap_file(fname.c_str()));
-    return parse_font_file(std::move(mmapdata), props);
+    return parse_font_file(pystd2025::move(mmapdata), props);
 }
 
 rvoe<bool> is_composite_glyph(pystd2025::BytesView buf) {

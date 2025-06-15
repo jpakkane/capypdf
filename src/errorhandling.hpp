@@ -107,9 +107,9 @@ template<typename T> struct rvoe {
     T v;
 
     rvoe(const T &in) : v{in} {}
-    rvoe(T &&in) : v{std::move(in)} {}
+    rvoe(T &&in) : v{pystd2025::move(in)} {}
 
-    T &&value() { return std::move(v); }
+    T &&value() { return pystd2025::move(v); }
     operator bool() const { return true; }
     T *operator->() { return &v; }
     const T *operator->() const { return &v; }

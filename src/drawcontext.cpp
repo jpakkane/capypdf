@@ -57,7 +57,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
             write_matrix(fmt, group_matrix.value());
         }
         ERC(commands, cmds.steal());
-        return SerializedXObject{std::move(fmt), std::move(commands)};
+        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
     } else if(context_type == CAPY_DC_TRANSPARENCY_GROUP) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -80,7 +80,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         ERC(commands, cmds.steal());
-        return SerializedXObject{std::move(fmt), std::move(commands)};
+        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
     } else if(context_type == CAPY_DC_COLOR_TILING) {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -103,7 +103,7 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         fmt.add_token("/Resources");
         build_resource_dict(fmt);
         ERC(commands, cmds.steal());
-        return SerializedXObject{std::move(fmt), std::move(commands)};
+        return SerializedXObject{pystd2025::move(fmt), pystd2025::move(commands)};
     } else {
         assert(!group_matrix);
         SerializedBasicContext sc;
@@ -111,8 +111,8 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
         build_resource_dict(fmt);
         sc.resource_dict = fmt.steal();
         ERC(commands, cmds.steal());
-        sc.command_stream = std::move(commands);
-        return DCSerialization{std::move(sc)};
+        sc.command_stream = pystd2025::move(commands);
+        return DCSerialization{pystd2025::move(sc)};
     }
 }
 

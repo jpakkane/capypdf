@@ -131,14 +131,14 @@ public:
     add_structure_item(const CapyPDF_Structure_Type stype,
                        pystd2025::Optional<CapyPDF_StructureItemId> parent,
                        pystd2025::Optional<StructItemExtraData> extra) {
-        return pdoc.add_structure_item(stype, parent, std::move(extra));
+        return pdoc.add_structure_item(stype, parent, pystd2025::move(extra));
     }
 
     rvoe<CapyPDF_StructureItemId>
     add_structure_item(const CapyPDF_RoleId role,
                        pystd2025::Optional<CapyPDF_StructureItemId> parent,
                        pystd2025::Optional<StructItemExtraData> extra) {
-        return pdoc.add_structure_item(role, parent, std::move(extra));
+        return pdoc.add_structure_item(role, parent, pystd2025::move(extra));
     }
 
     rvoe<CapyPDF_OptionalContentGroupId> add_optional_content_group(const OptionalContentGroup &g) {
@@ -156,14 +156,15 @@ public:
 
     rvoe<CapyPDF_RoleId> add_rolemap_entry(pystd2025::CString name,
                                            CapyPDF_Structure_Type builtin_type) {
-        return pdoc.add_rolemap_entry(std::move(name), builtin_type);
+        return pdoc.add_rolemap_entry(pystd2025::move(name), builtin_type);
     }
 
 private:
     PdfGen(pystd2025::Path ofilename,
            pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft,
            PdfDocument pdoc)
-        : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
+        : ofilename(pystd2025::move(ofilename)), ft(pystd2025::move(ft)),
+          pdoc(pystd2025::move(pdoc)) {}
 
     pystd2025::Path ofilename;
     pystd2025::unique_ptr<FT_LibraryRec_, FreetypeCloser> ft;
@@ -178,7 +179,7 @@ struct GenPopper {
             fprintf(stderr, "%s\n", error_text(rc.error()));
             std::abort();
         }
-        g = std::move(rc.value());
+        g = pystd2025::move(rc.value());
     }
     ~GenPopper() {
         auto rc = g->write();

@@ -46,8 +46,9 @@ rvoe<pystd2025::unique_ptr<PdfGen>> PdfGen::construct(const pystd2025::Path &ofn
     ERC(cm,
         PdfColorConverter::construct(
             d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
-    ERC(pdoc, PdfDocument::construct(d, std::move(cm)));
-    return pystd2025::unique_ptr<PdfGen>(new PdfGen(ofname, pystd2025::move(ft), std::move(pdoc)));
+    ERC(pdoc, PdfDocument::construct(d, pystd2025::move(cm)));
+    return pystd2025::unique_ptr<PdfGen>(
+        new PdfGen(ofname, pystd2025::move(ft), pystd2025::move(pdoc)));
 }
 
 PdfGen::~PdfGen() {
@@ -71,12 +72,12 @@ rvoe<RasterImage> PdfGen::load_image(const char *buf, int64_t bufsize) {
 rvoe<CapyPDF_ImageId> PdfGen::add_image(RasterImage image, const ImagePDFProperties &params) {
     if(auto *raster = image.get_if<RawPixelImage>()) {
         if(params.as_mask) {
-            return pdoc.add_mask_image(std::move(*raster), params);
+            return pdoc.add_mask_image(pystd2025::move(*raster), params);
         } else {
-            return pdoc.add_image(std::move(*raster), params);
+            return pdoc.add_image(pystd2025::move(*raster), params);
         }
     } else if(auto *jpg = image.get_if<jpg_image>()) {
-        return pdoc.embed_jpg(std::move(*jpg), params);
+        return pdoc.embed_jpg(pystd2025::move(*jpg), params);
     } else {
         RETERR(Unreachable);
     }
@@ -104,8 +105,8 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     ERC(sc_var, ctx.serialize());
     assert(sc_var.contains<SerializedBasicContext>());
     auto &sc = sc_var.get<SerializedBasicContext>();
-    ERCV(pdoc.add_page(std::move(sc.resource_dict),
-                       std::move(sc.command_stream),
+    ERCV(pdoc.add_page(pystd2025::move(sc.resource_dict),
+                       pystd2025::move(sc.command_stream),
                        ctx.get_custom_props(),
                        ctx.get_form_usage(),
                        ctx.get_annotation_usage(),
@@ -133,7 +134,7 @@ rvoe<CapyPDF_FormXObjectId> PdfGen::add_form_xobject(PdfDrawContext &ctx) {
     ERC(sc_var, ctx.serialize());
     assert(sc_var.contains<SerializedXObject>());
     auto &sc = sc_var.get<SerializedXObject>();
-    pdoc.add_form_xobject(std::move(sc.dict), std::move(sc.command_stream));
+    pdoc.add_form_xobject(pystd2025::move(sc.dict), pystd2025::move(sc.command_stream));
     ctx.clear();
     CapyPDF_FormXObjectId fxoid;
     fxoid.id = (int32_t)pdoc.form_xobjects.size() - 1;

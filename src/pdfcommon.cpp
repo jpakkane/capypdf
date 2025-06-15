@@ -179,14 +179,14 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
 
-RawData::RawData(pystd2025::CString input) : storage{std::move(input)} {};
-RawData::RawData(pystd2025::Bytes input) : storage(std::move(input)) {}
+RawData::RawData(pystd2025::CString input) : storage{pystd2025::move(input)} {};
+RawData::RawData(pystd2025::Bytes input) : storage(pystd2025::move(input)) {}
 
 RawData::RawData(pystd2025::CStringView input) : storage{pystd2025::CString(input)} {}
 
 RawData::RawData(pystd2025::BytesView input) {
     pystd2025::Bytes data_copy(input.data(), input.size());
-    storage = std::move(data_copy);
+    storage = pystd2025::move(data_copy);
 }
 
 const char *RawData::data() const {
@@ -236,12 +236,12 @@ void RawData::clear() {
 void RawData::assign(const char *buf, size_t bufsize) { storage = pystd2025::Bytes{buf, bufsize}; }
 
 RawData &RawData::operator=(pystd2025::CString input) {
-    storage = std::move(input);
+    storage = pystd2025::move(input);
     return *this;
 }
 
 RawData &RawData::operator=(pystd2025::Bytes input) {
-    storage = std::move(input);
+    storage = pystd2025::move(input);
     return *this;
 }
 

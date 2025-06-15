@@ -60,7 +60,7 @@ public:
     }
 
     rvoe<NoReturnValue> append_string(u8string str) {
-        e.emplace_back(std::move(str));
+        e.emplace_back(pystd2025::move(str));
         RETOK;
     }
 
@@ -70,7 +70,7 @@ public:
     }
 
     rvoe<NoReturnValue> append_ligature_glyph(uint32_t glyph_id, u8string text) {
-        e.emplace_back(GlyphTextItem{glyph_id, std::move(text)});
+        e.emplace_back(GlyphTextItem{glyph_id, pystd2025::move(text)});
         RETOK;
     }
 
@@ -92,7 +92,7 @@ public:
         RETOK;
     }
 
-    TextEvents &&steal_guts() { return std::move(e); }
+    TextEvents &&steal_guts() { return pystd2025::move(e); }
 
     bool is_actualtext() const { return in_actualtext; }
 
@@ -324,7 +324,7 @@ public:
     }
     rvoe<NoReturnValue> cmd_d(double *dash_array, int32_t array_size, double phase) {
         pystd2025::Vector<double> array(dash_array, dash_array + array_size);
-        events.emplace_back(d_arg{std::move(array), phase});
+        events.emplace_back(d_arg{pystd2025::move(array), phase});
         RETOK;
     }
     rvoe<NoReturnValue> cmd_gs(CapyPDF_GraphicsStateId gsid) {

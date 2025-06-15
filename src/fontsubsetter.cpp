@@ -19,7 +19,7 @@ FontSubsetData create_startstate() {
     pystd2025::Vector<TTGlyphs> start_state;
     start_state.emplace_back(RegularGlyph{0, (uint32_t)-1});
     pystd2025::HashMap<uint32_t, uint32_t> start_mapping{};
-    return FontSubsetData{std::move(start_state), std::move(start_mapping)};
+    return FontSubsetData{pystd2025::move(start_state), pystd2025::move(start_mapping)};
 }
 
 rvoe<NoReturnValue> add_subglyphs(pystd2025::HashSet<uint32_t> &new_subglyphs,
@@ -59,7 +59,7 @@ rvoe<FontSubsetter> FontSubsetter::construct(const pystd2025::Path &fontfile,
                                              const FontProperties &props) {
     ERC(font, load_and_parse_font_file(fontfile, props));
     if(auto *ttffile = font.get_if<TrueTypeFontFile>()) {
-        return FontSubsetter(std::move(*ttffile), face, create_startstate());
+        return FontSubsetter(pystd2025::move(*ttffile), face, create_startstate());
     } else {
         fprintf(stderr, "Only basic Truetype fonts supported currently.\n");
         RETERR(UnsupportedFormat);

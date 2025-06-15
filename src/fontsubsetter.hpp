@@ -30,7 +30,7 @@ public:
     construct(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props);
 
     FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
-        : ttfile{std::move(ttfile)}, face{face}, subset{std::move(subset)} {}
+        : ttfile{pystd2025::move(ttfile)}, face{face}, subset{pystd2025::move(subset)} {}
 
     rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph,
                                           const pystd2025::Optional<uint32_t> glyph_id);

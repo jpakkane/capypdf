@@ -33,7 +33,7 @@ void ObjectFormatter::do_pop(ContainerType ctype) {
         fprintf(stderr, "Pop type mismatch.\n");
         std::abort();
     }
-    state = std::move(stack.top().params);
+    state = pystd2025::move(stack.top().params);
     stack.pop();
     if(!buf.is_empty() && buf.back() == '\n') {
         buf += state.indent;
