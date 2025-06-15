@@ -154,8 +154,8 @@ struct DelayedPages {};
 
 struct DelayedPage {
     int32_t page_num;
-    std::vector<CapyPDF_FormWidgetId> used_form_widgets;
-    std::vector<CapyPDF_AnnotationId> used_annotations;
+    pystd2025::Vector<CapyPDF_FormWidgetId> used_form_widgets;
+    pystd2025::Vector<CapyPDF_AnnotationId> used_annotations;
     pystd2025::Optional<Transition> transition;
     pystd2025::Optional<int32_t> subnav_root;
     PageProperties custom_props;
@@ -232,7 +232,7 @@ struct DelayedCheckboxWidgetAnnotation {
 };
 
 struct OutlineData {
-    std::vector<Outline> items;
+    pystd2025::Vector<Outline> items;
     pystd2025::HashMap<int32_t, pystd2025::Vector<int32_t>> children;
     pystd2025::HashMap<int32_t, int32_t> parent;
 };
@@ -540,7 +540,7 @@ private:
 
     DocumentProperties docprops;
     PdfColorConverter cm;
-    std::vector<ObjectType> document_objects;
+    pystd2025::Vector<ObjectType> document_objects;
     pystd2025::Vector<PageOffsets> pages; // Refers to object num.
     std::vector<PageLabel> page_labels;
     std::vector<ImageInfo> image_info;

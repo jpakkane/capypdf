@@ -401,7 +401,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
         output_profile = retval;
         break;
     }
-    document_objects.push_back(DelayedPages{});
+    document_objects.emplace_back(DelayedPages{});
     pages_object = document_objects.size() - 1;
     if(!docprops.subtype.contains<pystd2025::Monostate>()) {
         if(!output_profile) {
@@ -605,7 +605,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
 
 int32_t PdfDocument::add_object(ObjectType object) {
     auto object_num = (int32_t)document_objects.size();
-    document_objects.push_back(std::move(object));
+    document_objects.emplace_back(std::move(object));
     return object_num;
 }
 
@@ -783,7 +783,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         ERC(afnum, create_AF_dict());
         AF_object = afnum;
     }
-    if(!outlines.items.empty()) {
+    if(!outlines.items.is_empty()) {
         ERC(outlines, create_outlines());
         outline_object = outlines;
     }
@@ -1743,7 +1743,7 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     } else {
         c->push_back(cur_id);
     }
-    outlines.items.emplace_back(o);
+    outlines.items.push_back(o);
     return CapyPDF_OutlineId{cur_id};
 }
 
