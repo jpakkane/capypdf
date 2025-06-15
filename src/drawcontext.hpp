@@ -159,7 +159,7 @@ public:
     render_text(const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y);
     rvoe<NoReturnValue> render_text(const PdfText &textobj);
     rvoe<NoReturnValue>
-    render_glyphs(const std::vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);
+    render_glyphs(const pystd2025::Vector<PdfGlyph> &glyphs, CapyPDF_FontId fid, double pointsize);
     rvoe<NoReturnValue> render_pdfdoc_text_builtin(const char *pdfdoc_encoded_text,
                                                    CapyPDF_Builtin_Fonts font_id,
                                                    double pointsize,

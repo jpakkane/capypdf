@@ -2170,7 +2170,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     *out_ptr = reinterpret_cast<CapyPDF_Function *>(
-        new PdfFunction{FunctionType2{std::vector<double>(domain, domain + domain_size),
+        new PdfFunction{FunctionType2{pystd2025::Vector<double>(domain, domain + domain_size),
                                       *reinterpret_cast<const Color *>(c1),
                                       *reinterpret_cast<const Color *>(c2),
                                       n}});
@@ -2196,10 +2196,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_new(double *domain,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     *out_ptr = reinterpret_cast<CapyPDF_Function *>(new PdfFunction{
-        FunctionType3{std::vector<double>(domain, domain + domain_size),
-                      std::vector<CapyPDF_FunctionId>(functions, functions + functions_size),
-                      std::vector<double>(bounds, bounds + bounds_size),
-                      std::vector<double>(encode, encode + encode_size)}});
+        FunctionType3{pystd2025::Vector<double>(domain, domain + domain_size),
+                      pystd2025::Vector<CapyPDF_FunctionId>(functions, functions + functions_size),
+                      pystd2025::Vector<double>(bounds, bounds + bounds_size),
+                      pystd2025::Vector<double>(encode, encode + encode_size)}});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2212,8 +2212,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     *out_ptr = reinterpret_cast<CapyPDF_Function *>(
-        new PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
-                                      std::vector<double>(range, range + range_size),
+        new PdfFunction{FunctionType4{pystd2025::Vector<double>(domain, domain + domain_size),
+                                      pystd2025::Vector<double>(range, range + range_size),
                                       pystd2025::CString{code}}});
     RETNOERR;
     API_BOUNDARY_END;
@@ -2328,7 +2328,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
     }
     auto *cc = reinterpret_cast<const Color *>(color);
     if(flag == 1 || flag == 2) {
-        if(sh4->elements.empty()) {
+        if(sh4->elements.is_empty()) {
             return conv_err(ErrorCode::BadStripStart);
         }
         ShadingPoint sp = conv_shpoint(coords, cc);

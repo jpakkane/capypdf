@@ -394,7 +394,7 @@ toff_t tiffseekfunc(thandle_t h, toff_t off, int whence) {
     default:
         std::abort();
     }
-    tiffdata->fptr = std::clamp(tiffdata->fptr, int64_t{0}, tiffdata->bufsize);
+    tiffdata->fptr = pystd2025::clamp(tiffdata->fptr, int64_t{0}, tiffdata->bufsize);
     return tiffdata->fptr;
 };
 

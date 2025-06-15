@@ -6,11 +6,10 @@
 #include <capypdf.h>
 #include <errorhandling.hpp>
 
-#include <vector>
-#include <functional>
 #include <variant>
 #include <iterator>
 #include <pystd2025.hpp>
+#include <math.h>
 
 #include <cstdint>
 #include <cmath>
@@ -274,7 +273,7 @@ private:
     constexpr static double minval = 0.0;
 
     void clamp() {
-        if(std::isnan(value)) {
+        if(isnan(value)) {
             value = minval;
         } else if(value < minval) {
             value = minval;
@@ -380,7 +379,7 @@ struct LabColor {
 
 struct ICCColor {
     CapyPDF_IccColorSpaceId id;
-    std::vector<double> values;
+    pystd2025::Vector<double> values;
 };
 
 struct SeparationColor {
@@ -388,13 +387,13 @@ struct SeparationColor {
     LimitDouble v;
 };
 
-typedef std::variant<DeviceRGBColor,
-                     DeviceGrayColor,
-                     DeviceCMYKColor,
-                     ICCColor,
-                     LabColor,
-                     SeparationColor,
-                     CapyPDF_PatternId>
+typedef pystd2025::Variant<DeviceRGBColor,
+                           DeviceGrayColor,
+                           DeviceCMYKColor,
+                           ICCColor,
+                           LabColor,
+                           SeparationColor,
+                           CapyPDF_PatternId>
     Color;
 
 struct LabColorSpace {
@@ -416,7 +415,7 @@ struct LabColorSpace {
 };
 
 struct FunctionType2 {
-    std::vector<double> domain;
+    pystd2025::Vector<double> domain;
     Color C0;
     Color C1;
     double n;
@@ -424,15 +423,15 @@ struct FunctionType2 {
 
 // Multiple FunctionType2's
 struct FunctionType3 {
-    std::vector<double> domain;
-    std::vector<CapyPDF_FunctionId> functions;
-    std::vector<double> bounds;
-    std::vector<double> encode;
+    pystd2025::Vector<double> domain;
+    pystd2025::Vector<CapyPDF_FunctionId> functions;
+    pystd2025::Vector<double> bounds;
+    pystd2025::Vector<double> encode;
 };
 
 struct FunctionType4 {
-    std::vector<double> domain;
-    std::vector<double> range;
+    pystd2025::Vector<double> domain;
+    pystd2025::Vector<double> range;
     pystd2025::CString code;
 };
 
@@ -484,7 +483,7 @@ struct ShadingElement {
 };
 
 struct ShadingType4 {
-    std::vector<ShadingElement> elements;
+    pystd2025::Vector<ShadingElement> elements;
     double minx;
     double miny;
     double maxx;
@@ -577,7 +576,7 @@ struct TransparencyGroupProperties {
 struct SoftMask {
     CapyPDF_Soft_Mask_Subtype S;
     CapyPDF_TransparencyGroupId G;
-    // std::vector<double> BC;
+    // pystd2025::Vector<double> BC;
     // TransferFunctionId TR;
 };
 

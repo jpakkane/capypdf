@@ -144,9 +144,9 @@ rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
     pystd2025::Bytes s;
     for(const auto &e : shade.elements) {
         const double xratio =
-            std::clamp((e.sp.p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
+            pystd2025::clamp((e.sp.p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
         const double yratio =
-            std::clamp((e.sp.p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
+            pystd2025::clamp((e.sp.p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
         char flag = (char)e.flag;
         assert(flag >= 0 && flag < 3);
         const char *ptr;
@@ -155,19 +155,19 @@ rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
         ERCV(append_floatvalue<uint32_t>(s, xratio));
         ERCV(append_floatvalue<uint32_t>(s, yratio));
 
-        if(auto *c = std::get_if<DeviceRGBColor>(&e.sp.c)) {
+        if(auto *c = e.sp.c.get_if<DeviceRGBColor>()) {
             if(shade.colorspace != CAPY_DEVICE_CS_RGB) {
                 RETERR(ColorspaceMismatch);
             }
             ERCV(append_floatvalue<uint16_t>(s, c->r.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->g.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->b.v()));
-        } else if(auto *c = std::get_if<DeviceGrayColor>(&e.sp.c)) {
+        } else if(auto *c = e.sp.c.get_if<DeviceGrayColor>()) {
             if(shade.colorspace != CAPY_DEVICE_CS_GRAY) {
                 RETERR(ColorspaceMismatch);
             }
             ERCV(append_floatvalue<uint16_t>(s, c->v.v()));
-        } else if(auto *c = std::get_if<DeviceCMYKColor>(&e.sp.c)) {
+        } else if(auto *c = e.sp.c.get_if<DeviceCMYKColor>()) {
             if(shade.colorspace != CAPY_DEVICE_CS_CMYK) {
                 RETERR(ColorspaceMismatch);
             }
@@ -199,33 +199,33 @@ rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
 
         for(const auto &p : e.p) {
             const double xratio =
-                std::clamp((p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
+                pystd2025::clamp((p.x - shade.minx) / (shade.maxx - shade.minx), 0.0, 1.0);
             const double yratio =
-                std::clamp((p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
+                pystd2025::clamp((p.y - shade.miny) / (shade.maxy - shade.miny), 0.0, 1.0);
 
             ERCV(append_floatvalue<uint32_t>(s, xratio));
             ERCV(append_floatvalue<uint32_t>(s, yratio));
         }
         for(const auto &colorobj : e.c) {
             if(shade.colorspace == CAPY_DEVICE_CS_RGB) {
-                if(!std::holds_alternative<DeviceRGBColor>(colorobj)) {
+                if(!colorobj.contains<DeviceRGBColor>()) {
                     RETERR(ColorspaceMismatch);
                 }
-                const auto &c = std::get<DeviceRGBColor>(colorobj);
+                const auto &c = colorobj.get<DeviceRGBColor>();
                 ERCV(append_floatvalue<uint16_t>(s, c.r.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.g.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.b.v()));
             } else if(shade.colorspace == CAPY_DEVICE_CS_GRAY) {
-                if(!std::holds_alternative<DeviceGrayColor>(colorobj)) {
+                if(!colorobj.contains<DeviceGrayColor>()) {
                     RETERR(ColorspaceMismatch);
                 }
-                const auto &c = std::get<DeviceGrayColor>(colorobj);
+                const auto &c = colorobj.get<DeviceGrayColor>();
                 ERCV(append_floatvalue<uint16_t>(s, c.v.v()));
             } else if(shade.colorspace == CAPY_DEVICE_CS_CMYK) {
-                if(!std::holds_alternative<DeviceCMYKColor>(colorobj)) {
+                if(!colorobj.contains<DeviceCMYKColor>()) {
                     RETERR(ColorspaceMismatch);
                 }
-                const auto &c = std::get<DeviceCMYKColor>(colorobj);
+                const auto &c = colorobj.get<DeviceCMYKColor>();
                 ERCV(append_floatvalue<uint16_t>(s, c.c.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.m.v()));
                 ERCV(append_floatvalue<uint16_t>(s, c.y.v()));
@@ -252,13 +252,13 @@ int32_t num_channels_for(const CapyPDF_Image_Colorspace cs) {
 }
 
 void color2numbers(ObjectFormatter &fmt, const Color &c) {
-    if(auto *rgb = std::get_if<DeviceRGBColor>(&c)) {
+    if(auto *rgb = c.get_if<DeviceRGBColor>()) {
         fmt.add_token(rgb->r.v());
         fmt.add_token(rgb->g.v());
         fmt.add_token(rgb->b.v());
-    } else if(auto *gray = std::get_if<DeviceGrayColor>(&c)) {
+    } else if(auto *gray = c.get_if<DeviceGrayColor>()) {
         fmt.add_token(gray->v.v());
-    } else if(auto *cmyk = std::get_if<DeviceCMYKColor>(&c)) {
+    } else if(auto *cmyk = c.get_if<DeviceCMYKColor>()) {
         fmt.add_token(cmyk->c.v());
         fmt.add_token(cmyk->m.v());
         fmt.add_token(cmyk->y.v());

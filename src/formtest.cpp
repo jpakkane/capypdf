@@ -163,7 +163,10 @@ int draw_transp_doc() {
     {
         GenPopper genpop("group_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        FunctionType2 cmykfunc{{0.0, 1.0},
+        pystd2025::Vector<double> tmp;
+        tmp.push_back(0.0);
+        tmp.push_back(1.0);
+        FunctionType2 cmykfunc{pystd2025::move(tmp),
                                DeviceCMYKColor{0.0, 1.0, 0.0, 0.0},
                                DeviceCMYKColor{1.0, 0.0, 1.0, 0.0},
                                1.0};

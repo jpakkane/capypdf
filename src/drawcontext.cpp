@@ -620,19 +620,19 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_rg(LimitDouble r, LimitDouble g, L
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
-    if(auto cv = std::get_if<DeviceRGBColor>(&c)) {
+    if(auto cv = c.get_if<DeviceRGBColor>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<DeviceGrayColor>(&c)) {
+    } else if(auto cv = c.get_if<DeviceGrayColor>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<DeviceCMYKColor>(&c)) {
+    } else if(auto cv = c.get_if<DeviceCMYKColor>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<ICCColor>(&c)) {
+    } else if(auto cv = c.get_if<ICCColor>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<LabColor>(&c)) {
+    } else if(auto cv = c.get_if<LabColor>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<CapyPDF_PatternId>(&c)) {
+    } else if(auto cv = c.get_if<CapyPDF_PatternId>()) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<SeparationColor>(&c)) {
+    } else if(auto cv = c.get_if<SeparationColor>()) {
         return set_color(*cv, stroke);
     } else {
         fprintf(stderr, "Given colorspace not supported yet.\n");
@@ -942,13 +942,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             cmds.EMC();
         } else if(auto *sarg_ = e.get_if<Stroke_arg>()) {
             auto &sarg = *sarg_;
-            if(auto rgb = std::get_if<DeviceRGBColor>(&sarg.c)) {
+            if(auto rgb = sarg.c.get_if<DeviceRGBColor>()) {
                 ERCV(serialize_RG(rgb->r, rgb->g, rgb->b));
-            } else if(auto gray = std::get_if<DeviceGrayColor>(&sarg.c)) {
+            } else if(auto gray = sarg.c.get_if<DeviceGrayColor>()) {
                 ERCV(serialize_G(gray->v));
-            } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&sarg.c)) {
+            } else if(auto cmyk = sarg.c.get_if<DeviceCMYKColor>()) {
                 ERCV(serialize_K(cmyk->c, cmyk->m, cmyk->y, cmyk->k));
-            } else if(auto icc = std::get_if<ICCColor>(&sarg.c)) {
+            } else if(auto icc = sarg.c.get_if<ICCColor>()) {
                 CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
                 const auto &icc_info = doc->get(icc->id);
                 if(icc_info.num_channels != (int32_t)icc->values.size()) {
@@ -965,7 +965,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 }
                 cmd += " SCN";
                 cmds.append(cmd);
-            } else if(auto id = std::get_if<CapyPDF_PatternId>(&sarg.c)) {
+            } else if(auto id = sarg.c.get_if<CapyPDF_PatternId>()) {
                 used_patterns.insert(id->id);
                 cmds.append("/Pattern CS\n");
                 auto cmd = pystd2025::format("/Pattern-%d SCN\n", id->id);
@@ -977,13 +977,13 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
         } else if(auto *nsarg_ = e.get_if<Nonstroke_arg>()) {
             auto &nsarg = *nsarg_;
 
-            if(auto rgb = std::get_if<DeviceRGBColor>(&nsarg.c)) {
+            if(auto rgb = nsarg.c.get_if<DeviceRGBColor>()) {
                 ERCV(serialize_rg(rgb->r, rgb->g, rgb->b));
-            } else if(auto gray = std::get_if<DeviceGrayColor>(&nsarg.c)) {
+            } else if(auto gray = nsarg.c.get_if<DeviceGrayColor>()) {
                 ERCV(serialize_g(gray->v));
-            } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&nsarg.c)) {
+            } else if(auto cmyk = nsarg.c.get_if<DeviceCMYKColor>()) {
                 ERCV(serialize_k(cmyk->c, cmyk->m, cmyk->y, cmyk->k));
-            } else if(auto icc = std::get_if<ICCColor>(&nsarg.c)) {
+            } else if(auto icc = nsarg.c.get_if<ICCColor>()) {
                 CHECK_INDEXNESS(icc->id.id, doc->icc_profiles);
                 const auto &icc_info = doc->get(icc->id);
                 if(icc_info.num_channels != (int32_t)icc->values.size()) {
@@ -996,7 +996,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 }
                 cmd += "scn";
                 cmds.append(cmd);
-            } else if(auto id = std::get_if<CapyPDF_PatternId>(&nsarg.c)) {
+            } else if(auto id = nsarg.c.get_if<CapyPDF_PatternId>()) {
                 used_patterns.insert(id->id);
                 cmds.append("/Pattern cs\n");
                 auto cmd = pystd2025::format("/Pattern-%d scn\n", id->id);
@@ -1077,13 +1077,13 @@ rvoe<NoReturnValue> PdfDrawContext::validate_text_contents(const PdfText &text) 
     RETOK;
 }
 
-rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &glyphs,
+rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const pystd2025::Vector<PdfGlyph> &glyphs,
                                                   CapyPDF_FontId fid,
                                                   double pointsize) {
     CHECK_INDEXNESS(fid.id, doc->font_objects);
     double prev_x = 0;
     double prev_y = 0;
-    if(glyphs.empty()) {
+    if(glyphs.is_empty()) {
         RETOK;
     }
     auto &font_data = doc->get(fid);
