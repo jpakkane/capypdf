@@ -32,7 +32,6 @@ capypdf_lib = shared_library('capypdf',
   version: version,
   soversion: soversion,
   install: true,
-  cpp_pch: 'pch/capypch.hpp',
 )
 
 capypdf_dep = declare_dependency(include_directories: pubinc,
