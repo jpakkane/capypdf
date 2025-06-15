@@ -109,11 +109,13 @@ ShadingPoint conv_shpoint(const double *coords, const Color *color) {
 }
 
 template<typename T> void grab_coons_data(T &patch, const double *coords, const Color **colors) {
-    for(int i = 0; i < (int)patch.p.size(); ++i) {
+    constexpr auto p_count = sizeof(patch.p) / sizeof(patch.p[0]);
+    constexpr auto c_count = sizeof(patch.c) / sizeof(patch.c[0]);
+    for(size_t i = 0; i < p_count; ++i) {
         patch.p[i].x = coords[2 * i];
         patch.p[i].y = coords[2 * i + 1];
     }
-    for(int i = 0; i < (int)patch.c.size(); ++i) {
+    for(size_t i = 0; i < c_count; ++i) {
         patch.c[i] = *colors[i];
     }
 }

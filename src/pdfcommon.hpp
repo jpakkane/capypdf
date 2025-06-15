@@ -7,7 +7,6 @@
 #include <errorhandling.hpp>
 
 #include <vector>
-#include <array>
 #include <functional>
 #include <variant>
 #include <iterator>
@@ -505,14 +504,14 @@ struct ShadingType4 {
 };
 
 struct FullCoonsPatch {
-    std::array<Point, 12> p;
-    std::array<Color, 4> c;
+    Point p[12];
+    Color c[4];
 };
 
 struct ContinuationCoonsPatch {
     int flag;
-    std::array<Point, 8> p;
-    std::array<Color, 2> c;
+    Point p[8];
+    Color c[2];
 };
 
 typedef std::variant<FullCoonsPatch, ContinuationCoonsPatch> CoonsPatches;

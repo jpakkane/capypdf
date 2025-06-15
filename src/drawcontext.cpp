@@ -7,7 +7,6 @@
 #include FT_FREETYPE_H
 #include FT_IMAGE_H
 #include <utils.hpp>
-#include <array>
 #include <cmath>
 #include <cassert>
 

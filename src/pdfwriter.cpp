@@ -22,8 +22,10 @@ namespace capypdf::internal {
 
 namespace {
 
-const std::array<const char *, 2> PDF_header_strings = {"%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
-                                                        "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
+const char *PDF_header_strings_data[2] = {"%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
+                                          "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
+
+const pystd2025::Span<const char *> PDF_header_strings(PDF_header_strings_data, 2);
 
 pystd2025::CString fontname2pdfname(pystd2025::CStringView original) {
     pystd2025::CString out;
