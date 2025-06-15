@@ -484,10 +484,10 @@ PdfDocument::add_page_labeling(uint32_t start_page,
                                pystd2025::Optional<CapyPDF_Page_Label_Number_Style> style,
                                pystd2025::Optional<u8string> prefix,
                                pystd2025::Optional<uint32_t> start_num) {
-    if(!page_labels.empty() && page_labels.back().start_page > start_page) {
+    if(!page_labels.is_empty() && page_labels.back().start_page > start_page) {
         RETERR(NonSequentialPageNumber);
     }
-    page_labels.emplace_back(start_page, style, std::move(prefix), start_num);
+    page_labels.emplace_back(PageLabel{start_page, style, std::move(prefix), start_num});
     return NoReturnValue{};
 }
 
@@ -797,7 +797,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     fmt.add_token("/Pages");
     fmt.add_object_ref(pages_object);
 
-    if(!page_labels.empty()) {
+    if(!page_labels.is_empty()) {
         fmt.add_token("/PageLabels");
         fmt.begin_dict();
         fmt.add_token("/Nums");

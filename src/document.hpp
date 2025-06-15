@@ -542,15 +542,15 @@ private:
     PdfColorConverter cm;
     pystd2025::Vector<ObjectType> document_objects;
     pystd2025::Vector<PageOffsets> pages; // Refers to object num.
-    std::vector<PageLabel> page_labels;
-    std::vector<ImageInfo> image_info;
+    pystd2025::Vector<PageLabel> page_labels;
+    pystd2025::Vector<ImageInfo> image_info;
     pystd2025::HashMap<CapyPDF_Builtin_Fonts, CapyPDF_FontId> builtin_fonts;
-    std::vector<FontPDFObjects> font_objects;
+    pystd2025::Vector<FontPDFObjects> font_objects;
     pystd2025::Vector<int32_t> separation_objects;
-    std::vector<FontThingy> fonts;
+    pystd2025::Vector<FontThingy> fonts;
     OutlineData outlines;
-    std::vector<IccInfo> icc_profiles;
-    std::vector<FormXObjectInfo> form_xobjects;
+    pystd2025::Vector<IccInfo> icc_profiles;
+    pystd2025::Vector<FormXObjectInfo> form_xobjects;
     pystd2025::Vector<int32_t> form_widgets;
     std::vector<EmbeddedFileObject> embedded_files;
     pystd2025::Vector<int32_t> annotations;

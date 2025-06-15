@@ -26,6 +26,7 @@ struct FontSubsetData {
 
 class FontSubsetter {
 public:
+    FontSubsetter() noexcept { face = nullptr; }
     static rvoe<FontSubsetter>
     construct(const pystd2025::Path &fontfile, FT_Face face, const FontProperties &props);
 
