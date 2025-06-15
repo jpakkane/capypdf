@@ -9,7 +9,6 @@
 #include <cffsubsetter.hpp>
 
 #include <vector>
-#include <variant>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

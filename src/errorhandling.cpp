@@ -2,7 +2,6 @@
 // Copyright 2022-2024 Jussi Pakkanen
 
 #include <errorhandling.hpp>
-#include <array>
 #include <cstdio>
 #include <cstdlib>
 
@@ -10,7 +9,7 @@ namespace capypdf::internal {
 
 // clang-format off
 
-const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
+const char * error_texts[(size_t)ErrorCode::NumErrors]{
 "No error.",
 "Unexpected error, the real error message should be in stdout or stderr.",
 "Invalid index.",
@@ -101,11 +100,10 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 // clang-format on
 
 const char *error_text(ErrorCode ec) noexcept {
-    const int index = (int32_t)ec;
-    if(index < 0 || (std::size_t)index >= error_texts.size()) {
+    if((int)ec < 0 || ec >= ErrorCode::NumErrors) {
         return "Invalid error code.";
     }
-    return error_texts[index];
+    return error_texts[(int)ec];
 }
 
 } // namespace capypdf::internal

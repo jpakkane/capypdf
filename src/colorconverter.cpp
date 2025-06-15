@@ -5,14 +5,15 @@
 #include <utils.hpp>
 #include <lcms2.h>
 #include <cassert>
-#include <array>
 
 namespace {
 
-const std::array<int, 4> ri2lcms = {INTENT_RELATIVE_COLORIMETRIC,
-                                    INTENT_ABSOLUTE_COLORIMETRIC,
-                                    INTENT_SATURATION,
-                                    INTENT_PERCEPTUAL};
+const int ri2lcms_data[4] = {INTENT_RELATIVE_COLORIMETRIC,
+                             INTENT_ABSOLUTE_COLORIMETRIC,
+                             INTENT_SATURATION,
+                             INTENT_PERCEPTUAL};
+
+const pystd2025::Span<int> ri2lcms(ri2lcms_data, 4);
 
 int32_t num_bytes_for(CapyPDF_Device_Colorspace cs) {
     switch(cs) {

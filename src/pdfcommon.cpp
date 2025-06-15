@@ -31,9 +31,7 @@ uint32_t unpack_one(const unsigned char *valid_utf8, const UtfDecodeStep &par) {
     return unpacked;
 }
 
-} // namespace
-
-const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names{
+const char *structure_type_names_data[CAPY_STRUCTURE_TYPE_NUM_ITEMS] = {
     // clang-format off
     "Document",
     "DocumentFragment",
@@ -84,6 +82,11 @@ const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_typ
     "Artifact",
     // clang-format on
 };
+
+} // namespace
+
+const pystd2025::Span<const char *> structure_type_names(structure_type_names_data,
+                                                         sizeof(structure_type_names_data));
 
 rvoe<PdfRectangle> PdfRectangle::construct(double l, double b, double r, double t) {
     if(r <= l) {

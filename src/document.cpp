@@ -7,10 +7,8 @@
 #include <objectformatter.hpp>
 #include <bitfiddling.hpp>
 
-#include <cassert>
-#include <array>
+#include <assert.h>
 #include <ft2build.h>
-#include <variant>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
@@ -35,19 +33,21 @@ void FreetypeCloser::del(FT_LibraryRec_ *ft) {
     }
 }
 
-const std::array<const char *, 3> colorspace_names{
-    "/DeviceRGB",
-    "/DeviceGray",
-    "/DeviceCMYK",
-};
+const char *colorspace_names_data[3] = {"/DeviceRGB", "/DeviceGray", "/DeviceCMYK"};
 
-const std::array<const char, 5> page_label_types{
+const pystd2025::Span<const char *> colorspace_names(colorspace_names_data,
+                                                     sizeof(colorspace_names_data));
+
+const char page_label_types_data[5] = {
     'D', // Decimal
     'R', // Roman Upper
     'r', // Roman Lower
     'A', // Letter Upper
     'a', // Letter Lower
 };
+
+const pystd2025::Span<const char> page_label_types(page_label_types_data,
+                                                   sizeof(page_label_types_data));
 
 namespace {
 
@@ -67,7 +67,7 @@ const unsigned char rdf_magic[4] = {0xef, 0xbb, 0xbf, 0};
 
 // const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
-const std::array<const char *, 9> pdfx_names{
+const char *pdfx_names_data[9] = {
     "PDF/X-1:2001",
     "PDF/X-1a:2001",
     "PDF/X-1a:2003",
@@ -79,10 +79,16 @@ const std::array<const char *, 9> pdfx_names{
     "PDF/X-5pg",
 };
 
-const std::array<const char, 10> pdfa_part{'1', '1', '2', '2', '2', '3', '3', '3', '4', '4'};
-const std::array<const char, 10> pdfa_conformance{'A', 'B', 'A', 'B', 'U', 'A', 'B', 'U', 'F', 'E'};
+const pystd2025::Span<const char *> pdfx_names(pdfx_names_data, sizeof(pdfx_names_data));
 
-const std::array<const char *, 14> font_names{
+const char pdfa_part_data[10] = {'1', '1', '2', '2', '2', '3', '3', '3', '4', '4'};
+const pystd2025::Span<const char> pdfa_part(pdfa_part_data, sizeof(pdfa_part_data));
+
+const char pdfa_conformance_data[10] = {'A', 'B', 'A', 'B', 'U', 'A', 'B', 'U', 'F', 'E'};
+const pystd2025::Span<const char> pdfa_conformance(pdfa_conformance_data,
+                                                   sizeof(pdfa_conformance_data));
+
+const char *font_names_data[14] = {
     "/Times-Roman",
     "/Helvetica",
     "/Courier",
@@ -99,7 +105,9 @@ const std::array<const char *, 14> font_names{
     "/Courier-BoldOblique",
 };
 
-const std::array<const char *, 16> blend_mode_names{
+const pystd2025::Span<const char *> font_names(font_names_data, sizeof(font_names_data));
+
+const char *blend_mode_names_data[16] = {
     "/Normal",
     "/Multiply",
     "/Screen",
@@ -117,6 +125,9 @@ const std::array<const char *, 16> blend_mode_names{
     "/Color",
     "/Luminosity",
 };
+
+const pystd2025::Span<const char *> blend_mode_names(blend_mode_names_data,
+                                                     sizeof(blend_mode_names_data));
 
 template<typename T> rvoe<NoReturnValue> append_floatvalue(pystd2025::Bytes &buf, double v) {
     if(v < 0 || v > 1.0) {
@@ -287,12 +298,15 @@ std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) 
 
 } // namespace
 
-const std::array<const char *, 4> rendering_intent_names{
+const char *rendering_intent_names_data[4] = {
     "RelativeColorimetric",
     "AbsoluteColorimetric",
     "Saturation",
     "Perceptual",
 };
+
+const pystd2025::Span<const char *> rendering_intent_names(rendering_intent_names_data,
+                                                           sizeof(rendering_intent_names_data));
 
 DocumentProperties::DocumentProperties() {
     default_page_properties.mediabox = PdfRectangle::a4();

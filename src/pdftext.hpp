@@ -5,7 +5,6 @@
 
 #include <capypdf.h>
 #include <pdfcommon.hpp>
-#include <variant>
 #include <cstdint>
 #include <errorhandling.hpp>
 #include <vector>

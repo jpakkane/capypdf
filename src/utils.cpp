@@ -20,7 +20,7 @@ namespace capypdf::internal {
 
 namespace {
 
-const std::array<const char *, 12> transition_names{
+const char *transition_names_data[12] = {
     "/Split",
     "/Blinds",
     "/Box",
@@ -34,6 +34,9 @@ const std::array<const char *, 12> transition_names{
     "/Uncover",
     "/Fade",
 };
+
+const pystd2025::Span<const char *> transition_names(transition_names_data,
+                                                     sizeof(transition_names_data));
 
 struct UtfDecodeStep {
     uint32_t byte1_data_mask;

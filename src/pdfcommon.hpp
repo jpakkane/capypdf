@@ -69,9 +69,9 @@ enum class PdfVersion : uint8_t { v17, v20 };
 
 class ObjectFormatter;
 
-extern const std::array<const char *, (int)CAPY_STRUCTURE_TYPE_NUM_ITEMS> structure_type_names;
-extern const std::array<const char *, 3> colorspace_names;
-extern const std::array<const char *, 4> rendering_intent_names;
+extern const pystd2025::Span<const char *> structure_type_names;
+extern const pystd2025::Span<const char *> colorspace_names;
+extern const pystd2025::Span<const char *> rendering_intent_names;
 
 // Does not check if the given buffer is valid UTF-8.
 // If it is not, UB ensues.
