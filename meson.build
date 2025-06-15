@@ -3,6 +3,9 @@ project('capypdf', 'cpp', 'c',
   meson_version: '>=1.5',
   default_options : ['cpp_std=c++23,c++latest', 'default_library=static'])
 
+add_project_arguments('-nostdinc++', language: 'cpp')
+add_project_link_arguments('-nostdlib++', '-lsupc++', language: 'cpp')
+
 version = meson.project_version()
 varr = version.split('.')
 cdata = configuration_data()
