@@ -284,7 +284,7 @@ struct NameProxy {
     bool operator<(const NameProxy &o) const { return name < o.name; }
 };
 
-std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) {
+std::vector<NameProxy> sort_names(const pystd2025::Vector<EmbeddedFileObject> &names) {
     std::vector<NameProxy> result;
     result.reserve(names.size());
     int num = 0;
@@ -292,7 +292,7 @@ std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) 
         result.emplace_back(NameProxy{n.ef.pdfname.sv(), num});
         ++num;
     }
-    std::sort(result.begin(), result.end());
+    pystd2025::insertion_sort(result.begin(), result.end());
     return result;
 }
 
@@ -425,7 +425,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
                                           const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
                                           const pystd2025::Vector<CapyPDF_StructureItemId> &structs,
                                           const pystd2025::Optional<Transition> &transition,
-                                          const std::vector<SubPageNavigation> &subnav) {
+                                          const pystd2025::Vector<SubPageNavigation> &subnav) {
     for(const auto &a : fws) {
         if(form_use.contains(a)) {
             RETERR(AnnotationReuse);
@@ -457,7 +457,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(pystd2025::CString resource_dict,
         p.used_annotations.push_back(CapyPDF_AnnotationId{a});
     }
     p.transition = transition;
-    if(!subnav.empty()) {
+    if(!subnav.is_empty()) {
         p.subnav_root = create_subnavigation(subnav);
     }
     if(!structs.is_empty()) {
@@ -499,8 +499,8 @@ void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, pystd2025::CString
     form_xobjects.emplace_back(FormXObjectInfo{xobj_num});
 }
 
-int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &subnav) {
-    assert(!subnav.empty());
+int32_t PdfDocument::create_subnavigation(const pystd2025::Vector<SubPageNavigation> &subnav) {
+    assert(!subnav.is_empty());
     const int32_t root_obj = document_objects.size();
     {
         ObjectFormatter fmt;
@@ -680,7 +680,7 @@ rvoe<int32_t> PdfDocument::create_name_dict() {
     fmt.begin_dict();
     // PDF/A 4 mandates that you have an EmbeddedFiles key, even if it is empty.
     // At least that is what the VeraPDF validator says.
-    if(!embedded_files.empty()) {
+    if(!embedded_files.is_empty()) {
 
         fmt.add_token("/Limits");
 
@@ -777,7 +777,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
 
     fmt.begin_dict();
 
-    if(docprops.require_embedded_files() || !embedded_files.empty()) {
+    if(docprops.require_embedded_files() || !embedded_files.is_empty()) {
         ERC(names, create_name_dict());
         names_object = names;
         ERC(afnum, create_AF_dict());
@@ -787,7 +787,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         ERC(outlines, create_outlines());
         outline_object = outlines;
     }
-    if(!structure_items.empty()) {
+    if(!structure_items.is_empty()) {
         ERC(treeid, create_structure_parent_tree());
         structure_parent_tree_object = treeid;
         create_structure_root_dict();

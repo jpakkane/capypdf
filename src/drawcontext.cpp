@@ -1158,7 +1158,7 @@ PdfDrawContext::add_simple_navigation(pystd2025::Span<const CapyPDF_OptionalCont
     if(context_type != CAPY_DC_PAGE) {
         RETERR(InvalidDrawContextType);
     }
-    if(!sub_navigations.empty()) {
+    if(!sub_navigations.is_empty()) {
         std::abort();
     }
     for(const auto &sn : navs) {

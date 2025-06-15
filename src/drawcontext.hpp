@@ -194,7 +194,9 @@ public:
 
     const pystd2025::Optional<Transition> &get_transition() const { return transition; }
 
-    const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
+    const pystd2025::Vector<SubPageNavigation> &get_subpage_navigation() const {
+        return sub_navigations;
+    }
 
     bool has_unclosed_state() const { return cmds.has_unclosed_state(); }
 
@@ -238,7 +240,7 @@ private:
         used_structures; // A vector because numbering is relevant.
     pystd2025::HashSet<CapyPDF_OptionalContentGroupId> used_ocgs;
     pystd2025::HashSet<CapyPDF_TransparencyGroupId> used_trgroups;
-    std::vector<SubPageNavigation> sub_navigations;
+    pystd2025::Vector<SubPageNavigation> sub_navigations;
 
     // Not a std::stack because we need to access all entries.
     pystd2025::Optional<Transition> transition;

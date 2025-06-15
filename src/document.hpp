@@ -383,7 +383,7 @@ public:
                                  const pystd2025::HashSet<CapyPDF_AnnotationId> &annots,
                                  const pystd2025::Vector<CapyPDF_StructureItemId> &structs,
                                  const pystd2025::Optional<Transition> &transition,
-                                 const std::vector<SubPageNavigation> &subnav);
+                                 const pystd2025::Vector<SubPageNavigation> &subnav);
 
     rvoe<NoReturnValue>
     add_page_labeling(uint32_t start_page,
@@ -491,7 +491,7 @@ private:
 
     int32_t add_object(ObjectType object);
 
-    int32_t create_subnavigation(const std::vector<SubPageNavigation> &subnav);
+    int32_t create_subnavigation(const pystd2025::Vector<SubPageNavigation> &subnav);
 
     int32_t image_object_number(CapyPDF_ImageId iid) { return get(iid).obj; }
     int32_t font_object_number(CapyPDF_FontId fid) { return get(fid).font_obj; }
@@ -552,9 +552,9 @@ private:
     pystd2025::Vector<IccInfo> icc_profiles;
     pystd2025::Vector<FormXObjectInfo> form_xobjects;
     pystd2025::Vector<int32_t> form_widgets;
-    std::vector<EmbeddedFileObject> embedded_files;
+    pystd2025::Vector<EmbeddedFileObject> embedded_files;
     pystd2025::Vector<int32_t> annotations;
-    std::vector<StructItem> structure_items;
+    pystd2025::Vector<StructItem> structure_items;
     pystd2025::Vector<int32_t> ocg_items;
     pystd2025::Vector<int32_t> transparency_groups;
     pystd2025::Vector<int32_t> soft_masks;
@@ -565,7 +565,7 @@ private:
     pystd2025::HashMap<CapyPDF_FormWidgetId, int32_t> form_use;
     pystd2025::HashMap<CapyPDF_AnnotationId, int32_t> annotation_use;
     pystd2025::HashMap<CapyPDF_StructureItemId, StructureUsage> structure_use;
-    std::vector<pystd2025::Vector<CapyPDF_StructureItemId>>
+    pystd2025::Vector<pystd2025::Vector<CapyPDF_StructureItemId>>
         structure_parent_tree_items; // FIXME should be a variant of some sort?
     pystd2025::Optional<CapyPDF_IccColorSpaceId> output_profile;
     pystd2025::Optional<int32_t> output_intent_object;
