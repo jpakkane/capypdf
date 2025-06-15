@@ -61,8 +61,11 @@ void CommandStreamFormatter::append_dict_entry(std::string_view key, int32_t val
 }
 
 void CommandStreamFormatter::append_dict_entry_string(const char *key, const char *value) {
-    assert(key[0] == '/');
-    std::format_to(appender, "{}{} ({})\n", lead, key, value);
+    if(key[0] == '/') {
+        std::format_to(appender, "{}{} ({})\n", lead, key, value);
+    } else {
+        std::format_to(appender, "{}/{} ({})\n", lead, key, value);
+    }
 }
 
 rvoe<NoReturnValue> CommandStreamFormatter::BT() {
