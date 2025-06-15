@@ -177,7 +177,7 @@ struct GenPopper {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));
-            std::abort();
+            abort();
         }
         g = pystd2025::move(rc.value());
     }
@@ -185,7 +185,7 @@ struct GenPopper {
         auto rc = g->write();
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));
-            std::abort();
+            abort();
         }
     }
 };

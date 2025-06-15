@@ -140,7 +140,7 @@ struct CFFPrivateDict {
 
 struct CFFFontDict {
     CFFDict entries; // without private entry
-    std::optional<CFFPrivateDict> priv;
+    pystd2025::Optional<CFFPrivateDict> priv;
 };
 
 struct CFFont {

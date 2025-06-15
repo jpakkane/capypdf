@@ -72,8 +72,6 @@ public:
         uint32_t byte_count;
     };
 
-    using iterator_category = std::forward_iterator_tag;
-    using difference_type = std::ptrdiff_t;
     using value_type = uint32_t;
     using pointer = const uint32_t *;
     using reference = const uint32_t &;
@@ -642,19 +640,7 @@ struct FontProperties {
 };
 
 } // namespace capypdf::internal
-/*
-template<> struct std::hash<capypdf::internal::asciistring> {
-    std::size_t operator()(const capypdf::internal::asciistring &astr) const noexcept {
-        return std::hash<pystd2025::CStringView>{}(astr.sv());
-    }
-};
 
-template<> struct std::hash<capypdf::internal::u8string> {
-    std::size_t operator()(const capypdf::internal::u8string &u8str) const noexcept {
-        return std::hash<pystd2025::CStringView>{}(u8str.sv());
-    }
-};
-*/
 template<typename Hasher> struct pystd2025::HashFeeder<Hasher, capypdf::internal::asciistring> {
     void operator()(Hasher &h, const capypdf::internal::asciistring &astr) noexcept {
         h.feed_bytes(astr.c_str(), astr.size());

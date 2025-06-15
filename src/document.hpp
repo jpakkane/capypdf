@@ -456,7 +456,6 @@ public:
     // Annotations.
     rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a);
 
-    // Structure itemsconst std::array<const char *, 3> colorspace_names
     rvoe<CapyPDF_StructureItemId>
     add_structure_item(CapyPDF_Structure_Type stype,
                        pystd2025::Optional<CapyPDF_StructureItemId> parent,

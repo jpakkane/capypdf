@@ -65,8 +65,6 @@ constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreS
 
 const unsigned char rdf_magic[4] = {0xef, 0xbb, 0xbf, 0};
 
-// const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
-
 const char *pdfx_names_data[9] = {
     "PDF/X-1:2001",
     "PDF/X-1a:2001",
@@ -133,7 +131,9 @@ template<typename T> rvoe<NoReturnValue> append_floatvalue(pystd2025::Bytes &buf
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
     }
-    T cval = (T)(std::numeric_limits<T>::max() * v);
+
+    // FIXME! Bad! Only works with unsigned types.
+    T cval = (T)(((T)-1) * v);
     cval = byteswap(cval);
     const char *ptr = (const char *)(&cval);
     buf.append(ptr, ptr + sizeof(T));
@@ -177,7 +177,7 @@ rvoe<pystd2025::Bytes> serialize_shade4(const ShadingType4 &shade) {
             ERCV(append_floatvalue<uint16_t>(s, c->k.v()));
         } else {
             fprintf(stderr, "Color space not supported yet.");
-            std::abort();
+            abort();
         }
     }
     return rvoe<pystd2025::Bytes>{pystd2025::move(s)};
@@ -188,7 +188,7 @@ rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
     for(const auto &eh : shade.elements) {
         if(!eh.contains<FullCoonsPatch>()) {
             fprintf(stderr, "Continuation patches not yet supported.\n");
-            std::abort();
+            abort();
         }
         const auto &e = eh.get<FullCoonsPatch>();
         char flag = 0; //(char)e.flag;
@@ -232,7 +232,7 @@ rvoe<pystd2025::Bytes> serialize_shade6(const ShadingType6 &shade) {
                 ERCV(append_floatvalue<uint16_t>(s, c.k.v()));
             } else {
                 fprintf(stderr, "Color space not yet supported.\n");
-                std::abort();
+                abort();
             }
         }
     }
@@ -248,7 +248,7 @@ int32_t num_channels_for(const CapyPDF_Image_Colorspace cs) {
     case CAPY_IMAGE_CS_CMYK:
         return 4;
     }
-    std::abort();
+    abort();
 }
 
 void color2numbers(ObjectFormatter &fmt, const Color &c) {
@@ -265,7 +265,7 @@ void color2numbers(ObjectFormatter &fmt, const Color &c) {
         fmt.add_token(cmyk->k.v());
     } else {
         fprintf(stderr, "Colorspace not supported yet.\n");
-        std::abort();
+        abort();
     }
 }
 
@@ -360,7 +360,7 @@ serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t pag
         fmt.add_token(r->top);
     } else {
         fprintf(stderr, "No link target specified.\n");
-        std::abort();
+        abort();
     }
     fmt.end_array();
     RETOK;
@@ -994,7 +994,7 @@ void PdfDocument::create_structure_root_dict() {
 
     if(!structure_parent_tree_object) {
         fprintf(stderr, "Internal error!\n");
-        std::abort();
+        abort();
     }
     for(int32_t i = 0; i < (int32_t)structure_items.size(); ++i) {
         if(!structure_items[i].parent) {
@@ -1035,7 +1035,7 @@ int32_t PdfDocument::add_document_metadata_object() {
     if(docprops.metadata_xml.empty()) {
         auto *aptr = docprops.subtype.get_if<CapyPDF_PDFA_Type>();
         if(!aptr) {
-            std::abort();
+            abort();
         }
         auto stream = pystd2025::format(
             pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
@@ -1059,7 +1059,7 @@ PdfDocument::find_icc_profile(pystd2025::BytesView contents) {
             }
         } else {
             fprintf(stderr, "Bad type for icc profile dnta.\n");
-            std::abort();
+            abort();
         }
     }
     return {};
@@ -1176,7 +1176,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RawPixelImage image,
         RETERR(UnsupportedFormat);
     }
     if(!params.as_mask) {
-        std::abort();
+        abort();
     }
     return add_image_object(image.md.w,
                             image.md.h,
@@ -1286,7 +1286,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
             fmt.add_object_ref(icc_obj);
         } else {
             fprintf(stderr, "Unknown colorspace.");
-            std::abort();
+            abort();
         }
     }
     if(smask_id) {
@@ -1337,7 +1337,7 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
             expected_channels = 4;
             break;
         default:
-            std::abort();
+            abort();
         }
 
         // Note: the profile is now stored twice in the output file.
@@ -1525,7 +1525,7 @@ rvoe<CapyPDF_FunctionId> PdfDocument::add_function(PdfFunction f) {
         object_number = rc;
     } else {
         fprintf(stderr, "Function type not implemented yet.\n");
-        std::abort();
+        abort();
     }
     functions.emplace_back(FunctionInfo{pystd2025::move(f), object_number});
     return CapyPDF_FunctionId{(int32_t)functions.size() - 1};
@@ -1542,7 +1542,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const PdfShading &shade) {
         return serialize_shading(*sh6);
     }
     fprintf(stderr, "Shading type not supported yet.\n");
-    std::abort();
+    abort();
 }
 
 rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType2 &shade) {
@@ -1643,7 +1643,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType4 &shade) {
         fmt.add_token_pair("0", "1");
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
-        std::abort();
+        abort();
     }
     fmt.end_array();
     return add_object(DeflatePDFObject{pystd2025::move(fmt), RawData(pystd2025::move(serialized))});
@@ -1679,7 +1679,7 @@ rvoe<int32_t> PdfDocument::serialize_shading(const ShadingType6 &shade) {
         fmt.add_token_pair("0", "1");
     } else {
         fprintf(stderr, "Color space not supported yet.\n");
-        std::abort();
+        abort();
     }
     fmt.end_array();
     return add_object(DeflatePDFObject{pystd2025::move(fmt), RawData(pystd2025::move(serialized))});

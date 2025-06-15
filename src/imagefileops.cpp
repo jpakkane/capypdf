@@ -369,14 +369,14 @@ struct TifBuf {
 
 tmsize_t tiffreadfunc(thandle_t h, void *buf, tmsize_t bufsize) {
     TifBuf *tiffdata = (TifBuf *)h;
-    auto num_bytes = std::min(bufsize, tiffdata->bufsize - tiffdata->fptr);
+    auto num_bytes = pystd2025::minval(bufsize, tiffdata->bufsize - tiffdata->fptr);
     assert(num_bytes >= 0);
     memcpy(buf, tiffdata->buf + tiffdata->fptr, num_bytes);
     tiffdata->fptr += num_bytes;
     return num_bytes;
 }
 
-tmsize_t tiffwritefunc(thandle_t, void *, tmsize_t) { std::abort(); }
+tmsize_t tiffwritefunc(thandle_t, void *, tmsize_t) { abort(); }
 
 toff_t tiffseekfunc(thandle_t h, toff_t off, int whence) {
     TifBuf *tiffdata = (TifBuf *)h;
@@ -391,7 +391,7 @@ toff_t tiffseekfunc(thandle_t h, toff_t off, int whence) {
         tiffdata->fptr = tiffdata->bufsize + off;
         break;
     default:
-        std::abort();
+        abort();
     }
     tiffdata->fptr = pystd2025::clamp(tiffdata->fptr, int64_t{0}, tiffdata->bufsize);
     return tiffdata->fptr;

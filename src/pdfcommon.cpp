@@ -174,7 +174,7 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
         par.byte1_data_mask = 0b111;
         par.num_subsequent_bytes = 3;
     } else {
-        std::abort();
+        abort();
     }
     return CharInfo{unpack_one(buf, par), 1 + par.num_subsequent_bytes};
 }
@@ -195,7 +195,7 @@ const char *RawData::data() const {
     } else if(auto *d = storage.get_if<pystd2025::Bytes>()) {
         return (const char *)d->data();
     } else {
-        std::abort();
+        abort();
     }
 }
 
@@ -205,7 +205,7 @@ size_t RawData::size() const {
     } else if(auto *d = storage.get_if<pystd2025::Bytes>()) {
         return d->size();
     } else {
-        std::abort();
+        abort();
     }
 }
 
@@ -219,7 +219,7 @@ bool RawData::empty() const {
     } else if(auto *p = storage.get_if<pystd2025::Bytes>()) {
         return p->is_empty();
     } else {
-        std::abort();
+        abort();
     }
 }
 
@@ -229,7 +229,7 @@ void RawData::clear() {
     } else if(auto *p = storage.get_if<pystd2025::Bytes>()) {
         p->clear();
     } else {
-        std::abort();
+        abort();
     }
 }
 

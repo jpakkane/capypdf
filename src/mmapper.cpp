@@ -144,7 +144,7 @@ rvoe<pystd2025::BytesView> span_of_source(const DataSource &s) {
         return *sp;
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");
-    std::abort();
+    abort();
 }
 
 rvoe<pystd2025::CStringView> view_of_source(const DataSource &s) {
@@ -155,7 +155,7 @@ rvoe<pystd2025::CStringView> view_of_source(const DataSource &s) {
         return span2sv(*sv);
     }
     fprintf(stderr, "Tried to use an empty datasource for font data.\n");
-    std::abort();
+    abort();
 }
 
 } // namespace capypdf::internal

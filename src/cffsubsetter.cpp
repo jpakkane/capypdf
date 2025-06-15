@@ -201,7 +201,7 @@ rvoe<CFFDict> unpack_dictionary(pystd2025::BytesView dataspan_orig) {
                 } while((b1 & 0xf) != 0xf);
                 unpacked_operand = -1; // FIXME
             } else {
-                std::abort();
+                abort();
             }
             operands.push_back(unpacked_operand);
         }
@@ -702,7 +702,7 @@ void CFFWriter::append_fdthings() {
         uint32_t sanity_check;
         memcpy(&sanity_check, output.data() + write_location, sizeof(int32_t));
         if(sanity_check != (uint32_t)-1) {
-            std::abort();
+            abort();
         }
         const auto offset_be = byteswap(offset_value);
         memcpy(output.data() + write_location, &offset_be, sizeof(int32_t));
@@ -792,12 +792,12 @@ void CFFWriter::create_topdict() {
     const auto written_value = byteswap(sanity_check_be);
     const auto original_value = find_command(source, DictOperator::FDArray)->operand.front();
     const auto original_swapped = byteswap(original_value);
-    auto loc = std::search(output.begin(),
+    auto loc = pystd2025::search(output.begin(),
                            output.end(),
                            (const char *)&original_swapped,
                            (const char *)&original_swapped + 4);
     assert(loc != output.end());
-    const auto real_offset = std::distance(output.begin(), loc);
+    const auto real_offset = pystd2025::distance(output.begin(), loc);
     assert(written_value == original_value);
     */
 }

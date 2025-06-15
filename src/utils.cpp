@@ -6,15 +6,12 @@
 #include <zlib.h>
 #include <cassert>
 #include <string.h>
-#ifdef _WIN32
 #include <time.h>
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/time.h>
 #endif
-
-#include <random>
-#include <chrono>
 
 namespace capypdf::internal {
 
@@ -213,10 +210,10 @@ rvoe<pystd2025::Bytes> load_file_as_bytes(FILE *f) { return do_file_load<pystd20
 void write_file(const char *ofname, const char *buf, size_t bufsize) {
     FILE *f = fopen(ofname, "wb");
     if(!f) {
-        std::abort();
+        abort();
     }
     if(fwrite(buf, 1, bufsize, f) != bufsize) {
-        std::abort();
+        abort();
     }
     fclose(f);
 }
@@ -280,10 +277,13 @@ pystd2025::CString current_date_string() {
     char buf[bufsize];
     time_t timepoint;
     struct tm utctime;
+
     if(getenv("SOURCE_DATE_EPOCH")) {
         timepoint = strtol(getenv("SOURCE_DATE_EPOCH"), nullptr, 10);
     } else {
-        timepoint = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        timespec tspec;
+        clock_gettime(CLOCK_REALTIME, &tspec);
+        timepoint = tspec.tv_sec;
     }
 #ifdef _WIN32
     if(gmtime_s(&utctime, &timepoint) != 0) {
@@ -291,7 +291,7 @@ pystd2025::CString current_date_string() {
     if(gmtime_r(&timepoint, &utctime) == nullptr) {
 #endif
         perror(nullptr);
-        std::abort();
+        abort();
     }
     strftime(buf, bufsize, "(D:%Y%m%d%H%M%SZ)", &utctime);
     return pystd2025::CString(buf);
@@ -410,7 +410,7 @@ pystd2025::CString bytes2pdfstringliteral(pystd2025::CStringView raw, bool add_s
         if(needs_quoting(c)) {
             result += '#';
             if(snprintf(buf, 10, "%02x", (unsigned int)c) != 2) {
-                std::abort();
+                abort();
             }
             result += buf;
         } else {
@@ -426,11 +426,11 @@ pystd2025::CString create_trailer_id() {
     msg.reserve(num_bytes * 2 + 2);
     msg.reserve(num_bytes * 2 + 2);
     msg.push_back('<');
-    std::random_device r;
-    std::default_random_engine gen(r());
-    std::uniform_int_distribution<int> dist(0, 255);
+
     for(int i = 0; i < num_bytes; ++i) {
-        pystd2025::format_append(msg, "%02X", (unsigned char)dist(gen));
+        auto big_num = random();
+        int randnum = (int)(big_num & 0xFF);
+        pystd2025::format_append(msg, "%02X", randnum);
     }
     msg.push_back('>');
     return msg;

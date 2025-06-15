@@ -288,7 +288,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
                                             const BDCTags *attributes) {
     if(!sid && !attributes) {
         fprintf(stderr, "%s", "Must specify sid or attributes. Otherwise use BMC.\n");
-        std::abort();
+        abort();
     }
     cmds.append_indent();
     cmds.append_raw("/");
@@ -322,7 +322,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(CapyPDF_StructureItemId sid,
         ERC(astr, asciistring::from_cstr(quoted.c_str()));
         return cmd_BDC(astr, sid, attributes);
     } else {
-        std::abort();
+        abort();
     }
 }
 
@@ -636,7 +636,7 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
         return set_color(*cv, stroke);
     } else {
         fprintf(stderr, "Given colorspace not supported yet.\n");
-        std::abort();
+        abort();
     }
     RETOK;
 }
@@ -656,7 +656,7 @@ rvoe<NoReturnValue> PdfDrawContext::convert_to_output_cs_and_set_color(const Dev
         return set_color(cmyk, stroke);
     }
     }
-    std::abort();
+    abort();
 }
 
 rvoe<NoReturnValue> PdfDrawContext::set_color(const DeviceRGBColor &c, bool stroke) {
@@ -855,7 +855,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
             glyph_appender_lambda(current_subset_glyph);
         } else {
             fprintf(stderr, "Not implemented yet.\n");
-            std::abort();
+            abort();
         }
         is_first = false;
     }
@@ -935,7 +935,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 cmds.append("BDC");
             } else {
                 fprintf(stderr, "FIXME 1\n");
-                std::abort();
+                abort();
             }
             ERCV(cmds.indent(DrawStateType::MarkedContent));
         } else if(e.contains<Emc_arg>()) {
@@ -972,7 +972,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 cmds.append(cmd);
             } else {
                 printf("Given text stroke colorspace not supported yet.\n");
-                std::abort();
+                abort();
             }
         } else if(auto *nsarg_ = e.get_if<Nonstroke_arg>()) {
             auto &nsarg = *nsarg_;
@@ -1003,7 +1003,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 cmds.append(cmd);
             } else {
                 printf("Given text nonstroke colorspace not supported yet.\n");
-                std::abort();
+                abort();
             }
         } else if(auto *w = e.get_if<w_arg>()) {
             cmds.append_command(w->width, "w");
@@ -1159,7 +1159,7 @@ PdfDrawContext::add_simple_navigation(pystd2025::Span<const CapyPDF_OptionalCont
         RETERR(InvalidDrawContextType);
     }
     if(!sub_navigations.is_empty()) {
-        std::abort();
+        abort();
     }
     for(const auto &sn : navs) {
         if(!used_ocgs.contains(sn)) {

@@ -24,7 +24,7 @@ int32_t num_bytes_for(CapyPDF_Device_Colorspace cs) {
     case CAPY_DEVICE_CS_CMYK:
         return 4;
     }
-    std::abort();
+    abort();
 }
 
 /*
@@ -37,7 +37,7 @@ int32_t num_bytes_for(CapyPDF_ImageColorspace cs) {
     case CAPY_IMAGE_CS_CMYK:
         return 4;
     }
-    std::abort();
+    abort();
 }
 */
 
@@ -50,7 +50,7 @@ uint32_t pixelformat_for(CapyPDF_Device_Colorspace cs) {
     case CAPY_DEVICE_CS_CMYK:
         return TYPE_CMYK_8;
     }
-    std::abort();
+    abort();
 }
 
 uint32_t pixelformat_for(CapyPDF_Image_Colorspace cs) {
@@ -62,7 +62,7 @@ uint32_t pixelformat_for(CapyPDF_Image_Colorspace cs) {
     case CAPY_IMAGE_CS_CMYK:
         return TYPE_CMYK_8;
     }
-    std::abort();
+    abort();
 }
 
 void print_lcms_errors(cmsContext /*ContextID*/, cmsUInt32Number ErrorCode, const char *Text) {
@@ -223,14 +223,14 @@ cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Device_Colorspace cs) const {
     case CAPY_DEVICE_CS_CMYK:
         return cmyk_profile.h;
     }
-    std::abort();
+    abort();
 }
 
 cmsHPROFILE PdfColorConverter::profile_for(CapyPDF_Image_Colorspace cs) const {
     if(cs <= CAPY_IMAGE_CS_CMYK) {
         return profile_for((CapyPDF_Device_Colorspace)cs);
     }
-    std::abort();
+    abort();
 }
 
 rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,

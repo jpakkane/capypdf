@@ -297,7 +297,7 @@ rvoe<pystd2025::Vector<uint64_t>> PdfWriter::write_objects() {
             ERCV(write_delayed_structure_item(i, *si));
         } else {
             fprintf(stderr, "Unreachable variant visit.\n");
-            std::abort();
+            abort();
         }
     }
     return object_offsets;
@@ -595,7 +595,7 @@ rvoe<NoReturnValue>
 PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotation &checkbox) {
     auto loc = doc.form_use.lookup(checkbox.widget);
     if(!loc) {
-        std::abort();
+        abort();
     }
 
     ObjectFormatter fmt;
@@ -798,7 +798,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         fmt.end_dict();
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
-        std::abort();
+        abort();
     }
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
@@ -835,7 +835,7 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_structure_item(int obj_num,
         fmt.add_token_pair("/S", bytes2pdfstringliteral(doc.rolemap.at(role.id).name.view()));
     } else {
         fprintf(stderr, "UNREACHABLE.\n");
-        std::abort();
+        abort();
     }
     fmt.add_token("/P");
     fmt.add_object_ref(parent_object);

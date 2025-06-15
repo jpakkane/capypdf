@@ -21,7 +21,7 @@ DrawContextPopper::~DrawContextPopper() {
         auto rc = g->add_page(ctx);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));
-            std::abort();
+            abort();
         }
         break;
     }
@@ -31,7 +31,7 @@ DrawContextPopper::~DrawContextPopper() {
         break;
     }
     default:
-        std::abort();
+        abort();
     }
 }
 

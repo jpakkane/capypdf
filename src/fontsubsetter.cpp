@@ -163,7 +163,7 @@ rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
         ERC(subglyphs, get_all_subglyphs(glyph_index, ttfile));
         if(subglyphs.size() + subset.glyphs.size() >= max_glyphs) {
             fprintf(stderr, "Composite glyph overflow not yet implemented.");
-            std::abort();
+            abort();
         }
         for(const auto &new_glyph : subglyphs) {
             if(subset.font_index_mapping.lookup(new_glyph)) {

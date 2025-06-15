@@ -107,7 +107,7 @@ struct TTDirEntry {
     bool tag_is(const char *txt) const {
         if(strlen(txt) != 4) {
             fprintf(stderr, "Bad tag.\n");
-            std::abort();
+            abort();
         }
         for(int i = 0; i < 4; ++i) {
             if(txt[i] != tag[i]) {
@@ -120,7 +120,7 @@ struct TTDirEntry {
     void set_tag(const char *txt) {
         if(strlen(txt) != 4) {
             fprintf(stderr, "Bad tag.\n");
-            std::abort();
+            abort();
         }
         for(int i = 0; i < 4; ++i) {
             tag[i] = txt[i];
@@ -621,7 +621,7 @@ TTHmtx subset_hmtx(const TrueTypeFontFile &source, const pystd2025::Vector<TTGly
                                     int16_t(source.hmtx.left_side_bearings[sidebear_index])});
             } else {
                 fprintf(stderr, "Malformed font file?\n");
-                std::abort();
+                abort();
             }
         }
     }
@@ -1007,7 +1007,7 @@ reassign_composite_glyph_numbers(pystd2025::BytesView buf,
         auto it = mapping.lookup(glyph_index);
         if(!it) {
             fprintf(stderr, "FAILfailFAIL\n");
-            std::abort();
+            abort();
         }
         glyph_index = *it;
         byte_swap_inplace(glyph_index);
@@ -1031,7 +1031,7 @@ uint32_t font_id_for_glyph(const TTGlyphs &g) {
     } else if(g.contains<LigatureGlyph>()) {
         return g.get<LigatureGlyph>().glyph_index;
     } else {
-        std::abort();
+        abort();
     }
 }
 

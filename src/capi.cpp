@@ -76,9 +76,6 @@ handle_exception() {
         throw;
     } catch(ErrorCode ec) {
         return conv_err(ec);
-    } catch(const std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-        return conv_err(ErrorCode::DynamicError);
     } catch(const pystd2025::PyException &e) {
         fprintf(stderr, "%s\n", e.what().c_str());
         return conv_err(ErrorCode::DynamicError);

@@ -11,7 +11,7 @@ typedef struct FT_FaceRec_ *FT_Face;
 
 namespace capypdf::internal {
 
-static const std::size_t max_glyphs = 65000;
+static const size_t max_glyphs = 65000;
 
 struct FontSubsetInfo {
     int32_t subset;

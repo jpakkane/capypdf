@@ -27,11 +27,11 @@ void ObjectFormatter::end_dict() { do_pop(ContainerType::Dictionary); }
 void ObjectFormatter::do_pop(ContainerType ctype) {
     if(stack.is_empty()) {
         fprintf(stderr, "Stack underrun\n");
-        std::abort();
+        abort();
     }
     if(stack.top().type != ctype) {
         fprintf(stderr, "Pop type mismatch.\n");
-        std::abort();
+        abort();
     }
     state = pystd2025::move(stack.top().params);
     stack.pop();
@@ -146,7 +146,7 @@ void ObjectFormatter::added_item() {
             buf += " ";
         }
     } else {
-        std::abort();
+        abort();
     }
 }
 
