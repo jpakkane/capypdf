@@ -15,8 +15,6 @@ namespace capypdf::internal {
 
 namespace {
 
-const uint32_t SPACE = ' ';
-
 FontSubsetData create_startstate() {
     std::vector<TTGlyphs> start_state{RegularGlyph{0, (uint32_t)-1}};
     std::unordered_map<uint32_t, uint32_t> start_mapping{};
@@ -177,12 +175,6 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
                                                                           uint32_t glyph_id) {
     if(subset.glyphs.size() >= max_glyphs) {
         RETERR(TooManyGlyphsUsed);
-    }
-    if(subset.glyphs.size() == SPACE) {
-        // NOTE: the case where the subset font has fewer than 32 characters
-        // is handled when serializing the font.
-        subset.glyphs.emplace_back(RegularGlyph{SPACE, FT_Get_Char_Index(face, SPACE)});
-        subset.font_index_mapping[glyph_id] = SPACE;
     }
     ERCV(handle_subglyphs(glyph_id));
     subset.glyphs.push_back(LigatureGlyph{text, glyph_id});
