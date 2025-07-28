@@ -1158,14 +1158,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RawPixelImage image,
     if(!params.as_mask) {
         std::abort();
     }
-    return add_image_object(image.md.w,
-                            image.md.h,
-                            image.md.pixel_depth,
-                            image.md.cs,
-                            std::optional<int32_t>{},
-                            params,
-                            image.pixels,
-                            image.md.compression);
+    ImageObjectMetadata md;
+    md.copy_common_from(image.md);
+    md.depth = image.md.pixel_depth;
+    return add_image_object(md, std::optional<int32_t>{}, params, image.pixels);
 }
 
 rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
@@ -1182,50 +1178,36 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
         RETERR(MaskAndAlpha);
     }
     if(!image.alpha.empty()) {
-        ERC(imobj,
-            add_image_object(image.md.w,
-                             image.md.h,
-                             image.md.alpha_depth,
-                             CAPY_IMAGE_CS_GRAY,
-                             {},
-                             params,
-                             image.alpha,
-                             image.md.compression));
+        ImageObjectMetadata md;
+        md.copy_common_from(image.md);
+        md.depth = image.md.alpha_depth;
+        md.cs = CAPY_IMAGE_CS_GRAY;
+        ERC(imobj, add_image_object(md, {}, params, image.alpha));
         smask_id = get(imobj).obj;
     }
     if(!image.icc_profile.empty()) {
         ERC(icc_id, add_icc_profile(image.icc_profile, num_channels_for(image.md.cs)));
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                icc_id,
-                                smask_id,
-                                params,
-                                image.pixels,
-                                image.md.compression);
+        ImageObjectMetadata md;
+        md.copy_common_from(image.md);
+        md.depth = image.md.pixel_depth;
+        md.cs = icc_id;
+        return add_image_object(md, smask_id, params, image.pixels);
     } else {
-        return add_image_object(image.md.w,
-                                image.md.h,
-                                image.md.pixel_depth,
-                                image.md.cs,
-                                smask_id,
-                                params,
-                                image.pixels,
-                                image.md.compression);
+        ImageObjectMetadata md;
+        md.copy_common_from(image.md);
+        md.depth = image.md.pixel_depth;
+
+        return add_image_object(md, smask_id, params, image.pixels);
     }
 }
 
-rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
-                                                    uint32_t h,
-                                                    uint32_t bits_per_component,
-                                                    ImageColorspaceType colorspace,
+rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(const ImageObjectMetadata &md,
                                                     std::optional<int32_t> smask_id,
                                                     const ImagePDFProperties &params,
-                                                    std::span<std::byte> original_bytes,
-                                                    CapyPDF_Compression compression) {
+                                                    std::span<std::byte> original_bytes) {
     std::vector<std::byte> compression_buffer;
     std::span<std::byte> compressed_bytes;
-    switch(compression) {
+    switch(md.compression) {
     case CAPY_COMPRESSION_NONE: {
         ERC(trial_compressed, flate_compress(original_bytes));
         compression_buffer = std::move(trial_compressed);
@@ -1241,9 +1223,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/XObject");
     fmt.add_token_pair("/Subtype", "/Image");
-    fmt.add_token_pair("/Width", w);
-    fmt.add_token_pair("/Height", h);
-    fmt.add_token_pair("/BitsPerComponent", bits_per_component);
+    fmt.add_token_pair("/Width", md.w);
+    fmt.add_token_pair("/Height", md.h);
+    fmt.add_token_pair("/BitsPerComponent", md.depth);
     fmt.add_token_pair("/Length", compressed_bytes.size());
     fmt.add_token_pair("/Filter", "/FlateDecode");
 
@@ -1258,9 +1240,9 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     if(params.as_mask) {
         fmt.add_token_pair("/ImageMask", " true");
     } else {
-        if(auto cs = std::get_if<CapyPDF_Image_Colorspace>(&colorspace)) {
+        if(auto cs = std::get_if<CapyPDF_Image_Colorspace>(&md.cs)) {
             fmt.add_token_pair("/ColorSpace", colorspace_names.at(*cs));
-        } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&colorspace)) {
+        } else if(auto icc = std::get_if<CapyPDF_IccColorSpaceId>(&md.cs)) {
             const auto icc_obj = get(*icc).object_num;
             fmt.add_token("/ColorSpace");
             fmt.add_object_ref(icc_obj);
@@ -1275,13 +1257,13 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(uint32_t w,
     }
     fmt.end_dict();
     int32_t im_id;
-    if(compression == CAPY_COMPRESSION_NONE) {
+    if(md.compression == CAPY_COMPRESSION_NONE) {
         im_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(compression_buffer))});
     } else {
         // FIXME. Makes a copy. Fix to grab original data instead.
         im_id = add_object(FullPDFObject{fmt.steal(), RawData(original_bytes)});
     }
-    image_info.emplace_back(ImageInfo{{w, h}, im_id});
+    image_info.emplace_back(ImageInfo{{md.w, md.h}, im_id});
     return CapyPDF_ImageId{(int32_t)image_info.size() - 1};
 }
 

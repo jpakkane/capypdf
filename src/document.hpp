@@ -361,6 +361,22 @@ struct ShadingInfo {
 
 typedef std::variant<CapyPDF_Image_Colorspace, CapyPDF_IccColorSpaceId> ImageColorspaceType;
 
+struct ImageObjectMetadata {
+    uint32_t w = 0;
+    uint32_t h = 0;
+    uint32_t depth = 8;
+    uint32_t alpha_depth = 0;
+    ImageColorspaceType cs;
+    CapyPDF_Compression compression;
+
+    void copy_common_from(const RasterImageMetadata &rmd) {
+        w = rmd.w;
+        h = rmd.h;
+        cs = rmd.cs;
+        compression = rmd.compression;
+    }
+};
+
 // Not really the best place for this but it'll do for now.
 rvoe<NoReturnValue>
 serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t page_object_number);
@@ -508,14 +524,10 @@ private:
     rvoe<int32_t> create_outlines();
     void create_structure_root_dict();
 
-    rvoe<CapyPDF_ImageId> add_image_object(uint32_t w,
-                                           uint32_t h,
-                                           uint32_t bits_per_component,
-                                           ImageColorspaceType colorspace,
+    rvoe<CapyPDF_ImageId> add_image_object(const ImageObjectMetadata &md,
                                            std::optional<int32_t> smask_id,
                                            const ImagePDFProperties &params,
-                                           std::span<std::byte> original_bytes,
-                                           CapyPDF_Compression compression);
+                                           std::span<std::byte> original_bytes);
 
     rvoe<NoReturnValue> generate_info_object();
     int32_t add_document_metadata_object();
