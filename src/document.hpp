@@ -368,12 +368,14 @@ struct ImageObjectMetadata {
     uint32_t alpha_depth = 0;
     ImageColorspaceType cs;
     CapyPDF_Compression compression;
+    const std::vector<double> *decode = nullptr; // To avoid making a copy.
 
-    void copy_common_from(const RasterImageMetadata &rmd) {
-        w = rmd.w;
-        h = rmd.h;
-        cs = rmd.cs;
-        compression = rmd.compression;
+    void copy_common_from(const RawPixelImage &rmd) {
+        w = rmd.md.w;
+        h = rmd.md.h;
+        cs = rmd.md.cs;
+        compression = rmd.md.compression;
+        decode = &rmd.decode;
     }
 };
 

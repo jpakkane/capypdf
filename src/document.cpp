@@ -1159,8 +1159,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_mask_image(RawPixelImage image,
         std::abort();
     }
     ImageObjectMetadata md;
-    md.copy_common_from(image.md);
+    md.copy_common_from(image);
     md.depth = image.md.pixel_depth;
+    // FIXME, add a way to set alpha separately.
+    md.decode = nullptr;
     return add_image_object(md, std::optional<int32_t>{}, params, image.pixels);
 }
 
@@ -1179,22 +1181,24 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image(RawPixelImage image,
     }
     if(!image.alpha.empty()) {
         ImageObjectMetadata md;
-        md.copy_common_from(image.md);
+        md.copy_common_from(image);
         md.depth = image.md.alpha_depth;
         md.cs = CAPY_IMAGE_CS_GRAY;
+        // FIXME, add a way to set alpha separately.
+        md.decode = nullptr;
         ERC(imobj, add_image_object(md, {}, params, image.alpha));
         smask_id = get(imobj).obj;
     }
     if(!image.icc_profile.empty()) {
         ERC(icc_id, add_icc_profile(image.icc_profile, num_channels_for(image.md.cs)));
         ImageObjectMetadata md;
-        md.copy_common_from(image.md);
+        md.copy_common_from(image);
         md.depth = image.md.pixel_depth;
         md.cs = icc_id;
         return add_image_object(md, smask_id, params, image.pixels);
     } else {
         ImageObjectMetadata md;
-        md.copy_common_from(image.md);
+        md.copy_common_from(image);
         md.depth = image.md.pixel_depth;
 
         return add_image_object(md, smask_id, params, image.pixels);
@@ -1229,6 +1233,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::add_image_object(const ImageObjectMetadata &m
     fmt.add_token_pair("/Length", compressed_bytes.size());
     fmt.add_token_pair("/Filter", "/FlateDecode");
 
+    if(md.decode && !md.decode->empty()) {
+        fmt.add_token("/Decode");
+        fmt.add_array(*md.decode);
+    }
     // Auto means don't specify the interpolation
     if(params.interp == CAPY_INTERPOLATION_PIXELATED) {
         fmt.add_token_pair("/Interpolate", "false");
@@ -1278,10 +1286,10 @@ rvoe<CapyPDF_ImageId> PdfDocument::embed_jpg(jpg_image jpg, const ImagePDFProper
     fmt.add_token_pair("/Length", jpg.file_contents.size());
     fmt.add_token_pair("/Filter", "/DCTDecode");
 
-    if(!jpg.domain.empty()) {
+    if(!jpg.decode.empty()) {
         assert(jpg.cs == CAPY_DEVICE_CS_CMYK);
         fmt.add_token("/Decode");
-        fmt.add_array(jpg.domain);
+        fmt.add_array(jpg.decode);
     }
     if(jpg.icc_profile.empty()) {
         fmt.add_token_pair("/ColorSpace", colorspace_names.at(jpg.cs));

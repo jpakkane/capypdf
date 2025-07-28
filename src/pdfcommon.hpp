@@ -575,6 +575,7 @@ struct RawPixelImage {
     std::vector<std::byte> pixels;
     std::vector<std::byte> alpha;
     std::vector<std::byte> icc_profile;
+    std::vector<double> decode;
 };
 
 struct jpg_image {
@@ -582,7 +583,7 @@ struct jpg_image {
     uint32_t h;
     uint32_t depth;
     CapyPDF_Device_Colorspace cs;
-    std::vector<double> domain;
+    std::vector<double> decode;
     std::vector<std::byte> file_contents;
     std::vector<std::byte> icc_profile;
 };
