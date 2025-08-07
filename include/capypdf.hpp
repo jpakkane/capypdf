@@ -347,15 +347,18 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_kerning(*this, kern));
     }
 
-    void append_string(const char *u8str, int32_t slen) {
+    void append_string(const char *u8str, int32_t slen = -1) {
         CAPY_CPP_CHECK(capy_text_sequence_append_string(*this, u8str, slen));
     }
     template<ByteSequence T> void append_string(const T &text) {
         append_string(text.data(), text.size());
     }
 
-    void append_actualtext_start(const char *actual_text) {
-        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text, -1));
+    void append_actualtext_start(const char *actual_text, int32_t text_size = -1) {
+        CAPY_CPP_CHECK(capy_text_sequence_append_actualtext_start(*this, actual_text, text_size));
+    }
+    template<ByteSequence T> void append_actualtext_start(const T &text) {
+        append_actualtext_start(text.data(), text.size());
     }
 
     void append_actualtext_end() {
@@ -366,9 +369,12 @@ public:
         CAPY_CPP_CHECK(capy_text_sequence_append_raw_glyph(*this, glyph_id, codepoint));
     }
 
-    void append_ligature_glyph(uint32_t glyph_id, const char *original_text) {
+    void append_ligature_glyph(uint32_t glyph_id, const char *original_text, int32_t textlen = -1) {
         CAPY_CPP_CHECK(
-            capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text, -1));
+            capy_text_sequence_append_ligature_glyph(*this, glyph_id, original_text, textlen));
+    }
+    template<ByteSequence T> void append_ligature_glyph(uint32_t glyph_id, const T &text) {
+        append_ligature_glyph(glyph_id, text.data(), text.size());
     }
 };
 
