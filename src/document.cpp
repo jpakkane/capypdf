@@ -922,7 +922,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
             nextloc++;
             if(nextloc != siblings.end()) {
                 fmt.add_token("/Next");
-                fmt.add_token(first_obj_num + *nextloc);
+                fmt.add_object_ref(first_obj_num + *nextloc);
             }
         }
         auto childs = outlines.children.find(cur_id);
