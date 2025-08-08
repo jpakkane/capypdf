@@ -85,10 +85,15 @@ struct CapyCTypeDeleter {
             rc = capy_bdc_tags_destroy(cobj);
         } else if constexpr(std::is_same_v<T, CapyPDF_FontProperties>) {
             rc = capy_font_properties_destroy(cobj);
+        } else if constexpr(std::is_same_v<T, CapyPDF_Outline>) {
+            rc = capy_outline_destroy(cobj);
         } else {
             static_assert(std::is_same_v<T, CapyPDF_DocumentProperties>, "Unknown C object type.");
         }
-        (void)rc; // Not much we can do about this because destructors should not fail or throw.
+        if(rc != 0) {
+            // Not much else we can do about this because destructors should not fail or throw.
+            fprintf(stderr, "CapyPDF failure on destruction: %s\n", capy_error_message(rc));
+        }
     }
 };
 
@@ -103,6 +108,7 @@ protected:
 class Destination : public CapyC<CapyPDF_Destination> {
 public:
     friend class Annotation;
+    friend class Outline;
 
     Destination() {
         CapyPDF_Destination *dest;
@@ -853,6 +859,25 @@ public:
     }
 };
 
+class Outline : public CapyC<CapyPDF_Outline> {
+public:
+    friend class Generator;
+
+    Outline() {
+        CapyPDF_Outline *ol;
+        CAPY_CPP_CHECK(capy_outline_new(&ol));
+        _d.reset(ol);
+    }
+
+    void set_title(const char *u8txt, int32_t u8txt_size = -1) {
+        CAPY_CPP_CHECK(capy_outline_set_title(*this, u8txt, u8txt_size));
+    }
+
+    template<ByteSequence T> void set_title(const T &buf) { set_title(buf.data(), buf.size()); }
+
+    void set_destination(Destination &d) { CAPY_CPP_CHECK(capy_outline_set_destination(*this, d)); }
+};
+
 class Generator : public CapyC<CapyPDF_Generator> {
 public:
     Generator(const char *filename, const DocumentProperties &md) {
@@ -1033,6 +1058,12 @@ public:
         CapyPDF_SoftMaskId smid;
         CAPY_CPP_CHECK(capy_generator_add_soft_mask(*this, sm, &smid));
         return smid;
+    }
+
+    CapyPDF_OutlineId add_outline(Outline &ol) {
+        CapyPDF_OutlineId id;
+        CAPY_CPP_CHECK(capy_generator_add_outline(*this, ol, &id));
+        return id;
     }
 
     double text_width(const char *u8txt, int32_t strsize, CapyPDF_FontId font, double pointsize) {
