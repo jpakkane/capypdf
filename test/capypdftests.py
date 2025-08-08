@@ -74,7 +74,6 @@ def validate_image(basename, w, h):
             utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
             pdfname.unlink()
             pngname.unlink()
-                
             return value
         return wrapper_validate
     return decorator_validate
@@ -1019,7 +1018,7 @@ class TestPDFCreation(unittest.TestCase):
                     ctx.cmd_gs(gsid)
                     ctx.cmd_Do(maskid)
 
-    @cleanup('outlines')
+    @cleanup('outlines.pdf')
     def test_outline(self, ofilename):
         w = 200
         h = 200
@@ -1194,7 +1193,7 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.annotate(embid)
                 ctx.render_text("<- This is a file attachment annotation", fid, 11, 50, 50)
 
-    @cleanup('python_annotate_link')
+    @cleanup('python_annotate_link.pdf')
     def test_annotate_link(self, ofilename, w=200, h=200):
         pprops = capypdf.PageProperties()
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
