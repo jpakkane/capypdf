@@ -760,6 +760,11 @@ private:
     explicit DrawContext(CapyPDF_DrawContext *dc) { _d.reset(dc); }
 };
 
+struct ImageSize {
+    uint32_t w = 0;
+    uint32_t h = 0;
+};
+
 class RasterImage : public CapyC<CapyPDF_RasterImage> {
     friend class Generator;
     friend class RasterImageBuilder;
@@ -767,10 +772,10 @@ class RasterImage : public CapyC<CapyPDF_RasterImage> {
 public:
     RasterImage() = delete;
 
-    std::pair<uint32_t, uint32_t> get_size() {
-        uint32_t h, w = 0;
-        CAPY_CPP_CHECK(capy_raster_image_get_size(*this, &w, &h));
-        return {h, w};
+    ImageSize get_size() {
+        ImageSize isize;
+        CAPY_CPP_CHECK(capy_raster_image_get_size(*this, &isize.w, &isize.h));
+        return isize;
     }
 
     CapyPDF_Image_Colorspace get_colorspace() {
