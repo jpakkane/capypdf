@@ -804,7 +804,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     }
     if(outline_object) {
         fmt.add_token("/Outlines");
-        fmt.add_token(*outline_object);
+        fmt.add_object_ref(*outline_object);
     }
     if(names_object) {
         fmt.add_token("/Names");
