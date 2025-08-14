@@ -10,6 +10,7 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <cmath>
 
 #if defined(__cpp_exceptions)
 #define CAPY_ERROR_HAPPENED(error_string) throw PdfException(error_string)
@@ -672,9 +673,14 @@ public:
     void cmd_c(double x1, double y1, double x2, double y2, double x3, double y3) {
         CAPY_CPP_CHECK(capy_dc_cmd_c(*this, x1, y1, x2, y2, x3, y3));
     }
+
     void cmd_cm(double a, double b, double c, double d, double e, double f) {
         CAPY_CPP_CHECK(capy_dc_cmd_cm(*this, a, b, c, d, e, f));
     }
+    void translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
+    void scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
+    void rotate(double angle) { cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0); }
+
     void cmd_Do(CapyPDF_TransparencyGroupId tgid) {
         CAPY_CPP_CHECK(capy_dc_cmd_Do_trgroup(*this, tgid));
     }
