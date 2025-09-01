@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
+#include "bitfiddling.hpp"
 #include <pdfwriter.hpp>
 #include <utils.hpp>
 #include <objectformatter.hpp>
@@ -230,9 +231,18 @@ rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
     ERCV(write_header());
     ERCV(doc.create_catalog());
     ERC(object_offsets, write_objects());
-    const int64_t xref_offset = ftell(ofile);
-    ERCV(write_cross_reference_table(object_offsets));
-    ERCV(write_trailer(xref_offset));
+    compressed_object_number = object_offsets.size();
+    if(compress_objects) {
+        const int64_t objstm_offset = ftell(ofile);
+        ERCV(write_main_objstm(object_offsets));
+        const int64_t xref_offset = ftell(ofile);
+        ERCV(write_cross_reference_stream(object_offsets, objstm_offset));
+        ERCV(write_newstyle_trailer(xref_offset));
+    } else {
+        const int64_t xref_offset = ftell(ofile);
+        ERCV(write_cross_reference_table(object_offsets));
+        ERCV(write_oldstyle_trailer(xref_offset));
+    }
     RETOK;
 }
 
@@ -252,7 +262,11 @@ rvoe<NoReturnValue> PdfWriter::write_header() {
 rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
     size_t i = 0;
     auto visitor = overloaded{
-        [](DummyIndexZero &) -> rvoe<NoReturnValue> { RETOK; },
+        [this](DummyIndexZero &) -> rvoe<NoReturnValue> {
+            assert(object_offsets.empty());
+            object_offsets.emplace_back(false, 0);
+            RETOK;
+        },
 
         [&](const FullPDFObject &pobj) -> rvoe<NoReturnValue> {
             ERCV(write_finished_object(i, pobj.dictionary, pobj.stream.span()));
@@ -332,9 +346,7 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
         },
     };
 
-    std::vector<ObjectOffset> object_offsets;
     for(; i < doc.document_objects.size(); ++i) {
-        object_offsets.emplace_back(false, ftell(ofile));
         ERCV(std::visit(visitor, doc.document_objects.at(i)));
     }
     return object_offsets;
@@ -362,7 +374,119 @@ PdfWriter::write_cross_reference_table(const std::vector<ObjectOffset> &object_o
     return write_bytes(buf);
 }
 
-rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
+rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset> &object_offsets) {
+    std::string first_line;
+    auto app = std::back_inserter(first_line);
+    size_t num_compressed_objects = 0;
+    for(size_t i = 0; i < object_offsets.size(); ++i) {
+        const auto &off = object_offsets.at(i);
+        if(off.store_compressed) {
+            std::format_to(app, "{} {} ", i, off.offset);
+            ++num_compressed_objects;
+        }
+    }
+    first_line += '\n';
+    ObjectFormatter objstm;
+    objstm.begin_dict();
+    objstm.add_token_pair("/Type", "/ObjStm");
+    objstm.add_token_pair("/N", num_compressed_objects);
+    objstm.add_token_pair("/First", first_line.size());
+    objstm.add_token_pair("/Length", first_line.size() + compressed_object_stream.size());
+    objstm.end_dict();
+    auto plain_object = objstm.steal();
+
+    // This object must be written out by hand rather than the write_object family of functions.
+    // Those have already been written out, this thing just comes on top of that.
+    std::string buffer = std::format("{} 0 obj\n", compressed_object_number);
+    ERCV(write_bytes(buffer));
+    ERCV(write_bytes(plain_object));
+    buffer = "stream\n";
+    ERCV(write_bytes(buffer));
+    ERCV(write_bytes(first_line));
+    ERCV(write_bytes(compressed_object_stream));
+    buffer = "\nendstream\nendobj\n";
+    return write_bytes(buffer);
+}
+
+rvoe<NoReturnValue>
+PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_offsets,
+                                        uint64_t objstm_offset) {
+    const int32_t info = 1; // Info object is the first printed.
+    ObjectFormatter fmt;
+    size_t total_number_of_objects =
+        object_offsets.size() + 2; // One for objstm, one fore this object.
+    const size_t entry_size = 1 + 8 + 4;
+    const int32_t root = total_number_of_objects - 3;
+    const size_t uncompressed_length = total_number_of_objects * entry_size;
+    const auto this_object_offset = ftell(ofile);
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/XRef");
+    /*
+    fmt.add_token("/Index");
+    fmt.begin_array();
+    fmt.add_token("0");
+    fmt.add_token(total_number_of_objects);
+    fmt.end_array();
+*/
+    fmt.add_token("/W");
+    fmt.begin_array();
+    fmt.add_token(1);
+    fmt.add_token(8);
+    fmt.add_token(4);
+    fmt.end_array();
+    fmt.add_token_pair("/Size", total_number_of_objects);
+    fmt.add_token_pair("/Length", uncompressed_length);
+    fmt.add_token("/Root");
+    fmt.add_object_ref(root);
+    if(add_info_key_to_trailer()) {
+        fmt.add_token("/Info");
+        fmt.add_object_ref(info);
+    }
+    fmt.end_dict();
+
+    bool first = true;
+    std::vector<std::byte> stream;
+    int64_t compressed_object_index = 0;
+    for(const auto &i : object_offsets) {
+        if(first) {
+            swap_and_append_bytes(stream, (uint8_t)0);
+            swap_and_append_bytes(stream, (uint64_t)0);
+            swap_and_append_bytes(stream, (uint32_t)-1);
+            first = false;
+        } else {
+            if(i.store_compressed) {
+                swap_and_append_bytes(stream, (uint8_t)2);
+                swap_and_append_bytes(stream, (uint64_t)compressed_object_number);
+                swap_and_append_bytes(stream, (uint32_t)compressed_object_index);
+                ++compressed_object_index;
+            } else {
+                swap_and_append_bytes(stream, (uint8_t)1);
+                swap_and_append_bytes(stream, (uint64_t)i.offset);
+                swap_and_append_bytes(stream, (uint32_t)0);
+            }
+        }
+    }
+    // Now the bookkeeping objects.
+    swap_and_append_bytes(stream, (uint8_t)1);
+    swap_and_append_bytes(stream, objstm_offset);
+    swap_and_append_bytes(stream, (uint32_t)0);
+    swap_and_append_bytes(stream, (uint8_t)1);
+    swap_and_append_bytes(stream, this_object_offset);
+    swap_and_append_bytes(stream, (uint32_t)0);
+
+    // assert(stream.size() == total_number_of_objects * entry_size);
+    std::string buf = std::format("{} 0 obj\n", total_number_of_objects - 1);
+    ERCV(write_bytes(buf))
+    buf = fmt.steal();
+    ERCV(write_bytes(buf));
+    buf = "stream\n";
+    ERCV(write_bytes(buf));
+    ERCV(write_bytes(stream));
+    buf = "\nendstream\nendobj\n";
+    return write_bytes(buf);
+}
+
+rvoe<NoReturnValue> PdfWriter::write_oldstyle_trailer(int64_t xref_offset) {
     const int32_t info = 1;                               // Info object is the first printed.
     const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
@@ -392,10 +516,24 @@ rvoe<NoReturnValue> PdfWriter::write_trailer(int64_t xref_offset) {
     return write_bytes(ending);
 }
 
+rvoe<NoReturnValue> PdfWriter::write_newstyle_trailer(int64_t xref_offset) {
+    auto ending = std::format(R"(startxref
+{}
+%%EOF
+)",
+                              xref_offset);
+    return write_bytes(ending);
+}
+
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
                                                      std::span<std::byte> stream_data) {
+    // if(compress_objects && !stream_data.empty()) {
+    //     return write_finished_object_to_objstm(object_number, dict_data);
+    // }
     std::string buf;
+    object_offsets.emplace_back(false, ftell(ofile));
+
     auto appender = std::back_inserter(buf);
     std::format_to(appender, "{} 0 obj\n", object_number);
     buf += dict_data;
@@ -414,6 +552,14 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
     }
     buf += "endobj\n";
     return write_bytes(buf);
+}
+
+rvoe<NoReturnValue> PdfWriter::write_finished_object_to_objstm(int32_t object_number,
+                                                               std::string_view dict_data) {
+    std::string buf;
+    object_offsets.emplace_back(true, compressed_object_stream.size());
+    compressed_object_stream += dict_data;
+    RETOK;
 }
 
 rvoe<NoReturnValue>
