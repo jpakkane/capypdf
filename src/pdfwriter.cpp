@@ -249,7 +249,7 @@ rvoe<NoReturnValue> PdfWriter::write_header() {
     return write_bytes(header, strlen(header));
 }
 
-rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
+rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
     size_t i = 0;
     auto visitor = overloaded{
         [](DummyIndexZero &) -> rvoe<NoReturnValue> { RETOK; },
@@ -332,16 +332,16 @@ rvoe<std::vector<uint64_t>> PdfWriter::write_objects() {
         },
     };
 
-    std::vector<uint64_t> object_offsets;
+    std::vector<ObjectOffset> object_offsets;
     for(; i < doc.document_objects.size(); ++i) {
-        object_offsets.push_back(ftell(ofile));
+        object_offsets.emplace_back(false, ftell(ofile));
         ERCV(std::visit(visitor, doc.document_objects.at(i)));
     }
     return object_offsets;
 }
 
 rvoe<NoReturnValue>
-PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offsets) {
+PdfWriter::write_cross_reference_table(const std::vector<ObjectOffset> &object_offsets) {
     std::string buf;
     auto app = std::back_inserter(buf);
     std::format_to(app,
@@ -355,7 +355,8 @@ PdfWriter::write_cross_reference_table(const std::vector<uint64_t> &object_offse
             buf += "0000000000 65535 f \n"; // The end of line whitespace is significant.
             first = false;
         } else {
-            std::format_to(app, "{:010} 00000 n \n", i);
+            assert(!i.store_compressed);
+            std::format_to(app, "{:010} 00000 n \n", i.offset);
         }
     }
     return write_bytes(buf);

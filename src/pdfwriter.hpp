@@ -7,6 +7,11 @@
 
 namespace capypdf::internal {
 
+struct ObjectOffset {
+    bool store_compressed = false;
+    uint64_t offset; // Either bytes or or the object that contains this compresed object.
+};
+
 class PdfWriter {
 public:
     explicit PdfWriter(PdfDocument &doc);
@@ -22,10 +27,11 @@ private:
         return write_bytes(view.data(), view.size());
     }
 
-    rvoe<std::vector<uint64_t>> write_objects();
+    rvoe<std::vector<ObjectOffset>> write_objects();
 
     rvoe<NoReturnValue> write_header();
-    rvoe<NoReturnValue> write_cross_reference_table(const std::vector<uint64_t> &object_offsets);
+    rvoe<NoReturnValue>
+    write_cross_reference_table(const std::vector<ObjectOffset> &object_offsets);
     rvoe<NoReturnValue> write_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,
                                               std::string_view dict_data,
