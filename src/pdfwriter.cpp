@@ -24,7 +24,11 @@ namespace capypdf::internal {
 
 namespace {
 
-const std::array<const char *, 2> PDF_header_strings = {"%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
+const std::array<const char *, 6> PDF_header_strings = {"%PDF-1.3\n%\xe5\xf6\xc4\xd6\n",
+                                                        "%PDF-1.4\n%\xe5\xf6\xc4\xd6\n",
+                                                        "%PDF-1.5\n%\xe5\xf6\xc4\xd6\n",
+                                                        "%PDF-1.6\n%\xe5\xf6\xc4\xd6\n",
+                                                        "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
                                                         "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
 
 std::string fontname2pdfname(std::string_view original) {
@@ -156,7 +160,9 @@ void serialize_time(ObjectFormatter &fmt, const char *key, double timepoint) {
 
 } // namespace
 
-PdfWriter::PdfWriter(PdfDocument &doc) : doc(doc) {}
+PdfWriter::PdfWriter(PdfDocument &doc) : doc(doc) {
+    compress_objects = doc.docprops.version() >= PdfVersion::v15;
+}
 
 rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilename) {
     if(doc.pages.size() == 0) {
@@ -387,11 +393,15 @@ rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset>
     }
     first_line += '\n';
     ObjectFormatter objstm;
+    auto raw_stream = first_line;
+    raw_stream += objstm_stream;
+    ERC(compressed_stream, flate_compress(raw_stream));
     objstm.begin_dict();
     objstm.add_token_pair("/Type", "/ObjStm");
     objstm.add_token_pair("/N", num_compressed_objects);
     objstm.add_token_pair("/First", first_line.size());
-    objstm.add_token_pair("/Length", first_line.size() + compressed_object_stream.size());
+    objstm.add_token_pair("/Length", compressed_stream.size());
+    objstm.add_token_pair("/Filter", "/FlateDecode");
     objstm.end_dict();
     auto plain_object = objstm.steal();
 
@@ -402,8 +412,7 @@ rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset>
     ERCV(write_bytes(plain_object));
     buffer = "stream\n";
     ERCV(write_bytes(buffer));
-    ERCV(write_bytes(first_line));
-    ERCV(write_bytes(compressed_object_stream));
+    ERCV(write_bytes(compressed_stream));
     buffer = "\nendstream\nendobj\n";
     return write_bytes(buffer);
 }
@@ -417,7 +426,6 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_
         object_offsets.size() + 2; // One for objstm, one fore this object.
     const size_t entry_size = 1 + 8 + 4;
     const int32_t root = total_number_of_objects - 3;
-    const size_t uncompressed_length = total_number_of_objects * entry_size;
     const auto this_object_offset = ftell(ofile);
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/XRef");
@@ -435,14 +443,12 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_
     fmt.add_token(4);
     fmt.end_array();
     fmt.add_token_pair("/Size", total_number_of_objects);
-    fmt.add_token_pair("/Length", uncompressed_length);
     fmt.add_token("/Root");
     fmt.add_object_ref(root);
     if(add_info_key_to_trailer()) {
         fmt.add_token("/Info");
         fmt.add_object_ref(info);
     }
-    fmt.end_dict();
 
     bool first = true;
     std::vector<std::byte> stream;
@@ -474,14 +480,20 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_
     swap_and_append_bytes(stream, this_object_offset);
     swap_and_append_bytes(stream, (uint32_t)0);
 
-    // assert(stream.size() == total_number_of_objects * entry_size);
+    ERC(compressed_stream, flate_compress(stream));
+    fmt.add_token_pair("/Filter", "/FlateDecode");
+    fmt.add_token_pair("/Length", compressed_stream.size());
+
+    fmt.end_dict();
+
+    assert(stream.size() == total_number_of_objects * entry_size);
     std::string buf = std::format("{} 0 obj\n", total_number_of_objects - 1);
     ERCV(write_bytes(buf))
     buf = fmt.steal();
     ERCV(write_bytes(buf));
     buf = "stream\n";
     ERCV(write_bytes(buf));
-    ERCV(write_bytes(stream));
+    ERCV(write_bytes(compressed_stream));
     buf = "\nendstream\nendobj\n";
     return write_bytes(buf);
 }
@@ -528,9 +540,9 @@ rvoe<NoReturnValue> PdfWriter::write_newstyle_trailer(int64_t xref_offset) {
 rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
                                                      std::span<std::byte> stream_data) {
-    // if(compress_objects && !stream_data.empty()) {
-    //     return write_finished_object_to_objstm(object_number, dict_data);
-    // }
+    if(compress_objects && stream_data.empty()) {
+        return write_finished_object_to_objstm(object_number, dict_data);
+    }
     std::string buf;
     object_offsets.emplace_back(false, ftell(ofile));
 
@@ -557,8 +569,8 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
 rvoe<NoReturnValue> PdfWriter::write_finished_object_to_objstm(int32_t object_number,
                                                                std::string_view dict_data) {
     std::string buf;
-    object_offsets.emplace_back(true, compressed_object_stream.size());
-    compressed_object_stream += dict_data;
+    object_offsets.emplace_back(true, objstm_stream.size());
+    objstm_stream += dict_data;
     RETOK;
 }
 

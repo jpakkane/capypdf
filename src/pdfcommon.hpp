@@ -59,7 +59,7 @@ namespace capypdf::internal {
 // If at all possible, never expose this in the public API
 // Instead have the user specify some higher level version,
 // like PDF/A or PDF/X and set this based on that.
-enum class PdfVersion : uint8_t { v17, v20 };
+enum class PdfVersion : uint8_t { v13, v14, v15, v16, v17, v20 };
 
 class ObjectFormatter;
 

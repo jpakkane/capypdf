@@ -298,6 +298,20 @@ PdfVersion DocumentProperties::version() const {
             return PdfVersion::v20;
         }
     }
+    if(auto *pdfx = std::get_if<CapyPDF_PDFX_Type>(&subtype)) {
+        switch(*pdfx) {
+        case CAPY_PDFX_3_2002:
+        case CAPY_PDFX_3_2003:
+            return PdfVersion::v13;
+        case CAPY_PDFX_4:
+        case CAPY_PDFX_4P:
+        case CAPY_PDFX_5G:
+        case CAPY_PDFX_5PG:
+            return PdfVersion::v16;
+        default:
+            return PdfVersion::v13; // Not really correct, but goodenough.
+        }
+    }
     return PdfVersion::v17;
 }
 

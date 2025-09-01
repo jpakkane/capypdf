@@ -67,9 +67,9 @@ private:
     bool add_info_key_to_trailer() const;
 
     PdfDocument &doc;
-    bool compress_objects = false;
+    bool compress_objects = true;
     uint32_t compressed_object_number = (uint32_t)-1;
-    std::string compressed_object_stream;
+    std::string objstm_stream;
     std::vector<ObjectOffset> object_offsets;
 
     // This is for convenience so that the file argument does not need to be passed around all the
