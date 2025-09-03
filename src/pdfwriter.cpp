@@ -426,7 +426,12 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_
         object_offsets.size() + 2; // One for objstm, one fore this object.
     const size_t entry_size = 1 + 8 + 4;
     const int32_t root = total_number_of_objects - 3;
-    const auto this_object_offset = ftell(ofile);
+    const uint64_t this_object_offset =
+#ifdef _MSC_VER
+        _ftelli64(ofile);
+#else
+        ftell(ofile);
+#endif
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/XRef");
     /*
