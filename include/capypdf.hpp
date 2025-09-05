@@ -11,6 +11,7 @@
 #include <optional>
 #include <stdexcept>
 #include <cmath>
+#include <cstdio>
 
 #if defined(__cpp_exceptions)
 #define CAPY_ERROR_HAPPENED(error_string) throw PdfException(error_string)
