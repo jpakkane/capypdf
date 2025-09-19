@@ -327,6 +327,30 @@ typedef enum {
     CAPY_SOFT_MASK_LUMINOSITY,
 } CapyPDF_Soft_Mask_Subtype;
 
+typedef enum {
+    CAPY_HT_FUNC_SIMPLEDOT,
+    CAPY_HT_FUNC_INVERTED_SIMPLEDOT,
+    CAPY_HT_FUNC_DOUBLEDOT,
+    CAPY_HT_FUNC_INVERTED_DOUBLEDOT,
+    CAPY_HT_FUNC_COSINEDOT,
+    CAPY_HT_FUNC_DOUBLE,
+    CAPY_HT_FUNC_INVERTED_DOUBLE,
+    CAPY_HT_FUNC_LINE,
+    CAPY_HT_FUNC_LINEX,
+    CAPY_HT_FUNC_LINEY,
+    CAPY_HT_FUNC_ROUND,
+    CAPY_HT_FUNC_ELLIPSE,
+    CAPY_HT_FUNC_ELLIPSEA,
+    CAPY_HT_FUNC_INVERTED_ELLIPSEA,
+    CAPY_HT_FUNC_ELLIPSEB,
+    CAPY_HT_FUNC_ELLIPSEC,
+    CAPY_HT_FUNC_INVERTED_ELLIPSEC,
+    CAPY_HT_FUNC_SQUARE,
+    CAPY_HT_FUNC_CROSS,
+    CAPY_HT_FUNC_RHOMBOID,
+    CAPY_HT_FUNC_DIAMOND,
+} CapyPDF_Halftone_Spot_Function;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
@@ -356,6 +380,7 @@ typedef struct _capyPDF_ShadingPattern CapyPDF_ShadingPattern;
 typedef struct _capyPDF_SoftMask CapyPDF_SoftMask;
 typedef struct _capyPDF_EmbeddedFile CapyPDF_EmbeddedFile;
 typedef struct _capyPDF_BDCTags CapyPDF_BDCTags;
+typedef struct _capyPDF_Halftone CapyPDF_Halftone;
 
 typedef int32_t CapyPDF_EC;
 
@@ -903,6 +928,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *s
                                                         CapyPDF_SoftMaskId smid) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_FL(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(CapyPDF_GraphicsState *state,
+                                                     CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *state,
@@ -1151,6 +1178,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_subfont(CapyPDF_FontPropertie
                                                            int32_t subfont) CAPYPDF_NOEXCEPT;
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_destroy(CapyPDF_FontProperties *fprop)
     CAPYPDF_NOEXCEPT;
+
+// Halftones
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_new(CapyPDF_Halftone **out_ptr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_default(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
+                                                  double frequency,
+                                                  double angle,
+                                                  CapyPDF_Halftone_Spot_Function htspot)
+    CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT;
 
 // Error
 

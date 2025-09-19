@@ -213,6 +213,30 @@ class PageMode(Enum):
     OC = 4
     Attachments = 5
 
+class HalftoneSpotFunction(Enum):
+    SimpleDot = 0
+    Inverted_SimpleDot = 1
+    DoubleDpt = 2
+    Inverted_DoubldDot = 3
+    CosineDot = 4
+    Double = 5
+    Inverted_Double = 6
+    Line = 7
+    LineX = 8
+    LineY = 9
+    Round = 10
+    Ellipse = 11
+    EllipseA = 12
+    Inverted_EllipseA = 13
+    EllipseB = 14
+    EllipseC = 15
+    Inverted_EllipseC = 16
+    Square = 17
+    Cross = 18
+    Rhomboid = 19
+    Diamond = 20
+
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -448,6 +472,7 @@ cfunc_types = (
 ('capy_graphics_state_set_op', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OP', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_set_OPM', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_HT', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_graphics_state_set_SMask', [ctypes.c_void_p, SoftMaskId]),
 ('capy_graphics_state_set_TK', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
@@ -566,6 +591,11 @@ cfunc_types = (
 ('capy_font_properties_new', [ctypes.c_void_p]),
 ('capy_font_properties_set_subfont', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_font_properties_destroy', [ctypes.c_void_p]),
+
+('capy_halftone_new', [ctypes.c_void_p]),
+('capy_halftone_set_default', [ctypes.c_void_p]),
+('capy_halftone_set_type1', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, enum_type]),
+('capy_halftone_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1516,6 +1546,12 @@ class GraphicsState:
     def set_OPM(self, value):
         check_error(libfile.capy_graphics_state_set_OPM(self, value))
 
+    def set_HT(self, ht):
+        if not isinstance(ht, Halftone):
+            raise CapyPDFException('Argument must be a halftone object.')
+        check_error(libfile.capy_graphics_state_set_HT(self, ht))
+
+
     def set_SMask(self, value):
         if not isinstance(value, SoftMaskId):
             raise CapyPDFException('Argument must be a soft mask id.')
@@ -1867,3 +1903,21 @@ class FontProperties:
 
     def __del__(self):
         check_error(libfile.capy_font_properties_destroy(self))
+
+
+class Halftone:
+    def __init__(self):
+        o = ctypes.c_void_p()
+        check_error(libfile.capy_halftone_new(ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def set_default(self, subfont):
+        check_error(libfile.capy_halftone_set_default(self, subfont))
+
+    def set_type1(self, frequency, angle, spotfunction):
+        if not isinstance(spotfunction, HalftoneSpotFunction):
+            raise CapyPDFException('Spot function argument must be a spot function enum.')
+        check_error(libfile.capy_halftone_set_type1(self, frequency, angle, spotfunction.value))
+
+    def __del__(self):
+        check_error(libfile.capy_halftone_destroy(self))

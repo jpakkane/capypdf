@@ -1951,6 +1951,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *stat
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(CapyPDF_GraphicsState *state,
+                                                     CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *halftone = reinterpret_cast<Halftone *>(ht);
+    s->HT = std::move(*halftone);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2864,6 +2874,40 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_destroy(CapyPDF_FontProperties *f
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete reinterpret_cast<FontProperties *>(fprop);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_new(CapyPDF_Halftone **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = reinterpret_cast<CapyPDF_Halftone *>(new Halftone());
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_default(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *halftone = reinterpret_cast<Halftone *>(ht);
+    *halftone = HalftoneDefault{};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
+                                                  double frequency,
+                                                  double angle,
+                                                  CapyPDF_Halftone_Spot_Function htspot)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *halftone = reinterpret_cast<Halftone *>(ht);
+    *halftone = HalftoneType1{frequency, angle, htspot};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete reinterpret_cast<Halftone *>(ht);
     RETNOERR;
     API_BOUNDARY_END;
 }

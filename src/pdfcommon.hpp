@@ -296,6 +296,16 @@ struct PageId {
     int32_t id;
 };
 
+struct HalftoneDefault {};
+
+struct HalftoneType1 {
+    double frequency;
+    double angle;
+    CapyPDF_Halftone_Spot_Function spot;
+};
+
+typedef std::variant<HalftoneDefault, HalftoneType1> Halftone;
+
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
     std::optional<double> LW;
@@ -314,7 +324,7 @@ struct GraphicsState {
     // std::optional<std::string> UCR2;
     // std::optional<std::string> TR;
     // std::optional<std::string> TR2;
-    // std::optional<str::string> HT;
+    std::optional<Halftone> HT;
     std::optional<double> FL;
     std::optional<double> SM;
     std::optional<bool> SA;

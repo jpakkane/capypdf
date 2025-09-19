@@ -34,6 +34,30 @@ const std::array<const char, 5> page_label_types{
     'a', // Letter Lower
 };
 
+const std::array<const char *, 21> spot_function_names{
+    "/SimpleDot",
+    "/Inverted_SimpleDot",
+    "/DoubleDot",
+    "/Inverted_DoubleDot",
+    "/CosineDot",
+    "/Double",
+    "/Inverted_Double",
+    "/Line",
+    "/LineX",
+    "/LineY",
+    "/Round",
+    "/Ellipse",
+    "/EllipseA",
+    "/Inverted_EllipseA",
+    "/EllipseB",
+    "/EllipseC",
+    "/Inverted_EllipseC",
+    "/Square",
+    "/Cross",
+    "/Rhomboid",
+    "/Diamond",
+};
+
 namespace {
 
 constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreSzNTczkc9d"?>
@@ -1371,6 +1395,23 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     }
     if(state.OPM) {
         fmt.add_token_pair("/OPM", *state.OPM);
+    }
+    if(state.HT) {
+        const auto &halftone = state.HT.value();
+        if(std::holds_alternative<HalftoneDefault>(halftone)) {
+            fmt.add_token_pair("/HT", "/Default");
+        } else if(const auto *t1 = std::get_if<HalftoneType1>(&halftone)) {
+            fmt.add_token("/HT");
+            fmt.begin_dict();
+            fmt.add_token_pair("/Type", "Halftone");
+            fmt.add_token_pair("/HalftoneType", 1);
+            fmt.add_token_pair("/Frequency", t1->frequency);
+            fmt.add_token_pair("/Angle", t1->angle);
+            fmt.add_token_pair("/SpotFunction", spot_function_names.at((int)t1->spot));
+            fmt.end_dict();
+        } else {
+            std::abort();
+        }
     }
     if(state.FL) {
         fmt.add_token_pair("/FL", *state.FL);
