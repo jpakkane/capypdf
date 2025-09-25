@@ -1607,28 +1607,28 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.cmd_re(20, 20, 160, 160)
                 ctx.cmd_B()
 
-# Ghostscript does not render this in a "halftone-y" way.
-# Maybe due to a bug, maybe it just ignores it (which is permitted).
-#    @validate_image('python_halftone', 200, 200)
-#    def test_halftone(self, ofilename, w, h):
-#        pprops = capypdf.PageProperties()
-#        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
-#        dprops = capypdf.DocumentProperties()
-#        dprops.set_default_page_properties(pprops)
-#        with capypdf.Generator(ofilename, dprops) as gen:
-#            gs1 = capypdf.GraphicsState()
-#            ht1 = capypdf.Halftone()
-#            ht1.set_type1(50, 45, capypdf.HalftoneSpotFunction.Line)
-#            gs1.set_HT(ht1)
-#            gs1id = gen.add_graphics_state(gs1)
-#            params = capypdf.ImagePdfProperties()
-#            gray_img_ri = gen.load_image(image_dir / 'gray_alpha.png')
-#            gray_img = gen.add_image(gray_img_ri, params)
-#            with gen.page_draw_context() as ctx:
-#                ctx.cmd_gs(gs1id)
-#                ctx.translate(10, 10)
-#                ctx.scale(80, 80)
-#                ctx.cmd_Do(gray_img);
+    # Ghostscript does not render this in a "halftone-y" way.
+    # Maybe due to a bug, maybe it just ignores it (which is permitted).
+    @validate_image('python_halftone', 200, 200)
+    def test_halftone(self, ofilename, w, h):
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops = capypdf.DocumentProperties()
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            gs1 = capypdf.GraphicsState()
+            ht1 = capypdf.Halftone()
+            ht1.set_type1(50, 45, capypdf.HalftoneSpotFunction.Line)
+            gs1.set_HT(ht1)
+            gs1id = gen.add_graphics_state(gs1)
+            params = capypdf.ImagePdfProperties()
+            gray_img_ri = gen.load_image(image_dir / 'gray_alpha.png')
+            gray_img = gen.add_image(gray_img_ri, params)
+            with gen.page_draw_context() as ctx:
+                ctx.cmd_gs(gs1id)
+                ctx.translate(10, 10)
+                ctx.scale(80, 80)
+                ctx.cmd_Do(gray_img);
 
 
 

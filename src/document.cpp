@@ -1403,7 +1403,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
         } else if(const auto *t1 = std::get_if<HalftoneType1>(&halftone)) {
             fmt.add_token("/HT");
             fmt.begin_dict();
-            fmt.add_token_pair("/Type", "Halftone");
+            fmt.add_token_pair("/Type", "/Halftone");
             fmt.add_token_pair("/HalftoneType", 1);
             fmt.add_token_pair("/Frequency", t1->frequency);
             fmt.add_token_pair("/Angle", t1->angle);
