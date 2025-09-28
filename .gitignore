@@ -12,3 +12,5 @@
 *.user
 *.user.*
 __pycache__
+subprojects/.wraplock
+

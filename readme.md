@@ -10,13 +10,16 @@ directly.
 
 ## Features
 
-- Aims to support all functionality available in PDF (eventually)
+- Aims to support all functionality in PDF (eventually), including
+  accessibility features
 - Reads PNG, JPEG and TIFF files
 - Fully color managed using [LittleCMS 2](https://littlecms.com/)
 - Not implemented in C
 - Provides a plain C API for easy integration into scripting languages
 - Ships with a `ctypes` Python binding and a C++ wrapper header
 - Minimal dependencies
+- Creates PDF 2.0 unless chosen PDF type (X, A, etc) requires a
+  specific older version
 
 ## Things the library does not do
 
@@ -26,7 +29,6 @@ directly.
 - Supporting any other backend than PDF
 - Parsing any vector data files like SVG
 - Data conversions in general (apart from colorspaces)
-- Supporting PDF versions earlier than 1.7 (possibly PDF 2.0)
 
 ## API stability guarantees
 
