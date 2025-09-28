@@ -335,7 +335,7 @@ PdfVersion DocumentProperties::version() const {
             return PdfVersion::v13; // Not really correct, but goodenough.
         }
     }
-    return PdfVersion::v17;
+    return PdfVersion::v20;
 }
 
 bool DocumentProperties::use_rdf_metadata() const {
