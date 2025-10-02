@@ -1305,7 +1305,6 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
                                            CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    CHECK_NULL(dc);
     *out_ptr = reinterpret_cast<CapyPDF_Text *>(
         new capypdf::internal::PdfText(reinterpret_cast<PdfDrawContext *>(dc)));
     RETNOERR;
