@@ -479,19 +479,24 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_destroy(CapyPDF_DocumentPrope
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_title(CapyPDF_DocumentProperties *docprops,
                                                              const char *utf8_title,
-                                                             int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                             int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(CapyPDF_DocumentProperties *docprops,
                                                               const char *utf8_author,
-                                                              int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                              int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(CapyPDF_DocumentProperties *docprops,
                                                                const char *utf8_creator,
-                                                               int32_t strsize) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
-    CapyPDF_DocumentProperties *docprops, const char *lang, int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                               int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC
-capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops,
-                                            CapyPDF_Device_Colorspace cs,
-                                            const char *profile_path) CAPYPDF_NOEXCEPT;
+capy_document_properties_set_language(CapyPDF_DocumentProperties *docprops,
+                                      const char *lang,
+                                      int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_device_profile(
+    CapyPDF_DocumentProperties *docprops,
+    CapyPDF_Device_Colorspace cs,
+    const char *profile_path) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
     CapyPDF_DocumentProperties *docprops,
     CapyPDF_Device_Colorspace cs) CAPYPDF_DEFAULT_FUNCTION_PROPS;
@@ -533,7 +538,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_new(const char *filename,
                                              const CapyPDF_DocumentProperties *docprops,
-                                             CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT;
+                                             CapyPDF_Generator **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *g, CapyPDF_DrawContext *ctx)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *gen,
@@ -541,7 +547,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
                                                            CapyPDF_Page_Label_Number_Style *style,
                                                            const char *prefix,
                                                            int32_t strsize,
-                                                           uint32_t *start_num) CAPYPDF_NOEXCEPT;
+                                                           uint32_t *start_num) CAPYPDF_NOEXCEPT
+    CAPYPDF_NONNULL_ARGS_AT(1);
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen,
                                                           CapyPDF_DrawContext *ctx,
                                                           CapyPDF_FormXObjectId *out_ptr)
@@ -569,7 +576,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *g,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    const char *fname,
                                                    CapyPDF_FontProperties *fprop,
-                                                   CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT;
+                                                   CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT
+    CAPYPDF_NONNULL_ARGS_AT(1, 2, 4);
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(CapyPDF_Generator *gen,
                                                     const char *fname,
                                                     CapyPDF_RasterImage **out_ptr)
@@ -608,13 +616,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
                                                             const CapyPDF_StructureItemId *parent,
                                                             CapyPDF_StructItemExtraData *extra,
                                                             CapyPDF_StructureItemId *out_ptr)
-    CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC
-capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
-                                         const CapyPDF_RoleId role,
-                                         const CapyPDF_StructureItemId *parent,
-                                         CapyPDF_StructItemExtraData *extra,
-                                         CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT;
+    CAPYPDF_NOEXCEPT CAPYPDF_NONNULL_ARGS_AT(1, 5);
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_custom_structure_item(
+    CapyPDF_Generator *gen,
+    const CapyPDF_RoleId role,
+    const CapyPDF_StructureItemId *parent,
+    CapyPDF_StructItemExtraData *extra,
+    CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT CAPYPDF_NONNULL_ARGS_AT(1, 5);
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(CapyPDF_Generator *gen,
                                                           const char *fname,
@@ -642,7 +650,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
                                                         CapyPDF_Device_Colorspace cs,
                                                         CapyPDF_FunctionId fid,
                                                         CapyPDF_SeparationId *out_ptr)
-    CAPYPDF_NOEXCEPT;
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_write(CapyPDF_Generator *gen)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
@@ -686,11 +694,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Bstar(CapyPDF_DrawContext *ctx)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_builtin(CapyPDF_DrawContext *ctx,
                                                   CapyPDF_StructureItemId structid,
-                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT;
+                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT
+    CAPYPDF_NONNULL_ARGS_AT(1);
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_testing(CapyPDF_DrawContext *ctx,
                                                   const char *name,
                                                   int32_t namelen,
-                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT;
+                                                  const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT
+    CAPYPDF_NONNULL_ARGS_AT(1, 2);
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_ocg(
     CapyPDF_DrawContext *ctx, CapyPDF_OptionalContentGroupId ocgid) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BMC(CapyPDF_DrawContext *ctx,
@@ -802,11 +812,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx, Capy
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_page_transition(
     CapyPDF_DrawContext *ctx, CapyPDF_Transition *transition) CAPYPDF_DEFAULT_FUNCTION_PROPS;
-CAPYPDF_PUBLIC CapyPDF_EC
-capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
-                              const CapyPDF_OptionalContentGroupId *ocgarray,
-                              int32_t array_size,
-                              const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_add_simple_navigation(
+    CapyPDF_DrawContext *ctx,
+    const CapyPDF_OptionalContentGroupId *ocgarray,
+    int32_t array_size,
+    const CapyPDF_Transition *tr) CAPYPDF_NOEXCEPT CAPYPDF_NONNULL_ARGS_AT(1, 2);
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *ctx,
                                            CapyPDF_Text **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
@@ -879,7 +889,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text, const CapyPDF
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_BDC_builtin(
     CapyPDF_Text *text, CapyPDF_StructureItemId stid) CAPYPDF_DEFAULT_FUNCTION_PROPS;
-CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_EMC(CapyPDF_Text *text) CAPYPDF_NOEXCEPT;
+CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_EMC(CapyPDF_Text *text) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tc(CapyPDF_Text *text,
                                            double spacing) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Td(CapyPDF_Text *text,
@@ -1000,11 +1010,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *state,
-                                                      int32_t value) CAPYPDF_NOEXCEPT;
+                                                      int32_t value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
-    CAPYPDF_NOEXCEPT;
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Transparency Groups.
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(CapyPDF_Generator *gen,
@@ -1155,7 +1165,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
 // Annotations.
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
                                                    int32_t strsize,
-                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT;
+                                                   CapyPDF_Annotation **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
@@ -1182,15 +1193,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtr
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemExtraData *extra,
                                                             const char *ttext,
-                                                            int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                            int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructItemExtraData *extra,
                                                                const char *lang,
-                                                               int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                               int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItemExtraData *extra,
                                                               const char *alt,
-                                                              int32_t strsize) CAPYPDF_NOEXCEPT;
-CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
-    CapyPDF_StructItemExtraData *extra, const char *actual, int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                              int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_struct_item_extra_data_set_actual_text(CapyPDF_StructItemExtraData *extra,
+                                            const char *actual,
+                                            int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
@@ -1216,7 +1232,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_xyz(CapyPDF_Destination *des
                                                         int32_t physical_page_number,
                                                         double *x,
                                                         double *y,
-                                                        double *z) CAPYPDF_NOEXCEPT;
+                                                        double *z) CAPYPDF_NOEXCEPT
+    CAPYPDF_NONNULL_ARGS_AT(1);
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
@@ -1225,7 +1242,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
                                                  const char *title,
-                                                 int32_t strsize) CAPYPDF_NOEXCEPT;
+                                                 int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r, double g, double b)
@@ -1296,7 +1313,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
                                                   double frequency,
                                                   double angle,
                                                   CapyPDF_Halftone_Spot_Function htspot)
-    CAPYPDF_NOEXCEPT;
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

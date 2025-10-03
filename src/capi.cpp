@@ -9,11 +9,6 @@
 
 #define RETNOERR return conv_err(ErrorCode::NoError)
 
-#define CHECK_NULL(x)                                                                              \
-    if(x == nullptr) {                                                                             \
-        return conv_err(ErrorCode::ArgIsNull);                                                     \
-    }
-
 #define CHECK_BOOLEAN(b)                                                                           \
     if(b < 0 || b > 1) {                                                                           \
         return conv_err(ErrorCode::BadBoolean);                                                    \
@@ -341,9 +336,6 @@ CapyPDF_EC capy_generator_new(const char *filename,
                               const CapyPDF_DocumentProperties *docprops,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    CHECK_NULL(filename);
-    CHECK_NULL(docprops);
-    CHECK_NULL(out_ptr);
     auto metadata = reinterpret_cast<const DocumentProperties *>(docprops);
     auto rc = PdfGen::construct(filename, *metadata);
     if(rc) {
@@ -1247,7 +1239,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_page_transition(
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
     CapyPDF_DrawContext *ctx, const CapyPDF_PageProperties *custom_properties) {
     API_BOUNDARY_START;
-    CHECK_NULL(custom_properties);
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
     auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
     return conv_err(dc->set_custom_page_properties(*cprop));
