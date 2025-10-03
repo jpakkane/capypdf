@@ -663,6 +663,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
+                                                           int32_t namesize,
                                                            CapyPDF_Structure_Type builtin,
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;

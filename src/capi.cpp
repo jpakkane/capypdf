@@ -24,6 +24,19 @@ template<typename T> [[nodiscard]] CapyPDF_EC conv_err(const rvoe<T> &rc) {
     return (CapyPDF_EC)(rc ? ErrorCode::NoError : rc.error());
 }
 
+rvoe<std::string> validate_cstring(const char *buf, int32_t strsize) {
+    if(strsize < -1) {
+        RETERR(InvalidBufsize);
+    }
+    std::string converted = buf;
+    if(strsize != -1) {
+        if(converted.size() != (size_t)strsize) {
+            RETERR(EmbeddedNullInString);
+        }
+    }
+    return converted;
+}
+
 rvoe<asciistring> validate_ascii(const char *buf, int32_t strsize) {
     if(!buf) {
         RETERR(ArgIsNull);
@@ -767,12 +780,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
+                                                           int32_t namesize,
                                                            CapyPDF_Structure_Type builtin,
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->add_rolemap_entry(name, builtin);
+    auto nameobj = validate_cstring(name, namesize);
+    if(!nameobj) {
+        return conv_err(nameobj);
+    }
+    auto rc = g->add_rolemap_entry(std::move(*nameobj), builtin);
     if(rc) {
         *out_ptr = rc.value();
     }

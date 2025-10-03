@@ -346,7 +346,7 @@ cfunc_types = (
 ('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
-('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, enum_type, ctypes.c_void_p]),
+('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -1250,7 +1250,11 @@ class Generator:
             raise CapyPDFException('Builtin type must be a StructureType.')
         roid = RoleId()
         name_bytes = name.encode('ASCII')
-        check_error(libfile.capy_generator_add_rolemap_entry(self, name_bytes, builtin_type.value, ctypes.pointer(roid)))
+        check_error(libfile.capy_generator_add_rolemap_entry(self,
+                                                             name_bytes,
+                                                             len(name_bytes),
+                                                             builtin_type.value,
+                                                             ctypes.pointer(roid)))
         return roid
 
     def add_soft_mask(self, sm):
