@@ -11,7 +11,6 @@
 #include <vector>
 #include <string_view>
 #include <optional>
-#include <filesystem>
 
 namespace capypdf::internal {
 
@@ -36,8 +35,7 @@ struct DrawContextPopper {
 
 class PdfGen {
 public:
-    static rvoe<std::unique_ptr<PdfGen>> construct(const std::filesystem::path &ofname,
-                                                   const DocumentProperties &d);
+    static rvoe<std::unique_ptr<PdfGen>> construct(const char *ofname, const DocumentProperties &d);
     PdfGen(PdfGen &&o) = default;
     ~PdfGen();
 
@@ -161,19 +159,19 @@ public:
     }
 
 private:
-    PdfGen(std::filesystem::path ofilename,
+    PdfGen(const char *ofname,
            std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
            PdfDocument pdoc)
-        : ofilename(std::move(ofilename)), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
+        : ofilename(ofname), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
 
-    std::filesystem::path ofilename;
+    std::string ofilename;
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;
     PdfDocument pdoc;
 };
 
 struct GenPopper {
     std::unique_ptr<PdfGen> g;
-    GenPopper(const std::filesystem::path &ofname, const DocumentProperties &d) : g() {
+    GenPopper(const char *ofname, const DocumentProperties &d) : g() {
         auto rc = PdfGen::construct(ofname, d);
         if(!rc) {
             fprintf(stderr, "%s\n", error_text(rc.error()));

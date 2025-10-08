@@ -9,7 +9,6 @@
 #include <cassert>
 #include <array>
 #include <bit>
-#include <filesystem>
 #include <algorithm>
 #include <format>
 #include <ft2build.h>

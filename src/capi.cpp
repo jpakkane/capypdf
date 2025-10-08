@@ -7,6 +7,8 @@
 #include <drawcontext.hpp>
 #include <errorhandling.hpp>
 
+#include <filesystem>
+
 #define RETNOERR return conv_err(ErrorCode::NoError)
 
 #define CHECK_BOOLEAN(b)                                                                           \

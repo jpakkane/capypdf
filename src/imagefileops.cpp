@@ -460,8 +460,8 @@ rvoe<RasterImage> load_png_file(FILE *f) {
     return do_png_load(pclose.p, pclose.i);
 }
 
-rvoe<RasterImage> load_png_file(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "rb");
+rvoe<RasterImage> load_png_file(const char *fname) {
+    FILE *f = fopen(fname, "rb");
     if(!f) {
         RETERR(CouldNotOpenFile);
     }
@@ -485,8 +485,8 @@ rvoe<RasterImage> load_png_from_memory(const char *buf, int64_t bufsize) {
     return load_png_file(f);
 }
 
-rvoe<RasterImage> load_tif_file(const std::filesystem::path &fname) {
-    TIFF *tif = TIFFOpen(fname.string().c_str(), "rb");
+rvoe<RasterImage> load_tif_file(const char *fname) {
+    TIFF *tif = TIFFOpen(fname, "rb");
     if(!tif) {
         RETERR(FileReadError);
     }
@@ -577,8 +577,8 @@ rvoe<jpg_image> load_jpg_metadata(FILE *f, const char *buf, int64_t bufsize) {
     return im;
 }
 
-rvoe<jpg_image> load_jpg_file(const std::filesystem::path &fname) {
-    FILE *f = fopen(fname.string().c_str(), "rb");
+rvoe<jpg_image> load_jpg_file(const char *fname) {
+    FILE *f = fopen(fname, "rb");
     if(!f) {
         RETERR(FileDoesNotExist);
     }
@@ -600,18 +600,15 @@ rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
 
 rvoe<RasterImage> load_image_file(const char *fname) {
     std::filesystem::path fobj(fname);
-    if(!std::filesystem::exists(fobj)) {
-        RETERR(FileDoesNotExist);
-    }
     auto extension = fobj.extension();
     if(extension == ".png" || extension == ".PNG") {
-        return load_png_file(fobj);
+        return load_png_file(fname);
     }
     if(extension == ".tif" || extension == ".tiff" || extension == ".TIF" || extension == ".TIFF") {
-        return load_tif_file(fobj);
+        return load_tif_file(fname);
     }
     if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
-        ERC(jpeg_image, load_jpg_file(fobj));
+        ERC(jpeg_image, load_jpg_file(fname));
         return RasterImage(std::move(jpeg_image));
     }
 

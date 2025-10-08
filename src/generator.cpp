@@ -35,8 +35,7 @@ DrawContextPopper::~DrawContextPopper() {
     }
 }
 
-rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const std::filesystem::path &ofname,
-                                                const DocumentProperties &d) {
+rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const char *ofname, const DocumentProperties &d) {
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {
@@ -55,7 +54,7 @@ PdfGen::~PdfGen() {
 
 rvoe<NoReturnValue> PdfGen::write() {
     PdfWriter pwriter(pdoc);
-    return pwriter.write_to_file(ofilename.string().c_str());
+    return pwriter.write_to_file(ofilename.c_str());
 }
 
 rvoe<RasterImage> PdfGen::load_image(const char *fname) { return load_image_file(fname); }
