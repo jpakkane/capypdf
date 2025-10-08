@@ -15,7 +15,7 @@ struct ObjectOffset {
 class PdfWriter {
 public:
     explicit PdfWriter(PdfDocument &doc);
-    rvoe<NoReturnValue> write_to_file(const std::filesystem::path &ofilename);
+    rvoe<NoReturnValue> write_to_file(const char *ofilename);
 
 private:
     rvoe<NoReturnValue> write_to_file(FILE *output_file);

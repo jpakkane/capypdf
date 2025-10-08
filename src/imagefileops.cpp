@@ -598,19 +598,20 @@ rvoe<jpg_image> load_jpg_from_memory(const char *buf, int64_t bufsize) {
 
 } // namespace
 
-rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
-    if(!std::filesystem::exists(fname)) {
+rvoe<RasterImage> load_image_file(const char *fname) {
+    std::filesystem::path fobj(fname);
+    if(!std::filesystem::exists(fobj)) {
         RETERR(FileDoesNotExist);
     }
-    auto extension = fname.extension();
+    auto extension = fobj.extension();
     if(extension == ".png" || extension == ".PNG") {
-        return load_png_file(fname);
+        return load_png_file(fobj);
     }
     if(extension == ".tif" || extension == ".tiff" || extension == ".TIF" || extension == ".TIFF") {
-        return load_tif_file(fname);
+        return load_tif_file(fobj);
     }
     if(extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG") {
-        ERC(jpeg_image, load_jpg_file(fname));
+        ERC(jpeg_image, load_jpg_file(fobj));
         return RasterImage(std::move(jpeg_image));
     }
 
@@ -619,7 +620,7 @@ rvoe<RasterImage> load_image_file(const std::filesystem::path &fname) {
     const size_t bufsize = 10;
     char buf[bufsize];
     buf[0] = 0;
-    FILE *f = fopen(fname.string().c_str(), "rb");
+    FILE *f = fopen(fname, "rb");
     auto rc = fread(buf, 1, bufsize, f);
     fclose(f);
     if(rc != bufsize) {

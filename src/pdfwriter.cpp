@@ -6,6 +6,7 @@
 #include <utils.hpp>
 #include <objectformatter.hpp>
 
+#include <filesystem>
 #include <format>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -164,7 +165,7 @@ PdfWriter::PdfWriter(PdfDocument &doc) : doc(doc) {
     use_xref = doc.docprops.version() >= PdfVersion::v15;
 }
 
-rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilename) {
+rvoe<NoReturnValue> PdfWriter::write_to_file(const char *ofilename) {
     if(doc.pages.size() == 0) {
         RETERR(NoPages);
     }
@@ -172,7 +173,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(const std::filesystem::path &ofilen
         RETERR(WritingTwice);
     }
     doc.write_attempted = true;
-    auto tempfname = ofilename;
+    std::filesystem::path tempfname(ofilename);
     tempfname.replace_extension(".pdf~");
     FILE *out_file = fopen(tempfname.string().c_str(), "wb");
     if(!out_file) {

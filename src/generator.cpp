@@ -55,12 +55,10 @@ PdfGen::~PdfGen() {
 
 rvoe<NoReturnValue> PdfGen::write() {
     PdfWriter pwriter(pdoc);
-    return pwriter.write_to_file(ofilename);
+    return pwriter.write_to_file(ofilename.string().c_str());
 }
 
-rvoe<RasterImage> PdfGen::load_image(const std::filesystem::path &fname) {
-    return load_image_file(fname);
-}
+rvoe<RasterImage> PdfGen::load_image(const char *fname) { return load_image_file(fname); }
 
 rvoe<RasterImage> PdfGen::load_image(const char *buf, int64_t bufsize) {
     return load_image_from_memory(buf, bufsize);
