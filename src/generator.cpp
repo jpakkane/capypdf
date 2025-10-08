@@ -43,9 +43,7 @@ rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const std::filesystem::path &ofn
         RETERR(FreeTypeError);
     }
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
-    ERC(cm,
-        PdfColorConverter::construct(
-            d.prof.rgb_profile_file, d.prof.gray_profile_file, d.prof.cmyk_profile_file));
+    ERC(cm, PdfColorConverter::construct(d.prof));
     ERC(pdoc, PdfDocument::construct(d, std::move(cm)));
     return std::unique_ptr<PdfGen>(new PdfGen(ofname, std::move(ft), std::move(pdoc)));
 }

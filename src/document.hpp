@@ -172,12 +172,6 @@ struct FontThingy {
     FontSubsetter subsets;
 };
 
-struct ColorProfiles {
-    std::filesystem::path rgb_profile_file;
-    std::filesystem::path gray_profile_file;
-    std::filesystem::path cmyk_profile_file;
-};
-
 struct IccInfo {
     int32_t stream_num;
     int32_t object_num;

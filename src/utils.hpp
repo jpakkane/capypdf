@@ -32,6 +32,8 @@ rvoe<std::string> load_file_as_string(FILE *f);
 
 rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname);
 
+rvoe<std::vector<std::byte>> load_file_as_bytes(const std::string &fname);
+
 rvoe<std::vector<std::byte>> load_file_as_bytes(FILE *f);
 
 void write_file(const char *ofname, const char *buf, size_t bufsize);

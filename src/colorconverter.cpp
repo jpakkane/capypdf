@@ -81,13 +81,10 @@ void LcmsHolder::deallocate() {
     h = nullptr;
 }
 
-rvoe<PdfColorConverter>
-PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
-                             const std::filesystem::path &gray_profile_fname,
-                             const std::filesystem::path &cmyk_profile_fname) {
+rvoe<PdfColorConverter> PdfColorConverter::construct(const ColorProfiles &d) {
     PdfColorConverter conv;
-    if(!rgb_profile_fname.empty()) {
-        ERC(rgb, load_file_as_bytes(rgb_profile_fname));
+    if(!d.rgb_profile_file.empty()) {
+        ERC(rgb, load_file_as_bytes(d.rgb_profile_file));
         conv.rgb_profile_data = std::move(rgb);
         cmsHPROFILE h =
             cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
@@ -102,8 +99,8 @@ PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
     } else {
         conv.rgb_profile.h = cmsCreate_sRGBProfile();
     }
-    if(!gray_profile_fname.empty()) {
-        ERC(gray, load_file_as_bytes(gray_profile_fname));
+    if(!d.gray_profile_file.empty()) {
+        ERC(gray, load_file_as_bytes(d.gray_profile_file));
         conv.gray_profile_data = std::move(gray);
         auto h =
             cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
@@ -120,8 +117,8 @@ PdfColorConverter::construct(const std::filesystem::path &rgb_profile_fname,
         conv.gray_profile.h = cmsCreateGrayProfile(cmsD50_xyY(), curve);
         cmsFreeToneCurve(curve);
     }
-    if(!cmyk_profile_fname.empty()) {
-        ERC(cmyk, load_file_as_bytes(cmyk_profile_fname));
+    if(!d.cmyk_profile_file.empty()) {
+        ERC(cmyk, load_file_as_bytes(d.cmyk_profile_file));
         conv.cmyk_profile_data = std::move(cmyk);
         auto h =
             cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());

@@ -635,6 +635,12 @@ struct FontProperties {
     // - Other CID metadata at al
 };
 
+struct ColorProfiles {
+    std::string rgb_profile_file;
+    std::string gray_profile_file;
+    std::string cmyk_profile_file;
+};
+
 } // namespace capypdf::internal
 
 template<> struct std::hash<capypdf::internal::asciistring> {
