@@ -573,8 +573,8 @@ uint8_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
     return fdselect.back().fd;
 }
 
-rvoe<CFFont> parse_cff_file(const std::filesystem::path &fname) {
-    ERC(source, mmap_file(fname.string().c_str()));
+rvoe<CFFont> parse_cff_file(const char *fname) {
+    ERC(source, mmap_file(fname));
     return parse_cff_data(std::move(source));
 }
 

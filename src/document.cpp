@@ -679,7 +679,7 @@ rvoe<CapyPDF_LabColorSpaceId> PdfDocument::add_lab_colorspace(const LabColorSpac
     return CapyPDF_LabColorSpaceId{(int32_t)document_objects.size() - 1};
 }
 
-rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const std::filesystem::path &fname) {
+rvoe<CapyPDF_IccColorSpaceId> PdfDocument::load_icc_file(const char *fname) {
     ERC(contents, load_file_as_bytes(fname));
     const auto iccid = find_icc_profile(contents);
     if(iccid) {
@@ -1906,25 +1906,22 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
 }
 
 rvoe<CapyPDF_FontId>
-PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontProperties props) {
+PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
     FT_Face face;
     TtfFont ttf{std::unique_ptr<FT_FaceRec_, FT_Error (*)(FT_Face)>{nullptr, guarded_face_close},
                 {}};
-    auto error = FT_New_Face(ft, fname.string().c_str(), props.subfont, &face);
+    auto error = FT_New_Face(ft, fname, props.subfont, &face);
     if(error) {
         // By default Freetype is compiled without
         // error strings. Yay!
         auto *ft_message = FT_Error_String(error);
         if(ft) {
-            fprintf(stderr,
-                    "Freetype could not open font file %s:\n%s\n",
-                    fname.string().c_str(),
-                    ft_message);
+            fprintf(stderr, "Freetype could not open font file %s:\n%s\n", fname, ft_message);
         } else {
             fprintf(
                 stderr,
                 "Freetype failed to open font %s, error code %d (FT error strings not available).",
-                fname.string().c_str(),
+                fname,
                 error);
         }
         RETERR(FreeTypeError);
@@ -1942,7 +1939,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
         fprintf(stderr,
                 "Only TrueType fonts are supported. %s "
                 "is a %s font.",
-                fname.string().c_str(),
+                fname,
                 font_format);
         RETERR(UnsupportedFormat);
     }
@@ -1954,7 +1951,7 @@ PdfDocument::load_font(FT_Library ft, const std::filesystem::path &fname, FontPr
                 "Only TrueType "
                 "fonts are supported. Freetype error "
                 "%d.",
-                fname.string().c_str(),
+                fname,
                 error);
         RETERR(UnsupportedFormat);
     }

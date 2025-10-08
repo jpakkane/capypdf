@@ -921,9 +921,8 @@ generate_font(const TrueTypeFontFile &source,
     }
 }
 
-rvoe<FontData> load_and_parse_font_file(const std::filesystem::path &fname,
-                                        const FontProperties &props) {
-    ERC(mmapdata, mmap_file(fname.string().c_str()));
+rvoe<FontData> load_and_parse_font_file(const char *fname, const FontProperties &props) {
+    ERC(mmapdata, mmap_file(fname));
     return parse_font_file(std::move(mmapdata), props);
 }
 

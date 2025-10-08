@@ -46,8 +46,7 @@ public:
     rvoe<RasterImage> load_image(const std::filesystem::path &fname);
     rvoe<RasterImage> load_image(const char *buf, int64_t bufsize);
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef) { return pdoc.embed_file(ef); }
-    rvoe<CapyPDF_FontId> load_font(const std::filesystem::path &fname,
-                                   const FontProperties &props) {
+    rvoe<CapyPDF_FontId> load_font(const char *fname, const FontProperties &props) {
         return pdoc.load_font(ft.get(), fname, props);
     };
 
@@ -81,7 +80,7 @@ public:
         return pdoc.add_lab_colorspace(lab);
     }
 
-    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const std::filesystem::path &fname) {
+    rvoe<CapyPDF_IccColorSpaceId> load_icc_file(const char *fname) {
         return pdoc.load_icc_file(fname);
     }
     rvoe<CapyPDF_IccColorSpaceId> add_icc_profile(std::span<std::byte> bytes,
