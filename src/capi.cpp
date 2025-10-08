@@ -2795,7 +2795,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
         return conv_err(rc);
     }
     auto *eobj = new EmbeddedFile();
-    eobj->path = std::move(fspath);
+    eobj->path = path;
     eobj->pdfname = std::move(rc.value());
     *out_ptr = reinterpret_cast<CapyPDF_EmbeddedFile *>(eobj);
     RETNOERR;

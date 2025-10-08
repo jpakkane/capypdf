@@ -8,7 +8,6 @@
 #include <string>
 #include <cstdio>
 #include <string_view>
-#include <filesystem>
 #include <vector>
 
 namespace capypdf::internal {
@@ -25,12 +24,7 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data);
 rvoe<std::vector<std::byte>> flate_compress(std::span<std::byte> data);
 
 rvoe<std::string> load_file_as_string(const char *fname);
-
-rvoe<std::string> load_file_as_string(const std::filesystem::path &fname);
-
 rvoe<std::string> load_file_as_string(FILE *f);
-
-rvoe<std::vector<std::byte>> load_file_as_bytes(const std::filesystem::path &fname);
 
 rvoe<std::vector<std::byte>> load_file_as_bytes(const std::string &fname);
 

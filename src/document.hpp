@@ -232,7 +232,7 @@ struct OutlineData {
 };
 
 struct EmbeddedFile {
-    std::filesystem::path path;
+    std::string path;
     u8string pdfname;
     asciistring subtype; // actually MIME
     u8string description;
