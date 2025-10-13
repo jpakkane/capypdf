@@ -40,7 +40,6 @@ rvoe<NoReturnValue> add_subglyphs(std::unordered_set<uint32_t> &new_subglyphs,
 
 rvoe<std::vector<uint32_t>> get_all_subglyphs(uint32_t glyph_id, const TrueTypeFontFile &ttfile) {
     std::unordered_set<uint32_t> new_subglyphs;
-
     ERCV(add_subglyphs(new_subglyphs, glyph_id, ttfile));
     std::vector<uint32_t> glyphs(new_subglyphs.cbegin(), new_subglyphs.cend());
     return glyphs;
@@ -52,7 +51,7 @@ rvoe<FontSubsetter>
 FontSubsetter::construct(const char *&fontfile, FT_Face face, const FontProperties &props) {
     ERC(font, load_and_parse_font_file(fontfile, props));
     if(auto *ttffile = std::get_if<TrueTypeFontFile>(&font)) {
-        return FontSubsetter(std::move(*ttffile), face, create_startstate());
+        return FontSubsetter(std::move(*ttffile), face, create_startstate(), props);
     } else {
         fprintf(stderr, "Only basic Truetype fonts supported currently.\n");
         RETERR(UnsupportedFormat);
@@ -226,7 +225,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) co
 }
 
 rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source) const {
-    return generate_font(source, subset.glyphs, subset.font_index_mapping);
+    return generate_font(source, face, subset.glyphs, subset.font_index_mapping);
 }
 
 } // namespace capypdf::internal

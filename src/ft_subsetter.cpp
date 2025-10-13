@@ -561,8 +561,15 @@ rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
     return std::vector<std::byte>(buf.data() + e->offset, buf.data() + end_offset);
 }
 
+std::vector<std::byte> get_glyph_data(const TrueTypeFontFile &source, FT_Face, int32_t glyph_id) {
+    const auto &current_glyph = source.glyphs[glyph_id];
+    std::vector<std::byte> data(current_glyph.begin(), current_glyph.end());
+    return data;
+}
+
 rvoe<std::vector<std::vector<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
+              FT_Face face,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     // This does not use spans. Create a copy of all data
@@ -573,8 +580,7 @@ subset_glyphs(const TrueTypeFontFile &source,
     for(const auto &g : glyphs) {
         uint32_t gid = font_id_for_glyph(g);
         assert(gid < source.glyphs.size());
-        const auto &current_glyph = source.glyphs[gid];
-        subset.emplace_back(std::vector<std::byte>(current_glyph.begin(), current_glyph.end()));
+        subset.push_back(get_glyph_data(source, face, gid));
         if(!subset.back().empty()) {
             ERC(num_contours, extract<int16_t>(subset.back(), 0));
             byte_swap_inplace(num_contours);
@@ -867,11 +873,12 @@ rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) 
 
 rvoe<std::vector<std::byte>>
 generate_truetype_font(const TrueTypeFontFile &source,
+                       FT_Face face,
                        const std::vector<TTGlyphs> &glyphs,
                        const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
-    ERC(subglyphs, subset_glyphs(source, glyphs, comp_mapping));
+    ERC(subglyphs, subset_glyphs(source, face, glyphs, comp_mapping));
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
@@ -911,12 +918,13 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
 
 rvoe<std::vector<std::byte>>
 generate_font(const TrueTypeFontFile &source,
+              FT_Face face,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     if(source.in_cff_format()) {
         return generate_cff_font(source, glyphs);
     } else {
-        return generate_truetype_font(source, glyphs, comp_mapping);
+        return generate_truetype_font(source, face, glyphs, comp_mapping);
     }
 }
 

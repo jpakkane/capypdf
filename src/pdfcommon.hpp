@@ -633,6 +633,10 @@ struct FontProperties {
     // - OpenType alternatives to use
     // - Vertical or Horizontal writing
     // - Other CID metadata at al
+
+    std::unordered_map<std::string, uint32_t> variations;
+
+    bool has_variations() const { return !variations.empty(); }
 };
 
 struct ColorProfiles {

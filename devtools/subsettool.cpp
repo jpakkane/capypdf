@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         glyphs.emplace_back(RegularGlyph(c, glyph_id));
     }
 
-    auto rc2 = generate_font(font, glyphs, composite_mapping);
+    auto rc2 = generate_font(font, face, glyphs, composite_mapping);
     const auto &bytes = rc2.value();
 
     FILE *f = fopen(argv[2], "wb");
