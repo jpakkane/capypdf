@@ -570,7 +570,6 @@ subset_glyphs(const TrueTypeFontFile &source,
     // out to disk.
     std::vector<std::vector<std::byte>> subset;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
-    assert(glyphs.size() < 255);
     for(const auto &g : glyphs) {
         uint32_t gid = font_id_for_glyph(g);
         assert(gid < source.glyphs.size());
