@@ -590,6 +590,7 @@ cfunc_types = (
 
 ('capy_font_properties_new', [ctypes.c_void_p]),
 ('capy_font_properties_set_subfont', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_font_properties_set_variation', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_int32]),
 ('capy_font_properties_destroy', [ctypes.c_void_p]),
 
 ('capy_halftone_new', [ctypes.c_void_p]),
@@ -1897,13 +1898,17 @@ class EmbeddedFile:
         check_error(libfile.capy_embedded_file_destroy(self))
 
 class FontProperties:
-    def __init__(self, path):
+    def __init__(self):
         o = ctypes.c_void_p()
-        check_error(libfile.capy_font_properties_new(fbytes, ctypes.pointer(o)))
+        check_error(libfile.capy_font_properties_new(ctypes.pointer(o)))
         self._as_parameter_ = o
 
     def set_subfont(self, subfont):
         check_error(libfile.capy_font_properties_set_subfont(self, subfont))
+
+    def set_variation(self, axis, value):
+        axisbytes = axis.encode('ascii')
+        check_error(libfile.capy_font_properties_set_variation(self, axisbytes, len(axisbytes), value))
 
     def __del__(self):
         check_error(libfile.capy_font_properties_destroy(self))

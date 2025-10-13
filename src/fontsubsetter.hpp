@@ -32,8 +32,11 @@ public:
     static rvoe<FontSubsetter>
     construct(const std::filesystem::path &fontfile, FT_Face face, const FontProperties &props);
 
-    FontSubsetter(TrueTypeFontFile ttfile, FT_Face face, FontSubsetData subset)
-        : ttfile{std::move(ttfile)}, face{face}, subset{std::move(subset)} {}
+    FontSubsetter(TrueTypeFontFile ttfile,
+                  FT_Face face,
+                  FontSubsetData subset,
+                  const FontProperties &props_)
+        : ttfile{std::move(ttfile)}, face{face}, props{props_}, subset{std::move(subset)} {}
 
     rvoe<FontSubsetInfo> get_glyph_subset(uint32_t glyph, const std::optional<uint32_t> glyph_id);
     rvoe<FontSubsetInfo> get_glyph_subset(const u8string &text, const uint32_t glyph_id);
@@ -56,6 +59,7 @@ private:
 
     TrueTypeFontFile ttfile;
     FT_Face face;
+    FontProperties props;
     std::optional<FontSubsetInfo> find_existing_glyph(uint32_t gid) const;
     std::optional<FontSubsetInfo> find_glyph_with_codepoint(uint32_t codepoint) const;
     std::optional<FontSubsetInfo> find_glyph(const u8string &text) const;
