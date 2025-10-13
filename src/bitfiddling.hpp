@@ -59,7 +59,7 @@ template<typename T> void append_bytes(std::vector<std::byte> &s, const T &val) 
     }
 }
 
-template<typename T> void swap_and_append_bytes(std::vector<std::byte> &s, const T &obj) {
+template<typename T> void swap_and_append_bytes(std::vector<std::byte> &s, const T obj) {
     auto obj2 = std::byteswap(obj);
     append_bytes<T>(s, obj2);
 }
