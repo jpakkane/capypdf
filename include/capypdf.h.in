@@ -1302,6 +1302,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_new(CapyPDF_FontProperties **out_
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_subfont(
     CapyPDF_FontProperties *fprop, int32_t subfont) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_variation(CapyPDF_FontProperties *fprop,
+                                                             const char *axis,
+                                                             int32_t axis_size,
+                                                             int32_t value)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_destroy(CapyPDF_FontProperties *fprop)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

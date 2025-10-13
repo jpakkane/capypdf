@@ -1630,6 +1630,25 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.scale(80, 80)
                 ctx.cmd_Do(gray_img);
 
+    @validate_image('python_variations', 200, 200)
+    def test_variations(self, ofilename, w, h):
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops = capypdf.DocumentProperties()
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            thinprops = capypdf.FontProperties()
+            thinprops.set_variation('wght', 100)
+            thickprops = capypdf.FontProperties()
+            thickprops.set_variation('wght', 800)
+
+            fontfile = font_dir / 'AmstelVar-Roman.ttf'
+            thin_font = gen.load_font(fontfile, thinprops)
+            thick_font = gen.load_font(fontfile, thickprops)
+
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('100 weight', thin_font, 20, 20, 150)
+                ctx.render_text('800 weight', thick_font, 20, 20, 50)
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H
+#include FT_MULTIPLE_MASTERS_H
 
 namespace capypdf::internal {
 
@@ -299,6 +300,45 @@ std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) 
     }
     std::sort(result.begin(), result.end());
     return result;
+}
+
+rvoe<NoReturnValue> set_variations(FT_Face face, const FontProperties &props) {
+    FT_MM_Var *mmvar;
+    if(FT_Get_MM_Var(face, &mmvar) != 0) {
+        RETERR(VariationsNotSupported);
+    }
+    const auto num_axis = mmvar->num_axis;
+
+    std::vector<FT_Fixed> var_coords(num_axis);
+    if(FT_Get_Var_Design_Coordinates(face, num_axis, var_coords.data()) != 0) {
+        FT_Done_MM_Var(face->glyph->library, mmvar);
+        std::abort();
+    }
+
+    for(const auto &[key, value] : props.variations) {
+        bool matched = false;
+        char unpacked_tag[5] = {0, 0, 0, 0};
+        for(unsigned int i = 0; i < num_axis; ++i) {
+            auto &ca = mmvar->axis[i];
+            const auto swapped = std::byteswap(int32_t(ca.tag));
+            memcpy(unpacked_tag, &swapped, 4);
+            if(key == unpacked_tag) {
+                matched = true;
+                var_coords[i] = value << 16; // Stored in OpenType as 16x16 fixed point.
+                break;
+            }
+        }
+        if(!matched) {
+            FT_Done_MM_Var(face->glyph->library, mmvar);
+            RETERR(VariationNotFound);
+        }
+    }
+    FT_Done_MM_Var(face->glyph->library, mmvar);
+
+    if(FT_Set_Var_Design_Coordinates(face, num_axis, var_coords.data()) != 0) {
+        std::abort();
+    }
+    return NoReturnValue{};
 }
 
 } // namespace
@@ -1929,6 +1969,9 @@ PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
     const char *font_format = FT_Get_Font_Format(face);
     if(!font_format) {
         RETERR(UnsupportedFormat);
+    }
+    if(props.has_variations()) {
+        ERCV(set_variations(face, props));
     }
     ERC(fontdata, load_and_parse_font_file(fname, props));
     assert(std::holds_alternative<TrueTypeFontFile>(fontdata));
