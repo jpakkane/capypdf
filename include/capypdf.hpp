@@ -306,6 +306,13 @@ public:
     void set_subfont(int32_t subfont) {
         CAPY_CPP_CHECK(capy_font_properties_set_subfont(*this, subfont));
     }
+
+    void set_variation(const char *axis_name, int32_t strsize, int32_t value) {
+        CAPY_CPP_CHECK(capy_font_properties_set_variation(*this, axis_name, strsize, value));
+    }
+    template<ByteSequence T> void set_variation(const T &axis_name, int32_t value) {
+        set_variation(axis_name.data(), axis_name.size(), value);
+    }
 };
 
 class Color : public CapyC<CapyPDF_Color> {
