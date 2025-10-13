@@ -582,13 +582,17 @@ GlyphBoundingBox get_glyph_bb(FT_Outline outline) {
     return bb;
 }
 
-std::vector<std::byte>
-get_glyph_data(const TrueTypeFontFile &source, FT_Face face, int32_t glyph_id) {
-    if(true) {
+std::vector<std::byte> get_glyph_data(const TrueTypeFontFile &source,
+                                      const FontProperties &props,
+                                      FT_Face face,
+                                      int32_t glyph_id) {
+    if(!props.has_variations()) {
         const auto &current_glyph = source.glyphs[glyph_id];
         std::vector<std::byte> data(current_glyph.begin(), current_glyph.end());
         return data;
     } else {
+        // Freetype has computed the control point locations for given variations.
+        // Now we need to serialize them to the output file by hand.
         // https://learn.microsoft.com/en-us/typography/opentype/spec/glyf#glyph-headers
         auto rc = FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
         if(rc != 0) {
@@ -637,6 +641,7 @@ get_glyph_data(const TrueTypeFontFile &source, FT_Face face, int32_t glyph_id) {
 
 rvoe<std::vector<std::vector<std::byte>>>
 subset_glyphs(const TrueTypeFontFile &source,
+              const FontProperties &props,
               FT_Face face,
               const std::vector<TTGlyphs> glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
@@ -648,7 +653,7 @@ subset_glyphs(const TrueTypeFontFile &source,
     for(const auto &g : glyphs) {
         uint32_t gid = font_id_for_glyph(g);
         assert(gid < source.glyphs.size());
-        subset.push_back(get_glyph_data(source, face, gid));
+        subset.push_back(get_glyph_data(source, props, face, gid));
         if(!subset.back().empty()) {
             ERC(num_contours, extract<int16_t>(subset.back(), 0));
             byte_swap_inplace(num_contours);
@@ -941,12 +946,13 @@ rvoe<FontData> parse_font_file(DataSource backing, const FontProperties &props) 
 
 rvoe<std::vector<std::byte>>
 generate_truetype_font(const TrueTypeFontFile &source,
+                       const FontProperties &props,
                        FT_Face face,
                        const std::vector<TTGlyphs> &glyphs,
                        const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     TrueTypeFontFile dest;
     assert(std::get<RegularGlyph>(glyphs[0]).unicode_codepoint == 0);
-    ERC(subglyphs, subset_glyphs(source, face, glyphs, comp_mapping));
+    ERC(subglyphs, subset_glyphs(source, props, face, glyphs, comp_mapping));
 
     dest.head = source.head;
     // https://learn.microsoft.com/en-us/typography/opentype/spec/otff#calculating-checksums
@@ -986,13 +992,17 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
 
 rvoe<std::vector<std::byte>>
 generate_font(const TrueTypeFontFile &source,
+              const FontProperties &props,
               FT_Face face,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping) {
     if(source.in_cff_format()) {
+        if(props.has_variations()) {
+            RETERR(VariationsNotSupported);
+        }
         return generate_cff_font(source, glyphs);
     } else {
-        return generate_truetype_font(source, face, glyphs, comp_mapping);
+        return generate_truetype_font(source, props, face, glyphs, comp_mapping);
     }
 }
 

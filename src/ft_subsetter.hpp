@@ -237,6 +237,7 @@ reassign_composite_glyph_numbers(std::span<std::byte> buf,
 
 rvoe<std::vector<std::byte>>
 generate_font(const TrueTypeFontFile &source,
+              const FontProperties &props,
               FT_Face face,
               const std::vector<TTGlyphs> &glyphs,
               const std::unordered_map<uint32_t, uint32_t> &comp_mapping);

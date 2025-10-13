@@ -225,7 +225,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) co
 }
 
 rvoe<std::vector<std::byte>> FontSubsetter::generate_subset(const TrueTypeFontFile &source) const {
-    return generate_font(source, face, subset.glyphs, subset.font_index_mapping);
+    return generate_font(source, props, face, subset.glyphs, subset.font_index_mapping);
 }
 
 } // namespace capypdf::internal
