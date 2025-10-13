@@ -19,3 +19,6 @@ executable('im2pdf', 'im2pdf.cpp',
 
 executable('text2pdf', 'text2pdf.cpp',
   dependencies: capypdf_dep)
+
+executable('subsettool', 'subsettool.cpp',
+  dependencies: [capypdf_internal_dep])
