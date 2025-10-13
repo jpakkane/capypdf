@@ -561,10 +561,78 @@ rvoe<std::vector<std::byte>> load_raw_table(const std::vector<TTDirEntry> &dir,
     return std::vector<std::byte>(buf.data() + e->offset, buf.data() + end_offset);
 }
 
-std::vector<std::byte> get_glyph_data(const TrueTypeFontFile &source, FT_Face, int32_t glyph_id) {
-    const auto &current_glyph = source.glyphs[glyph_id];
-    std::vector<std::byte> data(current_glyph.begin(), current_glyph.end());
-    return data;
+struct GlyphBoundingBox {
+    FT_Pos xMin, yMin, xMax, yMax;
+};
+
+GlyphBoundingBox get_glyph_bb(FT_Outline outline) {
+    if(outline.n_contours == 0) {
+        return GlyphBoundingBox{0, 0, 0, 0};
+    }
+    GlyphBoundingBox bb{
+        outline.points[0].x, outline.points[0].y, outline.points[0].x, outline.points[0].y};
+    for(uint16_t i = 0; i < outline.n_points; ++i) {
+        const auto &px = outline.points[i].x;
+        const auto &py = outline.points[i].y;
+        bb.xMin = std::min(bb.xMin, px);
+        bb.xMax = std::max(bb.xMax, py);
+        bb.yMin = std::min(bb.yMin, px);
+        bb.yMax = std::max(bb.yMax, py);
+    }
+    return bb;
+}
+
+std::vector<std::byte>
+get_glyph_data(const TrueTypeFontFile &source, FT_Face face, int32_t glyph_id) {
+    if(true) {
+        const auto &current_glyph = source.glyphs[glyph_id];
+        std::vector<std::byte> data(current_glyph.begin(), current_glyph.end());
+        return data;
+    } else {
+        // https://learn.microsoft.com/en-us/typography/opentype/spec/glyf#glyph-headers
+        auto rc = FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);
+        if(rc != 0) {
+            std::abort();
+        }
+        const auto &outline = face->glyph->outline;
+        std::vector<std::byte> data;
+        const auto bbox = get_glyph_bb(outline);
+        swap_and_append_bytes(data, int16_t(outline.n_contours));
+        swap_and_append_bytes(data, int16_t(bbox.xMin));
+        swap_and_append_bytes(data, int16_t(bbox.yMin));
+        swap_and_append_bytes(data, int16_t(bbox.xMax));
+        swap_and_append_bytes(data, int16_t(bbox.yMax));
+        if(outline.n_contours > 0) {
+            assert(outline.contours[outline.n_contours - 1] == outline.n_points - 1);
+            for(uint16_t i = 0; i < outline.n_contours; ++i) {
+                swap_and_append_bytes(data, (uint16_t)outline.contours[i]);
+            }
+            append_bytes(data, uint16_t(0));
+            for(uint16_t i = 0; i < outline.n_points; ++i) {
+                swap_and_append_bytes(data, (uint8_t)(outline.tags[i] & 1));
+            }
+            // Glyf uses delta compression.
+            for(uint16_t i = 0; i < outline.n_points; ++i) {
+                FT_Pos deltax;
+                if(i == 0) {
+                    deltax = outline.points[0].x;
+                } else {
+                    deltax = outline.points[i].x - outline.points[i - 1].x;
+                }
+                swap_and_append_bytes(data, (int16_t)(deltax));
+            }
+            for(uint16_t i = 0; i < outline.n_points; ++i) {
+                FT_Pos deltay;
+                if(i == 0) {
+                    deltay = outline.points[0].y;
+                } else {
+                    deltay = outline.points[i].y - outline.points[i - 1].y;
+                }
+                swap_and_append_bytes(data, (int16_t)(deltay));
+            }
+        }
+        return data;
+    }
 }
 
 rvoe<std::vector<std::vector<std::byte>>>
