@@ -33,12 +33,10 @@ private:
     rvoe<std::vector<ObjectOffset>> write_objects();
 
     rvoe<NoReturnValue> write_header();
-    rvoe<NoReturnValue>
-    write_cross_reference_table(const std::vector<ObjectOffset> &object_offsets);
-    rvoe<NoReturnValue> write_main_objstm(const std::vector<ObjectOffset> &object_offsets);
-    rvoe<NoReturnValue>
-    write_cross_reference_stream(const std::vector<ObjectOffset> &object_offsets,
-                                 uint64_t objstm_offset);
+    rvoe<NoReturnValue> write_cross_reference_table(const std::vector<ObjectOffset> &final_offsets);
+    rvoe<NoReturnValue> write_main_objstm(const std::vector<ObjectOffset> &final_offsets);
+    rvoe<NoReturnValue> write_cross_reference_stream(const std::vector<ObjectOffset> &final_offsets,
+                                                     uint64_t objstm_offset);
     rvoe<NoReturnValue> write_oldstyle_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_newstyle_trailer(int64_t xref_offset);
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,

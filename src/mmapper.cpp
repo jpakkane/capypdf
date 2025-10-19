@@ -38,7 +38,7 @@ private:
 
 class MMapperPrivate {
 public:
-    MMapperPrivate(const char *buf, size_t bufsize) : buf{buf}, bufsize{bufsize} {};
+    MMapperPrivate(const char *buf_, size_t bufsize_) : buf{buf_}, bufsize{bufsize_} {};
     ~MMapperPrivate() {
         if(munmap((void *)buf, bufsize) != 0) {
             perror(nullptr);

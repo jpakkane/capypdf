@@ -590,8 +590,8 @@ void CFFDictWriter::append_command(const std::vector<int32_t> &operands, DictOpe
     o.output.push_back(std::byte((uint16_t)op & 0xFF));
 }
 
-CFFWriter::CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub)
-    : source{source}, sub{sub} {
+CFFWriter::CFFWriter(const CFFont &source_, const std::vector<SubsetGlyphs> &sub_)
+    : source{source_}, sub{sub_} {
     output.reserve(100 * 1024);
 }
 

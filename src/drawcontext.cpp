@@ -33,11 +33,11 @@ void write_matrix(ObjectFormatter &fmt, const PdfMatrix &gm) {
 
 GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
 
-PdfDrawContext::PdfDrawContext(PdfDocument *doc,
-                               PdfColorConverter *cm,
+PdfDrawContext::PdfDrawContext(PdfDocument *doc_,
+                               PdfColorConverter *cm_,
                                CapyPDF_Draw_Context_Type dtype,
                                const PdfRectangle &area)
-    : doc(doc), cm(cm), context_type{dtype}, bbox{area} {}
+    : doc(doc_), cm(cm_), context_type{dtype}, bbox{area} {}
 
 PdfDrawContext::~PdfDrawContext() {}
 
@@ -625,18 +625,18 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_rg(LimitDouble r, LimitDouble g, L
 rvoe<NoReturnValue> PdfDrawContext::set_color(const Color &c, bool stroke) {
     if(auto cv = std::get_if<DeviceRGBColor>(&c)) {
         return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<DeviceGrayColor>(&c)) {
-        return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<DeviceCMYKColor>(&c)) {
-        return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<ICCColor>(&c)) {
-        return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<LabColor>(&c)) {
-        return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<CapyPDF_PatternId>(&c)) {
-        return set_color(*cv, stroke);
-    } else if(auto cv = std::get_if<SeparationColor>(&c)) {
-        return set_color(*cv, stroke);
+    } else if(auto g = std::get_if<DeviceGrayColor>(&c)) {
+        return set_color(*g, stroke);
+    } else if(auto cmyk = std::get_if<DeviceCMYKColor>(&c)) {
+        return set_color(*cmyk, stroke);
+    } else if(auto icc = std::get_if<ICCColor>(&c)) {
+        return set_color(*icc, stroke);
+    } else if(auto lab = std::get_if<LabColor>(&c)) {
+        return set_color(*lab, stroke);
+    } else if(auto pat = std::get_if<CapyPDF_PatternId>(&c)) {
+        return set_color(*pat, stroke);
+    } else if(auto sep = std::get_if<SeparationColor>(&c)) {
+        return set_color(*sep, stroke);
     } else {
         fprintf(stderr, "Given colorspace not supported yet.\n");
         std::abort();

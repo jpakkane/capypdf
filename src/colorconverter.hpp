@@ -14,7 +14,7 @@ struct LcmsHolder {
     cmsHPROFILE h;
 
     LcmsHolder() : h(nullptr) {}
-    explicit LcmsHolder(cmsHPROFILE h) : h(h) {}
+    explicit LcmsHolder(cmsHPROFILE h_) : h(h_) {}
     explicit LcmsHolder(LcmsHolder &&o) : h(o.h) { o.h = nullptr; }
     ~LcmsHolder();
     void deallocate();

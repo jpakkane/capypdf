@@ -35,7 +35,7 @@ class PdfDrawContext;
 // Scope based q/Q pairing.
 struct GstatePopper {
     PdfDrawContext *ctx;
-    explicit GstatePopper(PdfDrawContext *ctx) : ctx(ctx) {}
+    explicit GstatePopper(PdfDrawContext *ctx_) : ctx(ctx_) {}
 
     GstatePopper() = delete;
     GstatePopper(const GstatePopper &) = delete;

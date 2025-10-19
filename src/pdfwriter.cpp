@@ -161,7 +161,7 @@ void serialize_time(ObjectFormatter &fmt, const char *key, double timepoint) {
 
 } // namespace
 
-PdfWriter::PdfWriter(PdfDocument &doc) : doc(doc) {
+PdfWriter::PdfWriter(PdfDocument &doc_) : doc(doc_) {
     use_xref = doc.docprops.version() >= PdfVersion::v15;
 }
 
@@ -237,17 +237,17 @@ rvoe<NoReturnValue> PdfWriter::write_to_file(FILE *output_file) {
 rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
     ERCV(write_header());
     ERCV(doc.create_catalog());
-    ERC(object_offsets, write_objects());
-    compressed_object_number = object_offsets.size();
+    ERC(final_offsets, write_objects());
+    compressed_object_number = final_offsets.size();
     if(use_xref) {
         const int64_t objstm_offset = ftell(ofile);
-        ERCV(write_main_objstm(object_offsets));
+        ERCV(write_main_objstm(final_offsets));
         const int64_t xref_offset = ftell(ofile);
-        ERCV(write_cross_reference_stream(object_offsets, objstm_offset));
+        ERCV(write_cross_reference_stream(final_offsets, objstm_offset));
         ERCV(write_newstyle_trailer(xref_offset));
     } else {
         const int64_t xref_offset = ftell(ofile);
-        ERCV(write_cross_reference_table(object_offsets));
+        ERCV(write_cross_reference_table(final_offsets));
         ERCV(write_oldstyle_trailer(xref_offset));
     }
     RETOK;
@@ -360,16 +360,16 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
 }
 
 rvoe<NoReturnValue>
-PdfWriter::write_cross_reference_table(const std::vector<ObjectOffset> &object_offsets) {
+PdfWriter::write_cross_reference_table(const std::vector<ObjectOffset> &final_offsets) {
     std::string buf;
     auto app = std::back_inserter(buf);
     std::format_to(app,
                    R"(xref
 0 {}
 )",
-                   object_offsets.size());
+                   final_offsets.size());
     bool first = true;
-    for(const auto &i : object_offsets) {
+    for(const auto &i : final_offsets) {
         if(first) {
             buf += "0000000000 65535 f \n"; // The end of line whitespace is significant.
             first = false;
@@ -381,12 +381,12 @@ PdfWriter::write_cross_reference_table(const std::vector<ObjectOffset> &object_o
     return write_bytes(buf);
 }
 
-rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset> &object_offsets) {
+rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset> &final_offsets) {
     std::string first_line;
     auto app = std::back_inserter(first_line);
     size_t num_compressed_objects = 0;
-    for(size_t i = 0; i < object_offsets.size(); ++i) {
-        const auto &off = object_offsets.at(i);
+    for(size_t i = 0; i < final_offsets.size(); ++i) {
+        const auto &off = final_offsets.at(i);
         if(off.store_compressed) {
             std::format_to(app, "{} {} ", i, off.offset);
             ++num_compressed_objects;
@@ -429,12 +429,12 @@ rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset>
 }
 
 rvoe<NoReturnValue>
-PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_offsets,
+PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_offsets,
                                         uint64_t objstm_offset) {
     const int32_t info = 1; // Info object is the first printed.
     ObjectFormatter fmt;
     size_t total_number_of_objects =
-        object_offsets.size() + 2; // One for objstm, one fore this object.
+        final_offsets.size() + 2; // One for objstm, one fore this object.
     const size_t entry_size = 1 + 8 + 4;
     const int32_t root = total_number_of_objects - 3;
     const uint64_t this_object_offset =
@@ -469,7 +469,7 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &object_
     bool first = true;
     std::vector<std::byte> stream;
     int64_t compressed_object_index = 0;
-    for(const auto &i : object_offsets) {
+    for(const auto &i : final_offsets) {
         if(first) {
             swap_and_append_bytes(stream, (uint8_t)0);
             swap_and_append_bytes(stream, (uint64_t)0);

@@ -167,19 +167,19 @@ rvoe<std::string> serialize_shade4(const ShadingType4 &shade) {
             ERCV(append_floatvalue<uint16_t>(s, c->r.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->g.v()));
             ERCV(append_floatvalue<uint16_t>(s, c->b.v()));
-        } else if(auto *c = std::get_if<DeviceGrayColor>(&e.sp.c)) {
+        } else if(auto *g = std::get_if<DeviceGrayColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_DEVICE_CS_GRAY) {
                 RETERR(ColorspaceMismatch);
             }
-            ERCV(append_floatvalue<uint16_t>(s, c->v.v()));
-        } else if(auto *c = std::get_if<DeviceCMYKColor>(&e.sp.c)) {
+            ERCV(append_floatvalue<uint16_t>(s, g->v.v()));
+        } else if(auto *cmyk = std::get_if<DeviceCMYKColor>(&e.sp.c)) {
             if(shade.colorspace != CAPY_DEVICE_CS_CMYK) {
                 RETERR(ColorspaceMismatch);
             }
-            ERCV(append_floatvalue<uint16_t>(s, c->c.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c->m.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c->y.v()));
-            ERCV(append_floatvalue<uint16_t>(s, c->k.v()));
+            ERCV(append_floatvalue<uint16_t>(s, cmyk->c.v()));
+            ERCV(append_floatvalue<uint16_t>(s, cmyk->m.v()));
+            ERCV(append_floatvalue<uint16_t>(s, cmyk->y.v()));
+            ERCV(append_floatvalue<uint16_t>(s, cmyk->k.v()));
         } else {
             fprintf(stderr, "Color space not supported yet.");
             std::abort();
@@ -388,8 +388,8 @@ rvoe<PdfDocument> PdfDocument::construct(const DocumentProperties &d, PdfColorCo
     return newdoc;
 }
 
-PdfDocument::PdfDocument(const DocumentProperties &d, PdfColorConverter cm)
-    : docprops{d}, cm{std::move(cm)} {}
+PdfDocument::PdfDocument(const DocumentProperties &d, PdfColorConverter cm_)
+    : docprops{d}, cm{std::move(cm_)} {}
 
 rvoe<NoReturnValue> PdfDocument::init() {
     // PDF uses 1-based indexing so add a dummy thing in this vector
@@ -801,8 +801,8 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         AF_object = afnum;
     }
     if(!outlines.items.empty()) {
-        ERC(outlines, create_outlines());
-        outline_object = outlines;
+        ERC(outline_object_num, create_outlines());
+        outline_object = outline_object_num;
     }
     if(!structure_items.empty()) {
         ERC(treeid, create_structure_parent_tree());

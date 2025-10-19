@@ -2255,10 +2255,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
     CHECK_BOOLEAN(ending);
 
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
-        ptr->extend = ShadingExtend{starting != 0, ending != 0};
-    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
-        ptr->extend = ShadingExtend{starting != 0, ending != 0};
+    if(auto *t2 = std::get_if<ShadingType2>(sh)) {
+        t2->extend = ShadingExtend{starting != 0, ending != 0};
+    } else if(auto *t3 = std::get_if<ShadingType3>(sh)) {
+        t3->extend = ShadingExtend{starting != 0, ending != 0};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
     }
@@ -2271,10 +2271,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
                                                   double ending) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *ptr = std::get_if<ShadingType2>(sh)) {
-        ptr->domain = ShadingDomain{starting, ending};
-    } else if(auto *ptr = std::get_if<ShadingType3>(sh)) {
-        ptr->domain = ShadingDomain{starting, ending};
+    if(auto *t2 = std::get_if<ShadingType2>(sh)) {
+        t2->domain = ShadingDomain{starting, ending};
+    } else if(auto *t3 = std::get_if<ShadingType3>(sh)) {
+        t3->domain = ShadingDomain{starting, ending};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
     }

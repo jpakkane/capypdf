@@ -220,7 +220,7 @@ typedef std::variant<TStar_arg,
 
 class PdfText {
 public:
-    explicit PdfText(PdfDrawContext *dc) : dc{dc} {};
+    explicit PdfText(PdfDrawContext *dc_) : dc{dc_} {};
 
     rvoe<NoReturnValue> cmd_BDC(CapyPDF_StructureItemId sid) {
         events.emplace_back(StructureItem{sid});

@@ -20,12 +20,12 @@ struct DrawContextPopper {
     PdfGen *g;
     PdfDrawContext ctx;
 
-    explicit DrawContextPopper(PdfGen *g,
+    explicit DrawContextPopper(PdfGen *g_,
                                PdfDocument *doc,
                                PdfColorConverter *cm,
                                CapyPDF_Draw_Context_Type dtype,
                                const PdfRectangle &rect)
-        : g{g}, ctx{doc, cm, dtype, rect} {}
+        : g{g_}, ctx{doc, cm, dtype, rect} {}
 
     DrawContextPopper() = delete;
     DrawContextPopper(const DrawContextPopper &) = delete;
@@ -160,9 +160,9 @@ public:
 
 private:
     PdfGen(const char *ofname,
-           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft,
-           PdfDocument pdoc)
-        : ofilename(ofname), ft(std::move(ft)), pdoc(std::move(pdoc)) {}
+           std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft_,
+           PdfDocument pdoc_)
+        : ofilename(ofname), ft(std::move(ft_)), pdoc(std::move(pdoc_)) {}
 
     std::string ofilename;
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft;

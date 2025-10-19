@@ -148,7 +148,7 @@ rvoe<u8string> u8string::from_view(std::string_view sv) {
     return ustr;
 }
 
-CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsigned char *buf) {
+CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsigned char *buf_in) {
     UtfDecodeStep par;
     // clang-format off
     const uint32_t twobyte_header_mask    = 0b11100000;
@@ -158,7 +158,7 @@ CodepointIterator::CharInfo CodepointIterator::extract_one_codepoint(const unsig
     const uint32_t fourbyte_header_mask   = 0b11111000;
     const uint32_t fourbyte_header_value  = 0b11110000;
     // clang-format on
-    const uint32_t code = uint32_t((unsigned char)buf[0]);
+    const uint32_t code = uint32_t((unsigned char)buf_in[0]);
     if(code < 0x80) {
         return CharInfo{code, 1};
     } else if((code & twobyte_header_mask) == twobyte_header_value) {
@@ -187,18 +187,18 @@ RawData::RawData(std::span<std::byte> input) {
 }
 
 const char *RawData::data() const {
-    if(auto *d = std::get_if<std::string>(&storage)) {
-        return d->data();
-    } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
-        return (const char *)d->data();
+    if(auto *str = std::get_if<std::string>(&storage)) {
+        return str->data();
+    } else if(auto *b = std::get_if<std::vector<std::byte>>(&storage)) {
+        return (const char *)b->data();
     } else {
         std::abort();
     }
 }
 
 size_t RawData::size() const {
-    if(auto *d = std::get_if<std::string>(&storage)) {
-        return d->size();
+    if(auto *str = std::get_if<std::string>(&storage)) {
+        return str->size();
     } else if(auto *d = std::get_if<std::vector<std::byte>>(&storage)) {
         return d->size();
     } else {
