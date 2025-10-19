@@ -49,12 +49,11 @@ uint32_t compute_codepoint(FT_Face face, const uint32_t glyph_id) {
     return -1;
 }
 
-size_t
-get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *sampletext) {
+size_t get_endpoint(hb_glyph_info_t *glyph_info, size_t glyph_count, size_t i, const char *text) {
     if(i + 1 < glyph_count) {
         return glyph_info[i + 1].cluster;
     }
-    return strlen(sampletext);
+    return strlen(text);
 }
 
 void do_harfbuzz(PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
