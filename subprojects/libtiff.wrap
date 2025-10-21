@@ -1,13 +1,13 @@
 [wrap-file]
-directory = tiff-4.7.0
-source_url = https://download.osgeo.org/libtiff/tiff-4.7.0.tar.xz
-source_filename = tiff-4.7.0.tar.gz
-source_hash = 273a0a73b1f0bed640afee4a5df0337357ced5b53d3d5d1c405b936501f71017
-patch_filename = libtiff_4.7.0-1_patch.zip
-patch_url = https://wrapdb.mesonbuild.com/v2/libtiff_4.7.0-1/get_patch
-patch_hash = 1c0f574783528f109887f8b4387c35089dc9e01ec1ca34eef75872757ab0caec
-source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/libtiff_4.7.0-1/tiff-4.7.0.tar.gz
-wrapdb_version = 4.7.0-1
+directory = tiff-4.7.1
+source_url = https://download.osgeo.org/libtiff/tiff-4.7.1.tar.xz
+source_filename = tiff-4.7.1.tar.gz
+source_hash = b92017489bdc1db3a4c97191aa4b75366673cb746de0dce5d7a749d5954681ba
+source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/libtiff_4.7.1-1/tiff-4.7.1.tar.gz
+patch_filename = libtiff_4.7.1-1_patch.zip
+patch_url = https://wrapdb.mesonbuild.com/v2/libtiff_4.7.1-1/get_patch
+patch_hash = 5a5e8b6b1cc6d1b44337c9245614f085b3090b91d130881e45cfccd8477c4199
+wrapdb_version = 4.7.1-1
 
 [provide]
-libtiff-4 = libtiff4_dep
+dependency_names = libtiff-4
