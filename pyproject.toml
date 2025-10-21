@@ -9,7 +9,7 @@ allow-windows-internal-shared-libs = true
 
 [project]
 name = 'capypdf'
-version = '0.17.99'
+version = '0.18.0'
 description = 'A color managed PDF generation library tech preview'
 readme = 'readme.md'
 requires-python = '>=3.10'
