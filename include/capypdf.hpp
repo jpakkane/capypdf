@@ -508,6 +508,31 @@ public:
     }
 };
 
+class Type4Function : public CapyC<CapyPDF_Function> {
+public:
+    friend class Generator;
+
+    Type4Function(double *domain,
+                  int32_t num_domain,
+                  double *range,
+                  int32_t range_size,
+                  const char *code,
+                  int32_t code_size) {
+        CapyPDF_Function *fn;
+        CAPY_CPP_CHECK(
+            capy_type4_function_new(domain, num_domain, range, range_size, code, code_size, &fn));
+        _d.reset(fn);
+    }
+    template<ByteSequence T>
+    Type4Function(
+        double *domain, int32_t num_domain, double *range, int32_t range_size, const T &code) {
+        CapyPDF_Function *fn;
+        CAPY_CPP_CHECK(capy_type4_function_new(
+            domain, num_domain, range, range_size, code.data(), code.size(), &fn));
+        _d.reset(fn);
+    }
+};
+
 class Type2Shading : public CapyC<CapyPDF_Shading> {
 public:
     friend class Generator;
@@ -1001,6 +1026,12 @@ public:
         return fid;
     }
 
+    CapyPDF_FunctionId add_function(Type4Function &fn) {
+        CapyPDF_FunctionId fid;
+        CAPY_CPP_CHECK(capy_generator_add_function(*this, fn, &fid));
+        return fid;
+    }
+
     CapyPDF_ShadingId add_shading(Type2Shading &sh) {
         CapyPDF_ShadingId sid;
         CAPY_CPP_CHECK(capy_generator_add_shading(*this, sh, &sid));
@@ -1083,6 +1114,21 @@ public:
         CapyPDF_OutlineId id;
         CAPY_CPP_CHECK(capy_generator_add_outline(*this, ol, &id));
         return id;
+    }
+
+    CapyPDF_SeparationId add_separation(const char *name,
+                                        uint32_t name_size,
+                                        CapyPDF_Device_Colorspace cs,
+                                        CapyPDF_FunctionId fid) {
+        CapyPDF_SeparationId id;
+        capy_generator_add_separation(*this, name, name_size, cs, fid, &id);
+        return id;
+    }
+
+    template<ByteSequence T>
+    CapyPDF_SeparationId
+    add_separation(const T &name, CapyPDF_Device_Colorspace cs, CapyPDF_FunctionId fid) {
+        return add_separation(name.data(), name.size(), cs, fid);
     }
 
     double text_width(const char *u8txt, int32_t strsize, CapyPDF_FontId font, double pointsize) {
