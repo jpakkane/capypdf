@@ -1102,6 +1102,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
                                                   double *range,
                                                   int32_t range_size,
                                                   const char *code,
+                                                  int32_t code_size,
                                                   CapyPDF_Function **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

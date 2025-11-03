@@ -2223,12 +2223,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
                                                   double *range,
                                                   int32_t range_size,
                                                   const char *code,
+                                                  int32_t code_size,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
+    auto rc = validate_cstring(code, code_size);
+    if(!rc) {
+        return conv_err(rc.error());
+    }
     *out_ptr = reinterpret_cast<CapyPDF_Function *>(
         new PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
                                       std::vector<double>(range, range + range_size),
-                                      std::string{code}}});
+                                      std::move(rc.value())}});
     RETNOERR;
     API_BOUNDARY_END;
 }

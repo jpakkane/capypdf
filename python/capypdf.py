@@ -507,6 +507,7 @@ cfunc_types = (
                              ctypes.c_void_p,
                              ctypes.c_int32,
                              ctypes.c_char_p,
+                             ctypes.c_int32,
                              ctypes.c_void_p]),
 ('capy_function_destroy', [ctypes.c_void_p]),
 
@@ -1607,10 +1608,12 @@ class Type4Function:
     def __init__(self, domain, range_, code):
         self._as_parameter_ = None
         t4f = ctypes.c_void_p()
+        strbuf = code.encode('UTF-8')
         check_error(libfile.capy_type4_function_new(
             *to_array(ctypes.c_double, domain),
             *to_array(ctypes.c_double, range_),
-            code.encode('UTF-8'),
+            strbuf,
+            len(strbuf),
             ctypes.pointer(t4f)))
         self._as_parameter_ = t4f
 
