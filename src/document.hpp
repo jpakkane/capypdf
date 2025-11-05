@@ -135,7 +135,7 @@ struct DelayedSubsetCMap {
 struct DelayedSubsetFontDescriptor {
     CapyPDF_FontId fid;
     int32_t subfont_data_obj;
-    int32_t subset_num;
+    int32_t subset_id;
 };
 
 struct DelayedSubsetFont {

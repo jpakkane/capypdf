@@ -307,7 +307,7 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             ERCV(write_subset_font_descriptor(i,
                                               doc.fonts.at(ssfontd.fid.id).fontdata,
                                               ssfontd.subfont_data_obj,
-                                              ssfontd.subset_num));
+                                              ssfontd.subset_id));
             RETOK;
         },
 
