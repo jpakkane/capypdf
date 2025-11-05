@@ -124,18 +124,15 @@ struct DeflatePDFObject {
 
 struct DelayedSubsetFontData {
     CapyPDF_FontId fid;
-    int32_t subset_id;
 };
 
 struct DelayedSubsetCMap {
     CapyPDF_FontId fid;
-    int32_t subset_id;
 };
 
 struct DelayedSubsetFontDescriptor {
     CapyPDF_FontId fid;
     int32_t subfont_data_obj;
-    int32_t subset_id;
 };
 
 struct DelayedSubsetFont {

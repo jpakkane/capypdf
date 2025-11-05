@@ -303,11 +303,15 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             RETOK;
         },
 
+        // The same font file might get used multiple times in the same document.
+        // This can happen either by accident or because a variable size font is used
+        // with multiple different axis values. Thus each font requires a unique subset
+        // number and the easiest way to do that is to assign each one a running number,
+        // which is the same as the font id.
         [&](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
-            ERCV(write_subset_font_descriptor(i,
-                                              doc.fonts.at(ssfontd.fid.id).fontdata,
-                                              ssfontd.subfont_data_obj,
-                                              ssfontd.subset_id));
+            const auto subset_id = ssfontd.fid.id;
+            ERCV(write_subset_font_descriptor(
+                i, doc.fonts.at(ssfontd.fid.id).fontdata, ssfontd.subfont_data_obj, subset_id));
             RETOK;
         },
 
