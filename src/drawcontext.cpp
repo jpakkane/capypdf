@@ -180,7 +180,6 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         for(const auto &i : used_external_fonts) {
             const auto &bob = doc->get(i.fid);
-            assert(i.subset_id == 0);
             scratch = std::format("/SFont{}", bob.font_obj);
             fmt.add_token(scratch);
             fmt.add_object_ref(bob.font_obj);
@@ -904,7 +903,6 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
                 "/SFont{} {:f} Tf\n", doc->get(current_font).font_obj, current_pointsize);
             cmds.append(cmd);
             FontSubset fs;
-            fs.subset_id = 0;
             fs.fid = current_font;
             used_external_fonts.insert(fs);
             RETOK;

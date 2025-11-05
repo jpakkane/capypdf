@@ -523,11 +523,8 @@ struct TextStateParameters {
 
 struct FontSubset {
     CapyPDF_FontId fid;
-    int32_t subset_id;
 
-    bool operator==(const FontSubset &other) const {
-        return fid.id == other.fid.id && subset_id == other.subset_id;
-    }
+    bool operator==(const FontSubset &other) const { return fid.id == other.fid.id; }
 
     bool operator!=(const FontSubset &other) const { return !(*this == other); }
 };

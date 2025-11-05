@@ -17,15 +17,7 @@
 #include <span>
 
 template<> struct std::hash<capypdf::internal::FontSubset> {
-    size_t operator()(capypdf::internal::FontSubset const &s) const noexcept {
-        const size_t x = (size_t)s.fid.id;
-        const size_t y = s.subset_id;
-        if constexpr(sizeof(size_t) == 8) {
-            return (x << 32) + y;
-        } else {
-            return (x << 16) + y;
-        }
-    }
+    size_t operator()(capypdf::internal::FontSubset const &s) const noexcept { return s.fid.id; }
 };
 
 namespace capypdf::internal {

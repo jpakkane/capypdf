@@ -1212,7 +1212,6 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
     SubsetGlyph fss;
     fss.ss.fid = fid;
-    fss.ss.subset_id = blub.subset;
     fss.glyph_id = blub.offset;
     return fss;
 }
@@ -1222,7 +1221,6 @@ PdfDocument::get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(text, glyph_id));
     SubsetGlyph fss;
     fss.ss.fid = fid;
-    fss.ss.subset_id = blub.subset;
     fss.glyph_id = blub.offset;
     return fss;
 }

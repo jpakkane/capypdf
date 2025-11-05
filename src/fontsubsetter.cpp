@@ -132,7 +132,7 @@ FontSubsetter::unchecked_insert_glyph_to_last_subset(const uint32_t codepoint,
     ERCV(handle_subglyphs(glyph_index));
     subset.glyphs.push_back(RegularGlyph{codepoint, glyph_index});
     subset.font_index_mapping[glyph_index] = (uint32_t)subset.glyphs.size() - 1;
-    return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
+    return FontSubsetInfo{int32_t(subset.glyphs.size() - 1)};
 }
 
 rvoe<NoReturnValue> FontSubsetter::handle_subglyphs(uint32_t glyph_index) {
@@ -177,7 +177,7 @@ rvoe<FontSubsetInfo> FontSubsetter::unchecked_insert_glyph_to_last_subset(const 
     ERCV(handle_subglyphs(glyph_id));
     subset.glyphs.push_back(LigatureGlyph{text, glyph_id});
     subset.font_index_mapping[glyph_id] = (uint32_t)subset.glyphs.size() - 1;
-    return FontSubsetInfo{int32_t(0), int32_t(subset.glyphs.size() - 1)};
+    return FontSubsetInfo{int32_t(subset.glyphs.size() - 1)};
 }
 
 std::optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) const {
@@ -191,7 +191,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_existing_glyph(uint32_t gid) c
             return false;
         });
     if(loc != subset.glyphs.cend()) {
-        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
+        return FontSubsetInfo{int32_t(loc - subset.glyphs.cbegin())};
     }
     return {};
 }
@@ -205,7 +205,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph_with_codepoint(uint32_t 
             return false;
         });
     if(loc != subset.glyphs.cend()) {
-        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
+        return FontSubsetInfo{int32_t(loc - subset.glyphs.cbegin())};
     }
     return {};
 }
@@ -219,7 +219,7 @@ std::optional<FontSubsetInfo> FontSubsetter::find_glyph(const u8string &text) co
             return false;
         });
     if(loc != subset.glyphs.cend()) {
-        return FontSubsetInfo{int32_t(0), int32_t(loc - subset.glyphs.cbegin())};
+        return FontSubsetInfo{int32_t(loc - subset.glyphs.cbegin())};
     }
     return {};
 }
