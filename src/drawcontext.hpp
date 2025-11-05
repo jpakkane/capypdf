@@ -228,8 +228,8 @@ private:
     PdfColorConverter *cm;
     CapyPDF_Draw_Context_Type context_type;
     std::unordered_set<int32_t> used_images;
-    std::unordered_set<FontSubset> used_subset_fonts;
-    std::unordered_set<int32_t> used_fonts;
+    std::unordered_set<FontSubset> used_external_fonts;
+    std::unordered_set<int32_t> used_builtin_fonts;
     std::unordered_set<int32_t> used_colorspaces;
     std::unordered_set<int32_t> used_gstates;
     std::unordered_set<int32_t> used_shadings;

@@ -121,8 +121,8 @@ rvoe<DCSerialization> PdfDrawContext::serialize() {
 
 void PdfDrawContext::clear() {
     used_images.clear();
-    used_subset_fonts.clear();
-    used_fonts.clear();
+    used_external_fonts.clear();
+    used_builtin_fonts.clear();
     used_colorspaces.clear();
     used_gstates.clear();
     used_shadings.clear();
@@ -170,15 +170,15 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         }
         fmt.end_dict();
     }
-    if(!used_fonts.empty() || !used_subset_fonts.empty()) {
+    if(!used_builtin_fonts.empty() || !used_external_fonts.empty()) {
         fmt.add_token("/Font");
         fmt.begin_dict();
-        for(const auto &i : used_fonts) {
+        for(const auto &i : used_builtin_fonts) {
             scratch = std::format("/Font{}", i);
             fmt.add_token(scratch);
             fmt.add_object_ref(i);
         }
-        for(const auto &i : used_subset_fonts) {
+        for(const auto &i : used_external_fonts) {
             const auto &bob = doc->get(i.fid);
             assert(i.subset_id == 0);
             scratch = std::format("/SFont{}", bob.font_obj);
@@ -801,7 +801,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
     bool is_first = true;
     auto glyph_appender_lambda =
         [this, &serialisation, &is_first](const SubsetGlyph &current_subset_glyph) {
-            used_subset_fonts.insert(current_subset_glyph.ss);
+            used_external_fonts.insert(current_subset_glyph.ss);
             if(is_first) {
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
@@ -826,7 +826,7 @@ rvoe<NoReturnValue> PdfDrawContext::serialize_charsequence(const TextEvents &cha
                 continue;
             }
             ERC(subset, doc->get_subset_glyph(current_font, *u8str->begin(), {}));
-            used_subset_fonts.insert(subset.ss);
+            used_external_fonts.insert(subset.ss);
             if(is_first) {
                 serialisation.append_indent();
                 serialisation.append_raw("[ ");
@@ -906,7 +906,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_text(const PdfText &textobj) {
             FontSubset fs;
             fs.subset_id = 0;
             fs.fid = current_font;
-            used_subset_fonts.insert(fs);
+            used_external_fonts.insert(fs);
             RETOK;
         },
 
@@ -1164,7 +1164,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_glyphs(const std::vector<PdfGlyph> &g
     for(const auto &g : glyphs) {
         ERC(current_subset_glyph, doc->get_subset_glyph(fid, g.codepoint, {}));
         // const auto &bob = doc->font_objects.at(current_subset_glyph.ss.fid.id);
-        used_subset_fonts.insert(current_subset_glyph.ss);
+        used_external_fonts.insert(current_subset_glyph.ss);
         cmds.append_command(g.x - prev_x, g.y - prev_y, "Td");
         prev_x = g.x;
         prev_y = g.y;
@@ -1187,7 +1187,7 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
         RETERR(BadOperationForIntent);
     }
     auto font_object = doc->font_object_number(doc->get_builtin_font_id(font_id));
-    used_fonts.insert(font_object);
+    used_builtin_fonts.insert(font_object);
     cmds.append("BT");
     ERCV(cmds.indent(DrawStateType::Text));
     std::string cmd;
