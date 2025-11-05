@@ -1999,7 +1999,12 @@ PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
     ERC(fss, FontSubsetter::construct(fname, face, props));
     fonts.emplace_back(FontThingy{std::move(ttf), std::move(fss)});
 
-    const int32_t subset_num = 0;
+    // The same font file might get used multiple times in the same document.
+    // This can happen either by accident or because a variable size font is used
+    // with multiple different axis values. Thus each font requires a unique subset
+    // number and the easiest way to do that is to assign each one a running number,
+    // which is the same as the font id.
+    const int32_t subset_num = (int32_t)fonts.size();
     auto subfont_data_obj = add_object(DelayedSubsetFontData{font_source_id, subset_num});
     auto subfont_descriptor_obj =
         add_object(DelayedSubsetFontDescriptor{font_source_id, subfont_data_obj, subset_num});
