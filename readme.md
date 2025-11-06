@@ -58,3 +58,9 @@ implemented on a best effort basis.
 The basic functionality is there and the library can be used to
 generate fairly complex documents. The APIs are not stable yet,
 however they are not expected to change much any more.
+
+## AI policy
+
+The use of any and all AI tools for this project is prohibited. Issues
+and pull requests created using AI will not be looked at, but instead
+will be closed immediately upon detection.
