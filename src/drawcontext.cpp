@@ -1285,6 +1285,8 @@ rvoe<NoReturnValue> PdfDrawContext::set_group_matrix(const PdfMatrix &mat) {
     RETOK;
 }
 
+rvoe<std::string> PdfDrawContext::steal_command_stream() { return cmds.steal(); }
+
 rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {
     for(const auto &id : used_structures) {
         if(id == sid) {

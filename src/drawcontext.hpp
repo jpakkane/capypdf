@@ -210,6 +210,8 @@ public:
 
     rvoe<NoReturnValue> set_group_matrix(const PdfMatrix &mat);
 
+    rvoe<std::string> steal_command_stream();
+
 private:
     rvoe<NoReturnValue> serialize_charsequence(const TextEvents &charseq,
                                                CommandStreamFormatter &serialisation,

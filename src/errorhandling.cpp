@@ -99,6 +99,8 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Font does not support variations.",
 "Font does not have requested variation.",
 
+"Codepoint already exists in font.",
+
 };
 
 // clang-format on
