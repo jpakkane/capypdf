@@ -114,6 +114,8 @@ public:
     PdfDrawContext new_color_pattern_builder(const PdfRectangle &rect);
     PdfDrawContext *new_color_pattern(const PdfRectangle &rect);
 
+    PdfDrawContext *new_type3_font_context(const PdfRectangle &rect);
+
     rvoe<PageId> add_page(PdfDrawContext &ctx);
     rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
                                           std::optional<CapyPDF_Page_Label_Number_Style> style,

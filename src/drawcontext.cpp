@@ -391,6 +391,23 @@ PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase
     RETOK;
 }
 
+rvoe<NoReturnValue> PdfDrawContext::cmd_d0(double wx, double wy) {
+    if(context_type != CAPY_DC_TYPE3_FONT) {
+        RETERR(InvalidDrawContextType);
+    }
+    cmds.append_command(wx, wy, "d0");
+    RETOK;
+}
+
+rvoe<NoReturnValue>
+PdfDrawContext::cmd_d1(double wx, double wy, double llx, double lly, double urx, double ury) {
+    if(context_type != CAPY_DC_TYPE3_FONT) {
+        RETERR(InvalidDrawContextType);
+    }
+    cmds.append_command(wx, wy, llx, lly, urx, ury, "d1");
+    RETOK;
+}
+
 rvoe<NoReturnValue> PdfDrawContext::cmd_Do(CapyPDF_FormXObjectId fxoid) {
     CHECK_INDEXNESS(fxoid.id, doc->form_xobjects);
     auto cmd = std::format("/FXO{} Do\n", doc->form_xobjects[fxoid.id].xobj_num);

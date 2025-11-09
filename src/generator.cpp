@@ -163,6 +163,10 @@ PdfDrawContext *PdfGen::new_color_pattern(const PdfRectangle &rect) {
     return new PdfDrawContext(&pdoc, &pdoc.cm, CAPY_DC_COLOR_TILING, rect);
 }
 
+PdfDrawContext *PdfGen::new_type3_font_context(const PdfRectangle &rect) {
+    return new PdfDrawContext(&pdoc, &pdoc.cm, CAPY_DC_TYPE3_FONT, rect);
+}
+
 rvoe<double>
 PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsize) const {
     if(txt.empty()) {

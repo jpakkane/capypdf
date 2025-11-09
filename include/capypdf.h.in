@@ -123,6 +123,7 @@ typedef enum {
     CAPY_DC_UCOLORED_TILING,
     CAPY_DC_FORM_XOBJECT,
     CAPY_DC_TRANSPARENCY_GROUP,
+    CAPY_DC_TYPE3_FONT,
 } CapyPDF_Draw_Context_Type;
 
 typedef enum {
@@ -724,6 +725,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
                                         double *dash_array,
                                         int32_t array_size,
                                         double phase) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d0(CapyPDF_DrawContext *ctx,
+                                         double wx,
+                                         double wy) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d1(CapyPDF_DrawContext *ctx,
+                                         double wx,
+                                         double wy,
+                                         double llx,
+                                         double lly,
+                                         double urx,
+                                         double ury) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do_trgroup(
     CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupId tgid) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do_image(CapyPDF_DrawContext *ctx,
@@ -851,6 +862,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
                                                           double b,
                                                           double r,
                                                           double t) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+// Type 3 font
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_font_context_new(CapyPDF_Generator *gen,
+                                                      CapyPDF_DrawContext **out_ptr,
+                                                      double l,
+                                                      double b,
+                                                      double r,
+                                                      double t) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Text
 

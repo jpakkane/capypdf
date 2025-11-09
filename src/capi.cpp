@@ -959,6 +959,28 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d0(CapyPDF_DrawContext *ctx,
+                                         double wx,
+                                         double wy) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_d0(wx, wy));
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d1(CapyPDF_DrawContext *ctx,
+                                         double wx,
+                                         double wy,
+                                         double llx,
+                                         double lly,
+                                         double urx,
+                                         double ury) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto dc = reinterpret_cast<PdfDrawContext *>(ctx);
+    return conv_err(dc->cmd_d1(wx, wy, llx, lly, urx, ury));
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_Do_trgroup(
     CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupId tgid) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -1373,6 +1395,25 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
         return conv_err(bbox);
     }
     *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_color_pattern(bbox.value()));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+// Type 3 font
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_type3_font_context_new(CapyPDF_Generator *gen,
+                                                      CapyPDF_DrawContext **out_ptr,
+                                                      double l,
+                                                      double b,
+                                                      double r,
+                                                      double t) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto bbox = PdfRectangle::construct(l, b, r, t);
+    if(!bbox) {
+        return conv_err(bbox);
+    }
+    *out_ptr = reinterpret_cast<CapyPDF_DrawContext *>(g->new_type3_font_context(bbox.value()));
     RETNOERR;
     API_BOUNDARY_END;
 }

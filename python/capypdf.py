@@ -362,6 +362,8 @@ cfunc_types = (
 ('capy_dc_cmd_cm', [ctypes.c_void_p,
     ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_d', [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int32, ctypes.c_double]),
+('capy_dc_cmd_d0', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('capy_dc_cmd_d1', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_dc_cmd_Do_trgroup', [ctypes.c_void_p, TransparencyGroupId]),
 ('capy_dc_cmd_Do_image', [ctypes.c_void_p, ImageId]),
 ('capy_dc_cmd_EMC', [ctypes.c_void_p]),
@@ -410,6 +412,7 @@ cfunc_types = (
 ('capy_soft_mask_destroy', [ctypes.c_void_p]),
 
 ('capy_tiling_pattern_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
+('capy_type3_font_context_new', [ctypes.c_void_p,ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_form_xobject_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_new', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_transparency_group_properties_new', [ctypes.c_void_p]),
@@ -799,6 +802,12 @@ class DrawContextBase:
     def cmd_d(self, array, phase):
         check_error(libfile.capy_dc_cmd_d(self, *to_array(ctypes.c_double, array), phase))
 
+    def cmd_d0(self, wx, wy):
+        check_error(libfile.capy_dc_cmd_d0(self, wx, wy))
+
+    def cmd_d1(self, wx, wy, llx, lly, urx, ury):
+        check_error(libfile.capy_dc_cmd_d1(self, wx, wy, llx, lly, urx, ury))
+
     def cmd_Do(self, id):
         if isinstance(id, TransparencyGroupId):
             check_error(libfile.capy_dc_cmd_Do_trgroup(self, id))
@@ -1002,6 +1011,14 @@ class ColorPatternDrawContext(DrawContextBase):
         check_error(libfile.capy_tiling_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, r, t))
         self._as_parameter_ = dcptr
 
+class Type3FontDrawContext(DrawContextBase):
+
+    def __init__(self, generator, l, b, r, t):
+        super().__init__(generator)
+        dcptr = ctypes.c_void_p()
+        check_error(libfile.capy_type3_font_context_new(generator, ctypes.pointer(dcptr), l, b, r, t))
+        self._as_parameter_ = dcptr
+
 class FormXObjectDrawContext(DrawContextBase):
 
     def __init__(self, generator, l, b, r, t):
@@ -1092,6 +1109,9 @@ class Generator:
 
     def create_tiling_pattern_context(self, l, b, r, t):
         return ColorPatternDrawContext(self, l, b, r, t)
+
+    def create_type3_font_context(self, l, b, r, t):
+        return Type3FontDrawContext(self, l, b, r, t)
 
     def add_page(self, page_ctx):
         check_error(libfile.capy_generator_add_page(self, page_ctx))
@@ -1197,7 +1217,6 @@ class Generator:
         else:
             raise CapyPDFException('First argument must be a structure item or role id.')
         return stid
-
 
     def add_separation(self, name, colorspace, funcid):
         sepid = SeparationId()
