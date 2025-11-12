@@ -3,6 +3,8 @@
 
 #pragma once
 
+import std;
+
 #include <document.hpp>
 
 namespace capypdf::internal {

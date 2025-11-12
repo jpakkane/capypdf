@@ -3,12 +3,11 @@
 
 #pragma once
 
+import std;
+
 #include <ft_subsetter.hpp>
 
-#include <vector>
-#include <optional>
 #include <cstdint>
-#include <unordered_map>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

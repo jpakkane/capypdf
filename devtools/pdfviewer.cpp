@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <pdfparser.hpp>
 #include <gtk/gtk.h>
 #include <sys/mman.h>
 #include <zlib.h>
 #include <cassert>
-#include <filesystem>
-#include <optional>
-#include <vector>
 
 enum { OBJNUM_COLUMN, OFFSET_COLUMN, STREAM_SIZE_COLUMN, TYPE_COLUMN, N_OBJ_COLUMNS };
 

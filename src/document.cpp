@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+import std;
+
 #include <document.hpp>
 #include <utils.hpp>
 #include <drawcontext.hpp>
 #include <objectformatter.hpp>
 
 #include <cassert>
-#include <array>
-#include <bit>
-#include <algorithm>
-#include <format>
 #include <ft2build.h>
-#include <variant>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H
 #include FT_OPENTYPE_VALIDATE_H

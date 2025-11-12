@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025 Jussi Pakkanen
 
+import std;
+
 #include <mmapper.hpp>
 #include <utils.hpp>
 #ifdef _WIN32

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+import std;
+
 #include <capypdf.h>
 #include <cstring>
 #include <generator.hpp>
 #include <drawcontext.hpp>
 #include <errorhandling.hpp>
-
-#include <filesystem>
 
 #define RETNOERR return conv_err(ErrorCode::NoError)
 

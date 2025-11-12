@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
+import std;
+
 #include <objectformatter.hpp>
 #include <pdfcommon.hpp>
 
-#include <format>
 #include <cassert>
 
 namespace capypdf::internal {

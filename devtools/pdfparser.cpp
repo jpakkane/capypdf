@@ -1,21 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+import std;
+
 #include <pdfparser.hpp>
 #include <strings.h>
-#include <regex>
-#include <string_view>
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <map>
 #include <cstdint>
 #include <cstdlib>
-#include <optional>
-#include <variant>
-#include <algorithm>
-
-#include <format>
 
 #include <cassert>
 

@@ -3,8 +3,9 @@
 
 #pragma once
 
+import std;
+
 #include <cstdint>
-#include <expected>
 
 namespace capypdf::internal {
 

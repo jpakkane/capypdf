@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025 Jussi Pakkanen
 
+import std;
+
 #include <commandstreamformatter.hpp>
-#include <format>
 #include <cassert>
 
 namespace capypdf::internal {

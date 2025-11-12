@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+import std;
+
 #include <ft_subsetter.hpp>
 #include <bitfiddling.hpp>
 #include <fontsubsetter.hpp>
@@ -10,11 +12,7 @@
 #include FT_FREETYPE_H
 
 #include <cassert>
-#include <bit>
 #include <cmath>
-
-#include <variant>
-#include <expected>
 
 namespace capypdf::internal {
 

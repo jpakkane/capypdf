@@ -3,12 +3,12 @@
 
 #pragma once
 
+import std;
+
 #include <capypdf.h>
 #include <pdfcommon.hpp>
-#include <variant>
 #include <cstdint>
 #include <errorhandling.hpp>
-#include <vector>
 
 namespace capypdf::internal {
 

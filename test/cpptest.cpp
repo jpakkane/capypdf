@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+import std;
+
 #include <capypdf.hpp>
 #include <stdio.h>
-#include <string>
 #ifndef _WIN32
 #include <unistd.h>
 #endif

@@ -1,11 +1,8 @@
 #pragma once
 
+import std;
+
 #include <errorhandling.hpp>
-#include <span>
-#include <vector>
-#include <string_view>
-#include <bit>
-#include <string>
 
 #include <cstring>
 #include <cassert>

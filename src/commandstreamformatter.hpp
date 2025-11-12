@@ -3,12 +3,9 @@
 
 #pragma once
 
-#include <errorhandling.hpp>
+import std;
 
-#include <iterator>
-#include <string>
-#include <vector>
-#include <stdint.h>
+#include <errorhandling.hpp>
 
 namespace capypdf::internal {
 

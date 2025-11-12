@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025 Jussi Pakkanen
 
+import std;
+
 #include <ft_subsetter.hpp>
-#include <stdexcept>
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t bufsize) {
     if(!buf) {

@@ -3,14 +3,12 @@
 
 #pragma once
 
+import std;
+
 #include <pdfcommon.hpp>
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
 #include <cffsubsetter.hpp>
-
-#include <vector>
-#include <variant>
-#include <unordered_map>
 
 typedef struct FT_FaceRec_ *FT_Face;
 

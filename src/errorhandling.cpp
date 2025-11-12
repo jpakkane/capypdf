@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <errorhandling.hpp>
-#include <array>
 #include <cstdio>
 #include <cstdlib>
 

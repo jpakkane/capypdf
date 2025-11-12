@@ -3,19 +3,12 @@
 
 #pragma once
 
-#include <optional>
+import std;
+
 #include <pdfcommon.hpp>
 #include <fontsubsetter.hpp>
 #include <colorconverter.hpp>
 #include <objectformatter.hpp>
-
-#include <string_view>
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <memory>
-#include <variant>
 
 // To avoid pulling all of LittleCMS in this file.
 typedef void *cmsHPROFILE;

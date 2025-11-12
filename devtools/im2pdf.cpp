@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
+import std;
+
 #include <capypdf.hpp>
 
 int main(int argc, char **argv) {

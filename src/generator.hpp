@@ -3,14 +3,12 @@
 
 #pragma once
 
+import std;
+
 #include <drawcontext.hpp>
 
 #include <cstdio>
 #include <cstdint>
-
-#include <vector>
-#include <string_view>
-#include <optional>
 
 namespace capypdf::internal {
 

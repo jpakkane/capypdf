@@ -3,18 +3,10 @@
 
 #pragma once
 
+import std;
+
 #include <capypdf.h>
 #include <errorhandling.hpp>
-
-#include <optional>
-#include <vector>
-#include <array>
-#include <string>
-#include <string_view>
-#include <functional>
-#include <variant>
-#include <iterator>
-#include <span>
 
 #include <cstdint>
 #include <cmath>

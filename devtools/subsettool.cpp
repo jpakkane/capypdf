@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025 Jussi Pakkanen
 
+import std;
+
 #include <ft_subsetter.hpp>
 
 #include <ft2build.h>
@@ -8,8 +10,6 @@
 #include FT_MULTIPLE_MASTERS_H
 
 #include <cassert>
-
-#include <bit>
 
 using namespace capypdf::internal;
 

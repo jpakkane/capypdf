@@ -3,13 +3,12 @@
 
 #pragma once
 
+import std;
+
 // The functionality in this header is neither ABI nor API stable.
 // If you need that, use the plain C header.
 
 #include <capypdf.h>
-#include <memory>
-#include <optional>
-#include <stdexcept>
 #include <cmath>
 #include <cstdio>
 

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <colorconverter.hpp>
 #include <utils.hpp>
 #include <lcms2.h>
 #include <cassert>
-#include <array>
 
 namespace {
 

@@ -3,18 +3,14 @@
 
 #pragma once
 
+import std;
+
 #include <pdfcommon.hpp>
 #include <pdftext.hpp>
 #include <errorhandling.hpp>
 #include <colorconverter.hpp>
 #include <document.hpp>
 #include <commandstreamformatter.hpp>
-#include <string>
-#include <string_view>
-#include <unordered_set>
-#include <vector>
-#include <optional>
-#include <span>
 
 template<> struct std::hash<capypdf::internal::FontSubset> {
     size_t operator()(capypdf::internal::FontSubset const &s) const noexcept { return s.fid.id; }

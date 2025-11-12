@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <filesystem>
 #include <imagefileops.hpp>
 #include <utils.hpp>
@@ -9,10 +11,6 @@
 #include <tiffio.h>
 #include <cstring>
 #include <cassert>
-#include <vector>
-#include <memory>
-#include <span>
-#include <algorithm>
 
 namespace capypdf::internal {
 

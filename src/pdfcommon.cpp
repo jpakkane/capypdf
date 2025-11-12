@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <pdfcommon.hpp>
 #include <objectformatter.hpp>
 #include <utils.hpp>

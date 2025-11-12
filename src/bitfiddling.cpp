@@ -1,5 +1,7 @@
 #include <bitfiddling.hpp>
 
+import std;
+
 namespace capypdf::internal {
 
 rvoe<std::span<const std::byte>> get_substring(const char *buf,

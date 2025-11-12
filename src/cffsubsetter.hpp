@@ -3,12 +3,11 @@
 
 #pragma once
 
+import std;
+
 #include <errorhandling.hpp>
 #include <mmapper.hpp>
-#include <optional>
-#include <vector>
 
-#include <span>
 #include <cstdint>
 
 namespace capypdf::internal {

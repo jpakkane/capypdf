@@ -3,6 +3,8 @@
 
 #pragma once
 
+import std;
+
 #include "pdfcommon.hpp"
 #include <errorhandling.hpp>
 #include <cstdint>

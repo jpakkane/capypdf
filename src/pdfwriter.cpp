@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
+import std;
+
 #include "bitfiddling.hpp"
 #include <pdfwriter.hpp>
 #include <utils.hpp>
 #include <objectformatter.hpp>
 
-#include <filesystem>
-#include <format>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_FONT_FORMATS_H

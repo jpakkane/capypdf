@@ -3,10 +3,9 @@
 
 #pragma once
 
+import std;
+
 #include <cstdint>
-#include <stack>
-#include <string>
-#include <vector>
 
 namespace capypdf::internal {
 

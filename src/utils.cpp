@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022-2024 Jussi Pakkanen
 
+import std;
+
 #include <utils.hpp>
 #include <objectformatter.hpp>
 #include <zlib.h>
@@ -12,11 +14,6 @@
 #else
 #include <sys/time.h>
 #endif
-
-#include <format>
-#include <memory>
-#include <random>
-#include <chrono>
 
 namespace capypdf::internal {
 

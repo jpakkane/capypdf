@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025 Jussi Pakkanen
 
+import std;
+
 #include <cffsubsetter.hpp>
 #include <ft_subsetter.hpp>
-#include <filesystem>
 
 int main2(int argc, char **argv) {
     auto cff_file = capypdf::internal::parse_cff_file(argv[1]);
