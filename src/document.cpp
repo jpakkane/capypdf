@@ -1104,24 +1104,46 @@ int32_t PdfDocument::add_document_metadata_object() {
         xfmt.start_tag("pdfaid:part");
         xfmt.finish_tag();
         xfmt.add_content(pdfa_part.at(*aptr));
-        xfmt.add_end_tag("pdfaid:part");
+        xfmt.close_tag();
 
         if(*aptr == CAPY_PDFA_4f) {
             xfmt.start_tag("pdfaid:rev");
             xfmt.finish_tag();
             xfmt.add_content("2020");
-            xfmt.add_end_tag("pdfaid:rev");
+            xfmt.close_tag();
         } else {
             xfmt.start_tag("pdfaid:conformance");
             xfmt.finish_tag();
             xfmt.add_content(pdfa_conformance.at(*aptr));
-            xfmt.add_end_tag("pdfaid:conformance");
+            xfmt.close_tag();
         }
-        xfmt.add_end_tag("rdf:Description");
-        xfmt.add_end_tag("rdf:RDF");
-        xfmt.add_end_tag("x:xmpmeta");
-        xfmt.add_text_unchecked(R"(<?xpacket end="w"?>)"
-                                "\n");
+        xfmt.close_tag();
+
+        xfmt.start_tag("rdf:Description");
+        xfmt.add_tag_attribute("rdf:about", "");
+        xfmt.add_tag_attribute("xmlns:pdf", "http://ns.adobe.com/pdf/1.3/");
+        xfmt.finish_tag();
+        xfmt.start_tag("pdf:Producer");
+        xfmt.finish_tag();
+        xfmt.add_content("CapyPDF " CAPYPDF_VERSION_STR);
+        xfmt.close_tag();
+        xfmt.close_tag();
+
+        xfmt.start_tag("rdf:Description");
+        xfmt.add_tag_attribute("about", "");
+        xfmt.add_tag_attribute("xmlns:xmp", "http://ns.adobe.com/xap/1.0/");
+        xfmt.finish_tag();
+        if(!docprops.creator.empty()) {
+            xfmt.start_tag("xmp:CreatorTool");
+            xfmt.finish_tag();
+            xfmt.add_content(docprops.creator);
+            xfmt.close_tag();
+        }
+        xfmt.close_tag();
+
+        xfmt.close_tag();
+        xfmt.close_tag();
+        xfmt.add_text_unchecked(R"(<?xpacket end="w"?>)");
 
         auto stream = xfmt.steal();
         fmt.add_token_pair("/Length", stream.length());

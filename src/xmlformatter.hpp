@@ -6,6 +6,7 @@
 #include <pdfcommon.hpp>
 #include <cstdint>
 #include <string>
+#include <stack>
 
 namespace capypdf::internal {
 
@@ -24,7 +25,7 @@ public:
     void add_tag_attribute(const char *name, std::string_view value);
     void finish_tag();
     void finish_standalone_tag();
-    void add_end_tag(const char *fname);
+    void close_tag();
 
     void add_content(const u8string &content);
     void add_content(const std::string_view &content);
@@ -34,6 +35,7 @@ public:
 private:
     std::string output;
     std::string indent;
+    std::stack<std::string, std::vector<std::string>> tags;
     XMLState state = XMLState::Basic;
 };
 

@@ -49,6 +49,7 @@ void XMLFormatter::start_tag(const char *name) {
     }
     output += "<";
     output += name;
+    tags.push(name);
     state = XMLState::TagOpen;
 }
 
@@ -91,28 +92,30 @@ void XMLFormatter::finish_standalone_tag() {
     state = XMLState::Basic;
 }
 
-void XMLFormatter::add_end_tag(const char *tag) {
+void XMLFormatter::close_tag() {
     if(state == XMLState::TagOpen) {
         std::abort();
     }
-    if(!is_valid_tag_name(tag)) {
+
+    if(tags.empty()) {
         std::abort();
     }
     if(indent.size() < 2) {
         std::abort();
     }
+    indent.pop_back();
+    indent.pop_back();
     if(output.back() == '>') {
         output += "\n";
         output += indent;
     }
     output += "</";
-    output += tag;
+    output += tags.top();
     output += ">";
-    indent.pop_back();
-    indent.pop_back();
     if(indent.empty()) {
         output += "\n";
     }
+    tags.pop();
     state = XMLState::Basic;
 }
 
