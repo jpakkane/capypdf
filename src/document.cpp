@@ -5,6 +5,7 @@
 #include <utils.hpp>
 #include <drawcontext.hpp>
 #include <objectformatter.hpp>
+#include <xmlformatter.hpp>
 
 #include <cassert>
 #include <array>
@@ -60,20 +61,6 @@ const std::array<const char *, 21> spot_function_names{
 
 namespace {
 
-constexpr char pdfa_rdf_template[] = R"(<?xpacket begin="{}" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/">
- <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">
-   <pdfaid:part>{}</pdfaid:part>
-   <pdfaid:conformance>{}</pdfaid:conformance>
-  </rdf:Description>
- </rdf:RDF>
-</x:xmpmeta>
-<?xpacket end="w"?>
-)";
-
-const unsigned char rdf_magic[4] = {0xef, 0xbb, 0xbf, 0};
-
 // const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
 const std::array<const char *, 9> pdfx_names{
@@ -88,8 +75,9 @@ const std::array<const char *, 9> pdfx_names{
     "PDF/X-5pg",
 };
 
-const std::array<const char, 10> pdfa_part{'1', '1', '2', '2', '2', '3', '3', '3', '4', '4'};
-const std::array<const char, 10> pdfa_conformance{'A', 'B', 'A', 'B', 'U', 'A', 'B', 'U', 'F', 'E'};
+const std::array<const char *, 10> pdfa_part{"1", "1", "2", "2", "2", "3", "3", "3", "4", "4"};
+const std::array<const char *, 10> pdfa_conformance{
+    "A", "B", "A", "B", "U", "A", "B", "U", "F", "E"};
 
 FT_Error guarded_face_close(FT_Face face) {
     // Freetype segfaults if you give it a null pointer.
@@ -1094,8 +1082,42 @@ int32_t PdfDocument::add_document_metadata_object() {
         if(!aptr) {
             std::abort();
         }
-        auto stream = std::format(
-            pdfa_rdf_template, (char *)rdf_magic, pdfa_part.at(*aptr), pdfa_conformance.at(*aptr));
+        XMLFormatter xfmt;
+        xfmt.add_text_unchecked(R"(<?xpacket begin=")"
+                                "\xef\xbb\xbf"
+                                R"(" id="W5M0MpCehiHzreSzNTczkc9d"?>)"
+                                "\n");
+
+        xfmt.start_tag("x:xmpmeta");
+        xfmt.add_tag_attribute("xmlns:x", "adobe:ns:meta/");
+        xfmt.finish_tag();
+
+        xfmt.start_tag("rdf:RDF");
+        xfmt.add_tag_attribute("xmlns:rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+        xfmt.finish_tag();
+
+        xfmt.start_tag("rdf:Description");
+        xfmt.add_tag_attribute("rdf:about", "");
+        xfmt.add_tag_attribute("xmlns:pdfaid", "http://www.aiim.org/pdfa/ns/id/");
+        xfmt.finish_tag();
+
+        xfmt.start_tag("pdfaid:part");
+        xfmt.finish_tag();
+        xfmt.add_content(pdfa_part.at(*aptr));
+        xfmt.add_end_tag("pdfaid:part");
+
+        xfmt.start_tag("pdfaid:conformance");
+        xfmt.finish_tag();
+        xfmt.add_content(pdfa_conformance.at(*aptr));
+        xfmt.add_end_tag("pdfaid:conformance");
+
+        xfmt.add_end_tag("rdf:Description");
+        xfmt.add_end_tag("rdf:RDF");
+        xfmt.add_end_tag("x:xmpmeta");
+        xfmt.add_text_unchecked(R"(<?xpacket end="w"?>)"
+                                "\n");
+
+        auto stream = xfmt.steal();
         fmt.add_token_pair("/Length", stream.length());
         fmt.end_dict();
         return add_object(FullPDFObject{fmt.steal(), RawData(std::move(stream))});

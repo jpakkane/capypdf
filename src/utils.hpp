@@ -57,6 +57,7 @@ class ObjectFormatter;
 void serialize_trans(ObjectFormatter &fmt, const Transition &t);
 
 void quote_xml_element_data_into(const u8string &content, std::string &result);
+void quote_xml_element_data_unchecked_into(const std::string_view &content, std::string &result);
 
 std::span<std::byte> str2span(const std::string &s);
 std::string_view span2sv(std::span<std::byte> s);

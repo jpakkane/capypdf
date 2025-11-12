@@ -444,8 +444,11 @@ void serialize_trans(ObjectFormatter &fmt, const Transition &t) {
 }
 
 void quote_xml_element_data_into(const u8string &content, std::string &result) {
-    auto content_view = content.sv();
-    for(char c : content_view) {
+    quote_xml_element_data_unchecked_into(content.sv(), result);
+}
+
+void quote_xml_element_data_unchecked_into(const std::string_view &content, std::string &result) {
+    for(char c : content) {
         switch(c) {
         case '<':
             result += "&lt;";

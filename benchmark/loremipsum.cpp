@@ -168,7 +168,7 @@ void render_column(const std::vector<std::string> &text_lines,
                 const double word_spacing = ns != 0 ? extra_w / ns : 0;
                 // Not sure if this is 100% correct but it produces expected output so ...
                 const int32_t word_spacing_extra_thou = -1000 * word_spacing / textsize;
-                for(size_t j = 0; i < split_words.size(); ++j) {
+                for(size_t j = 0; j < split_words.size(); ++j) {
                     const auto &cur_word = split_words[j];
                     textobj.cmd_Tj(cur_word);
                     if(j != split_words.size() - 1) {
