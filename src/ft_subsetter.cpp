@@ -22,6 +22,13 @@ namespace {
 
 template<typename T> void byte_swap_inplace(T &val) { val = std::byteswap(val); }
 
+template<typename T> void byte_swap_inplace_unaligned(T *val) {
+    T aligned;
+    memcpy(&aligned, val, sizeof(T));
+    byte_swap_inplace(aligned);
+    memcpy(val, &aligned, sizeof(T));
+}
+
 uint32_t ttf_checksum(std::span<const std::byte> data) {
     uint32_t checksum = 0;
     uint32_t current;
@@ -85,8 +92,8 @@ void TTHead::swap_endian() {
     byte_swap_inplace(magic);
     byte_swap_inplace(flags);
     byte_swap_inplace(units_per_em);
-    byte_swap_inplace(created);
-    byte_swap_inplace(modified);
+    byte_swap_inplace_unaligned(&created);
+    byte_swap_inplace_unaligned(&modified);
     byte_swap_inplace(x_min);
     byte_swap_inplace(y_min);
     byte_swap_inplace(x_max);
@@ -222,7 +229,7 @@ struct TTGlyphHeader {
 };
 
 void TTHhea::swap_endian() {
-    byte_swap_inplace(version);
+    byte_swap_inplace_unaligned(&version);
     byte_swap_inplace(ascender);
     byte_swap_inplace(descender);
     byte_swap_inplace(linegap);
