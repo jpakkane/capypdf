@@ -1078,7 +1078,7 @@ int32_t PdfDocument::add_document_metadata_object() {
     fmt.add_token_pair("/Type", "/Metadata");
     fmt.add_token_pair("/Subtype", "/XML");
     if(docprops.metadata_xml.empty()) {
-        auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
+        const auto *aptr = std::get_if<CapyPDF_PDFA_Type>(&docprops.subtype);
         if(!aptr) {
             std::abort();
         }
@@ -1106,11 +1106,17 @@ int32_t PdfDocument::add_document_metadata_object() {
         xfmt.add_content(pdfa_part.at(*aptr));
         xfmt.add_end_tag("pdfaid:part");
 
-        xfmt.start_tag("pdfaid:conformance");
-        xfmt.finish_tag();
-        xfmt.add_content(pdfa_conformance.at(*aptr));
-        xfmt.add_end_tag("pdfaid:conformance");
-
+        if(*aptr == CAPY_PDFA_4f) {
+            xfmt.start_tag("pdfaid:rev");
+            xfmt.finish_tag();
+            xfmt.add_content("2020");
+            xfmt.add_end_tag("pdfaid:rev");
+        } else {
+            xfmt.start_tag("pdfaid:conformance");
+            xfmt.finish_tag();
+            xfmt.add_content(pdfa_conformance.at(*aptr));
+            xfmt.add_end_tag("pdfaid:conformance");
+        }
         xfmt.add_end_tag("rdf:Description");
         xfmt.add_end_tag("rdf:RDF");
         xfmt.add_end_tag("x:xmpmeta");
