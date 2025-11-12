@@ -449,15 +449,9 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_o
 #else
         ftell(ofile);
 #endif
+    auto documentid = create_trailer_id();
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/XRef");
-    /*
-    fmt.add_token("/Index");
-    fmt.begin_array();
-    fmt.add_token("0");
-    fmt.add_token(total_number_of_objects);
-    fmt.end_array();
-*/
     fmt.add_token("/W");
     fmt.begin_array();
     fmt.add_token(1);
@@ -471,6 +465,12 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_o
         fmt.add_token("/Info");
         fmt.add_object_ref(info);
     }
+
+    fmt.add_token("/ID");
+    fmt.begin_array();
+    fmt.add_token(documentid);
+    fmt.add_token(documentid);
+    fmt.end_array();
 
     bool first = true;
     std::vector<std::byte> stream;
