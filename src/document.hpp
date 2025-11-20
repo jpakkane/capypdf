@@ -277,11 +277,16 @@ struct PrintersMarkAnnotation {
     CapyPDF_FormXObjectId appearance;
 };
 
+struct ThreeDAnnotation {
+    CapyPDF_3DStreamId stream; // FIX in the future, this might be a 3D reference dictionary.
+};
+
 typedef std::variant<TextAnnotation,
                      LinkAnnotation,
                      FileAttachmentAnnotation,
                      ScreenAnnotation,
-                     PrintersMarkAnnotation>
+                     PrintersMarkAnnotation,
+                     ThreeDAnnotation>
     AnnotationSubType;
 
 struct Annotation {
@@ -486,6 +491,8 @@ public:
     rvoe<int32_t> create_structure_parent_tree();
 
     rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type);
+
+    rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream);
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

@@ -236,6 +236,9 @@ class HalftoneSpotFunction(Enum):
     Rhomboid = 19
     Diamond = 20
 
+class ThreeDFileFormat(Enum):
+    U3D = 0
+    PRC = 1
 
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
@@ -298,6 +301,9 @@ class StructureItemId(ctypes.Structure):
 class RoleId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
+class ThreeDStreamId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
 
 cfunc_types = (
 
@@ -347,6 +353,7 @@ cfunc_types = (
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, ctypes.c_void_p]),
+('capy_generator_add_3d_stream', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -544,6 +551,7 @@ cfunc_types = (
 ('capy_link_annotation_new', [ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
+('capy_3d_annotation_new', [ctypes.c_void_p]),
 ('capy_annotation_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -598,6 +606,9 @@ cfunc_types = (
 ('capy_halftone_set_default', [ctypes.c_void_p]),
 ('capy_halftone_set_type1', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, enum_type]),
 ('capy_halftone_destroy', [ctypes.c_void_p]),
+
+('capy_3d_stream_new', [ctypes.c_char_p, enum_type, ctypes.c_void_p]),
+('capy_3d_stream_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1264,6 +1275,13 @@ class Generator:
         check_error(libfile.capy_generator_add_soft_mask(self, sm, ctypes.pointer(smid)))
         return smid
 
+    def add_3d_stream(self, stream):
+        tdid = ThreeDStreamId()
+        if not isinstance(stream, ThreeDStream):
+            raise CapyPDFException('Argument must be a 3D stream object.')
+        check_error(libfile.capy_generator_add_3d_stream(self, stream, ctypes.pointer(tdid)))
+        return tdid
+
 class SoftMask:
     def __init__(self, subtype, tgid):
         if not isinstance(subtype, SoftMaskSubType):
@@ -1752,6 +1770,11 @@ class Annotation:
         uritxt = uri.encode('ASCII')
         check_error(libfile.capy_annotation_set_uri(self, uritxt, len(uritxt)))
 
+    def set_3d_stream(self, stream_id):
+        if not isinstance(stream_id, ThreeDStreamId):
+            raise CapyPDFException('Argument must be a 3D stream id.')
+        check_error(libfile.capy_annotation_set_3d_stream(self, stream_id))
+
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
@@ -1776,6 +1799,13 @@ class Annotation:
         ta = ctypes.c_void_p()
         check_error(libfile.capy_printers_mark_annotation_new(fid, ctypes.pointer(ta)))
         return Annotation(ta)
+
+    @classmethod
+    def new_3d_annotation(cls):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_3d_annotation_new(ctypes.pointer(ta)))
+        return Annotation(ta)
+
 
 class StructItemExtraData:
     def __init__(self):
@@ -1933,3 +1963,14 @@ class Halftone:
 
     def __del__(self):
         check_error(libfile.capy_halftone_destroy(self))
+
+
+class ThreeDStream:
+    def __init__(self, filename, format):
+        o = ctypes.c_void_p()
+        fname = to_bytepath(filename)
+        check_error(libfile.capy_3d_stream_new(fname, format.value, ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def __del__(self):
+        check_error(libfile.capy_3d_stream_destroy(self))

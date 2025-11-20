@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+#include "utils.hpp"
 #include <capypdf.h>
 #include <cstring>
 #include <generator.hpp>
@@ -656,6 +657,21 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
         ed = *reinterpret_cast<StructItemExtraData *>(extra);
     }
     auto rc = g->add_structure_item(role, item_parent, std::move(ed));
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_3d_stream(CapyPDF_Generator *gen,
+                                                       CapyPDF_3DStream *stream,
+                                                       CapyPDF_3DStreamId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *three = reinterpret_cast<ThreeDStream *>(stream);
+    auto rc = g->add_3d_stream(std::move(*three));
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2460,6 +2476,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{ThreeDAnnotation{-1}, {}});
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
     CapyPDF_Annotation *annotation, const CapyPDF_Destination *d) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2508,6 +2531,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
     API_BOUNDARY_START;
     auto *a = reinterpret_cast<Annotation *>(annotation);
     a->flags = flags;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(CapyPDF_Annotation *annotation,
+                                                        CapyPDF_3DStreamId id) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    if(auto *three = std::get_if<ThreeDAnnotation>(&a->sub)) {
+        three->stream = id;
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2938,6 +2974,29 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete reinterpret_cast<Halftone *>(ht);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+// 3D objects
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_new(const char *fname,
+                                             CapyPDF_3D_File_Format format,
+                                             CapyPDF_3DStream **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto rc = load_file_as_bytes(fname);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    *out_ptr =
+        reinterpret_cast<CapyPDF_3DStream *>(new ThreeDStream{format, std::move(rc.value())});
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_destroy(CapyPDF_3DStream *stream) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete reinterpret_cast<ThreeDStream *>(stream);
     RETNOERR;
     API_BOUNDARY_END;
 }

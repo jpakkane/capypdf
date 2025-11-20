@@ -1013,15 +1013,29 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             }
             fmt.end_dict();
         }
-    }
-
-    else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
+    } else if(auto pma = std::get_if<PrintersMarkAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/PrinterMark");
         fmt.add_token("/AP");
         fmt.begin_dict();
         fmt.add_token("/N");
         fmt.add_object_ref(doc.form_xobjects.at(pma->appearance.id).xobj_num);
         fmt.end_dict();
+    } else if(auto threed = std::get_if<ThreeDAnnotation>(&annotation.a.sub)) {
+        fmt.add_token_pair("/Subtype", "/3D");
+        if(threed->stream.id < 0) {
+            RETERR(InvalidIndex);
+        }
+        fmt.add_token("/3DD");
+        fmt.add_object_ref(threed->stream.id);
+        // 13.6.2
+        // A 3D annotation must have an AP entry.
+        fmt.add_token("/AP");
+        fmt.begin_dict();
+        fmt.add_token("/N");
+        fmt.begin_dict();
+        fmt.end_dict();
+        fmt.end_dict();
+        fmt.add_token_pair("/AS", "/N");
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
         std::abort();
