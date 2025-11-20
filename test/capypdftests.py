@@ -1651,7 +1651,6 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('100 weight', thin_font, 20, 20, 150)
                 ctx.render_text('800 weight', thick_font, 20, 20, 50)
 
-
     @cleanup('3d_annotation.pdf')
     def test_3d_annotation(self, ofilename):
         w = 200
@@ -1663,8 +1662,12 @@ class TestPDFCreation(unittest.TestCase):
         with capypdf.Generator(ofilename, dprops) as g:
             stream_obj = capypdf.ThreeDStream(model_dir / 'toruses.u3d', capypdf.ThreeDFileFormat.U3D)
             stream_id = g.add_3d_stream(stream_obj)
+            annotation = capypdf.Annotation.new_3d_annotation()
+            annotation.set_rectangle(10, 10, 190, 190)
+            annotation.set_3d_stream(stream_id)
+            annot_id = g.add_annotation(annotation)
             with g.page_draw_context() as ctx:
-                pass
+                ctx.annotate(annot_id)
 
 
 if __name__ == "__main__":

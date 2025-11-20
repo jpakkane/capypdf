@@ -69,7 +69,7 @@ private:
     bool add_info_key_to_trailer() const;
 
     PdfDocument &doc;
-    bool use_xref = true;
+    bool use_xref;
     uint32_t compressed_object_number = (uint32_t)-1;
     std::string objstm_stream;
     std::vector<ObjectOffset> object_offsets;

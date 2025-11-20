@@ -551,6 +551,7 @@ cfunc_types = (
 ('capy_link_annotation_new', [ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
+('capy_3d_annotation_new', [ctypes.c_void_p]),
 ('capy_annotation_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
@@ -1279,6 +1280,7 @@ class Generator:
         if not isinstance(stream, ThreeDStream):
             raise CapyPDFException('Argument must be a 3D stream object.')
         check_error(libfile.capy_generator_add_3d_stream(self, stream, ctypes.pointer(tdid)))
+        return tdid
 
 class SoftMask:
     def __init__(self, subtype, tgid):
@@ -1768,6 +1770,11 @@ class Annotation:
         uritxt = uri.encode('ASCII')
         check_error(libfile.capy_annotation_set_uri(self, uritxt, len(uritxt)))
 
+    def set_3d_stream(self, stream_id):
+        if not isinstance(stream_id, ThreeDStreamId):
+            raise CapyPDFException('Argument must be a 3D stream id.')
+        check_error(libfile.capy_annotation_set_3d_stream(self, stream_id))
+
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
@@ -1792,6 +1799,13 @@ class Annotation:
         ta = ctypes.c_void_p()
         check_error(libfile.capy_printers_mark_annotation_new(fid, ctypes.pointer(ta)))
         return Annotation(ta)
+
+    @classmethod
+    def new_3d_annotation(cls):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_3d_annotation_new(ctypes.pointer(ta)))
+        return Annotation(ta)
+
 
 class StructItemExtraData:
     def __init__(self):

@@ -277,11 +277,16 @@ struct PrintersMarkAnnotation {
     CapyPDF_FormXObjectId appearance;
 };
 
+struct ThreeDAnnotation {
+    CapyPDF_3DStreamId stream; // FIX in the future, this might be a 3D reference dictionary.
+};
+
 typedef std::variant<TextAnnotation,
                      LinkAnnotation,
                      FileAttachmentAnnotation,
                      ScreenAnnotation,
-                     PrintersMarkAnnotation>
+                     PrintersMarkAnnotation,
+                     ThreeDAnnotation>
     AnnotationSubType;
 
 struct Annotation {

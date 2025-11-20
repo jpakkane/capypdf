@@ -2476,6 +2476,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{ThreeDAnnotation{-1}, {}});
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
     CapyPDF_Annotation *annotation, const CapyPDF_Destination *d) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2524,6 +2531,19 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
     API_BOUNDARY_START;
     auto *a = reinterpret_cast<Annotation *>(annotation);
     a->flags = flags;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(CapyPDF_Annotation *annotation,
+                                                        CapyPDF_3DStreamId id) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = reinterpret_cast<Annotation *>(annotation);
+    if(auto *three = std::get_if<ThreeDAnnotation>(&a->sub)) {
+        three->stream = id;
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
     RETNOERR;
     API_BOUNDARY_END;
 }
