@@ -487,6 +487,8 @@ public:
 
     rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type);
 
+    rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream);
+
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);
     rvoe<NoReturnValue> init();

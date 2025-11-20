@@ -306,6 +306,11 @@ struct HalftoneType1 {
 
 typedef std::variant<HalftoneDefault, HalftoneType1> Halftone;
 
+struct ThreeDStream {
+    CapyPDF_3D_File_Format format;
+    std::vector<std::byte> model_data;
+};
+
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
 struct GraphicsState {
     std::optional<double> LW;

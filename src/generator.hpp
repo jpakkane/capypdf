@@ -158,6 +158,10 @@ public:
         return pdoc.add_rolemap_entry(std::move(name), builtin_type);
     }
 
+    rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream) {
+        return pdoc.add_3d_stream(std::move(stream));
+    }
+
 private:
     PdfGen(const char *ofname,
            std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft_,

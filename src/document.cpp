@@ -813,6 +813,29 @@ rvoe<CapyPDF_RoleId> PdfDocument::add_rolemap_entry(std::string name,
     return CapyPDF_RoleId{(int32_t)rolemap.size() - 1};
 }
 
+rvoe<CapyPDF_3DStreamId> PdfDocument::add_3d_stream(ThreeDStream stream) {
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/3D");
+    switch(stream.format) {
+    case CAPY_3D_UDF:
+        fmt.add_token_pair("/Subtype", "/U3D");
+        break;
+    case CAPY_3D_PRC:
+        fmt.add_token_pair("/Subtype", "/PRC");
+        break;
+    default:
+        std::abort();
+    }
+    fmt.add_token_pair("/Length", stream.model_data.size());
+    // 3D model formats are already compressed, do not waste
+    // cycles by compressing them twice.
+    fmt.end_dict();
+    const auto obj_num =
+        add_object(FullPDFObject{fmt.steal(), RawData(std::move(stream.model_data))});
+    return CapyPDF_3DStreamId{obj_num};
+}
+
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     ObjectFormatter fmt;
     std::optional<int32_t> outline_object;

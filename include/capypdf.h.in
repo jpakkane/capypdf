@@ -362,6 +362,11 @@ typedef enum {
     CAPY_HT_FUNC_DIAMOND,
 } CapyPDF_Halftone_Spot_Function;
 
+typedef enum {
+    CAPY_3D_UDF,
+    CAPY_3D_PRC,
+} CapyPDF_3D_File_Format;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
@@ -392,6 +397,7 @@ typedef struct _capyPDF_SoftMask CapyPDF_SoftMask;
 typedef struct _capyPDF_EmbeddedFile CapyPDF_EmbeddedFile;
 typedef struct _capyPDF_BDCTags CapyPDF_BDCTags;
 typedef struct _capyPDF_Halftone CapyPDF_Halftone;
+typedef struct _capyPDF_3DStream CapyPDF_3DStream;
 
 typedef int32_t CapyPDF_EC;
 
@@ -470,6 +476,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } CapyPDF_RoleId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_3DStreamId;
 
 // Options
 
@@ -623,6 +633,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_custom_structure_item(
     const CapyPDF_StructureItemId *parent,
     CapyPDF_StructItemExtraData *extra,
     CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT CAPYPDF_NONNULL_ARGS_AT(1, 5);
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_3d_stream(CapyPDF_Generator *gen,
+                                                       CapyPDF_3DStream *stream,
+                                                       CapyPDF_3DStreamId *out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(CapyPDF_Generator *gen,
                                                           const char *fname,
@@ -1322,6 +1336,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
                                                   CapyPDF_Halftone_Spot_Function htspot)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+// 3D objects
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_new(const char *fname,
+                                             CapyPDF_3D_File_Format format,
+                                             CapyPDF_3DStream **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_destroy(CapyPDF_3DStream *stream)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Error

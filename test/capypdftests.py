@@ -26,6 +26,7 @@ testdata_dir = source_root / 'testdata'
 image_dir = testdata_dir / 'images'
 icc_dir = testdata_dir / 'icc'
 font_dir = testdata_dir / 'fonts'
+model_dir = testdata_dir / '3d'
 sys.path.append(str(source_root / 'python'))
 
 sys.argv = sys.argv[0:1] + sys.argv[2:]
@@ -1649,6 +1650,21 @@ class TestPDFCreation(unittest.TestCase):
             with gen.page_draw_context() as ctx:
                 ctx.render_text('100 weight', thin_font, 20, 20, 150)
                 ctx.render_text('800 weight', thick_font, 20, 20, 50)
+
+
+    @cleanup('3d_annotation.pdf')
+    def test_3d_annotation(self, ofilename):
+        w = 200
+        h = 200
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as g:
+            stream_obj = capypdf.ThreeDStream(model_dir / 'toruses.u3d', capypdf.ThreeDFileFormat.U3D)
+            stream_id = g.add_3d_stream(stream_obj)
+            with g.page_draw_context() as ctx:
+                pass
 
 
 if __name__ == "__main__":
