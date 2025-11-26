@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2022-2024 Jussi Pakkanen
+// Copyright 2022-2025 Jussi Pakkanen
 
 #pragma once
 
@@ -21,18 +21,18 @@
 
 // This macro must not be used from within a namespace.
 #define DEF_BASIC_OPERATORS(TNAME)                                                                 \
-    inline bool operator==(const TNAME &object_number_1, const TNAME &object_number_2) {           \
+    inline bool operator==(const TNAME &object_number_1, const TNAME &object_number_2) noexcept {  \
         return object_number_1.id == object_number_2.id;                                           \
     }                                                                                              \
                                                                                                    \
     inline std::strong_ordering operator<=>(const TNAME &object_number_1,                          \
-                                            const TNAME &object_number_2) {                        \
+                                            const TNAME &object_number_2) noexcept {               \
         return object_number_1.id <=> object_number_2.id;                                          \
     }                                                                                              \
                                                                                                    \
     template<> struct std::hash<TNAME> {                                                           \
         std::size_t operator()(const TNAME &tobj) const noexcept {                                 \
-            return std::hash<int32_t>{}(tobj.id);                                                  \
+            return std::hash<decltype(tobj.id)>{}(tobj.id);                                        \
         }                                                                                          \
     }
 
