@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <capypdf.h>
+#include <cinterop.hpp>
 #include <errorhandling.hpp>
 
 #include <optional>
@@ -18,41 +18,6 @@
 
 #include <cstdint>
 #include <cmath>
-
-// This macro must not be used from within a namespace.
-#define DEF_BASIC_OPERATORS(TNAME)                                                                 \
-    inline bool operator==(const TNAME &object_number_1, const TNAME &object_number_2) noexcept {  \
-        return object_number_1.id == object_number_2.id;                                           \
-    }                                                                                              \
-                                                                                                   \
-    inline std::strong_ordering operator<=>(const TNAME &object_number_1,                          \
-                                            const TNAME &object_number_2) noexcept {               \
-        return object_number_1.id <=> object_number_2.id;                                          \
-    }                                                                                              \
-                                                                                                   \
-    template<> struct std::hash<TNAME> {                                                           \
-        std::size_t operator()(const TNAME &tobj) const noexcept {                                 \
-            return std::hash<decltype(tobj.id)>{}(tobj.id);                                        \
-        }                                                                                          \
-    }
-
-DEF_BASIC_OPERATORS(CapyPDF_ImageId);
-
-DEF_BASIC_OPERATORS(CapyPDF_FontId);
-
-DEF_BASIC_OPERATORS(CapyPDF_IccColorSpaceId);
-
-DEF_BASIC_OPERATORS(CapyPDF_FormXObjectId);
-
-DEF_BASIC_OPERATORS(CapyPDF_FormWidgetId);
-
-DEF_BASIC_OPERATORS(CapyPDF_AnnotationId);
-
-DEF_BASIC_OPERATORS(CapyPDF_StructureItemId);
-
-DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
-
-DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
 namespace capypdf::internal {
 

@@ -174,7 +174,7 @@ struct IccInfo {
     int32_t num_channels;
 };
 
-struct DocumentProperties {
+struct DocumentProperties : public _capyPDF_DocumentProperties {
     DocumentProperties();
 
     PdfVersion version() const;

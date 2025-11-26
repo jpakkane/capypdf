@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
-#include "utils.hpp"
+#include <utils.hpp>
 #include <capypdf.h>
 #include <cstring>
 #include <generator.hpp>
@@ -131,14 +131,14 @@ struct RasterImageBuilder {
 
 CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_DocumentProperties *>(new DocumentProperties());
+    *out_ptr = new DocumentProperties();
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CapyPDF_EC capy_document_properties_destroy(CapyPDF_DocumentProperties *docprops) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<DocumentProperties *>(docprops);
+    delete static_cast<DocumentProperties *>(docprops);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -149,7 +149,7 @@ CapyPDF_EC capy_document_properties_set_title(CapyPDF_DocumentProperties *docpro
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_title, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->title = std::move(rc.value());
+        static_cast<DocumentProperties *>(docprops)->title = std::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -161,7 +161,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_author(CapyPDF_DocumentPr
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_author, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->author = std::move(rc.value());
+        static_cast<DocumentProperties *>(docprops)->author = std::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -184,7 +184,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
     API_BOUNDARY_START;
     auto rc = validate_ascii(lang, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->lang = std::move(rc.value());
+        static_cast<DocumentProperties *>(docprops)->lang = std::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -254,7 +254,7 @@ capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops
                                             CapyPDF_Device_Colorspace cs,
                                             const char *profile_path) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     switch(cs) {
     case CAPY_DEVICE_CS_RGB:
         dp->prof.rgb_profile_file = profile_path;
@@ -273,7 +273,7 @@ capy_document_properties_set_device_profile(CapyPDF_DocumentProperties *docprops
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_colorspace(
     CapyPDF_DocumentProperties *docprops, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     dp->output_colorspace = cs;
     RETNOERR;
     API_BOUNDARY_END;
@@ -284,7 +284,7 @@ capy_document_properties_set_output_intent(CapyPDF_DocumentProperties *docprops,
                                            const char *identifier,
                                            int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     auto rc = validate_utf8(identifier, strsize);
     if(!rc) {
         return conv_err(rc.error());
@@ -297,7 +297,7 @@ capy_document_properties_set_output_intent(CapyPDF_DocumentProperties *docprops,
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFX_Type xtype) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     dp->subtype = xtype;
     RETNOERR;
     API_BOUNDARY_END;
@@ -306,7 +306,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfx(
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
     CapyPDF_DocumentProperties *docprops, CapyPDF_PDFA_Type atype) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     dp->subtype = atype;
     RETNOERR;
     API_BOUNDARY_END;
@@ -315,7 +315,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_pdfa(
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
     CapyPDF_DocumentProperties *docprops, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     auto props = reinterpret_cast<const PageProperties *>(prop);
     if(!props->mediabox) {
         return conv_err(ErrorCode::MissingMediabox);
@@ -329,7 +329,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentPr
                                                               int32_t is_tagged) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     CHECK_BOOLEAN(is_tagged);
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     dp->is_tagged = is_tagged;
     RETNOERR;
     API_BOUNDARY_END;
@@ -338,7 +338,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentPr
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
     CapyPDF_DocumentProperties *docprops, const char *rdf_xml, int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto dp = reinterpret_cast<DocumentProperties *>(docprops);
+    auto *dp = static_cast<DocumentProperties *>(docprops);
     auto rx = validate_utf8(rdf_xml, strsize);
     if(!rx) {
         return conv_err(rx.error());
@@ -352,7 +352,7 @@ CapyPDF_EC capy_generator_new(const char *filename,
                               const CapyPDF_DocumentProperties *docprops,
                               CapyPDF_Generator **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto metadata = reinterpret_cast<const DocumentProperties *>(docprops);
+    auto *metadata = static_cast<const DocumentProperties *>(docprops);
     auto rc = PdfGen::construct(filename, *metadata);
     if(rc) {
         *out_ptr = reinterpret_cast<CapyPDF_Generator *>(rc.value().release());
