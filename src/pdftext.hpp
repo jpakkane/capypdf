@@ -218,7 +218,7 @@ typedef std::variant<TStar_arg,
                      gs_arg>
     TextEvent;
 
-class PdfText {
+class PdfText : public _capyPDF_Text {
 public:
     explicit PdfText(PdfDrawContext *dc_) : dc{dc_} {};
 

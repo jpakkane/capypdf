@@ -1257,7 +1257,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_render_text_obj(CapyPDF_DrawContext *ctx,
                                                   CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *c = static_cast<PdfDrawContext *>(ctx);
-    auto t = reinterpret_cast<PdfText *>(text);
+    auto t = static_cast<PdfText *>(text);
     return conv_err(c->render_text(*t));
     API_BOUNDARY_END;
 }
@@ -1332,8 +1332,7 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
                                            CapyPDF_Text **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Text *>(
-        new capypdf::internal::PdfText(static_cast<PdfDrawContext *>(dc)));
+    *out_ptr = new capypdf::internal::PdfText(static_cast<PdfDrawContext *>(dc));
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1500,7 +1499,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tj(CapyPDF_Text *text,
                                            const char *utf8_text,
                                            int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     auto txt = validate_utf8(utf8_text, strsize);
     if(!txt) {
         return conv_err(txt);
@@ -1512,7 +1511,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tj(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_nonstroke(CapyPDF_Text *text,
                                                   const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     const auto *c = reinterpret_cast<const Color *>(color);
     return conv_err(t->nonstroke_color(*c));
     API_BOUNDARY_END;
@@ -1521,7 +1520,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_nonstroke(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
                                                const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     const auto *c = reinterpret_cast<const Color *>(color);
     return conv_err(t->stroke_color(*c));
     API_BOUNDARY_END;
@@ -1529,27 +1528,27 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_w(CapyPDF_Text *text, double line_width) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_w(line_width));
     API_BOUNDARY_END;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_M(CapyPDF_Text *text, double miterlimit) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_M(miterlimit));
     API_BOUNDARY_END;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_j(CapyPDF_Text *text,
                                           CapyPDF_Line_Join join_style) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_j(join_style));
     API_BOUNDARY_END;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_J(CapyPDF_Text *text,
                                           CapyPDF_Line_Cap cap_style) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_J(cap_style));
     API_BOUNDARY_END;
 }
@@ -1558,14 +1557,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_d(CapyPDF_Text *text,
                                           int32_t array_size,
                                           double phase) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_d(dash_array, array_size, phase));
     API_BOUNDARY_END;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_gs(CapyPDF_Text *text,
                                            CapyPDF_GraphicsStateId gsid) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_gs(gsid));
     API_BOUNDARY_END;
 }
@@ -1573,13 +1572,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_gs(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_BDC_builtin(CapyPDF_Text *text,
                                                     CapyPDF_StructureItemId stid) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_BDC(stid));
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_EMC(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     API_BOUNDARY_START;
     return conv_err(t->cmd_EMC());
     API_BOUNDARY_END;
@@ -1587,7 +1586,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_EMC(CapyPDF_Text *text) CAPYPDF_NOEXCEPT
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tc(CapyPDF_Text *text, double spacing) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Tc(spacing));
     API_BOUNDARY_END;
 }
@@ -1596,7 +1595,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Td(CapyPDF_Text *text,
                                            double x,
                                            double y) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Td(x, y));
     API_BOUNDARY_END;
 }
@@ -1605,7 +1604,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TD(CapyPDF_Text *text,
                                            double x,
                                            double y) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_TD(x, y));
     API_BOUNDARY_END;
 }
@@ -1614,7 +1613,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
                                            CapyPDF_FontId font,
                                            double pointsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Tf(font, pointsize));
     API_BOUNDARY_END;
 }
@@ -1622,7 +1621,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tf(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
                                            CapyPDF_TextSequence *kseq) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     auto *ks = reinterpret_cast<TextSequence *>(kseq);
     auto rc = t->cmd_TJ(*ks);
     return conv_err(rc);
@@ -1631,7 +1630,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TL(CapyPDF_Text *text, double leading) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_TL(leading));
     API_BOUNDARY_END;
 }
@@ -1644,7 +1643,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
                                            double e,
                                            double f) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Tm(PdfMatrix{a, b, c, d, e, f}));
     API_BOUNDARY_END;
 }
@@ -1652,21 +1651,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tm(CapyPDF_Text *text,
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tr(CapyPDF_Text *text,
                                            CapyPDF_Text_Mode tmode) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Tr(tmode));
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_Tstar(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *t = reinterpret_cast<PdfText *>(text);
+    auto *t = static_cast<PdfText *>(text);
     return conv_err(t->cmd_Tstar());
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_destroy(CapyPDF_Text *text) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<PdfText *>(text);
+    delete static_cast<PdfText *>(text);
     RETNOERR;
     API_BOUNDARY_END;
 }
