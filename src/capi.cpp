@@ -829,7 +829,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *o = reinterpret_cast<const Outline *>(outline);
+    auto *o = static_cast<const Outline *>(outline);
 
     auto rc = g->add_outline(*o);
     if(rc) {
@@ -2712,7 +2712,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CA
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_new(CapyPDF_Outline **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Outline *>(new Outline{});
+    *out_ptr = new Outline{};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2721,7 +2721,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
                                                  const char *title,
                                                  int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *o = reinterpret_cast<Outline *>(outline);
+    auto *o = static_cast<Outline *>(outline);
     auto u8str = validate_utf8(title, strsize);
     if(!u8str) {
         return conv_err(u8str);
@@ -2734,7 +2734,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_title(CapyPDF_Outline *outline,
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *o = reinterpret_cast<Outline *>(outline);
+    auto *o = static_cast<Outline *>(outline);
     o->dest = *static_cast<const Destination *>(dest);
     RETNOERR;
     API_BOUNDARY_END;
@@ -2743,7 +2743,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r, double g, double b)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *o = reinterpret_cast<Outline *>(outline);
+    auto *o = static_cast<Outline *>(outline);
     o->C = DeviceRGBColor{r, g, b};
     RETNOERR;
     API_BOUNDARY_END;
@@ -2752,7 +2752,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_C(CapyPDF_Outline *outline, double r,
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_F(CapyPDF_Outline *outline,
                                              uint32_t F) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *o = reinterpret_cast<Outline *>(outline);
+    auto *o = static_cast<Outline *>(outline);
     o->F = F;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2761,7 +2761,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_F(CapyPDF_Outline *outline,
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
                                                   CapyPDF_OutlineId parent) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *o = reinterpret_cast<Outline *>(outline);
+    auto *o = static_cast<Outline *>(outline);
     o->parent = parent;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2769,7 +2769,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_parent(CapyPDF_Outline *outline,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<Outline *>(outline);
+    delete static_cast<Outline *>(outline);
     RETNOERR;
     API_BOUNDARY_END;
 }

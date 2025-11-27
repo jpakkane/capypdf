@@ -74,3 +74,5 @@ struct _capyPDF_Annotation {};
 struct _capyPDF_StructItemExtraData {};
 
 struct _capyPDF_Destination {};
+
+struct _capyPDF_Outline {};

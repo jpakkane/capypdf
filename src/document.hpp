@@ -195,7 +195,7 @@ struct DocumentProperties : public _capyPDF_DocumentProperties {
     bool compress_streams = true;
 };
 
-struct Outline {
+struct Outline : public _capyPDF_Outline {
     u8string title;
     std::optional<Destination> dest;
     std::optional<DeviceRGBColor> C;
