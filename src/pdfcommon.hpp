@@ -277,7 +277,7 @@ struct ThreeDStream {
 };
 
 // Named and ordered according to PDF spec 2.0 section 8.4.5, table 57
-struct GraphicsState {
+struct GraphicsState : public _capyPDF_GraphicsState {
     std::optional<double> LW;
     std::optional<CapyPDF_Line_Cap> LC;
     std::optional<CapyPDF_Line_Join> LJ;

@@ -607,7 +607,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *s = reinterpret_cast<const GraphicsState *>(state);
+    auto *s = static_cast<const GraphicsState *>(state);
     auto rc = g->add_graphics_state(*s);
     if(rc) {
         *out_ptr = rc.value();
@@ -1861,7 +1861,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalCo
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_new(CapyPDF_GraphicsState **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_GraphicsState *>(new GraphicsState);
+    *out_ptr = new GraphicsState;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1869,7 +1869,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_new(CapyPDF_GraphicsState **out_pt
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *state,
                                                         CapyPDF_SoftMaskId smid) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     s->SMask = smid;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1878,7 +1878,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SMask(CapyPDF_GraphicsState *s
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     s->CA = LimitDouble{value};
     RETNOERR;
     API_BOUNDARY_END;
@@ -1887,7 +1887,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_CA(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     s->ca = LimitDouble{value};
     RETNOERR;
     API_BOUNDARY_END;
@@ -1896,7 +1896,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_ca(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_BM(
     CapyPDF_GraphicsState *state, CapyPDF_Blend_Mode blendmode) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     s->BM = blendmode;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1905,7 +1905,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_BM(
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_op(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     CHECK_BOOLEAN(value);
     s->op = value;
     RETNOERR;
@@ -1915,7 +1915,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_op(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OP(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     CHECK_BOOLEAN(value);
     s->OP = value;
     RETNOERR;
@@ -1925,7 +1925,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OP(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *state,
                                                       int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     // Not actually boolean, but only values 0 and 1 are valid. See PDF spec 8.6.7.
     CHECK_BOOLEAN(value);
     s->OPM = value;
@@ -1936,7 +1936,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_OPM(CapyPDF_GraphicsState *sta
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_FL(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     if(value < 0) {
         return conv_err(ErrorCode::InvalidFlatness);
     }
@@ -1948,7 +1948,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_FL(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *state,
                                                      double value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     if(value < 0 || value > 1.0) {
         return conv_err(ErrorCode::InvalidFlatness);
     }
@@ -1960,7 +1960,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_SM(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *state,
                                                       int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     CHECK_BOOLEAN(value);
     s->AIS = value;
     RETNOERR;
@@ -1970,7 +1970,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *sta
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     CHECK_BOOLEAN(value);
     s->TK = value;
     RETNOERR;
@@ -1980,7 +1980,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(CapyPDF_GraphicsState *state,
                                                      CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *s = reinterpret_cast<GraphicsState *>(state);
+    auto *s = static_cast<GraphicsState *>(state);
     auto *halftone = reinterpret_cast<Halftone *>(ht);
     s->HT = std::move(*halftone);
     RETNOERR;
@@ -1990,7 +1990,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(CapyPDF_GraphicsState *stat
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<GraphicsState *>(state);
+    delete static_cast<GraphicsState *>(state);
     RETNOERR;
     API_BOUNDARY_END;
 }
