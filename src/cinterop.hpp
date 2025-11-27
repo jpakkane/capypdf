@@ -54,3 +54,5 @@ struct _capyPDF_ImagePdfProperties {};
 struct _capyPDF_FontProperties {};
 
 struct _capyPDF_DrawContext {};
+
+struct _capyPDF_Generator {};

@@ -33,7 +33,7 @@ struct DrawContextPopper {
     ~DrawContextPopper();
 };
 
-class PdfGen {
+class PdfGen : public _capyPDF_Generator {
 public:
     static rvoe<std::unique_ptr<PdfGen>> construct(const char *ofname, const DocumentProperties &d);
     PdfGen(PdfGen &&o) = default;

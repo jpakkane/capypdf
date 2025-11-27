@@ -355,7 +355,7 @@ CapyPDF_EC capy_generator_new(const char *filename,
     auto *metadata = static_cast<const DocumentProperties *>(docprops);
     auto rc = PdfGen::construct(filename, *metadata);
     if(rc) {
-        *out_ptr = reinterpret_cast<CapyPDF_Generator *>(rc.value().release());
+        *out_ptr = rc.value().release();
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -364,7 +364,7 @@ CapyPDF_EC capy_generator_new(const char *filename,
 CapyPDF_EC capy_generator_add_page(CapyPDF_Generator *gen,
                                    CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *dc = static_cast<PdfDrawContext *>(ctx);
 
     auto rc = g->add_page(*dc);
@@ -379,7 +379,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_page_labeling(CapyPDF_Generator *ge
                                                            int32_t strsize,
                                                            uint32_t *start_num) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     std::optional<CapyPDF_Page_Label_Number_Style> opt_style;
     std::optional<u8string> opt_prefix;
     std::optional<uint32_t> opt_start_num;
@@ -405,7 +405,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_xobject(CapyPDF_Generator *gen
                                                           CapyPDF_FormXObjectId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *dc = static_cast<PdfDrawContext *>(ctx);
 
     auto rc = g->add_form_xobject(*dc);
@@ -421,7 +421,7 @@ capy_generator_add_transparency_group(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext *ctx,
                                       CapyPDF_TransparencyGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *dc = static_cast<PdfDrawContext *>(ctx);
 
     auto rc = g->add_transparency_group(*dc);
@@ -437,7 +437,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_soft_mask(CapyPDF_Generator *gen,
                                                        CapyPDF_SoftMaskId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *s = reinterpret_cast<const SoftMask *>(sm);
 
     auto rc = g->add_soft_mask(*s);
@@ -453,7 +453,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(CapyPDF_Generator *
                                                              CapyPDF_PatternId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *shad = reinterpret_cast<ShadingPattern *>(shp);
     auto rc = g->add_shading_pattern(*shad);
     if(rc) {
@@ -466,7 +466,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(CapyPDF_Generator *
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_tiling_pattern(
     CapyPDF_Generator *gen, CapyPDF_DrawContext *ctx, CapyPDF_PatternId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *colordc = static_cast<PdfDrawContext *>(ctx);
     auto rc = g->add_tiling_pattern(*colordc);
     if(rc) {
@@ -481,7 +481,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *gen,
                                                     CapyPDF_EmbeddedFileId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *ef = reinterpret_cast<EmbeddedFile *>(efile);
     auto rc = g->embed_file(*ef);
     if(rc) {
@@ -496,7 +496,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    CapyPDF_FontProperties *fprop,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto rc =
         g->load_font(fname, fprop ? *(static_cast<FontProperties *>(fprop)) : FontProperties());
     if(rc) {
@@ -509,7 +509,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_RasterImage **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->load_image(fname);
     if(rc) {
         auto *result = new RasterImage(std::move(rc.value()));
@@ -525,7 +525,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image_from_memory(CapyPDF_Generato
                                                                 CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->load_image(buf, bufsize);
     if(rc) {
         auto *result = new RasterImage(std::move(rc.value()));
@@ -542,7 +542,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
                                                        CapyPDF_RasterImage **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *image = reinterpret_cast<const RasterImage *>(source);
     if(auto *raw = std::get_if<RawPixelImage>(image)) {
         auto rc = g->convert_image_to_cs(*raw, output_cs, ri);
@@ -562,7 +562,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    const CapyPDF_ImagePdfProperties *params,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *im = reinterpret_cast<RasterImage *>(image);
     auto *par = static_cast<const ImagePDFProperties *>(params);
     auto rc = g->add_image(std::move(*im), *par);
@@ -577,7 +577,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_function(
     CapyPDF_Generator *gen, CapyPDF_Function *func, CapyPDF_FunctionId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *f = reinterpret_cast<PdfFunction *>(func);
     auto rc = g->add_function(*f);
     if(rc) {
@@ -591,7 +591,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading(CapyPDF_Generator *gen,
                                                      CapyPDF_Shading *shade,
                                                      CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *sh = reinterpret_cast<PdfShading *>(shade);
     auto rc = g->add_shading(*sh);
     if(rc) {
@@ -606,7 +606,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_graphics_state(CapyPDF_Generator *g
                                                             CapyPDF_GraphicsStateId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *s = reinterpret_cast<const GraphicsState *>(state);
     auto rc = g->add_graphics_state(*s);
     if(rc) {
@@ -623,7 +623,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
                                                             CapyPDF_StructureItemId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     std::optional<CapyPDF_StructureItemId> item_parent;
     if(parent) {
         item_parent = *parent;
@@ -647,7 +647,7 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
                                          CapyPDF_StructItemExtraData *extra,
                                          CapyPDF_StructureItemId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     std::optional<CapyPDF_StructureItemId> item_parent;
     if(parent) {
         item_parent = *parent;
@@ -669,7 +669,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_3d_stream(CapyPDF_Generator *gen,
                                                        CapyPDF_3DStreamId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *three = reinterpret_cast<ThreeDStream *>(stream);
     auto rc = g->add_3d_stream(std::move(*three));
     if(rc) {
@@ -682,7 +682,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_3d_stream(CapyPDF_Generator *gen,
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_icc_profile(
     CapyPDF_Generator *gen, const char *fname, CapyPDF_IccColorSpaceId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->load_icc_file(fname);
     if(rc) {
         *out_ptr = rc.value();
@@ -698,7 +698,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_icc_profile(CapyPDF_Generator *gen,
                                                          CapyPDF_IccColorSpaceId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     std::byte *bytebuf = (std::byte *)buf;
     auto rc = g->add_icc_profile({bytebuf, bufsize}, num_channels);
     if(rc) {
@@ -719,7 +719,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_lab_colorspace(CapyPDF_Generator *g
                                                             CapyPDF_LabColorSpaceId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     LabColorSpace cl;
     cl.xw = xw;
     cl.yw = yw;
@@ -745,7 +745,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
                                                         CapyPDF_SeparationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto name = validate_ascii(separation_name, strsize);
     if(!name) {
         return conv_err(name);
@@ -760,7 +760,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_separation(CapyPDF_Generator *gen,
 
 CapyPDF_EC capy_generator_write(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->write();
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -771,7 +771,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
     const CapyPDF_OptionalContentGroup *ocg,
     CapyPDF_OptionalContentGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     const auto *group = reinterpret_cast<const OptionalContentGroup *>(ocg);
     auto rc = g->add_optional_content_group(*group);
     if(rc) {
@@ -786,7 +786,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
                                                         CapyPDF_AnnotationId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *a = reinterpret_cast<Annotation *>(annotation);
     auto rc = g->add_annotation(*a);
     if(rc) {
@@ -803,7 +803,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto nameobj = validate_cstring(name, namesize);
     if(!nameobj) {
         return conv_err(nameobj);
@@ -818,7 +818,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
 
 CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     delete g;
     RETNOERR;
     API_BOUNDARY_END;
@@ -828,7 +828,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      const CapyPDF_Outline *outline,
                                                      CapyPDF_OutlineId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto *o = reinterpret_cast<const Outline *>(outline);
 
     auto rc = g->add_outline(*o);
@@ -846,7 +846,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *gen,
                                                     double pointsize,
                                                     double *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto u8t = validate_utf8(utf8_text, strsize);
     if(!u8t) {
         return conv_err(u8t);
@@ -864,7 +864,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_text_width(CapyPDF_Generator *gen,
 CapyPDF_EC capy_page_draw_context_new(CapyPDF_Generator *gen,
                                       CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     *out_ptr = g->new_page_draw_context();
     RETNOERR;
     API_BOUNDARY_END;
@@ -1352,7 +1352,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_xobject_new(CapyPDF_Generator *gen,
                                                 double t,
                                                 CapyPDF_DrawContext **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto bbox = PdfRectangle::construct(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
@@ -1366,7 +1366,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_new(
     CapyPDF_Generator *gen, double l, double b, double r, double t, CapyPDF_DrawContext **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto bbox = PdfRectangle::construct(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
@@ -1383,7 +1383,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
                                                           double r,
                                                           double t) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *g = reinterpret_cast<PdfGen *>(gen);
+    auto *g = static_cast<PdfGen *>(gen);
     auto bbox = PdfRectangle::construct(l, b, r, t);
     if(!bbox) {
         return conv_err(bbox);
