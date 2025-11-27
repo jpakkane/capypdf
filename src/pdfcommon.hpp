@@ -586,7 +586,7 @@ struct DestinationFitR {
 
 typedef std::variant<DestinationXYZ, DestinationFit, DestinationFitR> DestinationType;
 
-struct Destination {
+struct Destination : public _capyPDF_Destination {
     int32_t page;
     DestinationType loc;
 };

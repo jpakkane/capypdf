@@ -72,3 +72,5 @@ struct _capyPDF_RasterImageBuilder {};
 struct _capyPDF_Annotation {};
 
 struct _capyPDF_StructItemExtraData {};
+
+struct _capyPDF_Destination {};

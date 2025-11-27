@@ -2481,7 +2481,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
     CapyPDF_Annotation *annotation, const CapyPDF_Destination *d) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *a = static_cast<Annotation *>(annotation);
-    auto *dest = reinterpret_cast<const Destination *>(d);
+    auto *dest = static_cast<const Destination *>(d);
     if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
         linka->Dest = *dest;
         linka->URI.reset();
@@ -2657,7 +2657,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProp
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Destination *>(new Destination());
+    *out_ptr = new Destination();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2665,7 +2665,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_new(CapyPDF_Destination **out_ptr) CA
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_fit(
     CapyPDF_Destination *dest, int32_t physical_page_number) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *d = reinterpret_cast<Destination *>(dest);
+    auto *d = static_cast<Destination *>(dest);
     if(physical_page_number < 0) {
         return conv_err(ErrorCode::InvalidPageNumber);
     }
@@ -2681,7 +2681,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_xyz(CapyPDF_Destination *des
                                                         double *y,
                                                         double *z) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *d = reinterpret_cast<Destination *>(dest);
+    auto *d = static_cast<Destination *>(dest);
     if(physical_page_number < 0) {
         return conv_err(ErrorCode::InvalidPageNumber);
     }
@@ -2703,7 +2703,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_destination_set_page_xyz(CapyPDF_Destination *des
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_destination_destroy(CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<Destination *>(dest);
+    delete static_cast<Destination *>(dest);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2735,7 +2735,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_set_destination(
     CapyPDF_Outline *outline, const CapyPDF_Destination *dest) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *o = reinterpret_cast<Outline *>(outline);
-    o->dest = *reinterpret_cast<const Destination *>(dest);
+    o->dest = *static_cast<const Destination *>(dest);
     RETNOERR;
     API_BOUNDARY_END;
 }
