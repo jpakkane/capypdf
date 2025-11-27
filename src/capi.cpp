@@ -30,6 +30,10 @@ struct _capyPDF_Color {
     Color c;
 };
 
+struct _capyPDF_RasterImage {
+    RasterImage ri;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -520,8 +524,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image(
     auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->load_image(fname);
     if(rc) {
-        auto *result = new RasterImage(std::move(rc.value()));
-        *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);
+        *out_ptr = new _capyPDF_RasterImage(std::move(rc.value()));
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -536,8 +539,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_image_from_memory(CapyPDF_Generato
     auto *g = static_cast<PdfGen *>(gen);
     auto rc = g->load_image(buf, bufsize);
     if(rc) {
-        auto *result = new RasterImage(std::move(rc.value()));
-        *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(result);
+        *out_ptr = new _capyPDF_RasterImage(std::move(rc.value()));
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -551,12 +553,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_convert_image(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *image = reinterpret_cast<const RasterImage *>(source);
-    if(auto *raw = std::get_if<RawPixelImage>(image)) {
+    if(auto *raw = std::get_if<RawPixelImage>(&source->ri)) {
         auto rc = g->convert_image_to_cs(*raw, output_cs, ri);
         if(rc) {
-            *out_ptr =
-                reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(rc.value())));
+            *out_ptr = new _capyPDF_RasterImage(std::move(rc.value()));
         }
         return conv_err(rc);
     } else {
@@ -571,13 +571,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
                                                    CapyPDF_ImageId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *im = reinterpret_cast<RasterImage *>(image);
     auto *par = static_cast<const ImagePDFProperties *>(params);
-    auto rc = g->add_image(std::move(*im), *par);
+    auto rc = g->add_image(std::move(image->ri), *par);
     if(rc) {
         *out_ptr = rc.value();
     }
-    *im = RasterImage{};
+    image->ri = RasterImage{};
     return conv_err(rc);
     API_BOUNDARY_END;
 }
@@ -2122,7 +2121,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_build(
     API_BOUNDARY_START;
     auto *b = static_cast<RasterImageBuilder *>(builder);
     // FIXME. Check validity.
-    *out_ptr = reinterpret_cast<CapyPDF_RasterImage *>(new RasterImage(std::move(b->i)));
+    *out_ptr = new _capyPDF_RasterImage(RasterImage(std::move(b->i)));
     b->i = RawPixelImage{};
     RETNOERR;
     API_BOUNDARY_END;
@@ -2132,11 +2131,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *
                                                      uint32_t *w,
                                                      uint32_t *h) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = std::get_if<RawPixelImage>(&image->ri)) {
         *w = raw->md.w;
         *h = raw->md.h;
-    } else if(auto *jpg = std::get_if<jpg_image>(i)) {
+    } else if(auto *jpg = std::get_if<jpg_image>(&image->ri)) {
         *w = jpg->w;
         *h = jpg->h;
     } else {
@@ -2149,8 +2147,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_size(const CapyPDF_RasterImage *
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
     const CapyPDF_RasterImage *image, CapyPDF_Image_Colorspace *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = std::get_if<RawPixelImage>(&image->ri)) {
         *out_ptr = raw->md.cs;
     } else {
         return conv_err(ErrorCode::UnsupportedFormat);
@@ -2162,8 +2159,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_get_colorspace(
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_has_profile(const CapyPDF_RasterImage *image,
                                                         int32_t *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *i = reinterpret_cast<const RasterImage *>(image);
-    if(auto *raw = std::get_if<RawPixelImage>(i)) {
+    if(auto *raw = std::get_if<RawPixelImage>(&image->ri)) {
         *out_ptr = raw->icc_profile.empty() ? 0 : 1;
     } else {
         return conv_err(ErrorCode::UnsupportedFormat);
@@ -2183,8 +2179,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_builder_destroy(CapyPDF_RasterImageB
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_raster_image_destroy(CapyPDF_RasterImage *image) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ri = reinterpret_cast<RasterImage *>(image);
-    delete ri;
+    delete image;
     RETNOERR;
     API_BOUNDARY_END;
 }
