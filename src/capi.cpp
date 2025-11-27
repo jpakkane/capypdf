@@ -42,6 +42,10 @@ struct _capyPDF_Shading {
     PdfShading sh;
 };
 
+struct _capyPDF_BDCTags {
+    BDCTags tags;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -916,8 +920,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_builtin(CapyPDF_DrawContext *ctx,
                                                   const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = static_cast<PdfDrawContext *>(ctx);
-    auto t = reinterpret_cast<const BDCTags *>(tags);
-    return conv_err(dc->cmd_BDC(structid, t));
+    return conv_err(dc->cmd_BDC(structid, tags ? &tags->tags : nullptr));
     API_BOUNDARY_END;
 }
 
@@ -927,12 +930,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_BDC_testing(CapyPDF_DrawContext *ctx,
                                                   const CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = static_cast<PdfDrawContext *>(ctx);
-    auto t = reinterpret_cast<const BDCTags *>(tags);
     auto astr = validate_ascii(name, namelen);
     if(!astr) {
         return conv_err(astr.error());
     }
-    return conv_err(dc->cmd_BDC(astr.value(), {}, t));
+    return conv_err(dc->cmd_BDC(astr.value(), {}, tags ? &tags->tags : nullptr));
     API_BOUNDARY_END;
 }
 
@@ -2848,7 +2850,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_new(CapyPDF_BDCTags **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_BDCTags *>(new BDCTags());
+    *out_ptr = new _capyPDF_BDCTags;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2859,7 +2861,6 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_add_tag(CapyPDF_BDCTags *tags,
                                                 const char *value,
                                                 int32_t valuelen) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *bt = reinterpret_cast<BDCTags *>(tags);
     auto akey = validate_ascii(key, keylen);
     auto avalue = validate_ascii(value, valuelen);
     if(!akey) {
@@ -2868,14 +2869,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_add_tag(CapyPDF_BDCTags *tags,
     if(!avalue) {
         return conv_err(avalue.error());
     }
-    (*bt)[akey.value()] = avalue.value();
+    tags->tags[akey.value()] = avalue.value();
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_destroy(CapyPDF_BDCTags *tags) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<BDCTags *>(tags);
+    delete tags;
     RETNOERR;
     API_BOUNDARY_END;
 }
