@@ -482,7 +482,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_embed_file(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *ef = reinterpret_cast<EmbeddedFile *>(efile);
+    auto *ef = static_cast<EmbeddedFile *>(efile);
     auto rc = g->embed_file(*ef);
     if(rc) {
         *out_ptr = rc.value();
@@ -2834,7 +2834,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
     auto *eobj = new EmbeddedFile();
     eobj->path = path;
     eobj->pdfname = std::move(rc.value());
-    *out_ptr = reinterpret_cast<CapyPDF_EmbeddedFile *>(eobj);
+    *out_ptr = eobj;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2843,7 +2843,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
                                                          const char *subtype,
                                                          int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *eobj = reinterpret_cast<EmbeddedFile *>(efile);
+    auto *eobj = static_cast<EmbeddedFile *>(efile);
     auto rc = validate_ascii(subtype, strsize);
     if(!rc) {
         return conv_err(rc);
@@ -2855,7 +2855,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<EmbeddedFile *>(efile);
+    delete static_cast<EmbeddedFile *>(efile);
     RETNOERR;
     API_BOUNDARY_END;
 }

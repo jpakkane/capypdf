@@ -227,7 +227,7 @@ struct OutlineData {
     std::unordered_map<int32_t, int32_t> parent;
 };
 
-struct EmbeddedFile {
+struct EmbeddedFile : public _capyPDF_EmbeddedFile {
     std::string path;
     u8string pdfname;
     asciistring subtype; // actually MIME

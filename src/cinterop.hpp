@@ -80,3 +80,5 @@ struct _capyPDF_Outline {};
 struct _capyPDF_ShadingPattern {};
 
 struct _capyPDF_SoftMask {};
+
+struct _capyPDF_EmbeddedFile {};
