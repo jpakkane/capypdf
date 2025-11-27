@@ -34,6 +34,10 @@ struct _capyPDF_RasterImage {
     RasterImage ri;
 };
 
+struct _capyPDF_Function {
+    PdfFunction f;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -585,8 +589,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_function(
     CapyPDF_Generator *gen, CapyPDF_Function *func, CapyPDF_FunctionId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *f = reinterpret_cast<PdfFunction *>(func);
-    auto rc = g->add_function(*f);
+    auto rc = g->add_function(func->f);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2191,7 +2194,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   double n,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Function *>(new PdfFunction{
+    *out_ptr = new _capyPDF_Function(PdfFunction{
         FunctionType2{std::vector<double>(domain, domain + domain_size), c1->c, c2->c, n}});
     RETNOERR;
     API_BOUNDARY_END;
@@ -2199,7 +2202,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_function_destroy(CapyPDF_Function *func) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<PdfFunction *>(func);
+    delete func;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2214,7 +2217,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_function_new(double *domain,
                                                   int32_t encode_size,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Function *>(new PdfFunction{
+    *out_ptr = new _capyPDF_Function(PdfFunction{
         FunctionType3{std::vector<double>(domain, domain + domain_size),
                       std::vector<CapyPDF_FunctionId>(functions, functions + functions_size),
                       std::vector<double>(bounds, bounds + bounds_size),
@@ -2235,10 +2238,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_function_new(double *domain,
     if(!rc) {
         return conv_err(rc.error());
     }
-    *out_ptr = reinterpret_cast<CapyPDF_Function *>(
-        new PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
-                                      std::vector<double>(range, range + range_size),
-                                      std::move(rc.value())}});
+    *out_ptr = new _capyPDF_Function(
+        PdfFunction{FunctionType4{std::vector<double>(domain, domain + domain_size),
+                                  std::vector<double>(range, range + range_size),
+                                  std::move(rc.value())}});
     RETNOERR;
     API_BOUNDARY_END;
 }
