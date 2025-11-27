@@ -289,7 +289,7 @@ typedef std::variant<TextAnnotation,
                      ThreeDAnnotation>
     AnnotationSubType;
 
-struct Annotation {
+struct Annotation : public _capyPDF_Annotation {
     AnnotationSubType sub;
     std::optional<PdfRectangle> rect;
     CapyPDF_Annotation_Flags flags{CAPY_ANNOTATION_FLAG_NONE};

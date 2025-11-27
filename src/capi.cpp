@@ -787,7 +787,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     auto rc = g->add_annotation(*a);
     if(rc) {
         *out_ptr = rc.value();
@@ -2442,15 +2442,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
     if(!u8str) {
         return conv_err(u8str);
     }
-    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(
-        new Annotation{TextAnnotation{std::move(u8str.value())}, {}});
+    *out_ptr = new Annotation{{}, TextAnnotation{std::move(u8str.value())}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{LinkAnnotation{}, {}});
+    *out_ptr = new Annotation{{}, LinkAnnotation{}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2458,8 +2457,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr)
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr =
-        reinterpret_cast<CapyPDF_Annotation *>(new Annotation{FileAttachmentAnnotation{fid}, {}});
+    *out_ptr = new Annotation{{}, FileAttachmentAnnotation{fid}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2467,15 +2465,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
 CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr =
-        reinterpret_cast<CapyPDF_Annotation *>(new Annotation{PrintersMarkAnnotation{fid}, {}});
+    *out_ptr = new Annotation{{}, PrintersMarkAnnotation{fid}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_3d_annotation_new(CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Annotation *>(new Annotation{ThreeDAnnotation{-1}, {}});
+    *out_ptr = new Annotation{{}, ThreeDAnnotation{-1}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2483,7 +2480,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_3d_annotation_new(CapyPDF_Annotation **out_ptr) C
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_destination(
     CapyPDF_Annotation *annotation, const CapyPDF_Destination *d) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     auto *dest = reinterpret_cast<const Destination *>(d);
     if(auto *linka = std::get_if<LinkAnnotation>(&a->sub)) {
         linka->Dest = *dest;
@@ -2499,7 +2496,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation
                                                   const char *uri,
                                                   int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     auto urirc = validate_ascii(uri, strsize);
     if(!urirc) {
         return conv_err(urirc);
@@ -2517,7 +2514,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_uri(CapyPDF_Annotation *annotation
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     CapyPDF_Annotation *annotation, double x1, double y1, double x2, double y2) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     a->rect = PdfRectangle{x1, y1, x2, y2};
     RETNOERR;
     API_BOUNDARY_END;
@@ -2526,7 +2523,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
     CapyPDF_Annotation *annotation, CapyPDF_Annotation_Flags flags) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     a->flags = flags;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2535,7 +2532,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(CapyPDF_Annotation *annotation,
                                                         CapyPDF_3DStreamId id) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *a = reinterpret_cast<Annotation *>(annotation);
+    auto *a = static_cast<Annotation *>(annotation);
     if(auto *three = std::get_if<ThreeDAnnotation>(&a->sub)) {
         three->stream = id;
     } else {
@@ -2546,7 +2543,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(CapyPDF_Annotation *anno
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation) CAPYPDF_NOEXCEPT {
-    delete reinterpret_cast<Annotation *>(annotation);
+    delete static_cast<Annotation *>(annotation);
     API_BOUNDARY_START;
     RETNOERR;
     API_BOUNDARY_END;

@@ -19,9 +19,10 @@ void file_embed() {
         ef.path = "embed.txt";
         ef.pdfname = u8string::from_cstr("embed.txt").value();
         auto efid = gen.embed_file(ef).value();
-        auto fileannoid = gen.add_annotation(Annotation{FileAttachmentAnnotation{efid},
-                                                        PdfRectangle{35, 95, 45, 105}})
-                              .value();
+        auto fileannoid =
+            gen.add_annotation(
+                   Annotation{{}, FileAttachmentAnnotation{efid}, PdfRectangle{35, 95, 45, 105}})
+                .value();
         {
             auto ctxguard = gen.guarded_page_context();
             auto &ctx = ctxguard.ctx;
@@ -32,6 +33,7 @@ void file_embed() {
             auto textannoid =
                 gen
                     .add_annotation(Annotation{
+                        {},
                         TextAnnotation{u8string::from_cstr("This is a text ännotation").value()},
                         PdfRectangle{150, 60, 180, 90}})
                     .value();
@@ -40,7 +42,8 @@ void file_embed() {
             ctx.render_pdfdoc_text_builtin("Link", CAPY_FONT_HELVETICA, 12, 10, 10);
             auto linkannoid =
                 gen.add_annotation(
-                       Annotation{LinkAnnotation{asciistring::from_cstr("https://github.com/"
+                       Annotation{{},
+                                  LinkAnnotation{asciistring::from_cstr("https://github.com/"
                                                                         "mesonbuild/meson")
                                                      .value(),
                                                  {}},
@@ -78,7 +81,8 @@ void video_player() {
             auto &ctx = ctxguard.ctx;
             ctx.render_pdfdoc_text_builtin("Video below", CAPY_FONT_HELVETICA, 12, 70, 170);
             auto media_anno_id =
-                gen.add_annotation(Annotation{ScreenAnnotation{efid, mimetype, subplay},
+                gen.add_annotation(Annotation{{},
+                                              ScreenAnnotation{efid, mimetype, subplay},
                                               PdfRectangle{20, 20, 180, 160}})
                     .value();
             ctx.annotate(media_anno_id);
