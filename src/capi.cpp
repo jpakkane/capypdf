@@ -497,8 +497,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_load_font(CapyPDF_Generator *gen,
                                                    CapyPDF_FontId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
-    auto rc = g->load_font(fname,
-                           fprop ? *(reinterpret_cast<FontProperties *>(fprop)) : FontProperties());
+    auto rc =
+        g->load_font(fname, fprop ? *(static_cast<FontProperties *>(fprop)) : FontProperties());
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2902,7 +2902,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_bdc_tags_destroy(CapyPDF_BDCTags *tags) CAPYPDF_N
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_new(CapyPDF_FontProperties **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_FontProperties *>(new FontProperties());
+    *out_ptr = new FontProperties();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2910,7 +2910,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_new(CapyPDF_FontProperties **out_
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_subfont(CapyPDF_FontProperties *fprop,
                                                            int32_t subfont) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *fp = reinterpret_cast<FontProperties *>(fprop);
+    auto *fp = static_cast<FontProperties *>(fprop);
     if(subfont < 0 || subfont >= (1 << 16)) {
         // This is a limitation of Freetype.
         return conv_err(ErrorCode::InvalidSubfont);
@@ -2925,7 +2925,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_variation(CapyPDF_FontPropert
                                                              int32_t axis_size,
                                                              int32_t value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *fp = reinterpret_cast<FontProperties *>(fprop);
+    auto *fp = static_cast<FontProperties *>(fprop);
     auto rc = validate_cstring(axis, axis_size);
     if(!rc) {
         return conv_err(rc);
@@ -2938,7 +2938,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_variation(CapyPDF_FontPropert
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_destroy(CapyPDF_FontProperties *fprop)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<FontProperties *>(fprop);
+    delete static_cast<FontProperties *>(fprop);
     RETNOERR;
     API_BOUNDARY_END;
 }

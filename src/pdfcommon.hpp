@@ -593,7 +593,7 @@ struct Destination {
 
 typedef std::unordered_map<asciistring, asciistring> BDCTags;
 
-struct FontProperties {
+struct FontProperties : public _capyPDF_FontProperties {
     uint16_t subfont = 0;
     // Add other font properties here like:
     //

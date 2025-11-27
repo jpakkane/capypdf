@@ -50,3 +50,5 @@ struct _capyPDF_PageProperties {};
 struct _capyPDF_TransparencyGroupProperties {};
 
 struct _capyPDF_ImagePdfProperties {};
+
+struct _capyPDF_FontProperties {};
