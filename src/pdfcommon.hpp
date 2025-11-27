@@ -567,7 +567,7 @@ struct jpg_image {
 
 typedef std::variant<RawPixelImage, jpg_image> RasterImage;
 
-struct ImagePDFProperties {
+struct ImagePDFProperties : public _capyPDF_ImagePdfProperties {
     CapyPDF_Image_Interpolation interp = CAPY_INTERPOLATION_AUTO;
     bool as_mask = false;
 };

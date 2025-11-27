@@ -564,7 +564,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_image(CapyPDF_Generator *gen,
     API_BOUNDARY_START;
     auto *g = reinterpret_cast<PdfGen *>(gen);
     auto *im = reinterpret_cast<RasterImage *>(image);
-    auto *par = reinterpret_cast<const ImagePDFProperties *>(params);
+    auto *par = static_cast<const ImagePDFProperties *>(params);
     auto rc = g->add_image(std::move(*im), *par);
     if(rc) {
         *out_ptr = rc.value();
@@ -2626,7 +2626,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItem
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_new(CapyPDF_ImagePdfProperties **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_ImagePdfProperties *>(new ImagePDFProperties());
+    *out_ptr = new ImagePDFProperties();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2635,7 +2635,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_mask(CapyPDF_ImagePdfPro
                                                              int32_t as_mask) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     CHECK_BOOLEAN(as_mask);
-    auto p = reinterpret_cast<ImagePDFProperties *>(par);
+    auto *p = static_cast<ImagePDFProperties *>(par);
     p->as_mask = as_mask;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2644,7 +2644,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_mask(CapyPDF_ImagePdfPro
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_interpolate(
     CapyPDF_ImagePdfProperties *par, CapyPDF_Image_Interpolation interp) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto p = reinterpret_cast<ImagePDFProperties *>(par);
+    auto p = static_cast<ImagePDFProperties *>(par);
     p->interp = interp;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2653,7 +2653,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_set_interpolate(
 CAPYPDF_PUBLIC CapyPDF_EC capy_image_pdf_properties_destroy(CapyPDF_ImagePdfProperties *par)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<ImagePDFProperties *>(par);
+    delete static_cast<ImagePDFProperties *>(par);
     RETNOERR;
     API_BOUNDARY_END;
 }
