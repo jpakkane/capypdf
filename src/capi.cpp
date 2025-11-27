@@ -1266,7 +1266,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_page_transition(
     CapyPDF_DrawContext *ctx, CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = static_cast<PdfDrawContext *>(ctx);
-    auto t = reinterpret_cast<Transition *>(transition);
+    auto t = static_cast<Transition *>(transition);
     auto rc = dc->set_transition(*t);
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -1321,7 +1321,7 @@ capy_dc_add_simple_navigation(CapyPDF_DrawContext *ctx,
     auto *dc = static_cast<PdfDrawContext *>(ctx);
     std::optional<Transition> transition;
     if(tr) {
-        transition = *reinterpret_cast<const Transition *>(tr);
+        transition = *static_cast<const Transition *>(tr);
     }
     std::span<const CapyPDF_OptionalContentGroupId> ocgspan(ocgarray, ocgarray + array_size);
     auto rc = dc->add_simple_navigation(ocgspan, transition);
@@ -1757,8 +1757,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_lab(CapyPDF_Color *color,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = new Transition{};
-    *out_ptr = reinterpret_cast<CapyPDF_Transition *>(pt);
+    *out_ptr = new Transition{};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1766,7 +1765,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_new(CapyPDF_Transition **out_ptr) CAPY
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_S(CapyPDF_Transition *tr,
                                                 CapyPDF_Transition_Type type) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->type = type;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1775,7 +1774,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_S(CapyPDF_Transition *tr,
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_D(CapyPDF_Transition *tr,
                                                 double duration) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->duration = duration;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1784,7 +1783,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_D(CapyPDF_Transition *tr,
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_transition_set_Dm(CapyPDF_Transition *tr, CapyPDF_Transition_Dimension dim) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->Di = dim;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1793,7 +1792,7 @@ capy_transition_set_Dm(CapyPDF_Transition *tr, CapyPDF_Transition_Dimension dim)
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_M(CapyPDF_Transition *tr,
                                                 CapyPDF_Transition_Motion m) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->M = m;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1802,7 +1801,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_M(CapyPDF_Transition *tr,
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Di(CapyPDF_Transition *tr,
                                                  uint32_t direction) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->Di = direction;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1811,7 +1810,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_Di(CapyPDF_Transition *tr,
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_SS(CapyPDF_Transition *tr,
                                                  double scale) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->SS = scale;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1821,7 +1820,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_B(CapyPDF_Transition *tr,
                                                 int32_t is_opaque) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     CHECK_BOOLEAN(is_opaque);
-    auto pt = reinterpret_cast<Transition *>(tr);
+    auto pt = static_cast<Transition *>(tr);
     pt->B = is_opaque;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1829,7 +1828,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transition_set_B(CapyPDF_Transition *tr,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_transition_destroy(CapyPDF_Transition *transition) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<Transition *>(transition);
+    delete static_cast<Transition *>(transition);
     RETNOERR;
     API_BOUNDARY_END;
 }

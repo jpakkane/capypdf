@@ -499,7 +499,7 @@ struct FontSubset {
     bool operator!=(const FontSubset &other) const { return !(*this == other); }
 };
 
-struct Transition {
+struct Transition : public _capyPDF_Transition {
     std::optional<CapyPDF_Transition_Type> type;
     std::optional<double> duration;
     std::optional<CapyPDF_Transition_Dimension> Dm; // true is horizontal
