@@ -52,7 +52,7 @@ struct PdfGlyph {
     double x, y;
 };
 
-class PdfDrawContext {
+class PdfDrawContext : public _capyPDF_DrawContext {
 
 public:
     PdfDrawContext(PdfDocument *g,
