@@ -243,7 +243,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties
     CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *page = static_cast<PageProperties *>(pageprops);
-    auto *tr = reinterpret_cast<TransparencyGroupProperties *>(trprop);
+    auto *tr = static_cast<TransparencyGroupProperties *>(trprop);
     page->transparency_props = *tr;
     RETNOERR;
     API_BOUNDARY_END;
@@ -1293,7 +1293,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_transparency_group_properties(
     CapyPDF_DrawContext *ctx, CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto *tr = reinterpret_cast<TransparencyGroupProperties *>(trprop);
+    auto *tr = static_cast<TransparencyGroupProperties *>(trprop);
     return conv_err(dc->set_transparency_properties(*tr));
     API_BOUNDARY_END;
 }
@@ -2000,8 +2000,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *sta
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
     CapyPDF_TransparencyGroupProperties **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr =
-        reinterpret_cast<CapyPDF_TransparencyGroupProperties *>(new TransparencyGroupProperties());
+    *out_ptr = new TransparencyGroupProperties();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2009,7 +2008,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_new(
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_CS(
     CapyPDF_TransparencyGroupProperties *props, CapyPDF_Device_Colorspace cs) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    auto *p = static_cast<TransparencyGroupProperties *>(props);
     p->CS = cs;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2019,7 +2018,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_I(
     CapyPDF_TransparencyGroupProperties *props, int32_t I) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     CHECK_BOOLEAN(I);
-    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    auto *p = static_cast<TransparencyGroupProperties *>(props);
     p->I = I;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2029,7 +2028,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
     CapyPDF_TransparencyGroupProperties *props, int32_t K) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     CHECK_BOOLEAN(K);
-    auto *p = reinterpret_cast<TransparencyGroupProperties *>(props);
+    auto *p = static_cast<TransparencyGroupProperties *>(props);
     p->K = K;
     RETNOERR;
     API_BOUNDARY_END;
@@ -2038,7 +2037,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_set_K(
 CAPYPDF_PUBLIC CapyPDF_EC capy_transparency_group_properties_destroy(
     CapyPDF_TransparencyGroupProperties *props) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<TransparencyGroupProperties *>(props);
+    delete static_cast<TransparencyGroupProperties *>(props);
     RETNOERR;
     API_BOUNDARY_END;
 }

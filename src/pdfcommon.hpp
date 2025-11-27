@@ -515,7 +515,7 @@ struct OptionalContentGroup {
     //  Usage usage;
 };
 
-struct TransparencyGroupProperties {
+struct TransparencyGroupProperties : public _capyPDF_TransparencyGroupProperties {
     // This should eventually be a variant of some sort,
     // because the mixing colorspace can be an ICC one.
     std::optional<CapyPDF_Device_Colorspace> CS;
