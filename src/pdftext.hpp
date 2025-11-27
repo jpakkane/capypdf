@@ -48,7 +48,7 @@ typedef std::variant<KerningValue,
     TextAtom;
 typedef std::vector<TextAtom> TextEvents;
 
-class TextSequence {
+class TextSequence : public _capyPDF_TextSequence {
 
 public:
     rvoe<NoReturnValue> append_kerning(int32_t k) {

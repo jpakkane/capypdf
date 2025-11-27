@@ -62,3 +62,5 @@ struct _capyPDF_GraphicsState {};
 struct _capyPDF_OptionalContentGroup {};
 
 struct _capyPDF_Text {};
+
+struct _capyPDF_TextSequence {};

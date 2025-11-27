@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2023-2024 Jussi Pakkanen
+// Copyright 2023-2025 Jussi Pakkanen
 
 #include <utils.hpp>
 #include <capypdf.h>
@@ -1396,7 +1396,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_tiling_pattern_context_new(CapyPDF_Generator *gen
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_TextSequence *>(new TextSequence());
+    *out_ptr = new TextSequence();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1404,7 +1404,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_new(CapyPDF_TextSequence **out_ptr)
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_codepoint(CapyPDF_TextSequence *tseq,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     auto rc = ts->append_unicode(codepoint);
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -1414,7 +1414,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_string(CapyPDF_TextSequence 
                                                            const char *u8str,
                                                            int32_t strlen) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     auto u8 = validate_utf8(u8str, strlen);
     if(!u8) {
         return conv_err(u8);
@@ -1427,7 +1427,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_string(CapyPDF_TextSequence 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence *tseq,
                                                             int32_t kern) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     auto rc = ts->append_kerning(kern);
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -1436,7 +1436,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_kerning(CapyPDF_TextSequence
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(
     CapyPDF_TextSequence *tseq, const char *actual_text, int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     auto utxt = validate_utf8(actual_text, strsize);
     if(!utxt) {
         return conv_err(utxt);
@@ -1450,7 +1450,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_start(
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_actualtext_end(CapyPDF_TextSequence *tseq)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     auto rc = ts->append_actualtext_end();
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -1460,7 +1460,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_raw_glyph(CapyPDF_TextSequen
                                                               uint32_t glyph_id,
                                                               uint32_t codepoint) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     if(glyph_id == 0) {
         return conv_err(ErrorCode::MissingGlyph);
     }
@@ -1475,7 +1475,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(CapyPDF_TextS
                                                                    int32_t strsize)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ts = reinterpret_cast<TextSequence *>(tseq);
+    auto *ts = static_cast<TextSequence *>(tseq);
     if(glyph_id == 0) {
         return conv_err(ErrorCode::MissingGlyph);
     }
@@ -1490,7 +1490,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_append_ligature_glyph(CapyPDF_TextS
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_sequence_destroy(CapyPDF_TextSequence *tseq) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<TextSequence *>(tseq);
+    delete static_cast<TextSequence *>(tseq);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1622,7 +1622,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_TJ(CapyPDF_Text *text,
                                            CapyPDF_TextSequence *kseq) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *t = static_cast<PdfText *>(text);
-    auto *ks = reinterpret_cast<TextSequence *>(kseq);
+    auto *ks = static_cast<TextSequence *>(kseq);
     auto rc = t->cmd_TJ(*ks);
     return conv_err(rc);
     API_BOUNDARY_END;
