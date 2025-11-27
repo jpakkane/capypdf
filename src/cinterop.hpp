@@ -66,3 +66,5 @@ struct _capyPDF_Text {};
 struct _capyPDF_TextSequence {};
 
 struct _capyPDF_Transition {};
+
+struct _capyPDF_RasterImageBuilder {};
