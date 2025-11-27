@@ -305,7 +305,7 @@ struct DelayedStructItem {
 };
 
 // 14.7.2 table 355
-struct StructItemExtraData {
+struct StructItemExtraData : public _capyPDF_StructItemExtraData {
     u8string T;
     asciistring Lang;
     u8string Alt;

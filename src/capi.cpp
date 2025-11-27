@@ -630,7 +630,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_structure_item(CapyPDF_Generator *g
     }
     std::optional<StructItemExtraData> ed;
     if(extra) {
-        ed = *reinterpret_cast<StructItemExtraData *>(extra);
+        ed = *static_cast<StructItemExtraData *>(extra);
     }
     auto rc = g->add_structure_item(stype, item_parent, std::move(ed));
     if(rc) {
@@ -654,7 +654,7 @@ capy_generator_add_custom_structure_item(CapyPDF_Generator *gen,
     }
     std::optional<StructItemExtraData> ed;
     if(extra) {
-        ed = *reinterpret_cast<StructItemExtraData *>(extra);
+        ed = *static_cast<StructItemExtraData *>(extra);
     }
     auto rc = g->add_structure_item(role, item_parent, std::move(ed));
     if(rc) {
@@ -2552,7 +2552,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_new(CapyPDF_StructItemExtraData **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_StructItemExtraData *>(new StructItemExtraData());
+    *out_ptr = new StructItemExtraData();
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2561,7 +2561,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_t(CapyPDF_StructItemEx
                                                             const char *ttext,
                                                             int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto *ed = static_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(ttext, strsize);
     if(rc) {
         ed->T = std::move(rc.value());
@@ -2574,7 +2574,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_lang(CapyPDF_StructIte
                                                                const char *lang,
                                                                int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto *ed = static_cast<StructItemExtraData *>(extra);
     auto rc = validate_ascii(lang, strsize);
     if(rc) {
         ed->Lang = std::move(rc.value());
@@ -2587,7 +2587,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItem
                                                               const char *alt,
                                                               int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto *ed = static_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(alt, strsize);
     if(rc) {
         ed->Alt = std::move(rc.value());
@@ -2599,7 +2599,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_alt(CapyPDF_StructItem
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
     CapyPDF_StructItemExtraData *extra, const char *actual, int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *ed = reinterpret_cast<StructItemExtraData *>(extra);
+    auto *ed = static_cast<StructItemExtraData *>(extra);
     auto rc = validate_utf8(actual, strsize);
     if(rc) {
         ed->ActualText = std::move(rc.value());
@@ -2611,7 +2611,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_set_actual_text(
 CAPYPDF_PUBLIC CapyPDF_EC capy_struct_item_extra_data_destroy(CapyPDF_StructItemExtraData *extra)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<StructItemExtraData *>(extra);
+    delete static_cast<StructItemExtraData *>(extra);
     RETNOERR;
     API_BOUNDARY_END;
 }

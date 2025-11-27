@@ -70,3 +70,5 @@ struct _capyPDF_Transition {};
 struct _capyPDF_RasterImageBuilder {};
 
 struct _capyPDF_Annotation {};
+
+struct _capyPDF_StructItemExtraData {};
