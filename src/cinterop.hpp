@@ -41,4 +41,8 @@ DEF_BASIC_OPERATORS(CapyPDF_OptionalContentGroupId);
 
 DEF_BASIC_OPERATORS(CapyPDF_TransparencyGroupId);
 
+// Helpers so we can use static_cast instead of reinterpret_cast.
+
 struct _capyPDF_DocumentProperties {};
+
+struct _capyPDF_PageProperties {};

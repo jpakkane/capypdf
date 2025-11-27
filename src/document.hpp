@@ -68,7 +68,7 @@ struct FontPDFObjects {
     size_t font_index_tmp;
 };
 
-struct PageProperties {
+struct PageProperties : public _capyPDF_PageProperties {
     std::optional<PdfRectangle> mediabox;
     std::optional<PdfRectangle> cropbox;
     std::optional<PdfRectangle> bleedbox;

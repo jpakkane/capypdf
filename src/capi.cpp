@@ -173,7 +173,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_creator(CapyPDF_DocumentP
     API_BOUNDARY_START;
     auto rc = validate_utf8(utf8_creator, strsize);
     if(rc) {
-        reinterpret_cast<DocumentProperties *>(docprops)->creator = std::move(rc.value());
+        static_cast<DocumentProperties *>(docprops)->creator = std::move(rc.value());
     }
     return conv_err(rc);
     API_BOUNDARY_END;
@@ -193,7 +193,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_language(
 CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_ptr)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_PageProperties *>(new PageProperties);
+    *out_ptr = new PageProperties;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -201,7 +201,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_new(CapyPDF_PageProperties **out_
 CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_destroy(CapyPDF_PageProperties *pageprops)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<PageProperties *>(pageprops);
+    delete static_cast<PageProperties *>(pageprops);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -213,7 +213,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_pagebox(CapyPDF_PagePropertie
                                                            double x2,
                                                            double y2) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto props = reinterpret_cast<PageProperties *>(pageprops);
+    auto props = static_cast<PageProperties *>(pageprops);
     switch(boxtype) {
     case CAPY_BOX_MEDIA:
         props->mediabox = PdfRectangle{x1, y1, x2, y2};
@@ -242,7 +242,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_page_properties_set_transparency_group_properties
     CapyPDF_PageProperties *pageprops,
     CapyPDF_TransparencyGroupProperties *trprop) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *page = reinterpret_cast<PageProperties *>(pageprops);
+    auto *page = static_cast<PageProperties *>(pageprops);
     auto *tr = reinterpret_cast<TransparencyGroupProperties *>(trprop);
     page->transparency_props = *tr;
     RETNOERR;
@@ -316,7 +316,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
     CapyPDF_DocumentProperties *docprops, const CapyPDF_PageProperties *prop) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dp = static_cast<DocumentProperties *>(docprops);
-    auto props = reinterpret_cast<const PageProperties *>(prop);
+    auto props = static_cast<const PageProperties *>(prop);
     if(!props->mediabox) {
         return conv_err(ErrorCode::MissingMediabox);
     }
@@ -1276,7 +1276,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_custom_page_properties(
     CapyPDF_DrawContext *ctx, const CapyPDF_PageProperties *custom_properties) {
     API_BOUNDARY_START;
     auto *dc = reinterpret_cast<PdfDrawContext *>(ctx);
-    auto *cprop = reinterpret_cast<const PageProperties *>(custom_properties);
+    auto *cprop = static_cast<const PageProperties *>(custom_properties);
     return conv_err(dc->set_custom_page_properties(*cprop));
     API_BOUNDARY_END;
 }
