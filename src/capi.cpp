@@ -19,6 +19,17 @@
 
 using namespace capypdf::internal;
 
+// These structs are not in the interop header because they are
+// used only inside this file.
+
+struct RasterImageBuilder : public _capyPDF_RasterImageBuilder {
+    RawPixelImage i;
+};
+
+struct _capyPDF_Color {
+    Color c;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -113,21 +124,18 @@ ShadingPoint conv_shpoint(const double *coords, const Color *color) {
     return sp;
 }
 
-template<typename T> void grab_coons_data(T &patch, const double *coords, const Color **colors) {
+template<typename T>
+void grab_coons_data(T &patch, const double *coords, const _capyPDF_Color **colors) {
     for(int i = 0; i < (int)patch.p.size(); ++i) {
         patch.p[i].x = coords[2 * i];
         patch.p[i].y = coords[2 * i + 1];
     }
     for(int i = 0; i < (int)patch.c.size(); ++i) {
-        patch.c[i] = *colors[i];
+        patch.c[i] = colors[i]->c;
     }
 }
 
 } // namespace
-
-struct RasterImageBuilder : public _capyPDF_RasterImageBuilder {
-    RawPixelImage i;
-};
 
 CapyPDF_EC capy_document_properties_new(CapyPDF_DocumentProperties **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -1222,8 +1230,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_stroke(CapyPDF_DrawContext *ctx,
                                              CapyPDF_Color *c) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = static_cast<PdfDrawContext *>(ctx);
-    auto *color = reinterpret_cast<Color *>(c);
-    return conv_err(dc->set_stroke_color(*color));
+    return conv_err(dc->set_stroke_color(c->c));
     API_BOUNDARY_END;
 }
 
@@ -1231,8 +1238,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_nonstroke(CapyPDF_DrawContext *ctx,
                                                 CapyPDF_Color *c) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *dc = static_cast<PdfDrawContext *>(ctx);
-    auto *color = reinterpret_cast<Color *>(c);
-    return conv_err(dc->set_nonstroke_color(*color));
+    return conv_err(dc->set_nonstroke_color(c->c));
     API_BOUNDARY_END;
 }
 
@@ -1512,8 +1518,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_nonstroke(CapyPDF_Text *text,
                                                   const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *t = static_cast<PdfText *>(text);
-    const auto *c = reinterpret_cast<const Color *>(color);
-    return conv_err(t->nonstroke_color(*c));
+    return conv_err(t->nonstroke_color(color->c));
     API_BOUNDARY_END;
 }
 
@@ -1521,8 +1526,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_set_stroke(CapyPDF_Text *text,
                                                const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *t = static_cast<PdfText *>(text);
-    const auto *c = reinterpret_cast<const Color *>(color);
-    return conv_err(t->stroke_color(*c));
+    return conv_err(t->stroke_color(color->c));
     API_BOUNDARY_END;
 }
 
@@ -1672,15 +1676,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_destroy(CapyPDF_Text *text) CAPYPDF_NOEXCEPT
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_new(CapyPDF_Color **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr =
-        reinterpret_cast<CapyPDF_Color *>(new capypdf::internal::Color(DeviceRGBColor{0, 0, 0}));
+    *out_ptr = new _capyPDF_Color(capypdf::internal::Color(DeviceRGBColor{0, 0, 0}));
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_destroy(CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<capypdf::internal::Color *>(color);
+    delete color;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1688,14 +1691,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_destroy(CapyPDF_Color *color) CAPYPDF_NOEXC
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_rgb(CapyPDF_Color *c, double r, double g, double b)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *reinterpret_cast<capypdf::internal::Color *>(c) = DeviceRGBColor{r, g, b};
+    c->c = DeviceRGBColor{r, g, b};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *reinterpret_cast<capypdf::internal::Color *>(c) = DeviceGrayColor{v};
+    c->c = DeviceGrayColor{v};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1703,7 +1706,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_gray(CapyPDF_Color *c, double v) CAPYPD
 CAPYPDF_PUBLIC CapyPDF_EC
 capy_color_set_cmyk(CapyPDF_Color *color, double c, double m, double y, double k) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *reinterpret_cast<capypdf::internal::Color *>(color) = DeviceCMYKColor{c, m, y, k};
+    color->c = DeviceCMYKColor{c, m, y, k};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1716,7 +1719,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_icc(CapyPDF_Color *color,
     ICCColor icc;
     icc.id = icc_id;
     icc.values.assign(values, values + num_values);
-    *reinterpret_cast<capypdf::internal::Color *>(color) = std::move(icc);
+    color->c = std::move(icc);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1725,11 +1728,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_separation(CapyPDF_Color *color,
                                                     CapyPDF_SeparationId sep_id,
                                                     double value) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *c = reinterpret_cast<Color *>(color);
     if(value < 0 || value > 1.0) {
         return conv_err(ErrorCode::ColorOutOfRange);
     }
-    *c = SeparationColor{sep_id, value};
+    color->c = SeparationColor{sep_id, value};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1737,8 +1739,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_separation(CapyPDF_Color *color,
 CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_pattern(CapyPDF_Color *color,
                                                  CapyPDF_PatternId pat_id) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *c = reinterpret_cast<Color *>(color);
-    *c = pat_id;
+    color->c = pat_id;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1749,8 +1750,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_color_set_lab(CapyPDF_Color *color,
                                              double a,
                                              double b) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *c = reinterpret_cast<Color *>(color);
-    *c = LabColor{lab_id, l, a, b};
+    color->c = LabColor{lab_id, l, a, b};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2196,11 +2196,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_function_new(double *domain,
                                                   double n,
                                                   CapyPDF_Function **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Function *>(
-        new PdfFunction{FunctionType2{std::vector<double>(domain, domain + domain_size),
-                                      *reinterpret_cast<const Color *>(c1),
-                                      *reinterpret_cast<const Color *>(c2),
-                                      n}});
+    *out_ptr = reinterpret_cast<CapyPDF_Function *>(new PdfFunction{
+        FunctionType2{std::vector<double>(domain, domain + domain_size), c1->c, c2->c, n}});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2339,10 +2336,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
     if(!sh) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
-    auto *cc = reinterpret_cast<const Color **>(color);
-    ShadingPoint sp1 = conv_shpoint(coords, cc[0]);
-    ShadingPoint sp2 = conv_shpoint(coords + 2, cc[1]);
-    ShadingPoint sp3 = conv_shpoint(coords + 4, cc[2]);
+    ShadingPoint sp1 = conv_shpoint(coords, &color[0]->c);
+    ShadingPoint sp2 = conv_shpoint(coords + 2, &color[1]->c);
+    ShadingPoint sp3 = conv_shpoint(coords + 4, &color[2]->c);
     sh4->start_strip(sp1, sp2, sp3);
     RETNOERR;
     API_BOUNDARY_END;
@@ -2358,12 +2354,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
     if(!sh) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
-    auto *cc = reinterpret_cast<const Color *>(color);
     if(flag == 1 || flag == 2) {
         if(sh4->elements.empty()) {
             return conv_err(ErrorCode::BadStripStart);
         }
-        ShadingPoint sp = conv_shpoint(coords, cc);
+        ShadingPoint sp = conv_shpoint(coords, &color->c);
         sh4->extend_strip(sp, flag);
     } else {
         return conv_err(ErrorCode::BadEnum);
@@ -2399,9 +2394,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
-    auto **cc = reinterpret_cast<const Color **>(colors);
     FullCoonsPatch cp;
-    grab_coons_data(cp, coords, cc);
+    grab_coons_data(cp, coords, colors);
     sh6->elements.emplace_back(std::move(cp));
     RETNOERR;
     API_BOUNDARY_END;
@@ -2417,13 +2411,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
-    auto **cc = reinterpret_cast<const Color **>(colors);
     if(flag == 1 || flag == 2 || flag == 3) {
         if(sh6->elements.empty()) {
             return conv_err(ErrorCode::BadStripStart);
         }
         ContinuationCoonsPatch ccp;
-        grab_coons_data(ccp, coords, cc);
+        grab_coons_data(ccp, coords, colors);
         sh6->elements.emplace_back(std::move(ccp));
     } else {
         return conv_err(ErrorCode::BadEnum);
