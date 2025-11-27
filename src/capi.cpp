@@ -46,6 +46,10 @@ struct _capyPDF_BDCTags {
     BDCTags tags;
 };
 
+struct _capyPDF_Halftone {
+    Halftone ht;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -1986,8 +1990,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_HT(CapyPDF_GraphicsState *stat
                                                      CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *s = static_cast<GraphicsState *>(state);
-    auto *halftone = reinterpret_cast<Halftone *>(ht);
-    s->HT = std::move(*halftone);
+    s->HT = std::move(ht->ht);
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2927,15 +2930,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_destroy(CapyPDF_FontProperties *f
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_new(CapyPDF_Halftone **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Halftone *>(new Halftone());
+    *out_ptr = new _capyPDF_Halftone;
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_default(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *halftone = reinterpret_cast<Halftone *>(ht);
-    *halftone = HalftoneDefault{};
+    ht->ht = HalftoneDefault{};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2946,15 +2948,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_set_type1(CapyPDF_Halftone *ht,
                                                   CapyPDF_Halftone_Spot_Function htspot)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *halftone = reinterpret_cast<Halftone *>(ht);
-    *halftone = HalftoneType1{frequency, angle, htspot};
+    ht->ht = HalftoneType1{frequency, angle, htspot};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_halftone_destroy(CapyPDF_Halftone *ht) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<Halftone *>(ht);
+    delete ht;
     RETNOERR;
     API_BOUNDARY_END;
 }
