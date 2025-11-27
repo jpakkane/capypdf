@@ -38,6 +38,10 @@ struct _capyPDF_Function {
     PdfFunction f;
 };
 
+struct _capyPDF_Shading {
+    PdfShading sh;
+};
+
 namespace {
 
 [[nodiscard]] CapyPDF_EC conv_err(ErrorCode ec) { return (CapyPDF_EC)ec; }
@@ -602,8 +606,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading(CapyPDF_Generator *gen,
                                                      CapyPDF_ShadingId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto rc = g->add_shading(*sh);
+    auto rc = g->add_shading(shade->sh);
     if(rc) {
         *out_ptr = rc.value();
     }
@@ -2254,8 +2257,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type2_shading_new(CapyPDF_Device_Colorspace cs,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr =
-        reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType2{cs, x0, y0, x1, y1, func}});
+    *out_ptr = new _capyPDF_Shading(PdfShading{ShadingType2{cs, x0, y0, x1, y1, func}});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2267,10 +2269,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_extend(CapyPDF_Shading *shade,
     CHECK_BOOLEAN(starting);
     CHECK_BOOLEAN(ending);
 
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *t2 = std::get_if<ShadingType2>(sh)) {
+    if(auto *t2 = std::get_if<ShadingType2>(&shade->sh)) {
         t2->extend = ShadingExtend{starting != 0, ending != 0};
-    } else if(auto *t3 = std::get_if<ShadingType3>(sh)) {
+    } else if(auto *t3 = std::get_if<ShadingType3>(&shade->sh)) {
         t3->extend = ShadingExtend{starting != 0, ending != 0};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
@@ -2283,10 +2284,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
                                                   double starting,
                                                   double ending) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    if(auto *t2 = std::get_if<ShadingType2>(sh)) {
+    if(auto *t2 = std::get_if<ShadingType2>(&shade->sh)) {
         t2->domain = ShadingDomain{starting, ending};
-    } else if(auto *t3 = std::get_if<ShadingType3>(sh)) {
+    } else if(auto *t3 = std::get_if<ShadingType3>(&shade->sh)) {
         t3->domain = ShadingDomain{starting, ending};
     } else {
         return conv_err(ErrorCode::IncorrectFunctionType);
@@ -2297,7 +2297,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_set_domain(CapyPDF_Shading *shade,
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_destroy(CapyPDF_Shading *shade) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<PdfShading *>(shade);
+    delete shade;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2307,8 +2307,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type3_shading_new(CapyPDF_Device_Colorspace cs,
                                                  CapyPDF_FunctionId func,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{
-        ShadingType3{cs, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], func}});
+    *out_ptr = new _capyPDF_Shading(
+        ShadingType3{cs, coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], func});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2320,8 +2320,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double maxy,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(
-        new PdfShading{ShadingType4{{}, minx, miny, maxx, maxy, cs}});
+    *out_ptr = new _capyPDF_Shading(ShadingType4{{}, minx, miny, maxx, maxy, cs});
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2329,9 +2328,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_new(CapyPDF_Device_Colorspace cs,
 CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_add_triangle(
     CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh4 = std::get_if<ShadingType4>(sh);
-    if(!sh) {
+    auto *sh4 = std::get_if<ShadingType4>(&shade->sh);
+    if(!sh4) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
     ShadingPoint sp1 = conv_shpoint(coords, &color[0]->c);
@@ -2347,9 +2345,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type4_shading_extend(CapyPDF_Shading *shade,
                                                     const double *coords,
                                                     const CapyPDF_Color *color) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh4 = std::get_if<ShadingType4>(sh);
-    if(!sh) {
+    auto *sh4 = std::get_if<ShadingType4>(&shade->sh);
+    if(!sh4) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
     if(flag == 1 || flag == 2) {
@@ -2372,14 +2369,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Device_Colorspace cs,
                                                  double maxy,
                                                  CapyPDF_Shading **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_Shading *>(new PdfShading{ShadingType6{
+    *out_ptr = new _capyPDF_Shading(ShadingType6{
         {},
         minx,
         miny,
         maxx,
         maxy,
         cs,
-    }});
+    });
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2387,8 +2384,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_new(CapyPDF_Device_Colorspace cs,
 CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_add_patch(
     CapyPDF_Shading *shade, const double *coords, const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh6 = std::get_if<ShadingType6>(sh);
+    auto *sh6 = std::get_if<ShadingType6>(&shade->sh);
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
@@ -2404,8 +2400,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_type6_shading_extend(CapyPDF_Shading *shade,
                                                     const double *coords,
                                                     const CapyPDF_Color **colors) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *sh = reinterpret_cast<PdfShading *>(shade);
-    auto *sh6 = std::get_if<ShadingType6>(sh);
+    auto *sh6 = std::get_if<ShadingType6>(&shade->sh);
     if(!sh6) {
         return conv_err(ErrorCode::IncorrectShadingType);
     }
