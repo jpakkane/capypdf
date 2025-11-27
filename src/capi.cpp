@@ -438,7 +438,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_soft_mask(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *s = reinterpret_cast<const SoftMask *>(sm);
+    auto *s = static_cast<const SoftMask *>(sm);
 
     auto rc = g->add_soft_mask(*s);
     if(rc) {
@@ -2808,14 +2808,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_new(CapyPDF_Soft_Mask_Subtype subtype,
                                              CapyPDF_TransparencyGroupId trid,
                                              CapyPDF_SoftMask **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_SoftMask *>(new SoftMask{subtype, trid});
+    *out_ptr = new SoftMask{{}, subtype, trid};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<SoftMask *>(sm);
+    delete static_cast<SoftMask *>(sm);
     RETNOERR;
     API_BOUNDARY_END;
 }

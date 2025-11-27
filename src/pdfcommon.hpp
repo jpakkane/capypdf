@@ -525,7 +525,7 @@ struct TransparencyGroupProperties : public _capyPDF_TransparencyGroupProperties
     void serialize(ObjectFormatter &fmt) const;
 };
 
-struct SoftMask {
+struct SoftMask : public _capyPDF_SoftMask {
     CapyPDF_Soft_Mask_Subtype S;
     CapyPDF_TransparencyGroupId G;
     // std::vector<double> BC;
