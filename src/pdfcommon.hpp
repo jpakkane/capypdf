@@ -420,7 +420,7 @@ struct ShadingType3 {
     std::optional<ShadingDomain> domain{};
 };
 
-struct ShadingPattern {
+struct ShadingPattern : public _capyPDF_ShadingPattern {
     CapyPDF_ShadingId sid;
     std::optional<PdfMatrix> m;
 };

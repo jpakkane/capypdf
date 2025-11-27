@@ -454,7 +454,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_shading_pattern(CapyPDF_Generator *
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *shad = reinterpret_cast<ShadingPattern *>(shp);
+    auto *shad = static_cast<ShadingPattern *>(shp);
     auto rc = g->add_shading_pattern(*shad);
     if(rc) {
         *out_ptr = rc.value();
@@ -2777,7 +2777,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_outline_destroy(CapyPDF_Outline *outline) CAPYPDF
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_new(
     CapyPDF_ShadingId shid, CapyPDF_ShadingPattern **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = reinterpret_cast<CapyPDF_ShadingPattern *>(new ShadingPattern{shid, {}});
+    *out_ptr = new ShadingPattern{{}, shid, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2790,7 +2790,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern
                                                           double e,
                                                           double f) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    auto *p = reinterpret_cast<ShadingPattern *>(shp);
+    auto *p = static_cast<ShadingPattern *>(shp);
     p->m = PdfMatrix{a, b, c, d, e, f};
     RETNOERR;
     API_BOUNDARY_END;
@@ -2799,7 +2799,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_set_matrix(CapyPDF_ShadingPattern
 CAPYPDF_PUBLIC CapyPDF_EC capy_shading_pattern_destroy(CapyPDF_ShadingPattern *shp)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<ShadingPattern *>(shp);
+    delete static_cast<ShadingPattern *>(shp);
     RETNOERR;
     API_BOUNDARY_END;
 }
