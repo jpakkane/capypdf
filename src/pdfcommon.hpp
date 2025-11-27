@@ -271,7 +271,7 @@ struct HalftoneType1 {
 
 typedef std::variant<HalftoneDefault, HalftoneType1> Halftone;
 
-struct ThreeDStream {
+struct ThreeDStream : public _capyPDF_3DStream {
     CapyPDF_3D_File_Format format;
     std::vector<std::byte> model_data;
 };

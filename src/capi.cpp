@@ -670,7 +670,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_3d_stream(CapyPDF_Generator *gen,
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    auto *three = reinterpret_cast<ThreeDStream *>(stream);
+    auto *three = static_cast<ThreeDStream *>(stream);
     auto rc = g->add_3d_stream(std::move(*three));
     if(rc) {
         *out_ptr = rc.value();
@@ -2982,15 +2982,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_new(const char *fname,
     if(!rc) {
         return conv_err(rc);
     }
-    *out_ptr =
-        reinterpret_cast<CapyPDF_3DStream *>(new ThreeDStream{format, std::move(rc.value())});
+    *out_ptr = new ThreeDStream{{}, format, std::move(rc.value())};
     RETNOERR;
     API_BOUNDARY_END;
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_destroy(CapyPDF_3DStream *stream) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<ThreeDStream *>(stream);
+    delete static_cast<ThreeDStream *>(stream);
     RETNOERR;
     API_BOUNDARY_END;
 }
