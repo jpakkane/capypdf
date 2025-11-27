@@ -772,7 +772,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
     CapyPDF_OptionalContentGroupId *out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
-    const auto *group = reinterpret_cast<const OptionalContentGroup *>(ocg);
+    const auto *group = static_cast<const OptionalContentGroup *>(ocg);
     auto rc = g->add_optional_content_group(*group);
     if(rc) {
         *out_ptr = rc.value();
@@ -1843,7 +1843,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_optional_content_group_new(CapyPDF_OptionalConten
     // FIXME check for ASCIIness (or even more strict?)
     auto *ocg = new OptionalContentGroup();
     ocg->name = name;
-    *out_ptr = reinterpret_cast<CapyPDF_OptionalContentGroup *>(ocg);
+    *out_ptr = ocg;
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -1851,7 +1851,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_optional_content_group_new(CapyPDF_OptionalConten
 CAPYPDF_PUBLIC CapyPDF_EC capy_optional_content_group_destroy(CapyPDF_OptionalContentGroup *ocg)
     CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    delete reinterpret_cast<OptionalContentGroup *>(ocg);
+    delete static_cast<OptionalContentGroup *>(ocg);
     RETNOERR;
     API_BOUNDARY_END;
 }

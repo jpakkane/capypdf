@@ -509,7 +509,7 @@ struct Transition {
     std::optional<bool> B;
 };
 
-struct OptionalContentGroup {
+struct OptionalContentGroup : public _capyPDF_OptionalContentGroup {
     std::string name;
     // std::string intent;
     //  Usage usage;

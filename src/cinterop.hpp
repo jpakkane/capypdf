@@ -58,3 +58,5 @@ struct _capyPDF_DrawContext {};
 struct _capyPDF_Generator {};
 
 struct _capyPDF_GraphicsState {};
+
+struct _capyPDF_OptionalContentGroup {};
