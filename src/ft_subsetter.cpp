@@ -986,17 +986,17 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
     converted.reserve(glyphs.size());
     uint32_t counter = 0;
     for(const auto &g : glyphs) {
-        if(auto tmp = std::get_if<RegularGlyph>(&g)) {
-            if(tmp->unicode_codepoint == 0) {
+        if(const auto *rg = std::get_if<RegularGlyph>(&g)) {
+            if(rg->unicode_codepoint == 0) {
                 converted.emplace_back(0, 0);
             } else {
-                converted.emplace_back(tmp->unicode_codepoint, tmp->glyph_index);
+                converted.emplace_back(rg->unicode_codepoint, rg->glyph_index);
             }
-        } else if(auto tmp = std::get_if<LigatureGlyph>(&g)) {
+        } else if(const auto *lg = std::get_if<LigatureGlyph>(&g)) {
             // The glyph represented something bigger than one codepoint,
             // such as "ffi". Just write a random value in the private
             // use area.
-            converted.emplace_back(0xE000 + counter, tmp->glyph_index);
+            converted.emplace_back(0xE000 + counter, lg->glyph_index);
             ++counter;
         } else {
             std::abort();
