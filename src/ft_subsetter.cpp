@@ -984,12 +984,22 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
     const auto &source_data = source.cff.value();
     std::vector<SubsetGlyphs> converted;
     converted.reserve(glyphs.size());
+    uint32_t counter = 0;
     for(const auto &g : glyphs) {
-        const auto &tmp = std::get<RegularGlyph>(g);
-        if(tmp.unicode_codepoint == 0) {
-            converted.emplace_back(0, 0);
+        if(auto tmp = std::get_if<RegularGlyph>(&g)) {
+            if(tmp->unicode_codepoint == 0) {
+                converted.emplace_back(0, 0);
+            } else {
+                converted.emplace_back(tmp->unicode_codepoint, tmp->glyph_index);
+            }
+        } else if(auto tmp = std::get_if<LigatureGlyph>(&g)) {
+            // The glyph represented something bigger than one codepoint,
+            // such as "ffi". Just write a random value in the private
+            // use area.
+            converted.emplace_back(0xE000 + counter, tmp->glyph_index);
+            ++counter;
         } else {
-            converted.emplace_back(tmp.unicode_codepoint, tmp.glyph_index);
+            std::abort();
         }
     }
     CFFWriter w(source_data, converted);

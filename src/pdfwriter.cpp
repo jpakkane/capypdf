@@ -360,6 +360,7 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
     };
 
     for(; i < doc.document_objects.size(); ++i) {
+        assert(!doc.document_objects.at(i).valueless_by_exception());
         ERCV(std::visit(visitor, doc.document_objects.at(i)));
     }
     return object_offsets;
