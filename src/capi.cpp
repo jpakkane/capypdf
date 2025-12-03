@@ -985,7 +985,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_cm(CapyPDF_DrawContext *ctx,
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_cmd_d(CapyPDF_DrawContext *ctx,
-                                        double *dash_array,
+                                        const double *dash_array,
                                         int32_t array_size,
                                         double phase) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -1568,7 +1568,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_J(CapyPDF_Text *text,
     API_BOUNDARY_END;
 }
 CAPYPDF_PUBLIC CapyPDF_EC capy_text_cmd_d(CapyPDF_Text *text,
-                                          double *dash_array,
+                                          const double *dash_array,
                                           int32_t array_size,
                                           double phase) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;

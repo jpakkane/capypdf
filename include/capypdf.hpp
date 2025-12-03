@@ -438,7 +438,7 @@ public:
     void cmd_M(double value) { CAPY_CPP_CHECK(capy_text_cmd_M(*this, value)); }
     void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_text_cmd_j(*this, value)); }
     void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_text_cmd_J(*this, value)); }
-    void cmd_d(double *values, int32_t num_values, double offset) {
+    void cmd_d(const double *values, int32_t num_values, double offset) {
         CAPY_CPP_CHECK(capy_text_cmd_d(*this, values, num_values, offset));
     }
     void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_text_cmd_gs(*this, gsid)); }
@@ -750,7 +750,7 @@ public:
     void cmd_M(double value) { CAPY_CPP_CHECK(capy_dc_cmd_M(*this, value)); }
     void cmd_j(CapyPDF_Line_Join value) { CAPY_CPP_CHECK(capy_dc_cmd_j(*this, value)); }
     void cmd_J(CapyPDF_Line_Cap value) { CAPY_CPP_CHECK(capy_dc_cmd_J(*this, value)); }
-    void cmd_d(double *values, int32_t num_values, double offset) {
+    void cmd_d(const double *values, int32_t num_values, double offset) {
         CAPY_CPP_CHECK(capy_dc_cmd_d(*this, values, num_values, offset));
     }
     void cmd_gs(CapyPDF_GraphicsStateId gsid) { CAPY_CPP_CHECK(capy_dc_cmd_gs(*this, gsid)); }

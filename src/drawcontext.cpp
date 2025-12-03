@@ -371,7 +371,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_cs(std::string_view cspace_name) {
 }
 
 rvoe<NoReturnValue>
-PdfDrawContext::cmd_d(double *dash_array, size_t dash_array_length, double phase) {
+PdfDrawContext::cmd_d(const double *dash_array, size_t dash_array_length, double phase) {
     if(dash_array_length == 0) {
         RETERR(ZeroLengthArray);
     }

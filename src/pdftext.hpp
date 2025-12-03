@@ -324,7 +324,7 @@ public:
         events.emplace_back(J_arg{cap_style});
         RETOK;
     }
-    rvoe<NoReturnValue> cmd_d(double *dash_array, int32_t array_size, double phase) {
+    rvoe<NoReturnValue> cmd_d(const double *dash_array, int32_t array_size, double phase) {
         std::vector<double> array;
         array.assign(dash_array, dash_array + array_size);
         events.emplace_back(d_arg{std::move(array), phase});

@@ -84,7 +84,7 @@ public:
     rvoe<NoReturnValue> cmd_cm(double m1, double m2, double m3, double m4, double m5, double m6);
     rvoe<NoReturnValue> cmd_CS(std::string_view cspace_name);
     rvoe<NoReturnValue> cmd_cs(std::string_view cspace_name);
-    rvoe<NoReturnValue> cmd_d(double *dash_array, size_t dash_array_length, double phase);
+    rvoe<NoReturnValue> cmd_d(const double *dash_array, size_t dash_array_length, double phase);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_FormXObjectId fxoid);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_TransparencyGroupId trid);
     rvoe<NoReturnValue> cmd_Do(CapyPDF_ImageId obj_num);
