@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2023-2024 Jussi Pakkanen
+// Copyright 2023-2025 Jussi Pakkanen
 
 #include <document.hpp>
 #include <utils.hpp>
@@ -63,7 +63,7 @@ namespace {
 
 // const std::array<const char *, 3> intentnames{"/GTS_PDFX", "/GTS_PDFA", "/ISO_PDFE"};
 
-const std::array<const char *, 9> pdfx_names{
+const std::array<const char *, 12> pdfx_names{
     "PDF/X-1:2001",
     "PDF/X-1a:2001",
     "PDF/X-1a:2003",
@@ -73,6 +73,9 @@ const std::array<const char *, 9> pdfx_names{
     "PDF/X-4p",
     "PDF/X-5g",
     "PDF/X-5pg",
+    "PDF/X-6",
+    "PDF/X-6p",
+    "PDF/X-6n",
 };
 
 const std::array<const char *, 10> pdfa_part{"1", "1", "2", "2", "2", "3", "3", "3", "4", "4"};
@@ -359,6 +362,10 @@ PdfVersion DocumentProperties::version() const {
         case CAPY_PDFX_5G:
         case CAPY_PDFX_5PG:
             return PdfVersion::v16;
+        case CAPY_PDFX_6:
+        case CAPY_PDFX_6p:
+        case CAPY_PDFX_6n:
+            return PdfVersion::v20;
         default:
             return PdfVersion::v13; // Not really correct, but goodenough.
         }
@@ -2028,11 +2035,11 @@ PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
         if(ft) {
             fprintf(stderr, "Freetype could not open font file %s:\n%s\n", fname, ft_message);
         } else {
-            fprintf(
-                stderr,
-                "Freetype failed to open font %s, error code %d (FT error strings not available).",
-                fname,
-                error);
+            fprintf(stderr,
+                    "Freetype failed to open font %s, error code %d (FT error strings not "
+                    "available).",
+                    fname,
+                    error);
         }
         RETERR(FreeTypeError);
     }

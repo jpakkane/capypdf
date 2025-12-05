@@ -104,6 +104,9 @@ class PdfXType(Enum):
     X4P = 6
     X5G = 7
     X5PG= 8
+    X6 = 9
+    X6p = 10
+    X6n = 11
 
 class PdfAType(Enum):
     A1a = 0

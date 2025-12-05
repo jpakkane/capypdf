@@ -162,6 +162,9 @@ typedef enum {
     CAPY_PDFX_4P,
     CAPY_PDFX_5G,
     CAPY_PDFX_5PG,
+    CAPY_PDFX_6,
+    CAPY_PDFX_6p,
+    CAPY_PDFX_6n,
 } CapyPDF_PDFX_Type;
 
 typedef enum {
