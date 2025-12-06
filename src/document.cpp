@@ -135,6 +135,15 @@ const std::array<const char *, 6> page_layout_names{
     "/TwoPageRight",
 };
 
+const std::array<const char *, 6> page_mode_names{
+    "/UseNone",
+    "/UseOutlines",
+    "/UseThumbs",
+    "/FullScreen",
+    "/UseOC",
+    "/UseAttachments",
+};
+
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
@@ -909,6 +918,10 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     if(docprops.page_layout) {
         fmt.add_token("/PageLayout");
         fmt.add_token(page_layout_names.at(docprops.page_layout.value()));
+    }
+    if(docprops.page_mode) {
+        fmt.add_token("/PageMode");
+        fmt.add_token(page_mode_names.at(docprops.page_mode.value()));
     }
     if(outline_object) {
         fmt.add_token("/Outlines");

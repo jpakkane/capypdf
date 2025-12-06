@@ -194,6 +194,7 @@ struct DocumentProperties : public _capyPDF_DocumentProperties {
     u8string intent_condition_identifier;
     bool compress_streams = true;
     std::optional<CapyPDF_Page_Layout> page_layout;
+    std::optional<CapyPDF_Page_Mode> page_mode;
 };
 
 struct Outline : public _capyPDF_Outline {

@@ -324,6 +324,7 @@ cfunc_types = (
 ('capy_document_properties_set_default_page_properties', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_document_properties_set_tagged', [ctypes.c_void_p, ctypes.c_int32]),
 ('capy_document_properties_set_page_layout', [ctypes.c_void_p, enum_type]),
+('capy_document_properties_set_page_mode', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_metadata_xml', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 
 ('capy_page_properties_new', [ctypes.c_void_p]),
@@ -751,6 +752,11 @@ class DocumentProperties:
         if not isinstance(layout, PageLayout):
             raise CapyPDFException('Argument must be a PageLayout enum.')
         check_error(libfile.capy_document_properties_set_page_layout(self, layout.value))
+
+    def set_page_mode(self, model):
+        if not isinstance(layout, PageMode):
+            raise CapyPDFException('Argument must be a PageMode enum.')
+        check_error(libfile.capy_document_properties_set_page_mode(self, model.value))
 
     def set_metadata_xml(self, xmldata):
         xmlbytes = xmldata.encode('UTF-8')
