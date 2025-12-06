@@ -144,6 +144,12 @@ const std::array<const char *, 6> page_mode_names{
     "/UseAttachments",
 };
 
+const std::array<const char *, 3> blackpt_names{
+    "/OFF",
+    "/ON",
+    "/DEFAULT",
+};
+
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
@@ -1581,6 +1587,9 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
     }
     if(state.TK) {
         fmt.add_token_pair("/TK", *state.TK ? "true" : "false");
+    }
+    if(state.UseBlackPtComp) {
+        fmt.add_token_pair("/UseBlackPtComp", blackpt_names.at(state.UseBlackPtComp.value()));
     }
     fmt.end_dict();
     add_object(FullPDFObject{fmt.steal(), {}});

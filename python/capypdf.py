@@ -243,6 +243,12 @@ class ThreeDFileFormat(Enum):
     U3D = 0
     PRC = 1
 
+class BlackPointCompensation(Enum):
+    OFF = 0
+    ON = 1
+    DEFAULT = 2
+
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -326,7 +332,6 @@ cfunc_types = (
 ('capy_document_properties_set_page_layout', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_page_mode', [ctypes.c_void_p, enum_type]),
 ('capy_document_properties_set_metadata_xml', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
-
 ('capy_page_properties_new', [ctypes.c_void_p]),
 ('capy_page_properties_destroy', [ctypes.c_void_p]),
 ('capy_page_properties_set_pagebox',
@@ -487,6 +492,7 @@ cfunc_types = (
 ('capy_graphics_state_set_HT', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_graphics_state_set_SMask', [ctypes.c_void_p, SoftMaskId]),
 ('capy_graphics_state_set_TK', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_graphics_state_set_blackpoint_compensation', [ctypes.c_void_p, enum_type]),
 ('capy_graphics_state_destroy', [ctypes.c_void_p]),
 
 ('capy_raster_image_builder_new', [ctypes.c_void_p]),
@@ -1590,7 +1596,6 @@ class GraphicsState:
             raise CapyPDFException('Argument must be a halftone object.')
         check_error(libfile.capy_graphics_state_set_HT(self, ht))
 
-
     def set_SMask(self, value):
         if not isinstance(value, SoftMaskId):
             raise CapyPDFException('Argument must be a soft mask id.')
@@ -1599,6 +1604,11 @@ class GraphicsState:
     def set_TK(self, value):
         value = 1 if value else 0
         check_error(libfile.capy_graphics_state_set_TK(self, value))
+
+    def set_blackpoint_compensation(self, use_comp):
+        if not isinstance(use_comp, BlackPointCompensation):
+            raise CapyPDFException('Argument must be a BlackPointCompensation enum.')
+        check_error(libfile.capy_graphics_state_set_blackpoint_compensation(self, use_comp.value))
 
 
 class OptionalContentGroup:

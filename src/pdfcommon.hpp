@@ -304,7 +304,7 @@ struct GraphicsState : public _capyPDF_GraphicsState {
     std::optional<LimitDouble> ca;
     std::optional<bool> AIS;
     std::optional<bool> TK;
-    // std::optional<CapyPDF_BlackPointComp> UseBlackPtComp;
+    std::optional<CapyPDF_BlackPointComp> UseBlackPtComp;
     //  std::optional<Point> HTO;
 };
 

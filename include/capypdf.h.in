@@ -370,6 +370,12 @@ typedef enum {
     CAPY_3D_PRC,
 } CapyPDF_3D_File_Format;
 
+typedef enum {
+    CAPY_BLACK_POINT_COMPENSATION_OFF,
+    CAPY_BLACK_POINT_COMPENSATION_ON,
+    CAPY_BLACK_POINT_COMPENSATION_DEFAULT,
+} CapyPDF_BlackPointComp;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
@@ -1036,6 +1042,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *sta
                                                       int32_t value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_blackpoint_compensation(
+    CapyPDF_GraphicsState *state, CapyPDF_BlackPointComp use_comp) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
