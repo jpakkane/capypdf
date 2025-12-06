@@ -363,6 +363,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(CapyPDF_DocumentPr
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_page_layout(
+    CapyPDF_DocumentProperties *docprops, CapyPDF_Page_Layout layout) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *dp = static_cast<DocumentProperties *>(docprops);
+    dp->page_layout = layout;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
     CapyPDF_DocumentProperties *docprops, const char *rdf_xml, int32_t strsize) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;

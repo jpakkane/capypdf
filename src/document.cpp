@@ -126,6 +126,15 @@ const std::array<const char *, 16> blend_mode_names{
     "/Luminosity",
 };
 
+const std::array<const char *, 6> page_layout_names{
+    "/SinglePage",
+    "/OneColumn",
+    "/TwoColumnLeft",
+    "/TwoColumnRight",
+    "/TwoPageLeft",
+    "/TwoPageRight",
+};
+
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
@@ -896,6 +905,10 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         }
         fmt.end_array();
         fmt.end_dict();
+    }
+    if(docprops.page_layout) {
+        fmt.add_token("/PageLayout");
+        fmt.add_token(page_layout_names.at(docprops.page_layout.value()));
     }
     if(outline_object) {
         fmt.add_token("/Outlines");

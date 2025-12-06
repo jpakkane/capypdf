@@ -527,6 +527,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_default_page_properties(
 CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_tagged(
     CapyPDF_DocumentProperties *docprops, int32_t is_tagged) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC
+capy_document_properties_set_page_layout(CapyPDF_DocumentProperties *docprops,
+                                         CapyPDF_Page_Layout layout) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC
 capy_document_properties_set_metadata_xml(CapyPDF_DocumentProperties *docprops,
                                           const char *rdf_xml,
                                           int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
