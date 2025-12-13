@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2023-2024 Jussi Pakkanen
+// Copyright 2023-2025 Jussi Pakkanen
 
 #pragma once
 
@@ -10,6 +10,8 @@
 #mesondefine CAPYPDF_VERSION_MINOR
 #mesondefine CAPYPDF_VERSION_MICRO
 
+#mesondefine CAPYPDF_STATIC
+
 #if defined _MSC_VER
 // Patches welcome
 #define CAPYPDF_NONNULL_ARGS
@@ -19,7 +21,9 @@
 #define CAPYPDF_NONNULL_ARGS_AT(...) __attribute__((nonnull(__VA_ARGS__)))
 #endif
 
-#if defined _WIN32
+#if defined CAPYPDF_STATIC
+#define CAPYPDF_PUBLIC
+#elif defined _WIN32
 #ifdef BUILDING_CAPYPDF
 #define CAPYPDF_PUBLIC __declspec(dllexport)
 #else

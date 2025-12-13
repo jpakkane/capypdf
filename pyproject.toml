@@ -10,7 +10,7 @@ allow-windows-internal-shared-libs = true
 [project]
 name = 'capypdf'
 version = '0.18.99'
-description = 'A color managed PDF generation library tech preview'
+description = 'A color managed PDF generation library.'
 readme = 'readme.md'
 requires-python = '>=3.10'
 license = {file = 'COPYING'}
@@ -27,5 +27,5 @@ classifiers = [
 ]
 
 [tool.meson-python.args]
-#setup = ['--debug']
+setup = ['-Ddefault_library=static', '-D:default_library=shared']
 install = ['--skip-subprojects=lcms2', '--tags=runtime,python-runtime']
