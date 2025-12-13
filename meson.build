@@ -1,7 +1,8 @@
 project('capypdf', 'cpp', 'c',
   version: '0.18.99',
-  meson_version: '>=1.5',
-  default_options : ['cpp_std=c++23,c++latest', 'default_library=static'])
+  meson_version: '>=1.10',
+  default_options : ['cpp_std=c++23,c++latest',
+                     'namingscheme=platform'])
 
 version = meson.project_version()
 varr = version.split('.')
@@ -11,6 +12,14 @@ cdata.set('CAPYPDF_VERSION_MAJOR', varr[0])
 cdata.set('CAPYPDF_VERSION_MINOR', varr[1])
 cdata.set('CAPYPDF_VERSION_MICRO', varr[2])
 soversion = 0
+
+if get_option('default_library') == 'both'
+  error('Building both libraries at the same time not supported.')
+endif
+
+if get_option('default_library') == 'static'
+  cdata.set('CAPYPDF_STATIC', 1)
+endif
 
 add_project_arguments('-D_GLIBCXX_ASSERTIONS', '-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST',
   language: 'cpp')
@@ -36,7 +45,9 @@ if get_option('devtools')
   subdir('devtools')
 endif
 if not get_option('fuzzing')
-  subdir('python')
+  if get_option('default_library') == 'shared'
+    subdir('python')
+  endif
   subdir('benchmark')
   subdir('test')
 endif

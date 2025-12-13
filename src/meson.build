@@ -6,7 +6,7 @@ if get_option('fuzzing')
   cpp_args += '-DCAPY_FUZZING'
 endif
 
-capypdf_lib = shared_library('capypdf',
+capypdf_lib = library('capypdf',
   'pdfcommon.cpp',
   'generator.cpp',
   'drawcontext.cpp',

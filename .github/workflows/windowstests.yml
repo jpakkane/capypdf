@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup MS Build tools
         uses: ilammy/msvc-dev-cmd@v1
-      
+
       - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -27,14 +27,14 @@ jobs:
           echo "C:\Program Files\gs\gs10.05.1\bin\" >> $env:GITHUB_PATH
 
       - name: Configure
-        run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true builddir
+        run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true -Ddefault_library=static -D:default_library=shared builddir
 
       - name: Build
         run: meson compile -C builddir
 
       - name: Test
         run: meson test capypdf:* -C builddir
-      
+
       - name: Print test log
         if: failure()
         run: cat builddir/meson-logs/testlog.txt
