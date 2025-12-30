@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2023-2024 Jussi Pakkanen
+# Copyright 2023-2025 Jussi Pakkanen
 
-import pathlib, os, sys, json, re
+import pathlib, os, sys, json, re, statistics
 
 if 'CAPYPDF_SO_OVERRIDE' not in os.environ:
     os.environ['CAPYPDF_SO_OVERRIDE'] = 'src'
@@ -34,6 +34,72 @@ TRANS2ENUM = {
     'fade': capypdf.TransitionType.Fade,
 }
 
+# A block of text that gets split to three lines has
+#
+# line target = 3
+#
+# lenght of split array = 2
+#
+# splite[4, 7] means
+#   line 1: 0, 1, 2, 3
+#   line 2: 4, 5, 6
+#   line 3: 7, 8 [etc until end of words]
+
+class LineOptimizer:
+    def __init__(self, word_widths, space_width, line_target):
+        self.word_widths = word_widths
+        self.space_width = space_width
+        self.line_target = line_target
+        self.best_result = 1000000
+        self.best_split = []
+
+    def find_best_fit(self):
+        if self.line_target == 1:
+            return []
+        splits = []
+        self.find_best_fit_recursive(splits, 0)
+        #print(self.best_result)
+        #print(self.best_split)
+        return self.best_split
+
+    def find_best_fit_recursive(self, splits, index):
+        if len(splits) + 1 == self.line_target:
+            self.evaluate_split(splits)
+            return
+        for i in range(index+1, len(self.word_widths)+1):
+            splits.append(i)
+            self.find_best_fit_recursive(splits, i)
+            splits.pop()
+
+    def evaluate_split(self, split):
+        if len(split) + 1 != self.line_target:
+            print(split)
+            sys.exit(f'Mismatch: {len(split)} != {self.line_target}')
+        line_widths = self.compute_line_widths(split)
+        #print(split)
+        #print(line_widths)
+        spread = statistics.stdev(line_widths)
+        if spread < self.best_result:
+            self.best_result = spread
+            self.best_split = split[:]
+
+    def compute_line_widths(self, splits):
+        widths = []
+        previous_index = 0
+        temphack = splits[:]
+        temphack.append(len(self.word_widths))
+        for i in temphack:
+            widths.append(self.single_line_width(previous_index, i))
+            previous_index = i
+        return widths
+
+    def single_line_width(self, from_index, to_index):
+        w = 0
+        for i in range(from_index, to_index):
+            w += self.word_widths[i]
+            if i +1 != to_index:
+                w += self.space_width
+        return w
 
 class Demopresentation:
     def __init__(self, inputdoc, ofilename):
@@ -120,22 +186,16 @@ class Demopresentation:
         words = text.strip().split(' ')
         lines = []
         space_width = self.pdfgen.text_width(' ', fid, ptsize)
-        current_line = []
-        current_width = 0
-        for word in words:
-            wwidth = self.pdfgen.text_width(word, fid, ptsize)
-            if current_width >= line_width_target:
-                current_line.append(word)
-                lines.append(' '.join(current_line))
-                current_line = []
-                current_width = 0
-            else:
-                current_line.append(word)
-                current_width += space_width + wwidth
-        if current_line:
-            lines.append(' '.join(current_line))
-        return lines
+        word_widths = [self.pdfgen.text_width(i, fid, ptsize) for i in words]
+        optimizer = LineOptimizer(word_widths, space_width, line_target)
+        best_fit = optimizer.find_best_fit()
 
+        index = 0
+        best_fit.append(len(words))
+        for next_index in best_fit:
+            lines.append(' '.join(words[index:next_index]))
+            index  = next_index
+        return lines
 
     def set_transition(self, ctx, page):
         try:
@@ -288,7 +348,11 @@ class Demopresentation:
             subtr.set_D(subtrnode['duration'])
         else:
             bullettr = None
-        entries = [self.split_to_even_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in p['text']]
+        if isinstance(p['text'], str):
+            entries_to_render = [p['text']]
+        else:
+            entries_to_render = p['text']
+        entries = [self.split_to_even_lines(text, self.basefont, self.textsize, 0.9*self.w) for text in entries_to_render]
         text_height = 0
         ocgs = []
         for e in entries:

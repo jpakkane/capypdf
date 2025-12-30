@@ -15,7 +15,7 @@
     },
     "metadata": {
         "title": "Document title",
-        "author": "Documen author",
+        "author": "Document author",
         "url": "https://github.com/jpakkane/capypdf",
         "pagesize": [793, 453]
     },
@@ -27,8 +27,12 @@
             "email": "none@example.com"
         },
         {
+            "type": "splash",
+            "text": ["This is a long piece of text to demonstrate that the tool splits it into lines of approximately equal width."]
+        },
+        {
             "type": "image",
-            "file": "images/flame_gradient.png",
+            "file": "testdata/images/flame_gradient.png",
             "heading": "This is an image",
             "width": 200
         },
