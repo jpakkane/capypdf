@@ -118,8 +118,7 @@ end
     return buf;
 }
 
-rvoe<std::string>
-build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs, bool is_cff = false) {
+rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGlyphs> &glyphs) {
     std::string arr{"[ "};
     auto bi = std::back_inserter(arr);
     const auto load_flags = FT_LOAD_NO_SCALE | FT_LOAD_LINEAR_DESIGN | FT_LOAD_NO_HINTING;
@@ -564,7 +563,7 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
                                                      std::string_view dict_data,
                                                      std::span<std::byte> stream_data) {
     if(use_xref && stream_data.empty()) {
-        return write_finished_object_to_objstm(object_number, dict_data);
+        return write_finished_object_to_objstm(dict_data);
     }
     std::string buf;
     object_offsets.emplace_back(false, ftell(ofile));
@@ -589,8 +588,7 @@ rvoe<NoReturnValue> PdfWriter::write_finished_object(int32_t object_number,
     return write_bytes(buf);
 }
 
-rvoe<NoReturnValue> PdfWriter::write_finished_object_to_objstm(int32_t object_number,
-                                                               std::string_view dict_data) {
+rvoe<NoReturnValue> PdfWriter::write_finished_object_to_objstm(std::string_view dict_data) {
     std::string buf;
     object_offsets.emplace_back(true, objstm_stream.size());
     objstm_stream += dict_data;
@@ -628,9 +626,7 @@ rvoe<NoReturnValue> PdfWriter::write_cid_dict(int32_t object_num,
                                               int32_t subset_id) {
     const auto &font = doc.fonts.at(fid.id);
     auto face = font.fontdata.face.get();
-    ERC(width_arr,
-        build_subset_width_array(
-            face, font.subsets.get_subset(), font.fontdata.fontdata.in_cff_format()));
+    ERC(width_arr, build_subset_width_array(face, font.subsets.get_subset()));
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Font");

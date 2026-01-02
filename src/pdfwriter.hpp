@@ -42,8 +42,7 @@ private:
     rvoe<NoReturnValue> write_finished_object(int32_t object_number,
                                               std::string_view dict_data,
                                               std::span<std::byte> stream_data);
-    rvoe<NoReturnValue> write_finished_object_to_objstm(int32_t object_number,
-                                                        std::string_view dict_data);
+    rvoe<NoReturnValue> write_finished_object_to_objstm(std::string_view dict_data);
     rvoe<NoReturnValue> write_subset_font_data(int32_t object_num,
                                                const DelayedSubsetFontData &ssfont);
     rvoe<NoReturnValue> write_subset_font_descriptor(int32_t object_num,

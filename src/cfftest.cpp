@@ -5,7 +5,7 @@
 #include <ft_subsetter.hpp>
 #include <filesystem>
 
-int main2(int argc, char **argv) {
+int main2(int, char **argv) {
     auto cff_file = capypdf::internal::parse_cff_file(argv[1]);
     return 0;
 }
