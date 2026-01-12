@@ -253,6 +253,15 @@ struct TextAnnotation {
     u8string content;
 };
 
+struct Leaders {
+    double LL;
+    double LLE;
+};
+
+struct LineAnnotationEndStyles {
+    CapyPDF_Line_Annotation_End_Style first, second;
+};
+
 struct LinkAnnotation {
     // This should really be an Action object but hove not
     // gotten around to implementing it yet.
@@ -262,6 +271,13 @@ struct LinkAnnotation {
     // UriAction PA;
     // QuadPoints
     // BS
+};
+
+struct LineAnnotation {
+    u8string content;
+    PdfRectangle endpoints;
+    std::optional<LineAnnotationEndStyles> end_styles;
+    std::optional<Leaders> leaders;
 };
 
 struct ClipTimes {
@@ -285,6 +301,7 @@ struct ThreeDAnnotation {
 
 typedef std::variant<TextAnnotation,
                      LinkAnnotation,
+                     LineAnnotation,
                      FileAttachmentAnnotation,
                      ScreenAnnotation,
                      PrintersMarkAnnotation,

@@ -17,6 +17,18 @@ class LineJoinStyle(Enum):
     Round = 1
     Bevel = 2
 
+class LineAnnotationEndStyle(Enum):
+    Square = 0
+    Circle = 1
+    Diamond = 2
+    OpenArrow = 3
+    ClosedArrow = 4,
+    NoEnding = 5 # Because "None" is a Python keyword
+    Butt = 6
+    ROpenAreow = 7
+    RClosedArrow = 8
+    Slash = 9
+
 class BlendMode(Enum):
     Normal = 0
     Multiply = 1
@@ -560,6 +572,7 @@ cfunc_types = (
 
 ('capy_text_annotation_new', [ctypes.c_char_p, ctypes.c_int32, ctypes.c_void_p]),
 ('capy_link_annotation_new', [ctypes.c_void_p]),
+('capy_line_annotation_new', [ctypes.c_char_p, ctypes.c_int32, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_void_p]),
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
 ('capy_3d_annotation_new', [ctypes.c_void_p]),
@@ -567,6 +580,8 @@ cfunc_types = (
 ('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
+('capy_annotation_set_line_leader', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
+('capy_annotation_set_line_endings', [ctypes.c_void_p, enum_type, enum_type]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
 ('capy_struct_item_extra_data_new', [ctypes.c_void_p]),
@@ -1800,6 +1815,12 @@ class Annotation:
             raise CapyPDFException('Argument must be a 3D stream id.')
         check_error(libfile.capy_annotation_set_3d_stream(self, stream_id))
 
+    def set_line_leader(self, LL, LLE):
+        check_error(libfile.capy_annotation_set_line_leader(self, LL, LLE))
+
+    def set_line_endings(self, start, end):
+        check_error(libfile.capy_annotation_set_line_endings(self, start.value, end.value))
+
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
@@ -1812,6 +1833,13 @@ class Annotation:
         la = ctypes.c_void_p()
         check_error(libfile.capy_link_annotation_new(ctypes.pointer(la)))
         return Annotation(la)
+
+    @classmethod
+    def new_line_annotation(cls, text, x1, y1, x2, y2):
+        ta = ctypes.c_void_p()
+        at = text.encode('UTF-8')
+        check_error(libfile.capy_line_annotation_new(at, len(at), x1, y1, x2, y2, ctypes.pointer(ta)))
+        return Annotation(ta)
 
     @classmethod
     def new_file_attachment_annotation(cls, fid):

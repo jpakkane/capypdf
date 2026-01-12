@@ -32,6 +32,17 @@ const std::array<const char *, 6> PDF_header_strings = {"%PDF-1.3\n%\xe5\xf6\xc4
                                                         "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
                                                         "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
 
+const std::array<const char *, 10> Line_ending_styles = {"/Square",
+                                                         "/Circle",
+                                                         "/Diamond",
+                                                         "/OpenArrow",
+                                                         "/ClosedArrow",
+                                                         "/None",
+                                                         "/Butt",
+                                                         "/ROpenArrow",
+                                                         "/RClosedArrow",
+                                                         "/Slash"};
+
 std::string fontname2pdfname(std::string_view original) {
     std::string out;
     out.reserve(original.size());
@@ -916,6 +927,28 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             }
             const auto page_object_number = doc.pages.at(physical_page).page_obj_num;
             serialize_destination(fmt, linkobj->Dest.value(), page_object_number);
+        }
+    } else if(auto line = std::get_if<LineAnnotation>(&annotation.a.sub)) {
+        fmt.add_token_pair("/Subtype", "/Line");
+        fmt.add_token("/Contents");
+        fmt.add_token(utf8_to_pdfutf16be(line->content));
+        fmt.add_token("/L");
+        fmt.begin_array();
+        fmt.add_token(line->endpoints.x1);
+        fmt.add_token(line->endpoints.y1);
+        fmt.add_token(line->endpoints.x2);
+        fmt.add_token(line->endpoints.y2);
+        fmt.end_array();
+        if(line->leaders) {
+            fmt.add_token_pair("/LL", line->leaders->LL);
+            fmt.add_token_pair("/LLE", line->leaders->LLE);
+        }
+        if(line->end_styles) {
+            fmt.add_token("/LE");
+            fmt.begin_array();
+            fmt.add_token(Line_ending_styles.at(line->end_styles->first));
+            fmt.add_token(Line_ending_styles.at(line->end_styles->second));
+            fmt.end_array();
         }
 
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {

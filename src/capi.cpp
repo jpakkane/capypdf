@@ -2472,6 +2472,24 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_link_annotation_new(CapyPDF_Annotation **out_ptr)
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_line_annotation_new(const char *utf8_text,
+                                                   int32_t strsize,
+                                                   double x1,
+                                                   double y1,
+                                                   double x2,
+                                                   double y2,
+                                                   CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto u8str = validate_utf8(utf8_text, strsize);
+    if(!u8str) {
+        return conv_err(u8str);
+    }
+    PdfRectangle r{x1, y1, x2, y2};
+    *out_ptr = new Annotation{{}, LineAnnotation{std::move(u8str.value()), r, {}, {}}, {}};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2553,6 +2571,35 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(CapyPDF_Annotation *anno
     auto *a = static_cast<Annotation *>(annotation);
     if(auto *three = std::get_if<ThreeDAnnotation>(&a->sub)) {
         three->stream = id;
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_line_leader(CapyPDF_Annotation *annotation,
+                                                          double LL,
+                                                          double LLE) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = static_cast<Annotation *>(annotation);
+    if(auto *line = std::get_if<LineAnnotation>(&a->sub)) {
+        line->leaders = Leaders{LL, LLE};
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_line_endings(CapyPDF_Annotation *annotation,
+                                                           CapyPDF_Line_Annotation_End_Style start,
+                                                           CapyPDF_Line_Annotation_End_Style end)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = static_cast<Annotation *>(annotation);
+    if(auto *line = std::get_if<LineAnnotation>(&a->sub)) {
+        line->end_styles = LineAnnotationEndStyles{start, end};
     } else {
         return conv_err(ErrorCode::IncorrectAnnotationType);
     }

@@ -1188,11 +1188,16 @@ class TestPDFCreation(unittest.TestCase):
             emba = capypdf.Annotation.new_file_attachment_annotation(embid)
             emba.set_rectangle(30, 50, 40, 60)
             embid = gen.add_annotation(emba)
+            linea = capypdf.Annotation.new_line_annotation("This is a line annotation", 20, 20, 380, 20);
+            linea.set_rectangle(20, 0, 380, 40)
+            linea.set_line_leader(10, 20)
+            lineid = gen.add_annotation(linea)
             with gen.page_draw_context() as ctx:
                 ctx.annotate(taid)
                 ctx.render_text("<- This is a text annotation", fid, 11, 50, 80)
                 ctx.annotate(embid)
                 ctx.render_text("<- This is a file attachment annotation", fid, 11, 50, 50)
+                ctx.annotate(lineid)
 
     @cleanup('python_annotate_link.pdf')
     def test_annotate_link(self, ofilename, w=200, h=200):
