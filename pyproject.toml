@@ -9,13 +9,13 @@ allow-windows-internal-shared-libs = true
 
 [project]
 name = 'capypdf'
-version = '0.18.99'
+version = '0.19.0'
 description = 'A color managed PDF generation library.'
 readme = 'readme.md'
 requires-python = '>=3.10'
 license = {file = 'COPYING'}
 authors = [
-  {name = 'Jussi Pakkanen', email = 'jpakkane@gmail.com'},
+  {name = 'Jussi Pakkanen', email = 'jussi.pakkanen@mailbox.org'},
 ]
 classifiers = [
     'Development Status :: 3 - Alpha',
