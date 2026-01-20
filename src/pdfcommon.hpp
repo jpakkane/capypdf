@@ -224,6 +224,18 @@ private:
     double value;
 };
 
+// Table 168 in PDF 2.0 spec
+struct BorderStyle {
+    std::optional<double> W;
+    std::optional<CapyPDF_BorderStyle> S;
+    std::vector<double> D;
+};
+
+struct BorderEffect {
+    std::optional<CapyPDF_BorderEffect> S;
+    std::optional<double> I;
+};
+
 class RawData {
 private:
     std::variant<std::string, std::vector<std::byte>> storage;
