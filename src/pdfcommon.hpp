@@ -21,6 +21,11 @@
 
 namespace capypdf::internal {
 
+struct UtfDecodeStep {
+    uint32_t byte1_data_mask;
+    uint32_t num_subsequent_bytes;
+};
+
 // If at all possible, never expose this in the public API
 // Instead have the user specify some higher level version,
 // like PDF/A or PDF/X and set this based on that.

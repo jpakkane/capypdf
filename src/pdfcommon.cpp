@@ -10,11 +10,6 @@ namespace capypdf::internal {
 
 namespace {
 
-struct UtfDecodeStep {
-    uint32_t byte1_data_mask;
-    uint32_t num_subsequent_bytes;
-};
-
 uint32_t unpack_one(const unsigned char *valid_utf8, const UtfDecodeStep &par) {
     const uint32_t byte1 = uint32_t(*valid_utf8);
     const uint32_t subsequent_data_mask = 0b111111;

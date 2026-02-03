@@ -37,11 +37,6 @@ const std::array<const char *, 12> transition_names{
     "/Fade",
 };
 
-struct UtfDecodeStep {
-    uint32_t byte1_data_mask;
-    uint32_t num_subsequent_bytes;
-};
-
 bool is_valid_uf8_character(std::string_view input, size_t cur, const UtfDecodeStep &par) {
     const uint32_t byte1 = uint32_t((unsigned char)input[cur]);
     const uint32_t subsequent_header_mask = 0b011000000;
