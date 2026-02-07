@@ -1,5 +1,5 @@
 project('capypdf', 'cpp', 'c',
-  version: '0.19.99',
+  version: '0.20.0',
   meson_version: '>=1.5.1',
   default_options : ['cpp_std=c++23,c++latest',
                      # Re-enable once Ubuntu CI updates.
