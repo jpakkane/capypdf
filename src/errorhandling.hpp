@@ -96,6 +96,9 @@ enum class ErrorCode : int32_t {
     TooManyGlyphsUsed,
     VariationsNotSupported,
     VariationNotFound,
+
+    MissingCFFDictItem,
+
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,
 };

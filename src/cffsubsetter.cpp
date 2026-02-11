@@ -595,7 +595,7 @@ CFFWriter::CFFWriter(const CFFont &source_, const std::vector<SubsetGlyphs> &sub
     output.reserve(100 * 1024);
 }
 
-void CFFWriter::create() {
+rvoe<NoReturnValue> CFFWriter::create() {
     uint8_t header[4] = {1, 0, 4, 4};
     output.assign((std::byte *)header, (std::byte *)header + 4);
     append_index(source.name);
@@ -612,6 +612,7 @@ void CFFWriter::create() {
     //  encodings
     //  private
     //  local subr
+    RETOK;
 }
 
 void CFFWriter::append_fdthings() {
@@ -750,11 +751,11 @@ void CFFWriter::create_topdict() {
         ros.operand.push_back(0);
         topdict.append_command(ros);
     }
-    copy_dict_item(topdict, DictOperator::Notice);
-    copy_dict_item(topdict, DictOperator::FullName);
-    copy_dict_item(topdict, DictOperator::FamilyName);
-    copy_dict_item(topdict, DictOperator::Weight);
-    copy_dict_item(topdict, DictOperator::FontBBox);
+    copy_dict_item_if_exists(topdict, DictOperator::Notice);
+    copy_dict_item_if_exists(topdict, DictOperator::FullName);
+    copy_dict_item_if_exists(topdict, DictOperator::FamilyName);
+    copy_dict_item_if_exists(topdict, DictOperator::Weight);
+    copy_dict_item_if_exists(topdict, DictOperator::FontBBox);
     if(source.is_cid) {
         copy_dict_item(topdict, DictOperator::CIDFontVersion);
         copy_dict_item(topdict, DictOperator::CIDCount);
@@ -802,10 +803,20 @@ void CFFWriter::create_topdict() {
     */
 }
 
-void CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {
+rvoe<NoReturnValue> CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {
     auto *e = find_command(source, op);
-    assert(e);
+    if(!e) {
+        RETERR(MissingCFFDictItem);
+    }
     w.append_command(e->operand, e->opr);
+    RETOK;
+}
+
+void CFFWriter::copy_dict_item_if_exists(CFFDictWriter &w, DictOperator op) {
+    auto *e = find_command(source, op);
+    if(e) {
+        w.append_command(e->operand, e->opr);
+    }
 }
 
 std::vector<uint32_t> CFFWriter::append_index(const CFFIndex &index) {

@@ -201,7 +201,7 @@ class CFFWriter {
 public:
     CFFWriter(const CFFont &source, const std::vector<SubsetGlyphs> &sub);
 
-    void create();
+    rvoe<NoReturnValue> create();
 
     std::vector<std::byte> steal() { return std::move(output); }
 
@@ -213,7 +213,8 @@ private:
     void append_fdthings();
 
     void create_topdict();
-    void copy_dict_item(CFFDictWriter &w, DictOperator op);
+    rvoe<NoReturnValue> copy_dict_item(CFFDictWriter &w, DictOperator op);
+    void copy_dict_item_if_exists(CFFDictWriter &w, DictOperator op);
 
     void patch_offsets();
     void write_fix(const OffsetPatch &p);
