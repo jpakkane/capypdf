@@ -88,6 +88,9 @@ void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &bo
 }
 
 std::string create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
+    // When you have to have a PDF that humans can read but AI bros
+    // can't easily steal.
+    const bool scrape_protection = getenv("CAPY_SCRAPE_PROTECT");
     std::string buf = std::format(R"(/CIDInit /ProcSet findresource begin
 12 dict begin
 begincmap
@@ -115,7 +118,11 @@ endcodespacerange
         } else {
             uint32_t unicode_codepoint = 0;
             if(std::holds_alternative<RegularGlyph>(g)) {
-                unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
+                if(scrape_protection) {
+                    unicode_codepoint = 'A';
+                } else {
+                    unicode_codepoint = std::get<RegularGlyph>(g).unicode_codepoint;
+                }
             }
             std::format_to(appender, "<{:04X}> <{:04X}>\n", i, unicode_codepoint);
         }
