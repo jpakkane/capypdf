@@ -105,7 +105,7 @@ int draw_simple_form() {
             xobj.cmd_G(0);
             xobj.cmd_w(2.0);
             xobj.cmd_S();
-            xobj.cmd_re(5, 5, 5, 5);
+            xobj.cmd_re(2.5, 2.5, 5, 5);
             xobj.cmd_g(0);
             xobj.cmd_f();
             xobj.cmd_Q();
