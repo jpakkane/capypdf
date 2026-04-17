@@ -370,6 +370,11 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             RETOK;
         },
 
+        [&](const DelayedTextWidgetAnnotation &text) -> rvoe<NoReturnValue> {
+            ERCV(write_text_widget(i, text));
+            RETOK;
+        },
+
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
             ERCV(write_annotation(i, anno));
             RETOK;
@@ -851,10 +856,10 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
     fmt.add_token("/Rect");
     {
         fmt.begin_array();
-        fmt.add_token(checkbox.rect.x);
-        fmt.add_token(checkbox.rect.y);
-        fmt.add_token(checkbox.rect.w);
-        fmt.add_token(checkbox.rect.h);
+        fmt.add_token(checkbox.rect.x1);
+        fmt.add_token(checkbox.rect.y1);
+        fmt.add_token(checkbox.rect.x2);
+        fmt.add_token(checkbox.rect.y2);
         fmt.end_array();
     }
     fmt.add_token_pair("/FT", "/Btn");
@@ -903,10 +908,10 @@ rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
     fmt.add_token("/Rect");
     {
         fmt.begin_array();
-        fmt.add_token(choice.rect.x);
-        fmt.add_token(choice.rect.y);
-        fmt.add_token(choice.rect.w);
-        fmt.add_token(choice.rect.h);
+        fmt.add_token(choice.rect.x1);
+        fmt.add_token(choice.rect.y1);
+        fmt.add_token(choice.rect.x2);
+        fmt.add_token(choice.rect.y2);
         fmt.end_array();
     }
     fmt.add_token_pair("/FT", "/Ch");
@@ -923,6 +928,38 @@ rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
         }
         fmt.end_array();
     }
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
+    RETOK;
+}
+
+rvoe<NoReturnValue> PdfWriter::write_text_widget(int obj_num,
+                                                 const DelayedTextWidgetAnnotation &text) {
+    auto loc = doc.form_use.find(text.widget);
+    if(loc == doc.form_use.end()) {
+        std::abort();
+    }
+
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Annot");
+    fmt.add_token_pair("/Subtype", "/Widget");
+    fmt.add_token("/Rect");
+    {
+        fmt.begin_array();
+        fmt.add_token(text.rect.x1);
+        fmt.add_token(text.rect.y1);
+        fmt.add_token(text.rect.x2);
+        fmt.add_token(text.rect.y2);
+        fmt.end_array();
+    }
+    fmt.add_token_pair("/FT", "/Tx");
+    fmt.add_token("/P");
+    fmt.add_object_ref(loc->second);
+    fmt.add_token("/T");
+    fmt.add_token(pdfstring_quote(text.T));
+    fmt.add_token(("/V"));
+    fmt.add_token(utf8_to_pdfutf16be(text.contents));
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;

@@ -214,7 +214,7 @@ struct DelayedCheckboxWidgetAnnotation {
     CapyPDF_FormWidgetId widget;
 
     // Annotation dict values.
-    PdfBox rect;
+    PdfRectangle rect;
     CapyPDF_FormXObjectId on;
     CapyPDF_FormXObjectId off;
     // uint32_t F; // Annotation flags;
@@ -225,13 +225,15 @@ struct DelayedCheckboxWidgetAnnotation {
 
 struct DelayedChoiceWidgetAnnotation {
     CapyPDF_FormWidgetId widget;
-    // Annotation dict values.
-    PdfBox rect;
-    // CapyPDF_FormXObjectId on;
-    // CapyPDF_FormXObjectId off;
-    //  uint32_t F; // Annotation flags;
+    PdfRectangle rect;
     std::vector<u8string> options;
-    // Field dict values.
+    std::string T;
+};
+
+struct DelayedTextWidgetAnnotation {
+    CapyPDF_FormWidgetId widget;
+    PdfRectangle rect;
+    u8string contents;
     std::string T;
 };
 
@@ -365,8 +367,9 @@ typedef std::variant<DummyIndexZero,
                      DelayedCIDDictionary,
                      DelayedPages,
                      DelayedPage,
-                     DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
+                     DelayedCheckboxWidgetAnnotation, // FIXME, convert all widgets to a single type
                      DelayedChoiceWidgetAnnotation,
+                     DelayedTextWidgetAnnotation,
                      DelayedAnnotation,
                      DelayedStructItem>
     ObjectType;
@@ -489,12 +492,15 @@ public:
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o);
 
     // Forms
-    rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfBox loc,
+    rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfRectangle loc,
                                                     CapyPDF_FormXObjectId onstate,
                                                     CapyPDF_FormXObjectId offstate,
                                                     std::string_view partial_name);
+    rvoe<CapyPDF_FormWidgetId> create_form_choice(PdfRectangle loc,
+                                                  std::vector<u8string> choices,
+                                                  std::string_view partial_name);
     rvoe<CapyPDF_FormWidgetId>
-    create_form_choice(PdfBox loc, std::vector<u8string> choices, std::string_view partial_name);
+    create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name);
 
     // Raw files
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);

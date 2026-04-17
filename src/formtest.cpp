@@ -48,7 +48,7 @@ int draw_simple_form() {
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto checkbox_widget =
-            gen.create_form_checkbox(PdfBox{10, 180, 20, 190}, onstate, offstate, "checkbox1")
+            gen.create_form_checkbox(PdfRectangle{10, 180, 20, 190}, onstate, offstate, "checkbox1")
                 .value();
         {
 
@@ -71,12 +71,25 @@ int draw_simple_form() {
             u8string::from_cstr("Choice five").value(),
         };
         auto choice_widget =
-            gen.create_form_choice(PdfBox{130, 150, 190, 170}, std::move(choices), "checkbox1")
+            gen.create_form_choice(PdfRectangle{130, 150, 190, 170}, std::move(choices), "choice1")
                 .value();
         {
 
             ctx.render_pdfdoc_text_builtin("A choice widget ->", CAPY_FONT_HELVETICA, 12, 25, 165);
             auto rc = ctx.add_form_widget(choice_widget);
+            if(!rc) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
+        }
+        auto text_widget =
+            gen.create_form_text(PdfRectangle{20, 90, 110, 110},
+                                 std::move(u8string::from_cstr("The default contents").value()),
+                                 "text1")
+                .value();
+        {
+            ctx.render_pdfdoc_text_builtin("A text widget", CAPY_FONT_HELVETICA, 12, 25, 115);
+            auto rc = ctx.add_form_widget(text_widget);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;

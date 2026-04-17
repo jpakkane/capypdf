@@ -1917,7 +1917,7 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     return CapyPDF_OutlineId{cur_id};
 }
 
-rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
+rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfRectangle loc,
                                                              CapyPDF_FormXObjectId onstate,
                                                              CapyPDF_FormXObjectId offstate,
                                                              std::string_view partial_name) {
@@ -1930,11 +1930,20 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
-rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_choice(PdfBox loc,
+rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_choice(PdfRectangle loc,
                                                            std::vector<u8string> choices,
                                                            std::string_view partial_name) {
     DelayedChoiceWidgetAnnotation formobj{
         {(int32_t)form_widgets.size()}, loc, std::move(choices), std::string{partial_name}};
+    auto obj_id = add_object(std::move(formobj));
+    form_widgets.push_back(obj_id);
+    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
+}
+
+rvoe<CapyPDF_FormWidgetId>
+PdfDocument::create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name) {
+    DelayedTextWidgetAnnotation formobj{
+        {(int32_t)form_widgets.size()}, loc, std::move(contents), std::string{partial_name}};
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
