@@ -93,6 +93,11 @@ public:
         return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
     }
 
+    rvoe<CapyPDF_FormWidgetId>
+    create_form_choice(PdfBox loc, std::vector<u8string> choices, std::string_view partial_name) {
+        return pdoc.create_form_choice(loc, std::move(choices), partial_name);
+    }
+
     rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a) {
         return pdoc.add_annotation(a);
     }

@@ -223,6 +223,18 @@ struct DelayedCheckboxWidgetAnnotation {
     std::string T;
 };
 
+struct DelayedChoiceWidgetAnnotation {
+    CapyPDF_FormWidgetId widget;
+    // Annotation dict values.
+    PdfBox rect;
+    // CapyPDF_FormXObjectId on;
+    // CapyPDF_FormXObjectId off;
+    //  uint32_t F; // Annotation flags;
+    std::vector<u8string> options;
+    // Field dict values.
+    std::string T;
+};
+
 struct OutlineData {
     std::vector<Outline> items;
     std::unordered_map<int32_t, std::vector<int32_t>> children;
@@ -354,6 +366,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedPages,
                      DelayedPage,
                      DelayedCheckboxWidgetAnnotation, // FIXME, convert to hold all widgets
+                     DelayedChoiceWidgetAnnotation,
                      DelayedAnnotation,
                      DelayedStructItem>
     ObjectType;
@@ -480,6 +493,8 @@ public:
                                                     CapyPDF_FormXObjectId onstate,
                                                     CapyPDF_FormXObjectId offstate,
                                                     std::string_view partial_name);
+    rvoe<CapyPDF_FormWidgetId>
+    create_form_choice(PdfBox loc, std::vector<u8string> choices, std::string_view partial_name);
 
     // Raw files
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);

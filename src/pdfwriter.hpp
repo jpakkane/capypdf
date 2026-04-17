@@ -62,6 +62,8 @@ private:
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
     rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
                                               const DelayedCheckboxWidgetAnnotation &checkbox);
+    rvoe<NoReturnValue> write_choice_widget(int obj_num,
+                                            const DelayedChoiceWidgetAnnotation &checkbox);
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 

@@ -1930,6 +1930,16 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_checkbox(PdfBox loc,
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
+rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_choice(PdfBox loc,
+                                                           std::vector<u8string> choices,
+                                                           std::string_view partial_name) {
+    DelayedChoiceWidgetAnnotation formobj{
+        {(int32_t)form_widgets.size()}, loc, std::move(choices), std::string{partial_name}};
+    auto obj_id = add_object(std::move(formobj));
+    form_widgets.push_back(obj_id);
+    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
+}
+
 rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
     for(const auto &file : embedded_files) {
         if(file.ef.pdfname == ef.pdfname) {

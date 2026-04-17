@@ -45,18 +45,38 @@ int draw_simple_form() {
             onstate = *rv;
         }
 
+        auto ctxguard = gen.guarded_page_context();
+        auto &ctx = ctxguard.ctx;
         auto checkbox_widget =
-            gen.create_form_checkbox(PdfBox{10, 80, 20, 90}, onstate, offstate, "checkbox1")
+            gen.create_form_checkbox(PdfBox{10, 180, 20, 190}, onstate, offstate, "checkbox1")
                 .value();
         {
-            auto ctxguard = gen.guarded_page_context();
-            auto &ctx = ctxguard.ctx;
 
-            ctx.cmd_re(10, 80, 10, 10);
+            ctx.cmd_re(10, 180, 10, 10);
             ctx.cmd_S();
 
-            ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 80);
+            ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 180);
             auto rc = ctx.add_form_widget(checkbox_widget);
+            if(!rc) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
+        }
+
+        std::vector<u8string> choices{
+            u8string::from_cstr("Choice one").value(),
+            u8string::from_cstr("Choice two").value(),
+            u8string::from_cstr("Choice three").value(),
+            u8string::from_cstr("Choice four").value(),
+            u8string::from_cstr("Choice five").value(),
+        };
+        auto choice_widget =
+            gen.create_form_choice(PdfBox{130, 150, 190, 170}, std::move(choices), "checkbox1")
+                .value();
+        {
+
+            ctx.render_pdfdoc_text_builtin("A choice widget ->", CAPY_FONT_HELVETICA, 12, 25, 165);
+            auto rc = ctx.add_form_widget(choice_widget);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
@@ -151,8 +171,7 @@ int draw_group_doc() {
 int draw_transp_doc() {
     // PDF 2.0 spec page 409.
     DocumentProperties opts;
-    const char *icc_out =
-        "/home/jpakkane/Downloads/temp/Adobe ICC Profiles (end-user)/CMYK/UncoatedFOGRA29.icc";
+    const char *icc_out = "/usr/share/color/icc/colord/FOGRA29L_uncoated.icc";
 
     opts.default_page_properties.mediabox->x2 = 300;
     opts.default_page_properties.mediabox->y2 = 200;

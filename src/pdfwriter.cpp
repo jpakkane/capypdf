@@ -365,6 +365,11 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             RETOK;
         },
 
+        [&](const DelayedChoiceWidgetAnnotation &choice) -> rvoe<NoReturnValue> {
+            ERCV(write_choice_widget(i, choice));
+            RETOK;
+        },
+
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
             ERCV(write_annotation(i, anno));
             RETOK;
@@ -878,6 +883,45 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
         }
         fmt.end_dict();
         fmt.add_token_pair("/AS", "/Off");
+    }
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
+    RETOK;
+}
+
+rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
+                                                   const DelayedChoiceWidgetAnnotation &choice) {
+    auto loc = doc.form_use.find(choice.widget);
+    if(loc == doc.form_use.end()) {
+        std::abort();
+    }
+
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Annot");
+    fmt.add_token_pair("/Subtype", "/Widget");
+    fmt.add_token("/Rect");
+    {
+        fmt.begin_array();
+        fmt.add_token(choice.rect.x);
+        fmt.add_token(choice.rect.y);
+        fmt.add_token(choice.rect.w);
+        fmt.add_token(choice.rect.h);
+        fmt.end_array();
+    }
+    fmt.add_token_pair("/FT", "/Ch");
+    fmt.add_token("/P");
+    fmt.add_object_ref(loc->second);
+    fmt.add_token("/T");
+    fmt.add_token(pdfstring_quote(choice.T));
+    fmt.add_token(("/Opt"));
+    {
+        fmt.begin_array();
+        // Details in 12.7.5.4
+        for(const auto &s : choice.options) {
+            fmt.add_token(utf8_to_pdfutf16be(s));
+        }
+        fmt.end_array();
     }
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
