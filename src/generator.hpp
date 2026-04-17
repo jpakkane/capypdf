@@ -86,11 +86,12 @@ public:
         return pdoc.add_icc_profile(bytes, num_channels);
     }
 
-    rvoe<CapyPDF_FormWidgetId> create_form_checkbox(PdfRectangle loc,
-                                                    CapyPDF_FormXObjectId onstate,
-                                                    CapyPDF_FormXObjectId offstate,
-                                                    std::string_view partial_name) {
-        return pdoc.create_form_checkbox(loc, onstate, offstate, partial_name);
+    rvoe<CapyPDF_FormWidgetId> create_form_button(PdfRectangle loc,
+                                                  CapyPDF_FormXObjectId onstate,
+                                                  CapyPDF_FormXObjectId offstate,
+                                                  std::optional<uint32_t> Ff,
+                                                  std::string_view partial_name) {
+        return pdoc.create_form_button(loc, onstate, offstate, Ff, partial_name);
     }
 
     rvoe<CapyPDF_FormWidgetId> create_form_text(PdfRectangle loc,

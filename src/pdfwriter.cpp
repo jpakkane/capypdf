@@ -360,8 +360,8 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             RETOK;
         },
 
-        [&](const DelayedCheckboxWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
-            ERCV(write_checkbox_widget(i, checkbox));
+        [&](const DelayedButtonWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
+            ERCV(write_button_widget(i, checkbox));
             RETOK;
         },
 
@@ -842,9 +842,9 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     return write_finished_object(p.page_obj_num, fmt.steal(), {});
 }
 
-rvoe<NoReturnValue>
-PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotation &checkbox) {
-    auto loc = doc.form_use.find(checkbox.widget);
+rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
+                                                   const DelayedButtonWidgetAnnotation &button) {
+    auto loc = doc.form_use.find(button.widget);
     if(loc == doc.form_use.end()) {
         std::abort();
     }
@@ -856,19 +856,24 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
     fmt.add_token("/Rect");
     {
         fmt.begin_array();
-        fmt.add_token(checkbox.rect.x1);
-        fmt.add_token(checkbox.rect.y1);
-        fmt.add_token(checkbox.rect.x2);
-        fmt.add_token(checkbox.rect.y2);
+        fmt.add_token(button.rect.x1);
+        fmt.add_token(button.rect.y1);
+        fmt.add_token(button.rect.x2);
+        fmt.add_token(button.rect.y2);
         fmt.end_array();
     }
     fmt.add_token_pair("/FT", "/Btn");
     fmt.add_token("/P");
     fmt.add_object_ref(loc->second);
     fmt.add_token("/T");
-    fmt.add_token(pdfstring_quote(checkbox.T));
-    fmt.add_token_pair("/V", "/Off");
-    fmt.add_token_pair("/MK", "<</CA(8)>>");
+    fmt.add_token(pdfstring_quote(button.T));
+    if(button.is_checkbutton()) {
+        fmt.add_token_pair("/V", "/Off");
+    }
+    if(button.Ff) {
+        fmt.add_token_pair("/Ff", button.Ff.value());
+    }
+
     {
         fmt.add_token("/AP");
         fmt.begin_dict();
@@ -879,9 +884,9 @@ PdfWriter::write_checkbox_widget(int obj_num, const DelayedCheckboxWidgetAnnotat
             {
                 fmt.begin_dict();
                 fmt.add_token("/Yes");
-                fmt.add_object_ref(doc.form_xobjects.at(checkbox.on.id).xobj_num);
+                fmt.add_object_ref(doc.form_xobjects.at(button.on.id).xobj_num);
                 fmt.add_token("/Off");
-                fmt.add_object_ref(doc.form_xobjects.at(checkbox.off.id).xobj_num);
+                fmt.add_object_ref(doc.form_xobjects.at(button.off.id).xobj_num);
                 fmt.end_dict();
             }
             fmt.end_dict();

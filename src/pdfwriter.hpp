@@ -60,8 +60,8 @@ private:
                                        int32_t subset_id);
     rvoe<NoReturnValue> write_pages_root();
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
-    rvoe<NoReturnValue> write_checkbox_widget(int obj_num,
-                                              const DelayedCheckboxWidgetAnnotation &checkbox);
+    rvoe<NoReturnValue> write_button_widget(int obj_num,
+                                            const DelayedButtonWidgetAnnotation &checkbox);
     rvoe<NoReturnValue> write_choice_widget(int obj_num,
                                             const DelayedChoiceWidgetAnnotation &checkbox);
     rvoe<NoReturnValue> write_text_widget(int obj_num, const DelayedTextWidgetAnnotation &text);

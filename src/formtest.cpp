@@ -16,7 +16,8 @@ int draw_simple_form() {
     {
         GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        CapyPDF_FormXObjectId offstate, onstate;
+        CapyPDF_FormXObjectId check_offstate, check_onstate, push_offstate, push_onstate;
+        // Check button widgets.
         {
             auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
             auto &xobj = xobj_h.ctx;
@@ -27,10 +28,45 @@ int draw_simple_form() {
                 fprintf(stderr, "%s\n", error_text(rv.error()));
                 return 1;
             }
-            offstate = *rv;
+            check_offstate = *rv;
         }
         {
             auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_BMC("/Tx");
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 50);
+            xobj.cmd_g(0.2);
+            xobj.cmd_f();
+            xobj.cmd_Q();
+            xobj.cmd_EMC();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            push_onstate = *rv;
+        }
+        // Push button widgets.
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_BMC("/Tx");
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 50);
+            xobj.cmd_g(0.8);
+            xobj.cmd_f();
+            xobj.cmd_Q();
+            xobj.cmd_EMC();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            push_offstate = *rv;
+        }
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
             auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_q();
@@ -42,13 +78,14 @@ int draw_simple_form() {
                 fprintf(stderr, "%s\n", error_text(rv.error()));
                 return 1;
             }
-            onstate = *rv;
+            check_onstate = *rv;
         }
 
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         auto checkbox_widget =
-            gen.create_form_checkbox(PdfRectangle{10, 180, 20, 190}, onstate, offstate, "checkbox1")
+            gen.create_form_button(
+                   PdfRectangle{10, 180, 20, 190}, check_onstate, check_offstate, {}, "checkbox1")
                 .value();
         {
 
@@ -90,6 +127,21 @@ int draw_simple_form() {
         {
             ctx.render_pdfdoc_text_builtin("A text widget", CAPY_FONT_HELVETICA, 12, 25, 115);
             auto rc = ctx.add_form_widget(text_widget);
+            if(!rc) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
+        }
+
+        auto push_widget = gen.create_form_button(PdfRectangle{20, 60, 70, 70},
+                                                  push_onstate,
+                                                  push_offstate,
+                                                  CAPY_FFIELD_PUSHBUTTON,
+                                                  "push1")
+                               .value();
+        {
+            ctx.render_pdfdoc_text_builtin("A push button", CAPY_FONT_HELVETICA, 12, 25, 75);
+            auto rc = ctx.add_form_widget(push_widget);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
