@@ -65,6 +65,7 @@ private:
     rvoe<NoReturnValue> write_choice_widget(int obj_num,
                                             const DelayedChoiceWidgetAnnotation &checkbox);
     rvoe<NoReturnValue> write_text_widget(int obj_num, const DelayedTextWidgetAnnotation &text);
+    rvoe<NoReturnValue> write_radioitem_widget(int obj_num, const DelayedRadioItemWidget &radio);
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 

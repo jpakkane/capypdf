@@ -235,6 +235,13 @@ struct DelayedButtonWidgetAnnotation {
         }
         return true;
     }
+
+    bool is_radiobutton() const {
+        if(!Ff) {
+            return false;
+        }
+        return Ff.value() & CAPY_FFIELD_RADIO;
+    }
 };
 
 struct DelayedChoiceWidgetAnnotation {
@@ -251,6 +258,14 @@ struct DelayedTextWidgetAnnotation {
     PdfRectangle rect;
     u8string contents;
     std::string T;
+};
+
+struct DelayedRadioItemWidget {
+    CapyPDF_FormWidgetId widget;
+    PdfRectangle rect;
+    CapyPDF_FormWidgetId parent;
+    CapyPDF_FormXObjectId on;
+    CapyPDF_FormXObjectId off;
 };
 
 struct OutlineData {
@@ -386,6 +401,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedButtonWidgetAnnotation, // FIXME, convert all widgets to a single type
                      DelayedChoiceWidgetAnnotation,
                      DelayedTextWidgetAnnotation,
+                     DelayedRadioItemWidget,
                      DelayedAnnotation,
                      DelayedStructItem>
     ObjectType;
@@ -518,6 +534,10 @@ public:
                                                   std::string_view partial_name);
     rvoe<CapyPDF_FormWidgetId>
     create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name);
+    rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
+                                                     CapyPDF_FormWidgetId parent,
+                                                     CapyPDF_FormXObjectId onstate,
+                                                     CapyPDF_FormXObjectId offstate);
 
     // Raw files
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);
@@ -550,6 +570,8 @@ public:
     rvoe<CapyPDF_RoleId> add_rolemap_entry(std::string name, CapyPDF_Structure_Type builtin_type);
 
     rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream);
+
+    std::vector<int32_t> get_kids_of(CapyPDF_FormWidgetId widget) const;
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

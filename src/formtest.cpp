@@ -16,7 +16,9 @@ int draw_simple_form() {
     {
         GenPopper genpop("form_test.pdf", opts);
         PdfGen &gen = *genpop.g;
-        CapyPDF_FormXObjectId check_offstate, check_onstate, push_offstate, push_onstate;
+        CapyPDF_FormXObjectId check_offstate, check_onstate;
+        CapyPDF_FormXObjectId push_offstate, push_onstate;
+        CapyPDF_FormXObjectId radio_offstate, radio_onstate;
         // Check button widgets.
         {
             auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
@@ -35,41 +37,6 @@ int draw_simple_form() {
             auto &xobj = xobj_h.ctx;
             xobj.cmd_BMC("/Tx");
             xobj.cmd_q();
-            xobj.cmd_re(0, 0, 10, 50);
-            xobj.cmd_g(0.2);
-            xobj.cmd_f();
-            xobj.cmd_Q();
-            xobj.cmd_EMC();
-            auto rv = gen.add_form_xobject(xobj);
-            if(!rv) {
-                fprintf(stderr, "%s\n", error_text(rv.error()));
-                return 1;
-            }
-            push_onstate = *rv;
-        }
-        // Push button widgets.
-        {
-            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
-            auto &xobj = xobj_h.ctx;
-            xobj.cmd_BMC("/Tx");
-            xobj.cmd_q();
-            xobj.cmd_re(0, 0, 10, 50);
-            xobj.cmd_g(0.8);
-            xobj.cmd_f();
-            xobj.cmd_Q();
-            xobj.cmd_EMC();
-            auto rv = gen.add_form_xobject(xobj);
-            if(!rv) {
-                fprintf(stderr, "%s\n", error_text(rv.error()));
-                return 1;
-            }
-            push_offstate = *rv;
-        }
-        {
-            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
-            auto &xobj = xobj_h.ctx;
-            xobj.cmd_BMC("/Tx");
-            xobj.cmd_q();
             xobj.render_pdfdoc_text_builtin("X", CAPY_FONT_HELVETICA, 12, 0, 0);
             xobj.cmd_Q();
             xobj.cmd_EMC();
@@ -79,6 +46,75 @@ int draw_simple_form() {
                 return 1;
             }
             check_onstate = *rv;
+        }
+
+        // Push button widgets.
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 50);
+            xobj.cmd_g(0.2);
+            xobj.cmd_f();
+            xobj.cmd_Q();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            push_onstate = *rv;
+        }
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 50});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 50);
+            xobj.cmd_g(0.8);
+            xobj.cmd_f();
+            xobj.cmd_Q();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            push_offstate = *rv;
+        }
+
+        // Radio button widgets.
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 10);
+            xobj.cmd_G(0);
+            xobj.cmd_w(2.0);
+            xobj.cmd_S();
+            xobj.cmd_Q();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            radio_offstate = *rv;
+        }
+        {
+            auto xobj_h = gen.guarded_form_xobject(PdfRectangle{0, 0, 10, 10});
+            auto &xobj = xobj_h.ctx;
+            xobj.cmd_q();
+            xobj.cmd_re(0, 0, 10, 10);
+            xobj.cmd_G(0);
+            xobj.cmd_w(2.0);
+            xobj.cmd_S();
+            xobj.cmd_re(5, 5, 5, 5);
+            xobj.cmd_g(0);
+            xobj.cmd_f();
+            xobj.cmd_Q();
+            auto rv = gen.add_form_xobject(xobj);
+            if(!rv) {
+                fprintf(stderr, "%s\n", error_text(rv.error()));
+                return 1;
+            }
+            radio_onstate = *rv;
         }
 
         auto ctxguard = gen.guarded_page_context();
@@ -146,6 +182,36 @@ int draw_simple_form() {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }
+        }
+
+        auto top_radio = gen.create_form_button(PdfRectangle{10, 20, 100, 30},
+                                                radio_onstate,
+                                                radio_offstate,
+                                                CAPY_FFIELD_RADIO,
+                                                "radio1")
+                             .value();
+        {
+            ctx.render_pdfdoc_text_builtin("Radio buttons", CAPY_FONT_HELVETICA, 12, 25, 40);
+            auto rc = ctx.add_form_widget(top_radio);
+            if(!rc) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
+            auto button1 =
+                gen.create_form_radioitem(
+                       PdfRectangle{20, 20, 30, 30}, top_radio, radio_onstate, radio_offstate)
+                    .value();
+            ctx.add_form_widget(button1);
+            auto button2 =
+                gen.create_form_radioitem(
+                       PdfRectangle{40, 20, 50, 30}, top_radio, radio_onstate, radio_offstate)
+                    .value();
+            ctx.add_form_widget(button2);
+            auto button3 =
+                gen.create_form_radioitem(
+                       PdfRectangle{60, 20, 70, 30}, top_radio, radio_onstate, radio_offstate)
+                    .value();
+            ctx.add_form_widget(button3);
         }
     }
     return 0;

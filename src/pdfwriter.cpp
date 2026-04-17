@@ -375,6 +375,11 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
             RETOK;
         },
 
+        [&](const DelayedRadioItemWidget &radioitem) -> rvoe<NoReturnValue> {
+            ERCV(write_radioitem_widget(i, radioitem));
+            RETOK;
+        },
+
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
             ERCV(write_annotation(i, anno));
             RETOK;
@@ -874,6 +879,17 @@ rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
         fmt.add_token_pair("/Ff", button.Ff.value());
     }
 
+    if(button.is_radiobutton()) {
+        auto kids = doc.get_kids_of(button.widget);
+        if(!kids.empty()) {
+            fmt.add_token("/Kids");
+            fmt.begin_array();
+            for(const auto &kid : kids) {
+                fmt.add_object_ref(kid);
+            }
+            fmt.end_array();
+        }
+    }
     {
         fmt.add_token("/AP");
         fmt.begin_dict();
@@ -965,6 +981,42 @@ rvoe<NoReturnValue> PdfWriter::write_text_widget(int obj_num,
     fmt.add_token(pdfstring_quote(text.T));
     fmt.add_token(("/V"));
     fmt.add_token(utf8_to_pdfutf16be(text.contents));
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
+    RETOK;
+}
+
+rvoe<NoReturnValue> PdfWriter::write_radioitem_widget(int obj_num,
+                                                      const DelayedRadioItemWidget &radio) {
+    ObjectFormatter fmt;
+    fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Annot");
+    fmt.add_token_pair("/Subtype", "/Widget");
+    fmt.add_token("/Rect");
+    {
+        fmt.begin_array();
+        fmt.add_token(radio.rect.x1);
+        fmt.add_token(radio.rect.y1);
+        fmt.add_token(radio.rect.x2);
+        fmt.add_token(radio.rect.y2);
+        fmt.end_array();
+    }
+    fmt.add_token("/Parent");
+    fmt.add_object_ref(doc.form_widgets.at(radio.parent.id));
+    fmt.add_token("/AP");
+    {
+        fmt.begin_dict();
+        fmt.add_token("/N");
+        {
+            fmt.begin_dict();
+            fmt.add_token("/Yes");
+            fmt.add_object_ref(doc.form_xobjects.at(radio.on.id).xobj_num);
+            fmt.add_token("/Off");
+            fmt.add_object_ref(doc.form_xobjects.at(radio.off.id).xobj_num);
+            fmt.end_dict();
+        }
+        fmt.end_dict();
+    }
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
