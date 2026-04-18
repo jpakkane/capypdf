@@ -1,4 +1,6 @@
-test('plainc', executable('ctest', 'ctest.c', dependencies: capypdf_dep))
+test('plainc', executable('ctest', 'ctest.c',
+                          dependencies: capypdf_dep,
+                          link_language: 'c'))
 
 test('cppwrapper', executable('cpptest', 'cpptest.cpp', override_options: ['cpp_std=c++20'], dependencies: capypdf_dep))
 
