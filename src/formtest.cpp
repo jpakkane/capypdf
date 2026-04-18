@@ -2,7 +2,6 @@
 // Copyright 2023-2024 Jussi Pakkanen
 
 #include <generator.hpp>
-#include <cmath>
 
 using namespace capypdf::internal;
 
@@ -197,20 +196,26 @@ int draw_simple_form() {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }
-            auto button1 =
-                gen.create_form_radioitem(
-                       PdfRectangle{20, 20, 30, 30}, top_radio, radio_onstate, radio_offstate)
-                    .value();
+            auto button1 = gen.create_form_radioitem(PdfRectangle{20, 20, 30, 30},
+                                                     top_radio,
+                                                     PdfName::from_cstr("/state1").value(),
+                                                     radio_onstate,
+                                                     radio_offstate)
+                               .value();
             ctx.add_form_widget(button1);
-            auto button2 =
-                gen.create_form_radioitem(
-                       PdfRectangle{40, 20, 50, 30}, top_radio, radio_onstate, radio_offstate)
-                    .value();
+            auto button2 = gen.create_form_radioitem(PdfRectangle{40, 20, 50, 30},
+                                                     top_radio,
+                                                     PdfName::from_cstr("/state2").value(),
+                                                     radio_onstate,
+                                                     radio_offstate)
+                               .value();
             ctx.add_form_widget(button2);
-            auto button3 =
-                gen.create_form_radioitem(
-                       PdfRectangle{60, 20, 70, 30}, top_radio, radio_onstate, radio_offstate)
-                    .value();
+            auto button3 = gen.create_form_radioitem(PdfRectangle{60, 20, 70, 30},
+                                                     top_radio,
+                                                     PdfName::from_cstr("/state3").value(),
+                                                     radio_onstate,
+                                                     radio_offstate)
+                               .value();
             ctx.add_form_widget(button3);
         }
     }

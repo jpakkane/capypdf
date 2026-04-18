@@ -110,10 +110,6 @@ void TransparencyGroupProperties::serialize(ObjectFormatter &fmt) const {
     fmt.end_dict();
 }
 
-rvoe<asciistring> asciistring::from_cstr(const char *cstr) {
-    return asciistring::from_view(std::string_view(cstr));
-}
-
 rvoe<asciistring> asciistring::from_view(std::string_view sv) {
     if(!is_ascii(sv)) {
         RETERR(NotASCII);
@@ -123,6 +119,21 @@ rvoe<asciistring> asciistring::from_view(std::string_view sv) {
         RETERR(EmbeddedNullInString);
     }
     return astr;
+}
+
+rvoe<PdfName> PdfName::from_view(std::string_view sv) {
+    if(sv.size() < 2) {
+        RETERR(InvalidBufsize);
+    }
+    if(sv.find('\0') != std::string_view::npos) {
+        RETERR(EmbeddedNullInString);
+    }
+    if(sv[0] != '/') {
+        std::string slashed = "/";
+        slashed += sv;
+        return PdfName(std::move(slashed));
+    }
+    return PdfName(sv);
 }
 
 rvoe<u8string> u8string::from_cstr(const char *cstr) {

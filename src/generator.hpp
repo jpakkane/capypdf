@@ -109,9 +109,10 @@ public:
 
     rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
                                                      CapyPDF_FormWidgetId parent,
+                                                     PdfName on_state_name,
                                                      CapyPDF_FormXObjectId onstate,
                                                      CapyPDF_FormXObjectId offstate) {
-        return pdoc.create_form_radioitem(loc, parent, onstate, offstate);
+        return pdoc.create_form_radioitem(loc, parent, std::move(on_state_name), onstate, offstate);
     }
 
     rvoe<CapyPDF_AnnotationId> add_annotation(const Annotation &a) {

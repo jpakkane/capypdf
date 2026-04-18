@@ -264,6 +264,7 @@ struct DelayedRadioItemWidget {
     CapyPDF_FormWidgetId widget;
     PdfRectangle rect;
     CapyPDF_FormWidgetId parent;
+    PdfName on_state_name;
     CapyPDF_FormXObjectId on;
     CapyPDF_FormXObjectId off;
 };
@@ -536,6 +537,7 @@ public:
     create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name);
     rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
                                                      CapyPDF_FormWidgetId parent,
+                                                     PdfName on_state_name,
                                                      CapyPDF_FormXObjectId onstate,
                                                      CapyPDF_FormXObjectId offstate);
 

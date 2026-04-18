@@ -1956,9 +1956,11 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_choice(PdfRectangle loc,
 
 rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_radioitem(PdfRectangle loc,
                                                               CapyPDF_FormWidgetId parent,
+                                                              PdfName on_state_name,
                                                               CapyPDF_FormXObjectId onstate,
                                                               CapyPDF_FormXObjectId offstate) {
-    DelayedRadioItemWidget formobj{{(int32_t)form_widgets.size()}, loc, parent, onstate, offstate};
+    DelayedRadioItemWidget formobj{
+        {(int32_t)form_widgets.size()}, loc, parent, std::move(on_state_name), onstate, offstate};
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};

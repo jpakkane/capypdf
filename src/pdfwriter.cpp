@@ -890,7 +890,7 @@ rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
             fmt.end_array();
         }
     }
-    {
+    if(!button.is_radiobutton()) {
         fmt.add_token("/AP");
         fmt.begin_dict();
         fmt.add_token("/N");
@@ -1009,7 +1009,7 @@ rvoe<NoReturnValue> PdfWriter::write_radioitem_widget(int obj_num,
         fmt.add_token("/N");
         {
             fmt.begin_dict();
-            fmt.add_token("/Yes");
+            fmt.add_token(radio.on_state_name);
             fmt.add_object_ref(doc.form_xobjects.at(radio.on.id).xobj_num);
             fmt.add_token("/Off");
             fmt.add_object_ref(doc.form_xobjects.at(radio.off.id).xobj_num);

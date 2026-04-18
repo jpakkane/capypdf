@@ -103,11 +103,14 @@ public:
     std::string_view sv() const { return buf; }
     const char *c_str() const { return buf.c_str(); }
 
-    static rvoe<asciistring> from_cstr(const char *cstr);
+    static rvoe<asciistring> from_view(std::string_view sv);
+
+    static rvoe<asciistring> from_cstr(const char *cstr) {
+        return asciistring::from_view(std::string_view(cstr));
+    }
     static rvoe<asciistring> from_cstr(const std::string &str) {
         return asciistring::from_view(std::string_view(str));
     }
-    static rvoe<asciistring> from_view(std::string_view sv);
     static rvoe<asciistring> from_view(const char *buf, uint32_t bufsize) {
         return asciistring::from_view(std::string_view(buf, bufsize));
     }
@@ -120,6 +123,39 @@ public:
 
 private:
     explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
+    std::string buf;
+};
+
+class PdfName {
+public:
+    PdfName() = default;
+    PdfName(PdfName &&o) = default;
+    PdfName(const PdfName &o) = default;
+
+    std::string_view sv() const { return buf; }
+    const char *c_str() const { return buf.c_str(); }
+
+    static rvoe<PdfName> from_view(std::string_view sv);
+
+    static rvoe<PdfName> from_cstr(const char *cstr) {
+        return PdfName::from_view(std::string_view(cstr));
+    }
+    static rvoe<PdfName> from_cstr(const std::string &str) {
+        return PdfName::from_view(std::string_view(str));
+    }
+    static rvoe<PdfName> from_view(const char *buf, uint32_t bufsize) {
+        return PdfName::from_view(std::string_view(buf, bufsize));
+    }
+    bool empty() const { return buf.empty(); }
+
+    PdfName &operator=(PdfName &&o) = default;
+    PdfName &operator=(const PdfName &o) = default;
+
+    bool operator==(const PdfName &o) const = default;
+
+private:
+    explicit PdfName(std::string_view prevalidated_string) : buf(prevalidated_string) {}
+    explicit PdfName(std::string prevalidated_string) : buf{std::move(prevalidated_string)} {}
     std::string buf;
 };
 

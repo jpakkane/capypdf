@@ -25,6 +25,7 @@ struct FormatStash {
 
 class u8string;
 class asciistring;
+class PdfName;
 
 class ObjectFormatter {
 public:
@@ -69,6 +70,7 @@ public:
     void add_token(uint32_t number);
     void add_token(size_t number);
     void add_token(double number);
+    void add_token(const PdfName &name);
 
     void add_token_with_slash(const char *name);
     void add_token_with_slash(std::string_view name);
