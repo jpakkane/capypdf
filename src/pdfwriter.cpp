@@ -43,6 +43,8 @@ const std::array<const char *, 10> Line_ending_styles = {"/Square",
                                                          "/RClosedArrow",
                                                          "/Slash"};
 
+const std::array<const char *, 4> Form_Field_Names = {"/Btn", "/Tx", "/Ch", "/Sig"};
+
 std::string fontname2pdfname(std::string_view original) {
     std::string out;
     out.reserve(original.size());
@@ -382,6 +384,11 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
 
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
             ERCV(write_annotation(i, anno));
+            RETOK;
+        },
+
+        [&](const DelayedFormField &field) -> rvoe<NoReturnValue> {
+            ERCV(write_form_field(i, field));
             RETOK;
         },
 
@@ -847,13 +854,73 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     return write_finished_object(p.page_obj_num, fmt.steal(), {});
 }
 
+rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormField &df) {
+    const auto &field = df.field;
+    ObjectFormatter fmt;
+    CapyPDF_Field_Type ftype;
+    fmt.begin_dict();
+    if(std::holds_alternative<ButtonField>(field.sub)) {
+        ftype = CAPY_FORM_FIELD_TYPE_BTN;
+    } else if(std::holds_alternative<TextField>(field.sub)) {
+        ftype = CAPY_FORM_FIELD_TYPE_TX;
+    } else if(std::holds_alternative<ChoiceField>(field.sub)) {
+        ftype = CAPY_FORM_FIELD_TYPE_CH;
+    } else {
+        std::abort();
+    }
+    fmt.add_token_pair("/FT", Form_Field_Names.at(ftype));
+    if(field.parent) {
+        fmt.add_token("/Parent");
+        fmt.add_object_ref(doc.form_fields.at(field.parent.value().id));
+    }
+    // Add Kids here.
+    if(!field.T.empty()) {
+        fmt.add_token_pair("/T", utf8_to_pdfutf16be(field.T));
+    }
+    if(field.Ff) {
+        fmt.add_token_pair("/Ff", field.Ff.value());
+    }
+    if(!field.V.empty()) {
+        fmt.add_token_pair("/V", utf8_to_pdfutf16be(field.V));
+    }
+    if(ftype == CAPY_FORM_FIELD_TYPE_BTN) {
+        const auto &button = std::get<ButtonField>(field.sub);
+        const bool check_button = field.is_checkbutton();
+        const bool radio_button = field.is_radiobutton();
+        const bool push_button = !(check_button || radio_button);
+
+        if(check_button) {
+            fmt.add_token("/AP");
+            fmt.begin_dict();
+            fmt.add_token("/N");
+            fmt.begin_dict();
+            fmt.add_token("/Yes");
+            fmt.add_object_ref(doc.form_xobjects.at(button.on_state.id).xobj_num);
+            fmt.add_token("/Off");
+            fmt.add_object_ref(doc.form_xobjects.at(button.off_state.id).xobj_num);
+            fmt.end_dict();
+            fmt.end_dict();
+        } else {
+            std::abort();
+        }
+
+    } else if(ftype == CAPY_FORM_FIELD_TYPE_TX) {
+
+    } else if(ftype == CAPY_FORM_FIELD_TYPE_CH) {
+    }
+    fmt.end_dict();
+    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
+    RETOK;
+}
+
 rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
                                                    const DelayedButtonWidgetAnnotation &button) {
+    std::abort();
+    /*
     auto loc = doc.form_use.find(button.widget);
     if(loc == doc.form_use.end()) {
         std::abort();
     }
-
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Annot");
@@ -913,10 +980,13 @@ rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
+*/
 }
 
 rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
                                                    const DelayedChoiceWidgetAnnotation &choice) {
+    std::abort();
+    /*
     auto loc = doc.form_use.find(choice.widget);
     if(loc == doc.form_use.end()) {
         std::abort();
@@ -952,10 +1022,13 @@ rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
+*/
 }
 
 rvoe<NoReturnValue> PdfWriter::write_text_widget(int obj_num,
                                                  const DelayedTextWidgetAnnotation &text) {
+    std::abort();
+    /*
     auto loc = doc.form_use.find(text.widget);
     if(loc == doc.form_use.end()) {
         std::abort();
@@ -984,10 +1057,13 @@ rvoe<NoReturnValue> PdfWriter::write_text_widget(int obj_num,
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
+*/
 }
 
 rvoe<NoReturnValue> PdfWriter::write_radioitem_widget(int obj_num,
                                                       const DelayedRadioItemWidget &radio) {
+    std::abort();
+    /*
     ObjectFormatter fmt;
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/Annot");
@@ -1020,6 +1096,7 @@ rvoe<NoReturnValue> PdfWriter::write_radioitem_widget(int obj_num,
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
+*/
 }
 
 rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnotation &annotation) {
@@ -1095,7 +1172,6 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             fmt.add_token(Line_ending_styles.at(line->end_styles->second));
             fmt.end_array();
         }
-
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
         int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {
@@ -1211,6 +1287,12 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         fmt.end_dict();
         fmt.end_dict();
         fmt.add_token_pair("/AS", "/N");
+    } else if(auto widget = std::get_if<WidgetAnnotation>(&annotation.a.sub)) {
+        fmt.add_token_pair("/Subtype", "/Widget");
+        if(widget->parent) {
+            fmt.add_token("/Parent");
+            fmt.add_object_ref(doc.form_fields.at(widget->parent.value().id));
+        }
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
         std::abort();

@@ -119,6 +119,10 @@ public:
         return pdoc.add_annotation(a);
     }
 
+    rvoe<CapyPDF_FormFieldId> add_form_field(FormField &field) {
+        return pdoc.add_form_field(field);
+    }
+
     DrawContextPopper guarded_page_context();
     PdfDrawContext *new_page_draw_context();
 

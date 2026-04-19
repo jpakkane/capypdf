@@ -365,6 +365,33 @@ const std::array<const char *, 4> rendering_intent_names{
     "Perceptual",
 };
 
+bool FormField::is_checkbutton() const {
+    if(!std::holds_alternative<ButtonField>(sub)) {
+        return false;
+    }
+
+    if(!Ff) {
+        return true;
+    }
+    if(Ff.value() & CAPY_FFIELD_PUSHBUTTON) {
+        return false;
+    }
+    if(Ff.value() & CAPY_FFIELD_RADIO) {
+        return false;
+    }
+    return true;
+}
+
+bool FormField::is_radiobutton() const {
+    if(!std::holds_alternative<ButtonField>(sub)) {
+        return false;
+    }
+    if(!Ff) {
+        return false;
+    }
+    return Ff.value() & CAPY_FFIELD_RADIO;
+}
+
 DocumentProperties::DocumentProperties() {
     default_page_properties.mediabox = PdfRectangle::a4();
     compress_streams = (getenv("CAPY_DEBUG_PDF") == nullptr);
@@ -502,11 +529,6 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           const std::vector<CapyPDF_StructureItemId> &structs,
                                           const std::optional<Transition> &transition,
                                           const std::vector<SubPageNavigation> &subnav) {
-    for(const auto &a : fws) {
-        if(form_use.find(a) != form_use.cend()) {
-            RETERR(AnnotationReuse);
-        }
-    }
     for(const auto &a : annots) {
         if(annotation_use.find(a) != annotation_use.cend()) {
             RETERR(AnnotationReuse);
@@ -541,9 +563,11 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
         structure_parent_tree_items.push_back(structs);
     }
     const auto page_object_num = add_object(std::move(p));
+    /*
     for(const auto &fw : fws) {
         form_use[fw] = page_object_num;
     }
+*/
     for(const auto &a : annots) {
         annotation_use[a] = page_object_num;
     }
@@ -974,13 +998,21 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         fmt.add_object_ref(*output_intent_object);
         fmt.end_array();
     }
-    if(!form_use.empty()) {
+    if(!form_fields.empty()) {
+        // PDF supports merging field dictionaries into the widget annotation
+        // dictionary but we don't.
         fmt.add_token("/AcroForm");
         fmt.begin_dict();
         fmt.add_token("/Fields");
         fmt.begin_array(1);
-        for(const auto &i : form_widgets) {
-            fmt.add_object_ref(i);
+        // The array only houses fields that have no parents in the hierarchy.
+        // 12.7.3, table 224
+        for(const auto &i : form_fields) {
+            auto &dfield = std::get<DelayedFormField>(document_objects.at(i));
+            auto &field = dfield.field;
+            if(!field.parent) {
+                fmt.add_object_ref(i);
+            }
         }
         fmt.end_array();
         fmt.end_dict();
@@ -1973,6 +2005,13 @@ PdfDocument::create_form_text(PdfRectangle loc, u8string contents, std::string_v
     auto obj_id = add_object(std::move(formobj));
     form_widgets.push_back(obj_id);
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
+}
+
+rvoe<CapyPDF_FormFieldId> PdfDocument::add_form_field(FormField &field) {
+    auto field_id = (int32_t)form_fields.size();
+    auto obj_id = add_object(DelayedFormField{{field_id}, std::move(field)});
+    form_fields.push_back((int32_t)obj_id);
+    return CapyPDF_FormFieldId{field_id};
 }
 
 rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {

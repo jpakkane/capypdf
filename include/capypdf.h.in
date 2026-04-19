@@ -285,6 +285,14 @@ typedef enum {
     CAPY_STRUCTURE_TYPE_NUM_ITEMS
 } CapyPDF_Structure_Type;
 
+typedef enum {
+    CAPY_FORM_FIELD_TYPE_BTN,
+    CAPY_FORM_FIELD_TYPE_TX,
+    CAPY_FORM_FIELD_TYPE_CH,
+    // Not yet supported.
+    // CAPY_FORM_FIELD_TYPE_SIG,
+} CapyPDF_Field_Type;
+
 // Note that some of these flags share the same bit values.
 // That is what the specification says.
 typedef enum {
@@ -455,6 +463,10 @@ typedef struct {
 typedef struct {
     int32_t id;
 } CapyPDF_FormWidgetId;
+
+typedef struct {
+    int32_t id;
+} CapyPDF_FormFieldId;
 
 typedef struct {
     int32_t id;

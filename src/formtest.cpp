@@ -118,22 +118,29 @@ int draw_simple_form() {
 
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
-        auto checkbox_widget =
-            gen.create_form_button(
-                   PdfRectangle{10, 180, 20, 190}, check_onstate, check_offstate, {}, "checkbox1")
-                .value();
+        FormField check_field{
+            .sub = ButtonField{check_onstate, check_offstate, PdfName::from_cstr("/On").value()}};
+
+        CapyPDF_FormFieldId check_field_id = gen.add_form_field(check_field).value();
+
+        Annotation check_widget =
+            Annotation{{}, WidgetAnnotation{check_field_id}, PdfRectangle{110, 180, 120, 190}};
+        auto check_annot_id = gen.add_annotation(check_widget).value();
         {
 
-            ctx.cmd_re(10, 180, 10, 10);
+            ctx.cmd_re(110, 180, 10, 10);
             ctx.cmd_S();
 
             ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 180);
-            auto rc = ctx.add_form_widget(checkbox_widget);
-            if(!rc) {
-                fprintf(stderr, "FAIL\n");
-                return 1;
-            }
+            ctx.annotate(check_annot_id);
+            // auto rc = ctx.add_form_widget(checkbox_widget);
+            //            auto rc = ctx.annotate(check_annot_id);
+            // if(!rc) {
+            //    fprintf(stderr, "FAIL\n");
+            //    return 1;
+            //}
         }
+        /*
 
         std::vector<u8string> choices{
             u8string::from_cstr("Choice one").value(),
@@ -218,6 +225,7 @@ int draw_simple_form() {
                                .value();
             ctx.add_form_widget(button3);
         }
+*/
     }
     return 0;
 }

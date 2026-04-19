@@ -210,6 +210,32 @@ class PdfDrawContext;
 class PdfWriter;
 struct ColorPatternBuilder;
 
+struct ButtonField {
+    CapyPDF_FormXObjectId on_state;
+    CapyPDF_FormXObjectId off_state;
+    PdfName on_state_name;
+};
+
+struct TextField {};
+
+struct ChoiceField {
+    std::vector<u8string> Opt;
+};
+
+typedef std::variant<ButtonField, TextField, ChoiceField> FieldSubType;
+
+struct FormField {
+    std::optional<CapyPDF_FormFieldId> parent;
+    u8string T;
+    std::optional<uint32_t> Ff;
+    u8string V;
+    FieldSubType sub;
+
+    bool is_checkbutton() const;
+
+    bool is_radiobutton() const;
+};
+
 struct DelayedButtonWidgetAnnotation {
     CapyPDF_FormWidgetId widget;
 
@@ -337,6 +363,10 @@ struct ScreenAnnotation {
     std::optional<ClipTimes> times;
 };
 
+struct WidgetAnnotation {
+    std::optional<CapyPDF_FormFieldId> parent;
+};
+
 struct PrintersMarkAnnotation {
     CapyPDF_FormXObjectId appearance;
 };
@@ -350,6 +380,7 @@ typedef std::variant<TextAnnotation,
                      LineAnnotation,
                      FileAttachmentAnnotation,
                      ScreenAnnotation,
+                     WidgetAnnotation,
                      PrintersMarkAnnotation,
                      ThreeDAnnotation>
     AnnotationSubType;
@@ -367,6 +398,11 @@ struct DelayedAnnotation {
 
 struct DelayedStructItem {
     CapyPDF_StructureItemId sid;
+};
+
+struct DelayedFormField {
+    CapyPDF_FormFieldId id;
+    FormField field;
 };
 
 // 14.7.2 table 355
@@ -404,6 +440,7 @@ typedef std::variant<DummyIndexZero,
                      DelayedTextWidgetAnnotation,
                      DelayedRadioItemWidget,
                      DelayedAnnotation,
+                     DelayedFormField,
                      DelayedStructItem>
     ObjectType;
 
@@ -540,6 +577,7 @@ public:
                                                      PdfName on_state_name,
                                                      CapyPDF_FormXObjectId onstate,
                                                      CapyPDF_FormXObjectId offstate);
+    rvoe<CapyPDF_FormFieldId> add_form_field(FormField &field);
 
     // Raw files
     rvoe<CapyPDF_EmbeddedFileId> embed_file(EmbeddedFile &ef);
@@ -638,6 +676,7 @@ private:
     std::vector<IccInfo> icc_profiles;
     std::vector<FormXObjectInfo> form_xobjects;
     std::vector<int32_t> form_widgets;
+    std::vector<int32_t> form_fields;
     std::vector<EmbeddedFileObject> embedded_files;
     std::vector<int32_t> annotations;
     std::vector<StructItem> structure_items;
@@ -648,7 +687,6 @@ private:
     std::vector<ShadingInfo> shadings;
     std::vector<RolemapEnty> rolemap;
     // A form widget can be used on one and only one page.
-    std::unordered_map<CapyPDF_FormWidgetId, int32_t> form_use;
     std::unordered_map<CapyPDF_AnnotationId, int32_t> annotation_use;
     std::unordered_map<CapyPDF_StructureItemId, StructureUsage> structure_use;
     std::vector<std::vector<CapyPDF_StructureItemId>>
