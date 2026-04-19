@@ -891,14 +891,14 @@ rvoe<CapyPDF_3DStreamId> PdfDocument::add_3d_stream(ThreeDStream stream) {
     return CapyPDF_3DStreamId{obj_num};
 }
 
-std::vector<int32_t> PdfDocument::get_kids_of(CapyPDF_FormWidgetId widget) const {
+std::vector<int32_t> PdfDocument::get_widget_kids_of(CapyPDF_FormFieldId field) const {
     std::vector<int32_t> kids;
-    for(const auto &fw : form_widgets) {
-        const auto &fwobj = document_objects[fw];
-        if(auto *radioitem = std::get_if<DelayedRadioItemWidget>(&fwobj)) {
-            if(radioitem->parent == widget) {
-                kids.push_back(fw);
-            }
+    for(const auto &anno_id : annotations) {
+        const auto &anno_obj = document_objects.at(anno_id);
+        const auto &anno = std::get<DelayedAnnotation>(anno_obj);
+        if(auto *widget = std::get_if<WidgetAnnotation>(&anno.a.sub)) {
+            if(widget->parent && widget->parent.value().id == field.id)
+                kids.push_back(anno_id);
         }
     }
     return kids;
@@ -1960,18 +1960,6 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     outlines.children[par_id].push_back(cur_id);
     outlines.items.emplace_back(o);
     return CapyPDF_OutlineId{cur_id};
-}
-
-rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_radioitem(PdfRectangle loc,
-                                                              CapyPDF_FormWidgetId parent,
-                                                              PdfName on_state_name,
-                                                              CapyPDF_FormXObjectId onstate,
-                                                              CapyPDF_FormXObjectId offstate) {
-    DelayedRadioItemWidget formobj{
-        {(int32_t)form_widgets.size()}, loc, parent, std::move(on_state_name), onstate, offstate};
-    auto obj_id = add_object(std::move(formobj));
-    form_widgets.push_back(obj_id);
-    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
 rvoe<CapyPDF_FormFieldId> PdfDocument::add_form_field(FormField &field) {

@@ -118,6 +118,7 @@ int draw_simple_form() {
 
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
+
         FormField check_field{
             .T = u8string::from_cstr("check1").value(),
             .sub = ButtonField{check_onstate, check_offstate, PdfName::from_cstr("/On").value()}};
@@ -163,7 +164,7 @@ int draw_simple_form() {
 
         FormField text_field{
             .T = u8string::from_cstr("text1").value(),
-            .V = u8string::from_cstr("The default text contents.").value(),
+            .V = "The default text contents.",
             .sub = TextField{},
         };
         auto text_field_id = gen.add_form_field(text_field).value();
@@ -180,7 +181,6 @@ int draw_simple_form() {
         }
 
         FormField push_field{
-
             .T = u8string::from_cstr("push1").value(),
             .Ff = CAPY_FFIELD_PUSHBUTTON,
             .sub = ButtonField{push_onstate, push_offstate},
@@ -200,44 +200,45 @@ int draw_simple_form() {
             }
         }
 
-        /*
-
-        auto top_radio = gen.create_form_button(PdfRectangle{10, 20, 100, 30},
-                                                radio_onstate,
-                                                radio_offstate,
-                                                CAPY_FFIELD_RADIO,
-                                                "radio1")
-                             .value();
+        FormField top_radio_field{
+            .T = u8string::from_cstr("Radio choice").value(),
+            .Ff = CAPY_FFIELD_RADIO,
+            .V = "/state1",
+            .sub = ButtonField{push_onstate, push_offstate},
+        };
+        auto top_radio_field_id = gen.add_form_field(top_radio_field).value();
         {
             ctx.render_pdfdoc_text_builtin("Radio buttons", CAPY_FONT_HELVETICA, 12, 25, 40);
-            auto rc = ctx.add_form_widget(top_radio);
-            if(!rc) {
-                fprintf(stderr, "FAIL\n");
-                return 1;
-            }
-            auto button1 = gen.create_form_radioitem(PdfRectangle{20, 20, 30, 30},
-                                                     top_radio,
-                                                     PdfName::from_cstr("/state1").value(),
-                                                     radio_onstate,
-                                                     radio_offstate)
-                               .value();
-            ctx.add_form_widget(button1);
-            auto button2 = gen.create_form_radioitem(PdfRectangle{40, 20, 50, 30},
-                                                     top_radio,
-                                                     PdfName::from_cstr("/state2").value(),
-                                                     radio_onstate,
-                                                     radio_offstate)
-                               .value();
-            ctx.add_form_widget(button2);
-            auto button3 = gen.create_form_radioitem(PdfRectangle{60, 20, 70, 30},
-                                                     top_radio,
-                                                     PdfName::from_cstr("/state3").value(),
-                                                     radio_onstate,
-                                                     radio_offstate)
-                               .value();
-            ctx.add_form_widget(button3);
+            Annotation button1_a{
+                {},
+                WidgetAnnotation{top_radio_field_id,
+                                 ButtonStateInfo{radio_onstate,
+                                                 radio_offstate,
+                                                 PdfName::from_cstr("/state1").value()}},
+                PdfRectangle(20, 20, 30, 30)};
+            auto b1_a_id = gen.add_annotation(button1_a).value();
+            ctx.annotate(b1_a_id);
+
+            Annotation button2_a{
+                {},
+                WidgetAnnotation{top_radio_field_id,
+                                 ButtonStateInfo{radio_onstate,
+                                                 radio_offstate,
+                                                 PdfName::from_cstr("/state2").value()}},
+                PdfRectangle(40, 20, 50, 30)};
+            auto b2_a_id = gen.add_annotation(button2_a).value();
+            ctx.annotate(b2_a_id);
+
+            Annotation button3_a{
+                {},
+                WidgetAnnotation{top_radio_field_id,
+                                 ButtonStateInfo{radio_onstate,
+                                                 radio_offstate,
+                                                 PdfName::from_cstr("/state3").value()}},
+                PdfRectangle(60, 20, 70, 30)};
+            auto b3_a_id = gen.add_annotation(button3_a).value();
+            ctx.annotate(b3_a_id);
         }
-        */
     }
     return 0;
 }

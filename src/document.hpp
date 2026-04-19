@@ -228,71 +228,12 @@ struct FormField {
     std::optional<CapyPDF_FormFieldId> parent;
     u8string T;
     std::optional<uint32_t> Ff;
-    u8string V;
+    std::string V; // This can be either a string or a name, depending on context.
     FieldSubType sub;
 
     bool is_checkbutton() const;
 
     bool is_radiobutton() const;
-};
-
-struct DelayedButtonWidgetAnnotation {
-    CapyPDF_FormWidgetId widget;
-
-    // Annotation dict values.
-    PdfRectangle rect;
-    CapyPDF_FormXObjectId on;
-    CapyPDF_FormXObjectId off;
-    // uint32_t F; // Annotation flags;
-
-    std::optional<uint32_t> Ff;
-    // Field dict values.
-    std::string T;
-
-    bool is_checkbutton() const {
-        if(!Ff) {
-            return true;
-        }
-        if(Ff.value() & CAPY_FFIELD_PUSHBUTTON) {
-            return false;
-        }
-        if(Ff.value() & CAPY_FFIELD_RADIO) {
-            return false;
-        }
-        return true;
-    }
-
-    bool is_radiobutton() const {
-        if(!Ff) {
-            return false;
-        }
-        return Ff.value() & CAPY_FFIELD_RADIO;
-    }
-};
-
-struct DelayedChoiceWidgetAnnotation {
-    CapyPDF_FormWidgetId widget;
-    PdfRectangle rect;
-    std::optional<uint32_t> Ff;
-    std::vector<u8string> options;
-    std::string T;
-};
-
-struct DelayedTextWidgetAnnotation {
-    CapyPDF_FormWidgetId widget;
-    std::optional<uint32_t> Ff;
-    PdfRectangle rect;
-    u8string contents;
-    std::string T;
-};
-
-struct DelayedRadioItemWidget {
-    CapyPDF_FormWidgetId widget;
-    PdfRectangle rect;
-    CapyPDF_FormWidgetId parent;
-    PdfName on_state_name;
-    CapyPDF_FormXObjectId on;
-    CapyPDF_FormXObjectId off;
 };
 
 struct OutlineData {
@@ -363,8 +304,15 @@ struct ScreenAnnotation {
     std::optional<ClipTimes> times;
 };
 
+struct ButtonStateInfo {
+    CapyPDF_FormXObjectId on_state;
+    CapyPDF_FormXObjectId off_state;
+    PdfName on_state_name;
+};
+
 struct WidgetAnnotation {
     std::optional<CapyPDF_FormFieldId> parent;
+    std::optional<ButtonStateInfo> buttoninfo;
 };
 
 struct PrintersMarkAnnotation {
@@ -435,10 +383,6 @@ typedef std::variant<DummyIndexZero,
                      DelayedCIDDictionary,
                      DelayedPages,
                      DelayedPage,
-                     DelayedButtonWidgetAnnotation, // FIXME, convert all widgets to a single type
-                     DelayedChoiceWidgetAnnotation,
-                     DelayedTextWidgetAnnotation,
-                     DelayedRadioItemWidget,
                      DelayedAnnotation,
                      DelayedFormField,
                      DelayedStructItem>
@@ -562,11 +506,6 @@ public:
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o);
 
     // Forms
-    rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
-                                                     CapyPDF_FormWidgetId parent,
-                                                     PdfName on_state_name,
-                                                     CapyPDF_FormXObjectId onstate,
-                                                     CapyPDF_FormXObjectId offstate);
     rvoe<CapyPDF_FormFieldId> add_form_field(FormField &field);
 
     // Raw files
@@ -601,7 +540,7 @@ public:
 
     rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream);
 
-    std::vector<int32_t> get_kids_of(CapyPDF_FormWidgetId widget) const;
+    std::vector<int32_t> get_widget_kids_of(CapyPDF_FormFieldId widget) const;
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

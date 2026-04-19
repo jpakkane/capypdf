@@ -61,12 +61,6 @@ private:
     rvoe<NoReturnValue> write_pages_root();
     rvoe<NoReturnValue> write_delayed_page(const DelayedPage &p);
     rvoe<NoReturnValue> write_form_field(int obj_num, const DelayedFormField &df);
-    rvoe<NoReturnValue> write_button_widget(int obj_num,
-                                            const DelayedButtonWidgetAnnotation &checkbox);
-    rvoe<NoReturnValue> write_choice_widget(int obj_num,
-                                            const DelayedChoiceWidgetAnnotation &checkbox);
-    rvoe<NoReturnValue> write_text_widget(int obj_num, const DelayedTextWidgetAnnotation &text);
-    rvoe<NoReturnValue> write_radioitem_widget(int obj_num, const DelayedRadioItemWidget &radio);
     rvoe<NoReturnValue> write_annotation(int obj_num, const DelayedAnnotation &annotation);
     rvoe<NoReturnValue> write_delayed_structure_item(int obj_num, const DelayedStructItem &p);
 

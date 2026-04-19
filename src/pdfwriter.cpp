@@ -43,8 +43,6 @@ const std::array<const char *, 10> Line_ending_styles = {"/Square",
                                                          "/RClosedArrow",
                                                          "/Slash"};
 
-const std::array<const char *, 4> Form_Field_Names = {"/Btn", "/Tx", "/Ch", "/Sig"};
-
 std::string fontname2pdfname(std::string_view original) {
     std::string out;
     out.reserve(original.size());
@@ -359,26 +357,6 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
 
         [&](const DelayedPage &dp) -> rvoe<NoReturnValue> {
             ERCV(write_delayed_page(dp));
-            RETOK;
-        },
-
-        [&](const DelayedButtonWidgetAnnotation &checkbox) -> rvoe<NoReturnValue> {
-            ERCV(write_button_widget(i, checkbox));
-            RETOK;
-        },
-
-        [&](const DelayedChoiceWidgetAnnotation &choice) -> rvoe<NoReturnValue> {
-            ERCV(write_choice_widget(i, choice));
-            RETOK;
-        },
-
-        [&](const DelayedTextWidgetAnnotation &text) -> rvoe<NoReturnValue> {
-            ERCV(write_text_widget(i, text));
-            RETOK;
-        },
-
-        [&](const DelayedRadioItemWidget &radioitem) -> rvoe<NoReturnValue> {
-            ERCV(write_radioitem_widget(i, radioitem));
             RETOK;
         },
 
@@ -857,258 +835,71 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
 rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormField &df) {
     const auto &field = df.field;
     ObjectFormatter fmt;
-    CapyPDF_Field_Type ftype;
     fmt.begin_dict();
-    if(std::holds_alternative<ButtonField>(field.sub)) {
-        ftype = CAPY_FORM_FIELD_TYPE_BTN;
-    } else if(std::holds_alternative<TextField>(field.sub)) {
-        ftype = CAPY_FORM_FIELD_TYPE_TX;
-    } else if(std::holds_alternative<ChoiceField>(field.sub)) {
-        ftype = CAPY_FORM_FIELD_TYPE_CH;
-    } else {
-        std::abort();
-    }
-    fmt.add_token_pair("/FT", Form_Field_Names.at(ftype));
     if(field.parent) {
         fmt.add_token("/Parent");
         fmt.add_object_ref(doc.form_fields.at(field.parent.value().id));
     }
-    // Add Kids here.
+    auto kids = doc.get_widget_kids_of(df.id);
+    if(!kids.empty()) {
+        fmt.add_token("/Kids");
+        fmt.begin_array();
+        for(const auto &k : kids) {
+            fmt.add_object_ref(k);
+        }
+        fmt.end_array();
+    }
     if(!field.T.empty()) {
         fmt.add_token_pair("/T", utf8_to_pdfutf16be(field.T));
     }
     if(field.Ff) {
         fmt.add_token_pair("/Ff", field.Ff.value());
     }
-    if(!field.V.empty()) {
-        fmt.add_token_pair("/V", utf8_to_pdfutf16be(field.V));
-    }
-    if(ftype == CAPY_FORM_FIELD_TYPE_BTN) {
-        const auto &button = std::get<ButtonField>(field.sub);
+
+    if(const auto *button = std::get_if<ButtonField>(&field.sub)) {
+        (void)button;
+        fmt.add_token_pair("/FT", "/Btn");
         const bool check_button = field.is_checkbutton();
         const bool radio_button = field.is_radiobutton();
         // const bool push_button = !(check_button || radio_button);
 
-        if(check_button) {
-            fmt.add_token("/AP");
-            fmt.begin_dict();
-            fmt.add_token("/N");
-            fmt.begin_dict();
-            fmt.add_token("/Yes");
-            fmt.add_object_ref(doc.form_xobjects.at(button.on_state.id).xobj_num);
-            fmt.add_token("/Off");
-            fmt.add_object_ref(doc.form_xobjects.at(button.off_state.id).xobj_num);
-            fmt.end_dict();
-            fmt.end_dict();
-        } else if(radio_button) {
-            std::abort();
-        } else {
+        if(!field.V.empty()) {
+            ERC(pdfname, PdfName::PdfName::from_view(field.V));
+            fmt.add_token_pair("/V", pdfname);
         }
 
-    } else if(ftype == CAPY_FORM_FIELD_TYPE_TX) {
-    } else if(ftype == CAPY_FORM_FIELD_TYPE_CH) {
-        const auto &choice = std::get<ChoiceField>(field.sub);
+        if(check_button) {
+        } else if(radio_button) {
+            //
+        } else {
+            // pushbutton
+        }
+    } else if(auto *text = std::get_if<TextField>(&field.sub)) {
+        (void)text;
+        if(!field.V.empty()) {
+            ERC(u8v, u8string::from_view(field.V));
+            fmt.add_token_pair("/V", utf8_to_pdfutf16be(u8v));
+        }
+        fmt.add_token_pair("/FT", "/Tx");
+    } else if(auto *choice = std::get_if<ChoiceField>(&field.sub)) {
+        fmt.add_token_pair("/FT", "/Ch");
         fmt.add_token(("/Opt"));
         {
             fmt.begin_array();
             // Details in 12.7.5.4
-            for(const auto &s : choice.Opt) {
+            for(const auto &s : choice->Opt) {
                 fmt.add_token(utf8_to_pdfutf16be(s));
             }
             fmt.end_array();
         }
     } else {
+        // Signature
+        fmt.add_token_pair("/FT", "/Sig");
         std::abort();
     }
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));
     RETOK;
-}
-
-rvoe<NoReturnValue> PdfWriter::write_button_widget(int obj_num,
-                                                   const DelayedButtonWidgetAnnotation &button) {
-    std::abort();
-    /*
-    auto loc = doc.form_use.find(button.widget);
-    if(loc == doc.form_use.end()) {
-        std::abort();
-    }
-    ObjectFormatter fmt;
-    fmt.begin_dict();
-    fmt.add_token_pair("/Type", "/Annot");
-    fmt.add_token_pair("/Subtype", "/Widget");
-    fmt.add_token("/Rect");
-    {
-        fmt.begin_array();
-        fmt.add_token(button.rect.x1);
-        fmt.add_token(button.rect.y1);
-        fmt.add_token(button.rect.x2);
-        fmt.add_token(button.rect.y2);
-        fmt.end_array();
-    }
-    fmt.add_token_pair("/FT", "/Btn");
-    fmt.add_token("/P");
-    fmt.add_object_ref(loc->second);
-    fmt.add_token("/T");
-    fmt.add_token(pdfstring_quote(button.T));
-    if(button.is_checkbutton()) {
-        fmt.add_token_pair("/V", "/Off");
-    }
-    if(button.Ff) {
-        fmt.add_token_pair("/Ff", button.Ff.value());
-    }
-
-    if(button.is_radiobutton()) {
-        auto kids = doc.get_kids_of(button.widget);
-        if(!kids.empty()) {
-            fmt.add_token("/Kids");
-            fmt.begin_array();
-            for(const auto &kid : kids) {
-                fmt.add_object_ref(kid);
-            }
-            fmt.end_array();
-        }
-    }
-    if(!button.is_radiobutton()) {
-        fmt.add_token("/AP");
-        fmt.begin_dict();
-        fmt.add_token("/N");
-        {
-            fmt.begin_dict();
-            fmt.add_token("/N");
-            {
-                fmt.begin_dict();
-                fmt.add_token("/Yes");
-                fmt.add_object_ref(doc.form_xobjects.at(button.on.id).xobj_num);
-                fmt.add_token("/Off");
-                fmt.add_object_ref(doc.form_xobjects.at(button.off.id).xobj_num);
-                fmt.end_dict();
-            }
-            fmt.end_dict();
-        }
-        fmt.end_dict();
-        fmt.add_token_pair("/AS", "/Off");
-    }
-    fmt.end_dict();
-    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
-    RETOK;
-*/
-}
-
-rvoe<NoReturnValue> PdfWriter::write_choice_widget(int obj_num,
-                                                   const DelayedChoiceWidgetAnnotation &choice) {
-    std::abort();
-    /*
-    auto loc = doc.form_use.find(choice.widget);
-    if(loc == doc.form_use.end()) {
-        std::abort();
-    }
-
-    ObjectFormatter fmt;
-    fmt.begin_dict();
-    fmt.add_token_pair("/Type", "/Annot");
-    fmt.add_token_pair("/Subtype", "/Widget");
-    fmt.add_token("/Rect");
-    {
-        fmt.begin_array();
-        fmt.add_token(choice.rect.x1);
-        fmt.add_token(choice.rect.y1);
-        fmt.add_token(choice.rect.x2);
-        fmt.add_token(choice.rect.y2);
-        fmt.end_array();
-    }
-    fmt.add_token_pair("/FT", "/Ch");
-    fmt.add_token("/P");
-    fmt.add_object_ref(loc->second);
-    fmt.add_token("/T");
-    fmt.add_token(pdfstring_quote(choice.T));
-    fmt.add_token(("/Opt"));
-    {
-        fmt.begin_array();
-        // Details in 12.7.5.4
-        for(const auto &s : choice.options) {
-            fmt.add_token(utf8_to_pdfutf16be(s));
-        }
-        fmt.end_array();
-    }
-    fmt.end_dict();
-    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
-    RETOK;
-*/
-}
-
-rvoe<NoReturnValue> PdfWriter::write_text_widget(int obj_num,
-                                                 const DelayedTextWidgetAnnotation &text) {
-    std::abort();
-    /*
-    auto loc = doc.form_use.find(text.widget);
-    if(loc == doc.form_use.end()) {
-        std::abort();
-    }
-
-    ObjectFormatter fmt;
-    fmt.begin_dict();
-    fmt.add_token_pair("/Type", "/Annot");
-    fmt.add_token_pair("/Subtype", "/Widget");
-    fmt.add_token("/Rect");
-    {
-        fmt.begin_array();
-        fmt.add_token(text.rect.x1);
-        fmt.add_token(text.rect.y1);
-        fmt.add_token(text.rect.x2);
-        fmt.add_token(text.rect.y2);
-        fmt.end_array();
-    }
-    fmt.add_token_pair("/FT", "/Tx");
-    fmt.add_token("/P");
-    fmt.add_object_ref(loc->second);
-    fmt.add_token("/T");
-    fmt.add_token(pdfstring_quote(text.T));
-    fmt.add_token(("/V"));
-    fmt.add_token(utf8_to_pdfutf16be(text.contents));
-    fmt.end_dict();
-    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
-    RETOK;
-*/
-}
-
-rvoe<NoReturnValue> PdfWriter::write_radioitem_widget(int obj_num,
-                                                      const DelayedRadioItemWidget &radio) {
-    std::abort();
-    /*
-    ObjectFormatter fmt;
-    fmt.begin_dict();
-    fmt.add_token_pair("/Type", "/Annot");
-    fmt.add_token_pair("/Subtype", "/Widget");
-    fmt.add_token("/Rect");
-    {
-        fmt.begin_array();
-        fmt.add_token(radio.rect.x1);
-        fmt.add_token(radio.rect.y1);
-        fmt.add_token(radio.rect.x2);
-        fmt.add_token(radio.rect.y2);
-        fmt.end_array();
-    }
-    fmt.add_token("/Parent");
-    fmt.add_object_ref(doc.form_widgets.at(radio.parent.id));
-    fmt.add_token("/AP");
-    {
-        fmt.begin_dict();
-        fmt.add_token("/N");
-        {
-            fmt.begin_dict();
-            fmt.add_token(radio.on_state_name);
-            fmt.add_object_ref(doc.form_xobjects.at(radio.on.id).xobj_num);
-            fmt.add_token("/Off");
-            fmt.add_object_ref(doc.form_xobjects.at(radio.off.id).xobj_num);
-            fmt.end_dict();
-        }
-        fmt.end_dict();
-    }
-    fmt.end_dict();
-    ERCV(write_finished_object(obj_num, fmt.steal(), {}));
-    RETOK;
-*/
 }
 
 rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnotation &annotation) {
@@ -1302,8 +1093,24 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     } else if(auto widget = std::get_if<WidgetAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/Widget");
         if(widget->parent) {
+            const auto field_object = doc.form_fields.at(widget->parent.value().id);
             fmt.add_token("/Parent");
-            fmt.add_object_ref(doc.form_fields.at(widget->parent.value().id));
+            fmt.add_object_ref(field_object);
+            if(widget->buttoninfo) {
+                const auto &button = widget->buttoninfo.value();
+                // fmt.add_token("/AS");
+                // fmt.add_token("/Off");
+                fmt.add_token("/AP");
+                fmt.begin_dict();
+                fmt.add_token("/N");
+                fmt.begin_dict();
+                fmt.add_token(button.on_state_name);
+                fmt.add_object_ref(doc.form_xobjects.at(button.on_state.id).xobj_num);
+                fmt.add_token("/Off");
+                fmt.add_object_ref(doc.form_xobjects.at(button.off_state.id).xobj_num);
+                fmt.end_dict();
+                fmt.end_dict();
+            }
         }
     } else {
         fprintf(stderr, "Unknown annotation type.\n");
