@@ -127,20 +127,16 @@ int draw_simple_form() {
             Annotation{{}, WidgetAnnotation{check_field_id}, PdfRectangle{110, 180, 120, 190}};
         auto check_annot_id = gen.add_annotation(check_widget).value();
         {
-
             ctx.cmd_re(110, 180, 10, 10);
             ctx.cmd_S();
 
             ctx.render_pdfdoc_text_builtin("A checkbox", CAPY_FONT_HELVETICA, 12, 25, 180);
-            ctx.annotate(check_annot_id);
-            // auto rc = ctx.add_form_widget(checkbox_widget);
-            //            auto rc = ctx.annotate(check_annot_id);
-            // if(!rc) {
-            //    fprintf(stderr, "FAIL\n");
-            //    return 1;
-            //}
+            auto rc = ctx.annotate(check_annot_id);
+            if(!rc) {
+                fprintf(stderr, "FAIL\n");
+                return 1;
+            }
         }
-        /*
 
         std::vector<u8string> choices{
             u8string::from_cstr("Choice one").value(),
@@ -149,18 +145,20 @@ int draw_simple_form() {
             u8string::from_cstr("Choice four").value(),
             u8string::from_cstr("Choice five").value(),
         };
-        auto choice_widget =
-            gen.create_form_choice(PdfRectangle{130, 150, 190, 170}, std::move(choices), "choice1")
-                .value();
+        FormField choice_field{.sub = ChoiceField{std::move(choices)}};
+        auto choice_field_id = gen.add_form_field(choice_field).value();
+        Annotation choice_widget =
+            Annotation{{}, WidgetAnnotation{choice_field_id}, PdfRectangle{130, 150, 190, 170}};
+        auto choice_annot_id = gen.add_annotation(choice_widget).value();
         {
-
             ctx.render_pdfdoc_text_builtin("A choice widget ->", CAPY_FONT_HELVETICA, 12, 25, 165);
-            auto rc = ctx.add_form_widget(choice_widget);
+            auto rc = ctx.annotate(choice_annot_id);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }
         }
+        /*
         auto text_widget =
             gen.create_form_text(PdfRectangle{20, 90, 110, 110},
                                  std::move(u8string::from_cstr("The default contents").value()),
@@ -225,7 +223,7 @@ int draw_simple_form() {
                                .value();
             ctx.add_form_widget(button3);
         }
-*/
+        */
     }
     return 0;
 }

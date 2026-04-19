@@ -1962,30 +1962,6 @@ rvoe<CapyPDF_OutlineId> PdfDocument::add_outline(const Outline &o) {
     return CapyPDF_OutlineId{cur_id};
 }
 
-rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_button(PdfRectangle loc,
-                                                           CapyPDF_FormXObjectId onstate,
-                                                           CapyPDF_FormXObjectId offstate,
-                                                           std::optional<uint32_t> Ff,
-                                                           std::string_view partial_name) {
-    CHECK_INDEXNESS_V(onstate.id, form_xobjects);
-    CHECK_INDEXNESS_V(offstate.id, form_xobjects);
-    DelayedButtonWidgetAnnotation formobj{
-        {(int32_t)form_widgets.size()}, loc, onstate, offstate, Ff, std::string{partial_name}};
-    auto obj_id = add_object(std::move(formobj));
-    form_widgets.push_back(obj_id);
-    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
-}
-
-rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_choice(PdfRectangle loc,
-                                                           std::vector<u8string> choices,
-                                                           std::string_view partial_name) {
-    DelayedChoiceWidgetAnnotation formobj{
-        {(int32_t)form_widgets.size()}, loc, {}, std::move(choices), std::string{partial_name}};
-    auto obj_id = add_object(std::move(formobj));
-    form_widgets.push_back(obj_id);
-    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
-}
-
 rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_radioitem(PdfRectangle loc,
                                                               CapyPDF_FormWidgetId parent,
                                                               PdfName on_state_name,
@@ -2042,6 +2018,14 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
         fmt.add_token_pair("/F", pdfstring_quote(ef.pdfname.sv()));
         fmt.add_token("/EF");
         fmt.begin_dict();
+        rvoe<CapyPDF_FormWidgetId> create_form_button(PdfRectangle loc,
+                                                      CapyPDF_FormXObjectId onstate,
+                                                      CapyPDF_FormXObjectId offstate,
+                                                      std::optional<uint32_t> Ff,
+                                                      std::string_view partial_name);
+        rvoe<CapyPDF_FormWidgetId> create_form_choice(
+            PdfRectangle loc, std::vector<u8string> choices, std::string_view partial_name);
+
         fmt.add_token("/F");
         fmt.add_object_ref(fileobj_id);
         fmt.end_dict();

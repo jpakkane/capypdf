@@ -905,8 +905,19 @@ rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormFi
         }
 
     } else if(ftype == CAPY_FORM_FIELD_TYPE_TX) {
-
     } else if(ftype == CAPY_FORM_FIELD_TYPE_CH) {
+        const auto &choice = std::get<ChoiceField>(field.sub);
+        fmt.add_token(("/Opt"));
+        {
+            fmt.begin_array();
+            // Details in 12.7.5.4
+            for(const auto &s : choice.Opt) {
+                fmt.add_token(utf8_to_pdfutf16be(s));
+            }
+            fmt.end_array();
+        }
+    } else {
+        std::abort();
     }
     fmt.end_dict();
     ERCV(write_finished_object(obj_num, fmt.steal(), {}));

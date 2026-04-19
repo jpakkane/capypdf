@@ -562,14 +562,6 @@ public:
     rvoe<CapyPDF_OutlineId> add_outline(const Outline &o);
 
     // Forms
-    rvoe<CapyPDF_FormWidgetId> create_form_button(PdfRectangle loc,
-                                                  CapyPDF_FormXObjectId onstate,
-                                                  CapyPDF_FormXObjectId offstate,
-                                                  std::optional<uint32_t> Ff,
-                                                  std::string_view partial_name);
-    rvoe<CapyPDF_FormWidgetId> create_form_choice(PdfRectangle loc,
-                                                  std::vector<u8string> choices,
-                                                  std::string_view partial_name);
     rvoe<CapyPDF_FormWidgetId>
     create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name);
     rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
