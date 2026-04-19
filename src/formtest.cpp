@@ -125,8 +125,12 @@ int draw_simple_form() {
 
         CapyPDF_FormFieldId check_field_id = gen.add_form_field(check_field).value();
 
-        Annotation check_widget =
-            Annotation{{}, WidgetAnnotation{check_field_id}, PdfRectangle{110, 180, 120, 190}};
+        Annotation check_widget = Annotation{
+            {},
+            WidgetAnnotation{
+                check_field_id,
+                ButtonStateInfo{check_onstate, check_offstate, PdfName::from_cstr("/Yes").value()}},
+            PdfRectangle{110, 180, 120, 190}};
         auto check_annot_id = gen.add_annotation(check_widget).value();
         {
             ctx.cmd_re(110, 180, 10, 10);
