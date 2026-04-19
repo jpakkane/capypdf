@@ -119,6 +119,7 @@ int draw_simple_form() {
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
         FormField check_field{
+            .T = u8string::from_cstr("check1").value(),
             .sub = ButtonField{check_onstate, check_offstate, PdfName::from_cstr("/On").value()}};
 
         CapyPDF_FormFieldId check_field_id = gen.add_form_field(check_field).value();
@@ -145,7 +146,8 @@ int draw_simple_form() {
             u8string::from_cstr("Choice four").value(),
             u8string::from_cstr("Choice five").value(),
         };
-        FormField choice_field{.sub = ChoiceField{std::move(choices)}};
+        FormField choice_field{.T = u8string::from_cstr("choice1").value(),
+                               .sub = ChoiceField{std::move(choices)}};
         auto choice_field_id = gen.add_form_field(choice_field).value();
         Annotation choice_widget =
             Annotation{{}, WidgetAnnotation{choice_field_id}, PdfRectangle{130, 150, 190, 170}};
@@ -160,6 +162,7 @@ int draw_simple_form() {
         }
 
         FormField text_field{
+            .T = u8string::from_cstr("text1").value(),
             .V = u8string::from_cstr("The default text contents.").value(),
             .sub = TextField{},
         };
@@ -175,22 +178,29 @@ int draw_simple_form() {
                 return 1;
             }
         }
-        /*
 
-        auto push_widget = gen.create_form_button(PdfRectangle{20, 60, 70, 70},
-                                                  push_onstate,
-                                                  push_offstate,
-                                                  CAPY_FFIELD_PUSHBUTTON,
-                                                  "push1")
-                               .value();
+        FormField push_field{
+
+            .T = u8string::from_cstr("push1").value(),
+            .Ff = CAPY_FFIELD_PUSHBUTTON,
+            .sub = ButtonField{push_onstate, push_offstate},
+        };
+
+        CapyPDF_FormFieldId push_field_id = gen.add_form_field(push_field).value();
+
+        Annotation push_widget =
+            Annotation{{}, WidgetAnnotation{push_field_id}, PdfRectangle{20, 60, 70, 70}};
+        auto push_annot_id = gen.add_annotation(push_widget).value();
         {
             ctx.render_pdfdoc_text_builtin("A push button", CAPY_FONT_HELVETICA, 12, 25, 75);
-            auto rc = ctx.add_form_widget(push_widget);
+            auto rc = ctx.annotate(push_annot_id);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }
         }
+
+        /*
 
         auto top_radio = gen.create_form_button(PdfRectangle{10, 20, 100, 30},
                                                 radio_onstate,

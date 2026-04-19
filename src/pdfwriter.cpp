@@ -887,7 +887,7 @@ rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormFi
         const auto &button = std::get<ButtonField>(field.sub);
         const bool check_button = field.is_checkbutton();
         const bool radio_button = field.is_radiobutton();
-        const bool push_button = !(check_button || radio_button);
+        // const bool push_button = !(check_button || radio_button);
 
         if(check_button) {
             fmt.add_token("/AP");
@@ -900,8 +900,9 @@ rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormFi
             fmt.add_object_ref(doc.form_xobjects.at(button.off_state.id).xobj_num);
             fmt.end_dict();
             fmt.end_dict();
-        } else {
+        } else if(radio_button) {
             std::abort();
+        } else {
         }
 
     } else if(ftype == CAPY_FORM_FIELD_TYPE_TX) {
