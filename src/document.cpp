@@ -1974,15 +1974,6 @@ rvoe<CapyPDF_FormWidgetId> PdfDocument::create_form_radioitem(PdfRectangle loc,
     return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
 }
 
-rvoe<CapyPDF_FormWidgetId>
-PdfDocument::create_form_text(PdfRectangle loc, u8string contents, std::string_view partial_name) {
-    DelayedTextWidgetAnnotation formobj{
-        {(int32_t)form_widgets.size()}, {}, loc, std::move(contents), std::string{partial_name}};
-    auto obj_id = add_object(std::move(formobj));
-    form_widgets.push_back(obj_id);
-    return CapyPDF_FormWidgetId{(int32_t)form_widgets.size() - 1};
-}
-
 rvoe<CapyPDF_FormFieldId> PdfDocument::add_form_field(FormField &field) {
     auto field_id = (int32_t)form_fields.size();
     auto obj_id = add_object(DelayedFormField{{field_id}, std::move(field)});

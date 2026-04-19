@@ -158,20 +158,24 @@ int draw_simple_form() {
                 return 1;
             }
         }
-        /*
-        auto text_widget =
-            gen.create_form_text(PdfRectangle{20, 90, 110, 110},
-                                 std::move(u8string::from_cstr("The default contents").value()),
-                                 "text1")
-                .value();
+
+        FormField text_field{
+            .V = u8string::from_cstr("The default text contents.").value(),
+            .sub = TextField{},
+        };
+        auto text_field_id = gen.add_form_field(text_field).value();
+        Annotation text_widget =
+            Annotation{{}, WidgetAnnotation{text_field_id}, PdfRectangle{20, 90, 110, 110}};
+        auto text_annot_id = gen.add_annotation(text_widget).value();
         {
             ctx.render_pdfdoc_text_builtin("A text widget", CAPY_FONT_HELVETICA, 12, 25, 115);
-            auto rc = ctx.add_form_widget(text_widget);
+            auto rc = ctx.annotate(text_annot_id);
             if(!rc) {
                 fprintf(stderr, "FAIL\n");
                 return 1;
             }
         }
+        /*
 
         auto push_widget = gen.create_form_button(PdfRectangle{20, 60, 70, 70},
                                                   push_onstate,

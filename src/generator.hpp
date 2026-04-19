@@ -86,13 +86,6 @@ public:
         return pdoc.add_icc_profile(bytes, num_channels);
     }
 
-    rvoe<CapyPDF_FormWidgetId> create_form_text(PdfRectangle loc,
-                                                u8string contents,
-
-                                                std::string_view partial_name) {
-        return pdoc.create_form_text(loc, std::move(contents), partial_name);
-    }
-
     rvoe<CapyPDF_FormWidgetId> create_form_radioitem(PdfRectangle loc,
                                                      CapyPDF_FormWidgetId parent,
                                                      PdfName on_state_name,
