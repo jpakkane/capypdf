@@ -1674,16 +1674,14 @@ class TestPDFCreation(unittest.TestCase):
             with g.page_draw_context() as ctx:
                 ctx.annotate(annot_id)
 
-    @cleanup('form_checkbox.pdf')
-    def test_form_checkbox(self, ofilename):
-        w = 200
-        h = 200
+    @validate_image('python_form_checkbox', 200, 200)
+    def test_form_checkbox(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
         pprops = capypdf.PageProperties()
         pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
         dprops.set_default_page_properties(pprops)
         with capypdf.Generator(ofilename, dprops) as gen:
-            font_id = gen.load_font(font_dir / 'NotoSerif-Regular.ttf')
+            font_id = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
 
             # Create check box graphics.
             offcxt = capypdf.FormXObjectDrawContext(gen, 0, 0, 10, 10)
@@ -1704,6 +1702,7 @@ class TestPDFCreation(unittest.TestCase):
             on_id = gen.add_form_xobject(oncxt)
 
             field = capypdf.FormField(capypdf.FormFieldType.BTN)
+            field.set_T('check1')
             field_id = gen.add_form_field(field)
             annotation = capypdf.Annotation.new_widget_annotation()
             annotation.set_parent_field(field_id)

@@ -1095,8 +1095,8 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             fmt.add_object_ref(field_object);
             if(widget->buttoninfo) {
                 const auto &button = widget->buttoninfo.value();
-                // fmt.add_token("/AS");
-                // fmt.add_token("/Off");
+                fmt.add_token("/AS");
+                fmt.add_token("/Off"); // FIXME, make the default value settable.
                 fmt.add_token("/AP");
                 fmt.begin_dict();
                 fmt.add_token("/N");

@@ -1439,6 +1439,9 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_new(
     CapyPDF_Form_Field_Type type, CapyPDF_FormField **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(
     CapyPDF_FormField *field, CapyPDF_FormFieldId parent) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
+                                                const char *T,
+                                                int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

@@ -3157,6 +3157,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(CapyPDF_FormField *field,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
+                                                const char *T,
+                                                int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *f = static_cast<FormField *>(field);
+    auto rc = validate_utf8(T, strsize);
+    if(rc) {
+        f->T = std::move(rc.value());
+    } else {
+        return conv_err(rc);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<FormField *>(field);

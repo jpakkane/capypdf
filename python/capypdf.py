@@ -650,6 +650,7 @@ cfunc_types = (
 
 ('capy_form_field_new', [enum_type, ctypes.c_void_p]),
 ('capy_form_field_set_parent', [ctypes.c_void_p, FormFieldId]),
+('capy_form_field_set_T', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_destroy', [ctypes.c_void_p]),
 
 )
@@ -2075,3 +2076,7 @@ class FormField:
         if not isinstance(parent_field, FormFieldId):
             raise CapyPDFException('Argument must be a FormFieldId.')
         check_error(libfile.capy_form_field_set_parent(self, parent_field.value))
+
+    def set_T(self, T):
+        tbytes = T.encode('UTF-8')
+        check_error(libfile.capy_form_field_set_T(self, tbytes, len(tbytes)))
