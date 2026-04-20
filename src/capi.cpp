@@ -835,6 +835,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_field(CapyPDF_Generator *gen,
+                                                        CapyPDF_FormField *field,
+                                                        CapyPDF_FormFieldId *out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *g = static_cast<PdfGen *>(gen);
+    auto *f = static_cast<FormField *>(field);
+    auto rc = g->add_form_field(*f);
+    if(rc) {
+        *out_ptr = rc.value();
+    }
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
                                                            int32_t namesize,
@@ -3052,6 +3067,43 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_new(const char *fname,
 CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_destroy(CapyPDF_3DStream *stream) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<ThreeDStream *>(stream);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+// Form fields
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_new(CapyPDF_Form_Field_Type type,
+                                              CapyPDF_FormField **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    switch(type) {
+    case CAPY_FORM_FIELD_TYPE_BTN:
+        *out_ptr = new FormField{.sub = ButtonField{}};
+        break;
+    case CAPY_FORM_FIELD_TYPE_CH:
+        *out_ptr = new FormField{.sub = ChoiceField{}};
+        break;
+    case CAPY_FORM_FIELD_TYPE_TX:
+        *out_ptr = new FormField{.sub = TextField{}};
+        break;
+    default:
+        std::abort();
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(CapyPDF_FormField *field,
+                                                     CapyPDF_FormFieldId parent) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *f = static_cast<FormField *>(field);
+    f->parent = parent;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<FormField *>(field);
     RETNOERR;
     API_BOUNDARY_END;
 }

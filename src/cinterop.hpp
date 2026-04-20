@@ -84,3 +84,5 @@ struct _capyPDF_SoftMask {};
 struct _capyPDF_EmbeddedFile {};
 
 struct _capyPDF_3DStream {};
+
+struct _capyPDF_FormField {};

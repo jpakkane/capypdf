@@ -223,7 +223,7 @@ struct ChoiceField {
 
 typedef std::variant<ButtonField, TextField, ChoiceField> FieldSubType;
 
-struct FormField {
+struct FormField : public _capyPDF_FormField {
     std::optional<CapyPDF_FormFieldId> parent;
     u8string T;
     std::optional<uint32_t> Ff;

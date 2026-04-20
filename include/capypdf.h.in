@@ -445,6 +445,7 @@ typedef struct _capyPDF_EmbeddedFile CapyPDF_EmbeddedFile;
 typedef struct _capyPDF_BDCTags CapyPDF_BDCTags;
 typedef struct _capyPDF_Halftone CapyPDF_Halftone;
 typedef struct _capyPDF_3DStream CapyPDF_3DStream;
+typedef struct _capyPDF_FormField CapyPDF_FormField;
 
 typedef int32_t CapyPDF_EC;
 
@@ -726,6 +727,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_optional_content_group(
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_annotation(CapyPDF_Generator *gen,
                                                         CapyPDF_Annotation *annotation,
                                                         CapyPDF_AnnotationId *out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_form_field(CapyPDF_Generator *gen,
+                                                        CapyPDF_FormField *field,
+                                                        CapyPDF_FormFieldId *out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *gen,
                                                            const char *name,
@@ -1417,6 +1422,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_new(const char *fname,
                                              CapyPDF_3DStream **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_3d_stream_destroy(CapyPDF_3DStream *stream)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+// Form fields
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_new(
+    CapyPDF_Form_Field_Type type, CapyPDF_FormField **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(
+    CapyPDF_FormField *field, CapyPDF_FormFieldId parent) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Error
