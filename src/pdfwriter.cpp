@@ -806,13 +806,10 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
     fmt.add_token("/Resources");
     fmt.add_object_ref(p.resource_obj_num);
 
-    if(!dp.used_form_widgets.empty() || !dp.used_annotations.empty()) {
+    if(!dp.used_annotations.empty()) {
         fmt.add_token("/Annots");
         fmt.begin_array(1);
 
-        for(const auto &a : dp.used_form_widgets) {
-            fmt.add_object_ref(doc.form_widgets.at(a.id));
-        }
         for(const auto &a : dp.used_annotations) {
             fmt.add_object_ref(doc.annotations.at(a.id));
         }

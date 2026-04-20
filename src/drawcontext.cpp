@@ -127,7 +127,6 @@ void PdfDrawContext::clear() {
     used_gstates.clear();
     used_shadings.clear();
     used_patterns.clear();
-    used_widgets.clear();
     used_annotations.clear();
     used_ocgs.clear();
     used_trgroups.clear();
@@ -242,14 +241,6 @@ void PdfDrawContext::build_resource_dict(ObjectFormatter &fmt) {
         fmt.end_dict();
     }
     fmt.end_dict();
-}
-
-rvoe<NoReturnValue> PdfDrawContext::add_form_widget(CapyPDF_FormWidgetId widget) {
-    if(used_widgets.find(widget) != used_widgets.end()) {
-        RETERR(AnnotationReuse);
-    }
-    used_widgets.insert(widget);
-    RETOK;
 }
 
 rvoe<NoReturnValue> PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {

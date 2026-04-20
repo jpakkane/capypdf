@@ -150,7 +150,6 @@ struct DelayedPages {};
 
 struct DelayedPage {
     int32_t page_num;
-    std::vector<CapyPDF_FormWidgetId> used_form_widgets;
     std::vector<CapyPDF_AnnotationId> used_annotations;
     std::optional<Transition> transition;
     std::optional<int32_t> subnav_root;
@@ -441,7 +440,6 @@ public:
     rvoe<NoReturnValue> add_page(std::string resource_dict,
                                  std::string command_stream,
                                  const PageProperties &custom_props,
-                                 const std::unordered_set<CapyPDF_FormWidgetId> &form_widgets,
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                  const std::vector<CapyPDF_StructureItemId> &structs,
                                  const std::optional<Transition> &transition,

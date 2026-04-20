@@ -5,8 +5,6 @@
 #include <pdfwriter.hpp>
 #include <imagefileops.hpp>
 #include <utils.hpp>
-#include <cstring>
-#include <cerrno>
 #include <cassert>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -102,7 +100,6 @@ rvoe<PageId> PdfGen::add_page(PdfDrawContext &ctx) {
     ERCV(pdoc.add_page(std::move(sc.resource_dict),
                        std::move(sc.command_stream),
                        ctx.get_custom_props(),
-                       ctx.get_form_usage(),
                        ctx.get_annotation_usage(),
                        ctx.get_structure_usage(),
                        ctx.get_transition(),

@@ -167,7 +167,6 @@ public:
 
     void clear();
 
-    rvoe<NoReturnValue> add_form_widget(CapyPDF_FormWidgetId widget);
     rvoe<NoReturnValue> annotate(CapyPDF_AnnotationId annotation);
 
     CapyPDF_Draw_Context_Type draw_context_type() const { return context_type; }
@@ -180,7 +179,6 @@ public:
 
     int32_t marked_content_depth() const { return cmds.marked_content_depth(); }
 
-    const std::unordered_set<CapyPDF_FormWidgetId> &get_form_usage() const { return used_widgets; }
     const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;
     }
@@ -227,7 +225,6 @@ private:
     std::unordered_set<int32_t> used_shadings;
     std::unordered_set<int32_t> used_patterns;
     std::unordered_set<int32_t> used_form_xobjects;
-    std::unordered_set<CapyPDF_FormWidgetId> used_widgets;
     std::unordered_set<CapyPDF_AnnotationId> used_annotations;
     std::vector<CapyPDF_StructureItemId> used_structures; // A vector because numbering is relevant.
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;

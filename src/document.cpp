@@ -524,7 +524,6 @@ rvoe<NoReturnValue> PdfDocument::init() {
 rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           std::string command_stream,
                                           const PageProperties &custom_props,
-                                          const std::unordered_set<CapyPDF_FormWidgetId> &fws,
                                           const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                           const std::vector<CapyPDF_StructureItemId> &structs,
                                           const std::optional<Transition> &transition,
@@ -548,9 +547,6 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     DelayedPage p;
     p.page_num = (int32_t)pages.size();
     p.custom_props = custom_props;
-    for(const auto &a : fws) {
-        p.used_form_widgets.push_back(a);
-    }
     for(const auto &a : annots) {
         p.used_annotations.push_back(CapyPDF_AnnotationId{a});
     }
@@ -1997,14 +1993,6 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
         fmt.add_token_pair("/F", pdfstring_quote(ef.pdfname.sv()));
         fmt.add_token("/EF");
         fmt.begin_dict();
-        rvoe<CapyPDF_FormWidgetId> create_form_button(PdfRectangle loc,
-                                                      CapyPDF_FormXObjectId onstate,
-                                                      CapyPDF_FormXObjectId offstate,
-                                                      std::optional<uint32_t> Ff,
-                                                      std::string_view partial_name);
-        rvoe<CapyPDF_FormWidgetId> create_form_choice(
-            PdfRectangle loc, std::vector<u8string> choices, std::string_view partial_name);
-
         fmt.add_token("/F");
         fmt.add_object_ref(fileobj_id);
         fmt.end_dict();

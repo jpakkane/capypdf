@@ -260,6 +260,11 @@ class BlackPointCompensation(Enum):
     ON = 1
     DEFAULT = 2
 
+class FormFieldType(Enum):
+    BTN = 0,
+    TX = 1,
+    CH = 2,
+    #SIG = 3
 
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
@@ -269,6 +274,9 @@ ec_type = ctypes.c_int32
 enum_type = ctypes.c_int32
 
 class AnnotationId(ctypes.Structure):
+    _fields_ = [('id', ctypes.c_int32)]
+
+class FormFieldId(ctypes.Structure):
     _fields_ = [('id', ctypes.c_int32)]
 
 class FontId(ctypes.Structure):
