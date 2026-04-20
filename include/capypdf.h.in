@@ -1254,6 +1254,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_line_annotation_new(const char *utf8_text,
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_widget_annotation_new(CapyPDF_Annotation **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_3d_annotation_new(CapyPDF_Annotation **out_ptr)
@@ -1278,6 +1280,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_line_endings(CapyPDF_Annotation *a
                                                            CapyPDF_Line_Annotation_End_Style start,
                                                            CapyPDF_Line_Annotation_End_Style end)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_parent_field(
+    CapyPDF_Annotation *annotation, CapyPDF_FormFieldId id) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_annotation_set_widget_button_appearance(CapyPDF_Annotation *annotation,
+                                             CapyPDF_FormXObjectId on_state,
+                                             CapyPDF_FormXObjectId off_state,
+                                             const char *on_state_name,
+                                             int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_destroy(CapyPDF_Annotation *annotation)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

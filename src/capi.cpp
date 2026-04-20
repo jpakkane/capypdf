@@ -99,6 +99,20 @@ rvoe<u8string> validate_utf8(const char *buf, int32_t strsize) {
     }
 }
 
+rvoe<PdfName> validate_pdfname(const char *buf, int32_t strsize) {
+    if(!buf) {
+        RETERR(ArgIsNull);
+    }
+    if(strsize < -1) {
+        RETERR(InvalidBufsize);
+    }
+    if(strsize == -1) {
+        return PdfName::from_cstr(buf);
+    } else {
+        return PdfName::from_view(std::string_view(buf, strsize));
+    }
+}
+
 #if defined(__cpp_exceptions)
 #define API_BOUNDARY_START try {
 #define API_BOUNDARY_END                                                                           \
@@ -2513,6 +2527,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_widget_annotation_new(CapyPDF_Annotation **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = new Annotation{{}, WidgetAnnotation{}, {}};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_printers_mark_annotation_new(
     CapyPDF_FormXObjectId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
@@ -2615,6 +2637,40 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_line_endings(CapyPDF_Annotation *a
     auto *a = static_cast<Annotation *>(annotation);
     if(auto *line = std::get_if<LineAnnotation>(&a->sub)) {
         line->end_styles = LineAnnotationEndStyles{start, end};
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_parent_field(
+    CapyPDF_Annotation *annotation, CapyPDF_FormFieldId id) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = static_cast<Annotation *>(annotation);
+    if(auto *widget = std::get_if<WidgetAnnotation>(&a->sub)) {
+        widget->parent = id;
+    } else {
+        return conv_err(ErrorCode::IncorrectAnnotationType);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_annotation_set_widget_button_appearance(CapyPDF_Annotation *annotation,
+                                             CapyPDF_FormXObjectId on_state,
+                                             CapyPDF_FormXObjectId off_state,
+                                             const char *on_state_name,
+                                             int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *a = static_cast<Annotation *>(annotation);
+    auto rc = validate_pdfname(on_state_name, strsize);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    if(auto *widget = std::get_if<WidgetAnnotation>(&a->sub)) {
+        widget->buttoninfo = ButtonStateInfo{on_state, off_state, std::move(rc.value())};
     } else {
         return conv_err(ErrorCode::IncorrectAnnotationType);
     }

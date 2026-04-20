@@ -261,9 +261,9 @@ class BlackPointCompensation(Enum):
     DEFAULT = 2
 
 class FormFieldType(Enum):
-    BTN = 0,
-    TX = 1,
-    CH = 2,
+    BTN = 0
+    TX = 1
+    CH = 2
     #SIG = 3
 
 class CapyPDFException(Exception):
@@ -382,6 +382,7 @@ cfunc_types = (
 ('capy_generator_add_soft_mask', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_text_width', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, FontId, ctypes.c_double, ctypes.POINTER(ctypes.c_double)]),
 ('capy_generator_add_annotation', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_add_form_field', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, ctypes.c_void_p]),
 ('capy_generator_add_3d_stream', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
@@ -584,12 +585,15 @@ cfunc_types = (
 ('capy_file_attachment_annotation_new', [EmbeddedFileId, ctypes.c_void_p]),
 ('capy_printers_mark_annotation_new', [FormXObjectId, ctypes.c_void_p]),
 ('capy_3d_annotation_new', [ctypes.c_void_p]),
+('capy_widget_annotation_new', [ctypes.c_void_p]),
 ('capy_annotation_set_destination', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_annotation_set_uri', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_set_rectangle', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_flags', [ctypes.c_void_p, enum_type]),
 ('capy_annotation_set_line_leader', [ctypes.c_void_p, ctypes.c_double, ctypes.c_double]),
 ('capy_annotation_set_line_endings', [ctypes.c_void_p, enum_type, enum_type]),
+('capy_annotation_set_parent_field', [ctypes.c_void_p, FormFieldId]),
+('capy_annotation_set_widget_button_appearance', [ctypes.c_void_p, FormXObjectId, FormXObjectId, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_annotation_destroy', [ctypes.c_void_p]),
 
 ('capy_struct_item_extra_data_new', [ctypes.c_void_p]),
@@ -643,6 +647,10 @@ cfunc_types = (
 
 ('capy_3d_stream_new', [ctypes.c_char_p, enum_type, ctypes.c_void_p]),
 ('capy_3d_stream_destroy', [ctypes.c_void_p]),
+
+('capy_form_field_new', [enum_type, ctypes.c_void_p]),
+('capy_form_field_set_parent', [ctypes.c_void_p, FormFieldId]),
+('capy_form_field_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1302,6 +1310,11 @@ class Generator:
         check_error(libfile.capy_generator_add_annotation(self, annotation, ctypes.pointer(aid)))
         return aid
 
+    def add_form_field(self, annotation):
+        fid = FormFieldId()
+        check_error(libfile.capy_generator_add_form_field(self, annotation, ctypes.pointer(fid)))
+        return fid
+
     def add_rolemap_entry(self, name, builtin_type):
         if not isinstance(builtin_type, StructureType):
             raise CapyPDFException('Builtin type must be a StructureType.')
@@ -1829,6 +1842,15 @@ class Annotation:
     def set_line_endings(self, start, end):
         check_error(libfile.capy_annotation_set_line_endings(self, start.value, end.value))
 
+    def set_parent_field(self, parent_field):
+        if not isinstance(parent_field, FormFieldId):
+            raise CapyPDFException('Argument must be a FormFieldId')
+        check_error(libfile.capy_annotation_set_parent_field(self, parent_field))
+
+    def set_widget_button_appearance(self, on_state, off_state, on_state_name):
+        textbytes = on_state_name.encode('UTF-8')
+        check_error(libfile.capy_annotation_set_widget_button_appearance(self, on_state, off_state, textbytes, len(textbytes)))
+
     @classmethod
     def new_text_annotation(cls, text):
         ta = ctypes.c_void_p()
@@ -1865,6 +1887,12 @@ class Annotation:
     def new_3d_annotation(cls):
         ta = ctypes.c_void_p()
         check_error(libfile.capy_3d_annotation_new(ctypes.pointer(ta)))
+        return Annotation(ta)
+
+    @classmethod
+    def new_widget_annotation(cls):
+        ta = ctypes.c_void_p()
+        check_error(libfile.capy_widget_annotation_new(ctypes.pointer(ta)))
         return Annotation(ta)
 
 
@@ -2007,7 +2035,6 @@ class FontProperties:
     def __del__(self):
         check_error(libfile.capy_font_properties_destroy(self))
 
-
 class Halftone:
     def __init__(self):
         o = ctypes.c_void_p()
@@ -2025,7 +2052,6 @@ class Halftone:
     def __del__(self):
         check_error(libfile.capy_halftone_destroy(self))
 
-
 class ThreeDStream:
     def __init__(self, filename, format):
         o = ctypes.c_void_p()
@@ -2035,3 +2061,17 @@ class ThreeDStream:
 
     def __del__(self):
         check_error(libfile.capy_3d_stream_destroy(self))
+
+class FormField:
+    def __init__(self, fieldtype):
+        o = ctypes.c_void_p()
+        check_error(libfile.capy_form_field_new(fieldtype.value, ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def __del__(self):
+        check_error(libfile.capy_form_field_destroy(self))
+
+    def set_parent(self, parent_field):
+        if not isinstance(parent_field, FormFieldId):
+            raise CapyPDFException('Argument must be a FormFieldId.')
+        check_error(libfile.capy_form_field_set_parent(self, parent_field.value))
