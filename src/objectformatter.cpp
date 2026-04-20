@@ -114,6 +114,24 @@ void ObjectFormatter::add_object_ref(int32_t onum) {
     added_item();
 }
 
+void ObjectFormatter::write_rectangle(const char *boxname, const PdfRectangle &box) {
+    add_token_with_slash(boxname);
+    write_raw_rectangle(box, true);
+}
+
+void ObjectFormatter::write_raw_rectangle(const PdfRectangle &box, bool write_brackets) {
+    if(write_brackets) {
+        begin_array();
+    }
+    add_token(box.x1);
+    add_token(box.y1);
+    add_token(box.x2);
+    add_token(box.y2);
+    if(write_brackets) {
+        end_array();
+    }
+}
+
 void ObjectFormatter::check_indent() {
     if(state.num_entries == 0) {
         buf += state.indent;

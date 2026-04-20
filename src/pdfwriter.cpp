@@ -72,21 +72,6 @@ std::string subsetfontname2pdfname(std::string_view original, const int32_t subs
     return out;
 }
 
-void write_rectangle(ObjectFormatter &fmt, const char *boxname, const PdfRectangle &box) {
-    fmt.add_token_with_slash(boxname);
-    fmt.begin_array();
-    fmt.add_token(box.x1);
-    fmt.add_token(box.y1);
-    fmt.add_token(box.x2);
-    fmt.add_token(box.y2);
-    fmt.end_array();
-}
-
-void write_rectangle(auto &appender, const char *boxname, const PdfRectangle &box) {
-    std::format_to(
-        appender, "  /{} [ {:f} {:f} {:f} {:f} ]\n", boxname, box.x1, box.y1, box.x2, box.y2);
-}
-
 std::string create_cidfont_subset_cmap(const std::vector<TTGlyphs> &glyphs) {
     // When you have to have a PDF that humans can read but AI bros
     // can't easily steal.
@@ -777,19 +762,19 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
         doc.docprops.default_page_properties.transparency_props->serialize(fmt);
     }
     PageProperties current_props = doc.docprops.default_page_properties.merge_with(dp.custom_props);
-    write_rectangle(fmt, "MediaBox", *current_props.mediabox);
+    fmt.write_rectangle("MediaBox", *current_props.mediabox);
 
     if(current_props.cropbox) {
-        write_rectangle(fmt, "CropBox", *current_props.cropbox);
+        fmt.write_rectangle("CropBox", *current_props.cropbox);
     }
     if(current_props.bleedbox) {
-        write_rectangle(fmt, "BleedBox", *current_props.bleedbox);
+        fmt.write_rectangle("BleedBox", *current_props.bleedbox);
     }
     if(current_props.trimbox) {
-        write_rectangle(fmt, "TrimBox", *current_props.trimbox);
+        fmt.write_rectangle("TrimBox", *current_props.trimbox);
     }
     if(current_props.artbox) {
-        write_rectangle(fmt, "ArtBox", *current_props.artbox);
+        fmt.write_rectangle("ArtBox", *current_props.artbox);
     }
     if(dp.structparents) {
         fmt.add_token("/StructParents");
@@ -909,12 +894,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
     fmt.add_token_pair("/Type", "/Annot");
     fmt.add_token("/Rect");
     {
-        fmt.begin_array();
-        fmt.add_token(annotation.a.rect->x1);
-        fmt.add_token(annotation.a.rect->y1);
-        fmt.add_token(annotation.a.rect->x2);
-        fmt.add_token(annotation.a.rect->y2);
-        fmt.end_array();
+        fmt.write_raw_rectangle(*annotation.a.rect, true);
     }
     fmt.add_token("/F");
     fmt.add_token((int)annotation.a.flags);
@@ -955,12 +935,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         fmt.add_token("/Contents");
         fmt.add_token(utf8_to_pdfutf16be(line->content));
         fmt.add_token("/L");
-        fmt.begin_array();
-        fmt.add_token(line->endpoints.x1);
-        fmt.add_token(line->endpoints.y1);
-        fmt.add_token(line->endpoints.x2);
-        fmt.add_token(line->endpoints.y2);
-        fmt.end_array();
+        fmt.write_raw_rectangle(line->endpoints, true);
         if(line->leaders) {
             fmt.add_token_pair("/LL", line->leaders->LL);
             fmt.add_token_pair("/LLE", line->leaders->LLE);

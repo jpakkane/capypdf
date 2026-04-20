@@ -26,6 +26,7 @@ struct FormatStash {
 class u8string;
 class asciistring;
 class PdfName;
+class PdfRectangle;
 
 class ObjectFormatter {
 public:
@@ -78,6 +79,9 @@ public:
     void add_pdfstring(const asciistring &str);
 
     std::string steal();
+
+    void write_rectangle(const char *boxname, const PdfRectangle &box);
+    void write_raw_rectangle(const PdfRectangle &box, bool write_brackets = false);
 
     const std::string &current_indent() const { return state.indent; }
     size_t depth() const { return stack.size(); }
