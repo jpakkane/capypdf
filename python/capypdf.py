@@ -2082,6 +2082,13 @@ class FormField:
         tbytes = T.encode('UTF-8')
         check_error(libfile.capy_form_field_set_T(self, tbytes, len(tbytes)))
 
+    def set_V(self, V):
+        if isinstance(V, bytes):
+            vbytes = V
+        else:
+            vbytes = V.encode('UTF-8')
+        check_error(libfile.capy_form_field_set_V(self, vbytes, len(vbytes)))
+
     def add_Opt_entry(self, entry):
         ebytes = entry.encode('UTF-8')
         check_error(libfile.capy_form_field_add_Opt_entry(self, ebytes, len(ebytes)))

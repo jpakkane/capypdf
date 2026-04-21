@@ -1738,6 +1738,26 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('A choice form', font_id, 20, 20, 180)
                 ctx.annotate(anno_id)
 
+    @validate_image('python_form_text', 200, 200)
+    def test_form_text(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            font_id = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
+
+            field = capypdf.FormField(capypdf.FormFieldType.TX)
+            field.set_V('This is some text in the text entry field.')
+            field_id = gen.add_form_field(field)
+            annotation = capypdf.Annotation.new_widget_annotation()
+            annotation.set_parent_field(field_id)
+            annotation.set_rectangle(50, 90, 150, 110)
+            anno_id = gen.add_annotation(annotation)
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('A text entry form', font_id, 20, 20, 180)
+                ctx.annotate(anno_id)
+
 
 if __name__ == "__main__":
     unittest.main()

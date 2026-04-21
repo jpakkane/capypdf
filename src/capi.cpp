@@ -85,6 +85,20 @@ rvoe<asciistring> validate_ascii(const char *buf, int32_t strsize) {
     }
 }
 
+rvoe<std::string> validate_raw_string(const char *buf, int32_t strsize) {
+    if(!buf) {
+        RETERR(ArgIsNull);
+    }
+    if(strsize < -1) {
+        RETERR(InvalidBufsize);
+    }
+    if(strsize == -1) {
+        return std::string(buf);
+    } else {
+        return std::string(buf, strsize);
+    }
+}
+
 rvoe<u8string> validate_utf8(const char *buf, int32_t strsize) {
     if(!buf) {
         RETERR(ArgIsNull);
@@ -3165,6 +3179,21 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
     auto rc = validate_utf8(T, strsize);
     if(rc) {
         f->T = std::move(rc.value());
+    } else {
+        return conv_err(rc);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_V(CapyPDF_FormField *field,
+                                                const char *V,
+                                                int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *f = static_cast<FormField *>(field);
+    auto rc = validate_raw_string(V, strsize);
+    if(rc) {
+        f->V = std::move(rc.value());
     } else {
         return conv_err(rc);
     }
