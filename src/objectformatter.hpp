@@ -26,7 +26,7 @@ struct FormatStash {
 class u8string;
 class asciistring;
 class PdfName;
-class PdfRectangle;
+struct PdfRectangle;
 
 class ObjectFormatter {
 public:

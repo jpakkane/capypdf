@@ -2672,7 +2672,7 @@ capy_annotation_set_widget_button_appearance(CapyPDF_Annotation *annotation,
     if(auto *widget = std::get_if<WidgetAnnotation>(&a->sub)) {
         widget->buttoninfo = ButtonStateInfo{on_state, off_state, std::move(rc.value())};
     } else {
-        return conv_err(ErrorCode::IncorrectAnnotationType);
+        return conv_err(ErrorCode::IncorrectFieldType);
     }
     RETNOERR;
     API_BOUNDARY_END;
@@ -3167,6 +3167,24 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
         f->T = std::move(rc.value());
     } else {
         return conv_err(rc);
+    }
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_add_Opt_entry(CapyPDF_FormField *field,
+                                                        const char *choice,
+                                                        int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *f = static_cast<FormField *>(field);
+    auto rc = validate_utf8(choice, strsize);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    if(auto *cwidget = std::get_if<ChoiceField>(&f->sub)) {
+        cwidget->Opt.push_back(std::move(rc.value()));
+    } else {
+        return conv_err(ErrorCode::IncorrectFieldType);
     }
     RETNOERR;
     API_BOUNDARY_END;

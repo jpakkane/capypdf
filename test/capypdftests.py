@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2023-2024 Jussi Pakkanen
+# Copyright 2023-2026 Jussi Pakkanen
 
 
 import unittest
@@ -1711,6 +1711,31 @@ class TestPDFCreation(unittest.TestCase):
             anno_id = gen.add_annotation(annotation)
             with gen.page_draw_context() as ctx:
                 ctx.render_text('A checkbox form', font_id, 20, 20, 180)
+                ctx.annotate(anno_id)
+
+    @validate_image('python_form_choice', 200, 200)
+    def test_form_choice(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            font_id = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
+
+            field = capypdf.FormField(capypdf.FormFieldType.CH)
+            field.set_T('user_choice')
+            field.add_Opt_entry('choice1')
+            field.add_Opt_entry('choice2')
+            field.add_Opt_entry('choice3')
+            field.add_Opt_entry('choice4')
+            field.add_Opt_entry('choice5')
+            field_id = gen.add_form_field(field)
+            annotation = capypdf.Annotation.new_widget_annotation()
+            annotation.set_parent_field(field_id)
+            annotation.set_rectangle(50, 90, 150, 110)
+            anno_id = gen.add_annotation(annotation)
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('A choice form', font_id, 20, 20, 180)
                 ctx.annotate(anno_id)
 
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright 2023-2025 Jussi Pakkanen
+// Copyright 2023-2026 Jussi Pakkanen
 
 #pragma once
 
@@ -1442,6 +1442,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
                                                 const char *T,
                                                 int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_add_Opt_entry(
+    CapyPDF_FormField *field, const char *choice, int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

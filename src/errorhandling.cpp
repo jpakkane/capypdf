@@ -101,6 +101,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 
 "CFF font missing an expected dictionary item.",
 "Field state name must not be empty.",
+"Incorrect field type.",
 };
 
 // clang-format on
