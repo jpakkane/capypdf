@@ -119,9 +119,7 @@ int draw_simple_form() {
         auto ctxguard = gen.guarded_page_context();
         auto &ctx = ctxguard.ctx;
 
-        FormField check_field{
-            .T = u8string::from_cstr("check1").value(),
-            .sub = ButtonField{check_onstate, check_offstate, PdfName::from_cstr("/On").value()}};
+        FormField check_field{.T = u8string::from_cstr("check1").value(), .sub = ButtonField{}};
 
         CapyPDF_FormFieldId check_field_id = gen.add_form_field(check_field).value();
 
@@ -187,13 +185,15 @@ int draw_simple_form() {
         FormField push_field{
             .T = u8string::from_cstr("push1").value(),
             .Ff = CAPY_FFIELD_PUSHBUTTON,
-            .sub = ButtonField{push_onstate, push_offstate},
+            .sub = ButtonField{},
         };
 
         CapyPDF_FormFieldId push_field_id = gen.add_form_field(push_field).value();
 
-        Annotation push_widget =
-            Annotation{{}, WidgetAnnotation{push_field_id}, PdfRectangle{20, 60, 70, 70}};
+        Annotation push_widget = Annotation{
+            {},
+            WidgetAnnotation{push_field_id, ButtonStateInfo{push_onstate, push_offstate}},
+            PdfRectangle{20, 60, 70, 70}};
         auto push_annot_id = gen.add_annotation(push_widget).value();
         {
             ctx.render_pdfdoc_text_builtin("A push button", CAPY_FONT_HELVETICA, 12, 25, 75);
@@ -208,7 +208,7 @@ int draw_simple_form() {
             .T = u8string::from_cstr("Radio choice").value(),
             .Ff = CAPY_FFIELD_RADIO,
             .V = "/state1",
-            .sub = ButtonField{push_onstate, push_offstate},
+            .sub = ButtonField{},
         };
         auto top_radio_field_id = gen.add_form_field(top_radio_field).value();
         {

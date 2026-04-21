@@ -314,7 +314,7 @@ typedef enum {
     CAPY_FFIELD_DONOTSCROLL = (1 << 23),
     CAPY_FFIELD_COMB = (1 << 24),
     CAPY_FFIELD_RICHTEXT = (1 << 25),
-    CAPY_FFIELD_RADIOSINUNUSON = (1 << 25),
+    CAPY_FFIELD_RADIOSINUNISON = (1 << 25),
     CAPY_FFIELD_COMMITONSELCHANGE = (1 << 26),
 } CapyPDF_Form_Field_Flags;
 
@@ -1442,6 +1442,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
                                                 const char *T,
                                                 int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_Ff(CapyPDF_FormField *field,
+                                                 uint32_t Ff) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_V(CapyPDF_FormField *field,
                                                 const char *V,
                                                 int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;

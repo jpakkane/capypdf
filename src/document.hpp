@@ -209,11 +209,7 @@ class PdfDrawContext;
 class PdfWriter;
 struct ColorPatternBuilder;
 
-struct ButtonField {
-    CapyPDF_FormXObjectId on_state;
-    CapyPDF_FormXObjectId off_state;
-    PdfName on_state_name;
-};
+struct ButtonField {};
 
 struct TextField {};
 

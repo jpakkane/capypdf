@@ -3171,6 +3171,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_parent(CapyPDF_FormField *field,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_Ff(CapyPDF_FormField *field,
+                                                 uint32_t Ff) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *f = static_cast<FormField *>(field);
+    f->Ff = Ff;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_T(CapyPDF_FormField *field,
                                                 const char *T,
                                                 int32_t strsize) CAPYPDF_NOEXCEPT {

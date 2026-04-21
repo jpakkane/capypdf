@@ -153,6 +153,27 @@ class AnnotationFlag(IntFlag):
     ToggleNoView = auto()
     LockedContents = auto()
 
+class FormFieldFlags(IntFlag):
+    Nothing = 0 # Because None is a Python keyword
+    Required = (1 << 1),
+    NoExport = (1 << 2),
+    Multiline = (1 << 12),
+    Password = (1 << 13),
+    NoToggleToOff = (1 << 14),
+    Radio = (1 << 15),
+    PushButton = (1 << 16),
+    Combo = (1 << 17),
+    Edit = (1 << 18),
+    Sort = (1 << 19),
+    FileSelect = (1 << 20),
+    MultiSelect = (1 << 21),
+    DoNotSpellcheck = (1 << 22),
+    DoNotScroll = (1 << 23),
+    Comb = (1 << 24),
+    RichText = (1 << 25),
+    RadiosInUnison = (1 << 25),
+    CommtOnSelChange = (1 << 26),
+
 class StructureType(Enum):
     Document = 0
     DocumentFragment = 1
@@ -650,6 +671,7 @@ cfunc_types = (
 
 ('capy_form_field_new', [enum_type, ctypes.c_void_p]),
 ('capy_form_field_set_parent', [ctypes.c_void_p, FormFieldId]),
+('capy_form_field_set_Ff', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_form_field_set_T', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_add_Opt_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_destroy', [ctypes.c_void_p]),
@@ -2077,6 +2099,11 @@ class FormField:
         if not isinstance(parent_field, FormFieldId):
             raise CapyPDFException('Argument must be a FormFieldId.')
         check_error(libfile.capy_form_field_set_parent(self, parent_field.value))
+
+    def set_Ff(self, Ff):
+        if not isinstance(Ff, FormFieldFlags):
+            raise CapyPDFException('Argument must be a FormFieldFlags.')
+        check_error(libfile.capy_form_field_set_Ff(self, Ff.value))
 
     def set_T(self, T):
         tbytes = T.encode('UTF-8')

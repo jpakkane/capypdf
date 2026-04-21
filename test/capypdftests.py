@@ -1713,6 +1713,42 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('A checkbox form', font_id, 20, 20, 180)
                 ctx.annotate(anno_id)
 
+    @validate_image('python_form_pushbutton', 200, 200)
+    def test_form_pushbutton(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            font_id = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
+
+            # Create button graphics.
+            offcxt = capypdf.FormXObjectDrawContext(gen, 0, 0, 10, 50)
+            offcxt.cmd_g(0.8)
+            offcxt.cmd_re(0, 0, 10, 50)
+            offcxt.cmd_f()
+            off_id = gen.add_form_xobject(offcxt)
+
+            # Create check box graphics.
+            offcxt = capypdf.FormXObjectDrawContext(gen, 0, 0, 10, 50)
+            offcxt.cmd_g(0.2)
+            offcxt.cmd_re(0, 0, 10, 50)
+            offcxt.cmd_f()
+            on_id = gen.add_form_xobject(offcxt)
+
+            field = capypdf.FormField(capypdf.FormFieldType.BTN)
+            field.set_T('push1')
+            field.set_Ff(capypdf.FormFieldFlags.PushButton)
+            field_id = gen.add_form_field(field)
+            annotation = capypdf.Annotation.new_widget_annotation()
+            annotation.set_parent_field(field_id)
+            annotation.set_rectangle(75, 95, 125, 105)
+            annotation.set_widget_button_appearance(on_id, off_id, "/press")
+            anno_id = gen.add_annotation(annotation)
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('A push button form', font_id, 15, 20, 180)
+                ctx.annotate(anno_id)
+
     @validate_image('python_form_choice', 200, 200)
     def test_form_choice(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
