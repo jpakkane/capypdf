@@ -61,10 +61,6 @@ else
       dependencies: capypdf_internal_dep,
     )
 
-    executable('formtest', 'formtest.cpp',
-      dependencies: [capypdf_internal_dep]
-    )
-
     executable('fembedtest', 'fembedtest.cpp',
       dependencies: [capypdf_internal_dep]
     )
