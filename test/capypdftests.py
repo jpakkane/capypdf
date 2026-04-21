@@ -1749,6 +1749,63 @@ class TestPDFCreation(unittest.TestCase):
                 ctx.render_text('A push button form', font_id, 15, 20, 180)
                 ctx.annotate(anno_id)
 
+    @validate_image('python_form_radiobutton', 200, 200)
+    def test_form_radiobutton(self, ofilename, w, h):
+        dprops = capypdf.DocumentProperties()
+        pprops = capypdf.PageProperties()
+        pprops.set_pagebox(capypdf.PageBox.Media, 0, 0, w, h)
+        dprops.set_default_page_properties(pprops)
+        with capypdf.Generator(ofilename, dprops) as gen:
+            font_id = gen.load_font(font_dir / 'NotoSans-Regular.ttf')
+
+            # Create button graphics.
+            offcxt = capypdf.FormXObjectDrawContext(gen, 0, 0, 10, 10)
+            offcxt.cmd_re(0, 0, 10, 10)
+            offcxt.cmd_G(0)
+            offcxt.cmd_w(2.0)
+            offcxt.cmd_S()
+            off_id = gen.add_form_xobject(offcxt)
+
+            # Create check box graphics.
+            oncxt = capypdf.FormXObjectDrawContext(gen, 0, 0, 10, 10)
+            oncxt.cmd_re(0, 0, 10, 10)
+            oncxt.cmd_G(0)
+            oncxt.cmd_w(2.0)
+            oncxt.cmd_S()
+            oncxt.cmd_re(2.5, 2.5, 5, 5)
+            oncxt.cmd_g(0)
+            oncxt.cmd_f()
+            on_id = gen.add_form_xobject(oncxt)
+
+            rfield = capypdf.FormField(capypdf.FormFieldType.BTN)
+            rfield.set_T('radiochoice')
+            rfield.set_V('/state1')
+            rfield.set_Ff(capypdf.FormFieldFlags.Radio)
+            rfield_id = gen.add_form_field(rfield)
+            anno1 = capypdf.Annotation.new_widget_annotation()
+            anno1.set_parent_field(rfield_id)
+            anno1.set_rectangle(45, 95, 55, 105)
+            anno1.set_widget_button_appearance(on_id, off_id, "/state1")
+            anno1_id = gen.add_annotation(anno1)
+
+            anno2 = capypdf.Annotation.new_widget_annotation()
+            anno2.set_parent_field(rfield_id)
+            anno2.set_rectangle(95, 95, 105, 105)
+            anno2.set_widget_button_appearance(on_id, off_id, "/state2")
+            anno2_id = gen.add_annotation(anno2)
+
+            anno3 = capypdf.Annotation.new_widget_annotation()
+            anno3.set_parent_field(rfield_id)
+            anno3.set_rectangle(145, 95, 155, 105)
+            anno3.set_widget_button_appearance(on_id, off_id, "/state3")
+            anno3_id = gen.add_annotation(anno3)
+
+            with gen.page_draw_context() as ctx:
+                ctx.render_text('A radiobutton form', font_id, 15, 20, 180)
+                ctx.annotate(anno1_id)
+                ctx.annotate(anno2_id)
+                ctx.annotate(anno3_id)
+
     @validate_image('python_form_choice', 200, 200)
     def test_form_choice(self, ofilename, w, h):
         dprops = capypdf.DocumentProperties()
