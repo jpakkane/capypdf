@@ -900,6 +900,18 @@ std::vector<int32_t> PdfDocument::get_widget_kids_of(CapyPDF_FormFieldId field) 
     return kids;
 }
 
+std::vector<int32_t> PdfDocument::get_field_kids_of(CapyPDF_FormFieldId field) const {
+    std::vector<int32_t> kids;
+    for(const auto &ffield_id : form_fields) {
+        const auto &ffield_obj = document_objects.at(ffield_id);
+        const auto &ffield = std::get<DelayedFormField>(ffield_obj).field;
+        if(ffield.parent && ffield.parent.value() == field) {
+            kids.push_back(ffield_id);
+        }
+    }
+    return kids;
+}
+
 rvoe<NoReturnValue> PdfDocument::create_catalog() {
     ObjectFormatter fmt;
     std::optional<int32_t> outline_object;

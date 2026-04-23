@@ -535,6 +535,7 @@ public:
     rvoe<CapyPDF_3DStreamId> add_3d_stream(ThreeDStream stream);
 
     std::vector<int32_t> get_widget_kids_of(CapyPDF_FormFieldId widget) const;
+    std::vector<int32_t> get_field_kids_of(CapyPDF_FormFieldId widget) const;
 
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);

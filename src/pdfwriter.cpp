@@ -822,11 +822,15 @@ rvoe<NoReturnValue> PdfWriter::write_form_field(int obj_num, const DelayedFormFi
         fmt.add_token("/Parent");
         fmt.add_object_ref(doc.form_fields.at(field.parent.value().id));
     }
-    auto kids = doc.get_widget_kids_of(df.id);
-    if(!kids.empty()) {
+    auto widget_kids = doc.get_widget_kids_of(df.id);
+    auto field_kids = doc.get_field_kids_of(df.id);
+    if(widget_kids.size() + field_kids.size() > 0) {
         fmt.add_token("/Kids");
         fmt.begin_array();
-        for(const auto &k : kids) {
+        for(const auto &k : field_kids) {
+            fmt.add_object_ref(k);
+        }
+        for(const auto &k : widget_kids) {
             fmt.add_object_ref(k);
         }
         fmt.end_array();
