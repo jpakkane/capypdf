@@ -17,7 +17,7 @@ bool is_valid_tag_name(const char *name) {
         if(c >= 'A' && c <= 'Z') {
             continue;
         }
-        if(c >= '0' || c <= '9') {
+        if(c >= '0' && c <= '9') {
             continue;
         }
         if(c == ':') {
