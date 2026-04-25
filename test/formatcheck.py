@@ -4,6 +4,7 @@
 # Copyright 2024 Jussi Pakkanen
 
 import os, sys, subprocess, pathlib, shutil
+import platform
 
 class FormatChecker:
     def __init__(self, source_root):
@@ -36,6 +37,10 @@ class FormatChecker:
                 self.unformatted.append(f)
 
 if __name__ == '__main__':
+    if platform.system() == 'Windows' and 'GITHUB_ACTION' in os.environ:
+        # Github CI on Windows has a different version of clang-format
+        # that you can't really control.
+        sys.exit(77)
     src_root = pathlib.Path(__file__).parent.parent
     c = FormatChecker(src_root)
     c.check()

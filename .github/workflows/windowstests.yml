@@ -13,18 +13,18 @@ jobs:
       - name: Setup MS Build tools
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Setup Python 3.12
+      - name: Setup Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       - name: Install meson and PIL
         run: pip install meson Pillow
 
       - name: Install ghostscript
         run: |
-          choco install ghostscript --version 10.5.1 -y --no-progress
-          echo "C:\Program Files\gs\gs10.05.1\bin\" >> $env:GITHUB_PATH
+          choco install ghostscript --version 10.6.0 -y --no-progress
+          echo "C:\Program Files\gs\gs10.06.0\bin\" >> $env:GITHUB_PATH
 
       - name: Configure
         run: meson setup --buildtype=debugoptimized -Db_pch=false -Ddevtools=true -Ddefault_library=static -D:default_library=shared builddir
