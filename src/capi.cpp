@@ -140,8 +140,7 @@ __declspec(noinline)
 #else
 __attribute__((noinline))
 #endif
-CapyPDF_EC
-handle_exception() {
+CapyPDF_EC handle_exception() {
     try {
         throw;
     } catch(ErrorCode ec) {
