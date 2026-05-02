@@ -5,7 +5,7 @@
 
 
 import unittest
-import os, sys, pathlib, shutil, subprocess
+import os, sys, pathlib, shutil, subprocess, platform
 try:
     import PIL.Image, PIL.ImageChops
 except ModuleNotFoundError:
@@ -18,6 +18,13 @@ else:
 
 if shutil.which(gs) is None:
     sys.exit('Ghostscript not found, test suite can not be run.')
+
+gs_version = subprocess.check_output([gs, '--version']).strip().decode('utf-8')
+broken_gs_version = False
+
+if platform.system() == 'Windows':
+    if gs_version == '10.06.0':
+        broken_gs_version = True
 
 os.environ['CAPYPDF_SO_OVERRIDE'] = 'src' # Sucks, but there does not seem to be a better injection point.
 source_root = pathlib.Path(__file__).parent.parent
@@ -72,7 +79,12 @@ def validate_image(basename, w, h):
             oracle_image = PIL.Image.open(the_truth)
             gen_image = PIL.Image.open(pngname)
             diff = PIL.ImageChops.difference(oracle_image, gen_image)
-            utobj.assertFalse(diff.getbbox(), 'Rendered image is different.')
+            if broken_gs_version:
+                # This version produces different output images on Windows.
+                # Just check that nothing crashes.
+                pass
+            else:
+                utobj.assertFalse(diff.getbbox(), f'Rendered image is different. Ghostscript version: {gs_version}.')
             pdfname.unlink()
             pngname.unlink()
             return value
