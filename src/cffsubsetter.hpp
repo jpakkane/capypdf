@@ -212,7 +212,7 @@ private:
     void append_charstrings();
     void append_fdthings();
 
-    void create_topdict();
+    rvoe<NoReturnValue> create_topdict();
     rvoe<NoReturnValue> copy_dict_item(CFFDictWriter &w, DictOperator op);
     void copy_dict_item_if_exists(CFFDictWriter &w, DictOperator op);
 

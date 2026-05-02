@@ -738,11 +738,11 @@ void CFFWriter::write_fix(const OffsetPatch &p) {
     memcpy(output.data() + p.offset, &value, sizeof(uint32_t));
 }
 
-void CFFWriter::create_topdict() {
+rvoe<NoReturnValue> CFFWriter::create_topdict() {
     CFFDictWriter topdict;
 
     if(source.is_cid) {
-        copy_dict_item(topdict, DictOperator::ROS);
+        ERCV(copy_dict_item(topdict, DictOperator::ROS));
     } else {
         CFFDictItem ros;
         ros.opr = DictOperator::ROS;
@@ -757,10 +757,10 @@ void CFFWriter::create_topdict() {
     copy_dict_item_if_exists(topdict, DictOperator::Weight);
     copy_dict_item_if_exists(topdict, DictOperator::FontBBox);
     if(source.is_cid) {
-        copy_dict_item(topdict, DictOperator::CIDFontVersion);
-        copy_dict_item(topdict, DictOperator::CIDCount);
-        copy_dict_item(topdict, DictOperator::FDArray);  // offset needs to be fixed in post.
-        copy_dict_item(topdict, DictOperator::FDSelect); // offset needs to be fixed in post.
+        ERCV(copy_dict_item(topdict, DictOperator::CIDFontVersion));
+        ERCV(copy_dict_item(topdict, DictOperator::CIDCount));
+        ERCV(copy_dict_item(topdict, DictOperator::FDArray));  // offset needs to be fixed in post.
+        ERCV(copy_dict_item(topdict, DictOperator::FDSelect)); // offset needs to be fixed in post.
     } else {
         std::vector<int32_t> operand;
         operand.push_back(-1);
@@ -773,9 +773,9 @@ void CFFWriter::create_topdict() {
         topdict.append_command(operand, DictOperator::FDArray);
         topdict.append_command(operand, DictOperator::FDSelect);
     }
-    copy_dict_item(topdict, DictOperator::Charset); // offset needs to be fixed in post.
-    copy_dict_item(topdict,
-                   DictOperator::CharStrings); // offset needs to be fixed in post.
+    ERCV(copy_dict_item(topdict, DictOperator::Charset)); // offset needs to be fixed in post.
+    ERCV(copy_dict_item(topdict,
+                        DictOperator::CharStrings)); // offset needs to be fixed in post.
     // copy_dict_item(topdict, DictOperator::UnderlinePosition);
     auto serialization = topdict.steal();
     std::vector<std::vector<std::byte>> wrapper{std::move(serialization.output)};
@@ -801,6 +801,7 @@ void CFFWriter::create_topdict() {
     const auto real_offset = std::distance(output.begin(), loc);
     assert(written_value == original_value);
     */
+    RETOK;
 }
 
 rvoe<NoReturnValue> CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op) {

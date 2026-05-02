@@ -31,7 +31,7 @@ void write_matrix(ObjectFormatter &fmt, const PdfMatrix &gm) {
 
 } // namespace
 
-GstatePopper::~GstatePopper() { ctx->cmd_Q(); }
+GstatePopper::~GstatePopper() { (void)ctx->cmd_Q(); }
 
 PdfDrawContext::PdfDrawContext(PdfDocument *doc_,
                                PdfColorConverter *cm_,
@@ -252,7 +252,7 @@ rvoe<NoReturnValue> PdfDrawContext::annotate(CapyPDF_AnnotationId annotation) {
 }
 
 GstatePopper PdfDrawContext::push_gstate() {
-    cmd_q();
+    (void)cmd_q();
     return GstatePopper(this);
 }
 
@@ -287,7 +287,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_BDC(const asciistring &name,
     cmds.append_raw("/");
     cmds.append_raw(name.sv());
     cmds.append_raw(" <<\n");
-    cmds.indent(DrawStateType::Dictionary);
+    ERCV(cmds.indent(DrawStateType::Dictionary));
     if(sid) {
         ERC(MCID_id, add_bcd_structure(sid.value()));
         cmds.append_dict_entry("/MCID", MCID_id);
@@ -489,7 +489,7 @@ rvoe<NoReturnValue> PdfDrawContext::cmd_n() {
 }
 
 rvoe<NoReturnValue> PdfDrawContext::cmd_q() {
-    cmds.q();
+    ERCV(cmds.q());
     RETOK;
 }
 
@@ -738,11 +738,11 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const SeparationColor &color, bool
     used_colorspaces.insert(idnum);
     std::string csname = std::format("/CSpace{}", idnum);
     if(stroke) {
-        cmd_CS(csname);
-        cmd_SCN(color.v.v());
+        ERCV(cmd_CS(csname));
+        ERCV(cmd_SCN(color.v.v()));
     } else {
-        cmd_cs(csname);
-        cmd_scn(color.v.v());
+        ERCV(cmd_cs(csname));
+        ERCV(cmd_scn(color.v.v()));
     }
     RETOK;
 }
@@ -752,35 +752,40 @@ rvoe<NoReturnValue> PdfDrawContext::set_color(const LabColor &c, bool stroke) {
     used_colorspaces.insert(c.id.id);
     std::string csname = std::format("/CSpace{}", c.id.id);
     if(stroke) {
-        cmd_CS(csname);
+        ERCV(cmd_CS(csname));
     } else {
-        cmd_cs(csname);
+        ERCV(cmd_cs(csname));
     }
     auto cmd = std::format("{:f} {:f} {:f} {}\n", c.l, c.a, c.b, stroke ? "SCN" : "scn");
     cmds.append(cmd);
     RETOK;
 }
 
-void PdfDrawContext::set_all_stroke_color() {
+rvoe<NoReturnValue> PdfDrawContext::set_all_stroke_color() {
     uses_all_colorspace = true;
-    cmd_CS("/All");
-    cmd_SCN(1.0);
+    ERCV(cmd_CS("/All"));
+    ERCV(cmd_SCN(1.0));
+    RETOK;
 }
 
-void PdfDrawContext::scale(double xscale, double yscale) { cmd_cm(xscale, 0, 0, yscale, 0, 0); }
+rvoe<NoReturnValue> PdfDrawContext::scale(double xscale, double yscale) {
+    return cmd_cm(xscale, 0, 0, yscale, 0, 0);
+}
 
-void PdfDrawContext::translate(double xtran, double ytran) { cmd_cm(1.0, 0, 0, 1.0, xtran, ytran); }
+rvoe<NoReturnValue> PdfDrawContext::translate(double xtran, double ytran) {
+    return cmd_cm(1.0, 0, 0, 1.0, xtran, ytran);
+}
 
-void PdfDrawContext::rotate(double angle) {
-    cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
+rvoe<NoReturnValue> PdfDrawContext::rotate(double angle) {
+    return cmd_cm(cos(angle), sin(angle), -sin(angle), cos(angle), 0.0, 0.0);
 }
 
 rvoe<NoReturnValue> PdfDrawContext::render_text(
     const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y) {
     PdfText t(this);
-    t.cmd_Tf(fid, pointsize);
-    t.cmd_Td(x, y);
-    t.cmd_Tj(text);
+    ERCV(t.cmd_Tf(fid, pointsize));
+    ERCV(t.cmd_Td(x, y));
+    ERCV(t.cmd_Tj(text));
     return render_text(t);
 }
 
@@ -1191,16 +1196,17 @@ rvoe<NoReturnValue> PdfDrawContext::render_pdfdoc_text_builtin(const char *pdfdo
     RETOK;
 }
 
-void PdfDrawContext::draw_unit_circle() {
+rvoe<NoReturnValue> PdfDrawContext::draw_unit_circle() {
     const double control = 0.5523 / 2;
-    cmd_m(0, 0.5);
-    cmd_c(control, 0.5, 0.5, control, 0.5, 0);
-    cmd_c(0.5, -control, control, -0.5, 0, -0.5);
-    cmd_c(-control, -0.5, -0.5, -control, -0.5, 0);
-    cmd_c(-0.5, control, -control, 0.5, 0, 0.5);
+    ERCV(cmd_m(0, 0.5));
+    ERCV(cmd_c(control, 0.5, 0.5, control, 0.5, 0));
+    ERCV(cmd_c(0.5, -control, control, -0.5, 0, -0.5));
+    ERCV(cmd_c(-control, -0.5, -0.5, -control, -0.5, 0));
+    ERCV(cmd_c(-0.5, control, -control, 0.5, 0, 0.5));
+    RETOK;
 }
 
-void PdfDrawContext::draw_unit_box() { cmd_re(-0.5, -0.5, 1, 1); }
+rvoe<NoReturnValue> PdfDrawContext::draw_unit_box() { return cmd_re(-0.5, -0.5, 1, 1); }
 
 rvoe<NoReturnValue> PdfDrawContext::set_transition(const Transition &tr) {
     if(context_type != CAPY_DC_PAGE) {

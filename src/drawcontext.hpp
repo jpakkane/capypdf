@@ -147,10 +147,10 @@ public:
     rvoe<NoReturnValue> set_color(CapyPDF_PatternId id, bool stroke);
     rvoe<NoReturnValue> set_color(const SeparationColor &color, bool stroke);
 
-    void set_all_stroke_color();
-    void scale(double xscale, double yscale);
-    void translate(double xtran, double ytran);
-    void rotate(double angle);
+    rvoe<NoReturnValue> set_all_stroke_color();
+    rvoe<NoReturnValue> scale(double xscale, double yscale);
+    rvoe<NoReturnValue> translate(double xtran, double ytran);
+    rvoe<NoReturnValue> rotate(double angle);
     rvoe<NoReturnValue>
     render_text(const u8string &text, CapyPDF_FontId fid, double pointsize, double x, double y);
     rvoe<NoReturnValue> render_text(const PdfText &textobj);
@@ -162,8 +162,8 @@ public:
                                                    double x,
                                                    double y);
 
-    void draw_unit_circle();
-    void draw_unit_box();
+    rvoe<NoReturnValue> draw_unit_circle();
+    rvoe<NoReturnValue> draw_unit_box();
 
     void clear();
 
