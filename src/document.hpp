@@ -155,6 +155,7 @@ struct DelayedPage {
     std::optional<int32_t> subnav_root;
     PageProperties custom_props;
     std::optional<int32_t> structparents;
+    std::vector<Viewport> viewports;
 };
 
 struct SubsetGlyph {
@@ -439,7 +440,8 @@ public:
                                  const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                  const std::vector<CapyPDF_StructureItemId> &structs,
                                  const std::optional<Transition> &transition,
-                                 const std::vector<SubPageNavigation> &subnav);
+                                 const std::vector<SubPageNavigation> &subnav,
+                                 const std::vector<Viewport> &viewports);
 
     rvoe<NoReturnValue> add_page_labeling(uint32_t start_page,
                                           std::optional<CapyPDF_Page_Label_Number_Style> style,

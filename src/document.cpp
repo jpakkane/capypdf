@@ -527,7 +527,8 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
                                           const std::unordered_set<CapyPDF_AnnotationId> &annots,
                                           const std::vector<CapyPDF_StructureItemId> &structs,
                                           const std::optional<Transition> &transition,
-                                          const std::vector<SubPageNavigation> &subnav) {
+                                          const std::vector<SubPageNavigation> &subnav,
+                                          const std::vector<Viewport> &viewports) {
     for(const auto &a : annots) {
         if(annotation_use.find(a) != annotation_use.cend()) {
             RETERR(AnnotationReuse);
@@ -554,6 +555,7 @@ rvoe<NoReturnValue> PdfDocument::add_page(std::string resource_dict,
     if(!subnav.empty()) {
         p.subnav_root = create_subnavigation(subnav);
     }
+    p.viewports = viewports;
     if(!structs.empty()) {
         p.structparents = (int32_t)structure_parent_tree_items.size();
         structure_parent_tree_items.push_back(structs);

@@ -190,6 +190,8 @@ public:
 
     const std::vector<SubPageNavigation> &get_subpage_navigation() const { return sub_navigations; }
 
+    const std::vector<Viewport> &get_viewport() const { return viewports; }
+
     bool has_unclosed_state() const { return cmds.has_unclosed_state(); }
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);
@@ -230,6 +232,7 @@ private:
     std::unordered_set<CapyPDF_OptionalContentGroupId> used_ocgs;
     std::unordered_set<CapyPDF_TransparencyGroupId> used_trgroups;
     std::vector<SubPageNavigation> sub_navigations;
+    std::vector<Viewport> viewports;
 
     // Not a std::stack because we need to access all entries.
     std::optional<Transition> transition;

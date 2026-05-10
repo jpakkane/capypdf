@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
+#include "utils.hpp"
 #include <objectformatter.hpp>
 #include <pdfcommon.hpp>
 
@@ -132,6 +133,24 @@ void ObjectFormatter::write_raw_rectangle(const PdfRectangle &box, bool write_br
     }
 }
 
+void ObjectFormatter::write_box(const char *boxname, const PdfBox &box) {
+    add_token_with_slash(boxname);
+    write_raw_box(box, true);
+}
+
+void ObjectFormatter::write_raw_box(const PdfBox &box, bool write_brackets) {
+    if(write_brackets) {
+        begin_array();
+    }
+    add_token(box.w);
+    add_token(box.y);
+    add_token(box.w);
+    add_token(box.h);
+    if(write_brackets) {
+        end_array();
+    }
+}
+
 void ObjectFormatter::check_indent() {
     if(state.num_entries == 0) {
         buf += state.indent;
@@ -142,6 +161,13 @@ void ObjectFormatter::add_pdfstring(const asciistring &str) {
     // FIXME: add quoting for special characters.
     check_indent();
     std::format_to(app, "({})", str.c_str());
+    added_item();
+}
+
+void ObjectFormatter::add_utf8_string(const u8string &ustr) {
+    check_indent();
+    const auto u16repr = utf8_to_pdfutf16be(ustr);
+    buf += u16repr;
     added_item();
 }
 

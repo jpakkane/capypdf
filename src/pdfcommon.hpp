@@ -665,6 +665,34 @@ struct ColorProfiles {
     std::string cmyk_profile_file;
 };
 
+// Table 268
+struct NumberFormat {
+    u8string U;
+    double C;
+    // F;
+    // int32_t D;
+    // std::optional<bool> FD;
+    // u8string RT;
+    // u8string RD;
+    // u8string PS;
+    // u8string SS;
+    // O;
+};
+
+struct RectilinearMeasure {
+    u8string R;
+    std::vector<NumberFormat> X;
+    std::vector<NumberFormat> Y;
+    std::vector<NumberFormat> D;
+    std::vector<NumberFormat> A;
+};
+
+struct Viewport {
+    std::optional<PdfBox> bbox;
+    u8string name;
+    std::optional<RectilinearMeasure> measure;
+};
+
 } // namespace capypdf::internal
 
 template<> struct std::hash<capypdf::internal::asciistring> {

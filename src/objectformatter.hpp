@@ -27,6 +27,7 @@ class u8string;
 class asciistring;
 class PdfName;
 struct PdfRectangle;
+struct PdfBox;
 
 class ObjectFormatter {
 public:
@@ -77,11 +78,15 @@ public:
     void add_token_with_slash(std::string_view name);
     void add_object_ref(int32_t onum);
     void add_pdfstring(const asciistring &str);
+    void add_utf8_string(const u8string &ustr);
 
     std::string steal();
 
     void write_rectangle(const char *boxname, const PdfRectangle &box);
     void write_raw_rectangle(const PdfRectangle &box, bool write_brackets = false);
+
+    void write_box(const char *boxname, const PdfBox &box);
+    void write_raw_box(const PdfBox &box, bool write_brackets = false);
 
     const std::string &current_indent() const { return state.indent; }
     size_t depth() const { return stack.size(); }

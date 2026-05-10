@@ -132,6 +132,7 @@ void PdfDrawContext::clear() {
     used_trgroups.clear();
     sub_navigations.clear();
     transition.reset();
+    viewports.clear();
     is_finalized = false;
     uses_all_colorspace = false;
     custom_props = PageProperties{};

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2024 Jussi Pakkanen
 
-#include "bitfiddling.hpp"
+#include <bitfiddling.hpp>
 #include <pdfwriter.hpp>
 #include <utils.hpp>
 #include <objectformatter.hpp>
-
 #include <filesystem>
+
 #include <format>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -16,7 +16,7 @@
 #include <cassert>
 
 #ifdef _WIN32
-#include <io.h>
+#include <io.h>ObjectFormatter &fmt,
 #else
 #include <unistd.h>
 #endif
@@ -159,6 +159,58 @@ void serialize_time(ObjectFormatter &fmt, const char *key, double timepoint) {
         fmt.end_dict();
     }
     fmt.end_dict();
+}
+
+void serialize_number_format_array(ObjectFormatter &fmt,
+                                   const char *name,
+                                   const std::vector<NumberFormat> &entries) {
+    fmt.add_token(name);
+    fmt.begin_array();
+    for(const auto &f : entries) {
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/NumberFormat");
+        fmt.add_token("/U");
+        fmt.add_utf8_string(f.U);
+        fmt.add_token("/C");
+        fmt.add_token(f.C);
+        fmt.end_dict();
+    }
+    fmt.end_array();
+}
+
+void serialize_viewports(ObjectFormatter &fmt, const std::vector<Viewport> &vps) {
+    if(vps.empty()) {
+        return;
+    }
+    fmt.add_token("/VP");
+    fmt.begin_array();
+    for(const auto &vp : vps) {
+        fmt.begin_dict();
+        fmt.add_token_pair("/Type", "/Viewport");
+        if(vp.bbox) {
+            fmt.write_box("bbox", vp.bbox.value());
+        }
+        if(!vp.name.empty()) {
+            fmt.add_token("/Name");
+            fmt.add_utf8_string(vp.name);
+        }
+        if(vp.measure) {
+            const auto &measure = *vp.measure;
+            fmt.add_token("/Measure");
+            fmt.begin_dict();
+            fmt.add_token("/R");
+            fmt.add_utf8_string(measure.R);
+            serialize_number_format_array(fmt, "/X", measure.X);
+            if(!measure.Y.empty()) {
+                serialize_number_format_array(fmt, "/Y", measure.Y);
+            }
+            serialize_number_format_array(fmt, "/D", measure.D);
+            serialize_number_format_array(fmt, "/A", measure.A);
+            fmt.end_dict();
+        }
+        fmt.end_dict();
+    }
+    fmt.end_array();
 }
 
 } // namespace
@@ -804,6 +856,8 @@ rvoe<NoReturnValue> PdfWriter::write_delayed_page(const DelayedPage &dp) {
         const auto &t = *dp.transition;
         serialize_trans(fmt, t);
     }
+
+    serialize_viewports(fmt, dp.viewports);
 
     if(dp.subnav_root) {
         fmt.add_token("/PresSteps");
