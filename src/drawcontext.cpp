@@ -1276,4 +1276,12 @@ rvoe<int32_t> PdfDrawContext::add_bcd_structure(CapyPDF_StructureItemId sid) {
     return (int32_t)used_structures.size() - 1;
 }
 
+rvoe<NoReturnValue> PdfDrawContext::append_viewport(Viewport vp) {
+    if(context_type != CAPY_DC_PAGE) {
+        RETERR(InvalidDrawContextType);
+    }
+    viewports.push_back(std::move(vp));
+    RETOK;
+}
+
 } // namespace capypdf::internal

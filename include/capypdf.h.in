@@ -477,6 +477,9 @@ typedef struct _capyPDF_BDCTags CapyPDF_BDCTags;
 typedef struct _capyPDF_Halftone CapyPDF_Halftone;
 typedef struct _capyPDF_3DStream CapyPDF_3DStream;
 typedef struct _capyPDF_FormField CapyPDF_FormField;
+typedef struct _capyPDF_NumberFormat CapyPDF_NumberFormat;
+typedef struct _capyPDF_Measure CapyPDF_Measure;
+typedef struct _capyPDF_Viewport CapyPDF_Viewport;
 
 typedef int32_t CapyPDF_EC;
 
@@ -936,8 +939,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_group_matrix(CapyPDF_DrawContext *ctx,
                                                    double d,
                                                    double e,
                                                    double f) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_append_viewport(
+    CapyPDF_DrawContext *ctx,
+    CapyPDF_Viewport *vport) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
 
 // Form XObjects.
 
@@ -1481,6 +1488,33 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_set_V(CapyPDF_FormField *field,
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_add_Opt_entry(
     CapyPDF_FormField *field, const char *choice, int32_t strsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+// Viewports and related things.
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_viewport_new(double x1, double y1, double x2, double y2, CapyPDF_Viewport **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_set_measure(CapyPDF_Viewport *vp, CapyPDF_Measure *measure)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_destroy(CapyPDF_Viewport *vp)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_new(CapyPDF_Measure **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_X(CapyPDF_Measure *m, CapyPDF_NumberFormat *f)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_Y(CapyPDF_Measure *m, CapyPDF_NumberFormat *f)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_D(CapyPDF_Measure *m, CapyPDF_NumberFormat *f)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_A(CapyPDF_Measure *m, CapyPDF_NumberFormat *f)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_destroy(CapyPDF_Measure *m) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+CAPYPDF_PUBLIC CapyPDF_EC
+capy_number_format_new(const char *name, int32_t namelen, double C, CapyPDF_NumberFormat **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_destroy(CapyPDF_NumberFormat *f)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Error

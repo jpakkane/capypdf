@@ -666,7 +666,7 @@ struct ColorProfiles {
 };
 
 // Table 268
-struct NumberFormat {
+struct NumberFormat : public _capyPDF_NumberFormat {
     u8string U;
     double C;
     // F;
@@ -679,7 +679,8 @@ struct NumberFormat {
     // O;
 };
 
-struct RectilinearMeasure {
+// FIXME, add support for geospatial measures.
+struct RectilinearMeasure : public _capyPDF_Measure {
     u8string R;
     std::vector<NumberFormat> X;
     std::vector<NumberFormat> Y;
@@ -687,8 +688,8 @@ struct RectilinearMeasure {
     std::vector<NumberFormat> A;
 };
 
-struct Viewport {
-    std::optional<PdfBox> bbox;
+struct Viewport : public _capyPDF_Viewport {
+    std::optional<PdfRectangle> bbox;
     u8string name;
     std::optional<RectilinearMeasure> measure;
 };

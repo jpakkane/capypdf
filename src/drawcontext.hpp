@@ -192,6 +192,8 @@ public:
 
     const std::vector<Viewport> &get_viewport() const { return viewports; }
 
+    rvoe<NoReturnValue> append_viewport(Viewport vp);
+
     bool has_unclosed_state() const { return cmds.has_unclosed_state(); }
 
     rvoe<NoReturnValue> set_transition(const Transition &tr);

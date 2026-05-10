@@ -1414,6 +1414,16 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_text_new(CapyPDF_DrawContext *dc,
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_append_viewport(CapyPDF_DrawContext *ctx,
+                                                  CapyPDF_Viewport *vport) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *dc = static_cast<PdfDrawContext *>(ctx);
+    auto *vp = static_cast<Viewport *>(vport);
+    auto rc = dc->append_viewport(std::move(*vp));
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
 CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *ctx) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<PdfDrawContext *>(ctx);
@@ -3230,6 +3240,109 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_add_Opt_entry(CapyPDF_FormField *field
 CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<FormField *>(field);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+// Viewports
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_new(
+    double x1, double y1, double x2, double y2, CapyPDF_Viewport **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = new Viewport{{}, PdfRectangle{x1, y1, x2, y2}};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_set_measure(CapyPDF_Viewport *vp,
+                                                    CapyPDF_Measure *measure) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *vport = static_cast<Viewport *>(vp);
+    auto *m = static_cast<RectilinearMeasure *>(measure);
+    vport->measure = std::move(*m);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_destroy(CapyPDF_Viewport *vp) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<Viewport *>(vp);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_new(CapyPDF_Measure **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = new RectilinearMeasure{};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_X(CapyPDF_Measure *m,
+                                                CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *meas = static_cast<RectilinearMeasure *>(m);
+    auto *nf = static_cast<NumberFormat *>(f);
+    meas->X.push_back(std::move(*nf));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_Y(CapyPDF_Measure *m,
+                                                CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *meas = static_cast<RectilinearMeasure *>(m);
+    auto *nf = static_cast<NumberFormat *>(f);
+    meas->Y.push_back(std::move(*nf));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_D(CapyPDF_Measure *m,
+                                                CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *meas = static_cast<RectilinearMeasure *>(m);
+    auto *nf = static_cast<NumberFormat *>(f);
+    meas->D.push_back(std::move(*nf));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_append_A(CapyPDF_Measure *m,
+                                                CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *meas = static_cast<RectilinearMeasure *>(m);
+    auto *nf = static_cast<NumberFormat *>(f);
+    meas->A.push_back(std::move(*nf));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_measure_destroy(CapyPDF_Measure *m) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<RectilinearMeasure *>(m);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_new(const char *name,
+                                                 int32_t namelen,
+                                                 double C,
+                                                 CapyPDF_NumberFormat **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto rc = validate_utf8(name, namelen);
+    if(!rc) {
+        return conv_err(rc);
+    }
+
+    *out_ptr = new NumberFormat{{}, std::move(*rc), C};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_destroy(CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<NumberFormat *>(f);
     RETNOERR;
     API_BOUNDARY_END;
 }

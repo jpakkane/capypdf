@@ -188,7 +188,7 @@ void serialize_viewports(ObjectFormatter &fmt, const std::vector<Viewport> &vps)
         fmt.begin_dict();
         fmt.add_token_pair("/Type", "/Viewport");
         if(vp.bbox) {
-            fmt.write_box("bbox", vp.bbox.value());
+            fmt.write_rectangle("bbox", vp.bbox.value());
         }
         if(!vp.name.empty()) {
             fmt.add_token("/Name");

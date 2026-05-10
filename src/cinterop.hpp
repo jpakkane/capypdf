@@ -86,3 +86,9 @@ struct _capyPDF_EmbeddedFile {};
 struct _capyPDF_3DStream {};
 
 struct _capyPDF_FormField {};
+
+struct _capyPDF_NumberFormat {};
+
+struct _capyPDF_Measure {};
+
+struct _capyPDF_Viewport {};
