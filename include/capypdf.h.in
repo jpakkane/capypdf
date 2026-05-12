@@ -939,12 +939,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_dc_set_group_matrix(CapyPDF_DrawContext *ctx,
                                                    double d,
                                                    double e,
                                                    double f) CAPYPDF_DEFAULT_FUNCTION_PROPS;
-CAPYPDF_PUBLIC CapyPDF_EC capy_dc_append_viewport(
-    CapyPDF_DrawContext *ctx,
-    CapyPDF_Viewport *vport) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_dc_append_viewport(CapyPDF_DrawContext *ctx, CapyPDF_Viewport *vport)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_dc_destroy(CapyPDF_DrawContext *) CAPYPDF_DEFAULT_FUNCTION_PROPS;
-
 
 // Form XObjects.
 

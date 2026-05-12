@@ -3156,13 +3156,13 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_new(CapyPDF_Form_Field_Type type,
     API_BOUNDARY_START;
     switch(type) {
     case CAPY_FORM_FIELD_TYPE_BTN:
-        *out_ptr = new FormField{.sub = ButtonField{}};
+        *out_ptr = new FormField{{}, {}, {}, {}, {}, ButtonField{}};
         break;
     case CAPY_FORM_FIELD_TYPE_CH:
-        *out_ptr = new FormField{.sub = ChoiceField{}};
+        *out_ptr = new FormField{{}, {}, {}, {}, {}, ChoiceField{}};
         break;
     case CAPY_FORM_FIELD_TYPE_TX:
-        *out_ptr = new FormField{.sub = TextField{}};
+        *out_ptr = new FormField{{}, {}, {}, {}, {}, TextField{}};
         break;
     default:
         std::abort();
@@ -3249,7 +3249,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_form_field_destroy(CapyPDF_FormField *field) CAPY
 CAPYPDF_PUBLIC CapyPDF_EC capy_viewport_new(
     double x1, double y1, double x2, double y2, CapyPDF_Viewport **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
-    *out_ptr = new Viewport{{}, PdfRectangle{x1, y1, x2, y2}};
+    *out_ptr = new Viewport{{}, PdfRectangle{x1, y1, x2, y2}, {}, {}};
     RETNOERR;
     API_BOUNDARY_END;
 }
