@@ -456,6 +456,25 @@ typedef enum {
     CAPY_AF_RELATIONSHIP_UNSPECIFIED,
 } CapyPDF_AF_Relationship;
 
+typedef enum {
+    CAPY_COLLECTION_D,
+    CAPY_COLLECTION_T,
+    CAPY_COLLECTION_H,
+    CAPY_COLLECTION_C,
+} CapyPDF_Collection_View;
+
+typedef enum {
+    CAPY_COLLECTION_SUB_S,
+    CAPY_COLLECTION_SUB_D,
+    CAPY_COLLECTION_SUB_N,
+    CAPY_COLLECTION_SUB_F,
+    CAPY_COLLECTION_SUB_DESC,
+    CAPY_COLLECTION_SUB_MOD_DATE,
+    CAPY_COLLECTION_SUB_CREATION_DATE,
+    CAPY_COLLECTION_SUB_SIZE,
+    CAPY_COLLECTION_SUB_COMPRESSED_SIZE,
+} CapyPDF_Collection_Subtype;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
