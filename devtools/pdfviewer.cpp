@@ -99,9 +99,13 @@ struct UnpackedXRef {
 };
 
 struct PackedXRef {
-    int32_t obj_generation;
+    int32_t stream_object;
+    int32_t index_in_stream;
+};
+
+struct ObjStmIndex {
     int32_t object_number;
-    int32_t index;
+    int64_t offset;
 };
 
 typedef std::variant<UnpackedXRef, PackedXRef> XRef;
@@ -241,7 +245,7 @@ std::optional<std::vector<XRef>> parse_xref_stream(std::string_view data,
             refs.emplace_back(UnpackedXRef{(int32_t)raw_entry.f3, raw_entry.f2, {}});
             break;
         case 2:
-            refs.emplace_back(PackedXRef(raw_entry.f2, raw_entry.f3));
+            refs.emplace_back(PackedXRef{raw_entry.f2, raw_entry.f3});
             break;
         default:
             std::abort();
@@ -327,10 +331,38 @@ std::optional<std::vector<XRef>> parse_xreftable(std::string_view xref) {
             return {};
         }
         }
-        refs.push_back(UnpackedXRef{(int32_t)obj_generation, size_t(obj_offset), {}});
+        refs.push_back(UnpackedXRef{size_t(obj_offset), (int32_t)obj_generation, {}});
         data_in += xref_entry_size;
     }
     return refs;
+}
+
+std::vector<ObjStmIndex> get_objstm_offsets(std::string_view stream, int num_entries) {
+    const char *loc = stream.data();
+    std::vector<ObjStmIndex> offsets;
+    offsets.reserve(num_entries);
+    for(int i = 0; i < num_entries; ++i) {
+        char *end;
+        int32_t id = strtol(loc, &end, 10);
+        loc = end;
+        int64_t offset = strtol(loc, &end, 10);
+        loc = end;
+        offsets.emplace_back(id, offset);
+    }
+    return offsets;
+}
+
+struct Between {
+    size_t from;
+    size_t length;
+};
+
+Between get_objstm_offset(const std::vector<ObjStmIndex> &indices, size_t object_index) {
+    Between res;
+    res.from = indices[object_index].offset;
+    res.length = object_index + 1 == indices.size() ? (size_t)-1
+                                                    : (indices[object_index + 1].offset - res.from);
+    return res;
 }
 
 std::optional<std::vector<ObjectData>> parse_pdf(std::string_view data) {
@@ -397,19 +429,36 @@ std::optional<std::vector<ObjectData>> parse_pdf(std::string_view data) {
             std::abort();
         }
     }
-    /*
+
     if(objstm) {
         // Unpack compressed objects.
-        PdfParser pp(objstm->dict);
+        std::string poop = objstm->dict;
+        poop += "endobj\n";
+        PdfParser pp(poop);
+        auto tmp = pp.parse();
+        auto &objstm_dict = tmp.value();
+        auto &top_dict = objstm_dict.dicts[0];
+        const auto first_offset = std::get<int64_t>(top_dict["First"]);
+        const auto N = std::get<int64_t>(top_dict["N"]);
+        const auto unpacked = inflate(objstm->stream);
+        const auto offsets = get_objstm_offsets(unpacked, N);
+        const auto stream_data = std::string_view(unpacked).substr(first_offset);
 
-        for(size_t i=0; i<xreftable.size(); ++i) {
+        for(size_t i = 0; i < xreftable.size(); ++i) {
             const auto &xref = xreftable[i];
             if(auto *cxref = std::get_if<PackedXRef>(&xref)) {
-                cxref->
+                const auto obj_offset = get_objstm_offset(offsets, cxref->index_in_stream);
+                std::string parsed_string = std::to_string(i + 1);
+                parsed_string += " 0 obj\n";
+                parsed_string += stream_data.substr(obj_offset.from, obj_offset.length);
+                parsed_string += parsed_string.back() == '\n' ? "endobj\n" : "\nendobj\n";
+                const auto bd = load_binary_data(parsed_string);
+                assert(bd.stream.empty());
+                objs[i] = ObjectData{0, bd.dict, bd.stream};
             }
         }
     }
-*/
+
     return std::move(objs);
 }
 
