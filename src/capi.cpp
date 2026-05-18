@@ -2057,7 +2057,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *stat
 }
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_blackpoint_compensation(
-    CapyPDF_GraphicsState *state, CapyPDF_BlackPointComp use_comp) CAPYPDF_NOEXCEPT {
+    CapyPDF_GraphicsState *state, CapyPDF_Black_Point_Compensation use_comp) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *s = static_cast<GraphicsState *>(state);
     s->UseBlackPtComp = use_comp;

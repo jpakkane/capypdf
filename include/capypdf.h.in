@@ -420,7 +420,7 @@ typedef enum {
     CAPY_BLACK_POINT_COMPENSATION_OFF,
     CAPY_BLACK_POINT_COMPENSATION_ON,
     CAPY_BLACK_POINT_COMPENSATION_DEFAULT,
-} CapyPDF_BlackPointComp;
+} CapyPDF_Black_Point_Compensation;
 
 typedef enum {
     CAPY_BORDER_STYLE_SOLID,
@@ -428,12 +428,12 @@ typedef enum {
     CAPY_BORDER_STYLE_BEVELED,
     CAPY_BORDER_STYLE_INSET,
     CAPY_BORDER_STYLE_UNDERLINE,
-} CapyPDF_BorderStyle;
+} CapyPDF_Border_Style;
 
 typedef enum {
     CAPY_BORDER_EFFECT_CLOUDY,
     CAPY_BORDER_EFFECT_SOLID,
-} CapyPDF_BorderEffect;
+} CapyPDF_Border_Effect;
 
 typedef enum {
     CAPY_WIDGET_CAPTION_NO_ICON,
@@ -443,7 +443,7 @@ typedef enum {
     CAPY_WIDGET_CAPTION_RIGHT_OF_ICON,
     CAPY_WIDGET_CAPTION_LEFT_OF_ICON,
     CAPY_WIDGET_CAPTION_OVERLAID,
-} CapyPDF_WidgetCaptionPosition;
+} CapyPDF_Widget_Caption_Position;
 
 typedef enum {
     CAPY_AF_RELATIONSHIP_SOURCE,
@@ -1133,7 +1133,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_AIS(CapyPDF_GraphicsState *sta
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_TK(CapyPDF_GraphicsState *state,
                                                      int32_t value) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_set_blackpoint_compensation(
-    CapyPDF_GraphicsState *state, CapyPDF_BlackPointComp use_comp) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+    CapyPDF_GraphicsState *state,
+    CapyPDF_Black_Point_Compensation use_comp) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_graphics_state_destroy(CapyPDF_GraphicsState *state)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 

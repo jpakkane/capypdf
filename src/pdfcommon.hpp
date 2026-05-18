@@ -268,12 +268,12 @@ private:
 // Table 168 in PDF 2.0 spec
 struct BorderStyle {
     std::optional<double> W;
-    std::optional<CapyPDF_BorderStyle> S;
+    std::optional<CapyPDF_Border_Style> S;
     std::vector<double> D;
 };
 
 struct BorderEffect {
-    std::optional<CapyPDF_BorderEffect> S;
+    std::optional<CapyPDF_Border_Effect> S;
     std::optional<double> I;
 };
 
@@ -357,7 +357,7 @@ struct GraphicsState : public _capyPDF_GraphicsState {
     std::optional<LimitDouble> ca;
     std::optional<bool> AIS;
     std::optional<bool> TK;
-    std::optional<CapyPDF_BlackPointComp> UseBlackPtComp;
+    std::optional<CapyPDF_Black_Point_Compensation> UseBlackPtComp;
     //  std::optional<Point> HTO;
 };
 
