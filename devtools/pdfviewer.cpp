@@ -86,11 +86,25 @@ struct BinaryData {
     std::string stream;
 };
 
-struct XrefEntry {
+struct ObjectData {
+    int32_t obj_generation;
+    std::string dict;
+    std::string stream;
+};
+
+struct UnpackedXRef {
     int32_t obj_generation;
     size_t offset;
-    BinaryData bd;
+    int32_t generation;
 };
+
+struct PackedXRef {
+    int32_t obj_generation;
+    int32_t object_number;
+    int32_t index;
+};
+
+typedef std::variant<UnpackedXRef, PackedXRef> XRef;
 
 struct App {
     GtkApplication *app;
@@ -100,7 +114,7 @@ struct App {
     GtkTreeStore *objectstore;
     GtkTextView *obj_text;
     GtkTextView *stream_text;
-    std::vector<XrefEntry> objects;
+    std::vector<ObjectData> objects;
 };
 
 std::string detect_type(std::string_view odict) {
@@ -125,16 +139,16 @@ void reload_object_view(App &a) {
     GtkTreeIter iter;
     size_t i = 0;
     for(const auto &object : a.objects) {
-        auto type = detect_type(object.bd.dict);
+        auto type = detect_type(object.dict);
         gtk_tree_store_append(a.objectstore, &iter, nullptr);
         gtk_tree_store_set(a.objectstore,
                            &iter,
                            OBJNUM_COLUMN,
                            (int)i,
                            OFFSET_COLUMN,
-                           (int64_t)object.offset,
+                           0, //(int64_t)object.offset,
                            STREAM_SIZE_COLUMN,
-                           (int)object.bd.stream.size(),
+                           (int)object.stream.size(),
                            TYPE_COLUMN,
                            type.c_str(),
                            -1);
@@ -209,9 +223,9 @@ XRefStreamEntry unpack_entry(const char *data, const std::array<int, 3> &W) {
     return r;
 }
 
-std::optional<std::vector<XrefEntry>> parse_xref_stream(std::string_view data,
-                                                        const std::array<int, 3> &W) {
-    std::vector<XrefEntry> refs;
+std::optional<std::vector<XRef>> parse_xref_stream(std::string_view data,
+                                                   const std::array<int, 3> &W) {
+    std::vector<XRef> refs;
     const auto entry_size = W[0] + W[1] + W[2];
     assert(entry_size > 0);
     assert(data.size() % entry_size == 0);
@@ -224,10 +238,11 @@ std::optional<std::vector<XrefEntry>> parse_xref_stream(std::string_view data,
             assert(raw_entry.f2 == 0);
             break;
         case 1:
-            refs.emplace_back(XrefEntry{(int32_t)raw_entry.f3, raw_entry.f2, {}});
+            refs.emplace_back(UnpackedXRef{(int32_t)raw_entry.f3, raw_entry.f2, {}});
             break;
         case 2:
-            break; // FIXME
+            refs.emplace_back(PackedXRef(raw_entry.f2, raw_entry.f3));
+            break;
         default:
             std::abort();
         }
@@ -235,8 +250,8 @@ std::optional<std::vector<XrefEntry>> parse_xref_stream(std::string_view data,
     return refs;
 }
 
-std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
-    std::vector<XrefEntry> refs;
+std::optional<std::vector<XRef>> parse_xreftable(std::string_view xref) {
+    std::vector<XRef> refs;
     const char *data_in;
     if(xref.find("xref\n") == 0) {
         data_in = xref.data() + 5;
@@ -312,13 +327,13 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
             return {};
         }
         }
-        refs.push_back(XrefEntry{(int32_t)obj_generation, size_t(obj_offset), {}});
+        refs.push_back(UnpackedXRef{(int32_t)obj_generation, size_t(obj_offset), {}});
         data_in += xref_entry_size;
     }
     return refs;
 }
 
-std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
+std::optional<std::vector<ObjectData>> parse_pdf(std::string_view data) {
     if(data.find("%PDF-") != 0) {
         printf("Not a valid PDF file.\n");
         return {};
@@ -353,22 +368,49 @@ std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
         printf("Cross reference offset incorrect.\n");
         return {};
     }
+    std::vector<ObjectData> objs;
+    objs.reserve(1024);
     auto xreftable_maybe = parse_xreftable(data.substr(xrefstart));
     if(!xreftable_maybe) {
         return {};
     }
     auto &xreftable = *xreftable_maybe;
+    ObjectData *objstm = nullptr;
     for(auto &xref : xreftable) {
-        if(xref.offset >= data.size()) {
-            printf("Xref points past end of file.\n");
-            return {};
+        if(auto *uxref = std::get_if<UnpackedXRef>(&xref)) {
+            if(uxref->offset >= data.size()) {
+                printf("Xref points past end of file.\n");
+                return {};
+            }
+            if(uxref->obj_generation == free_generation) {
+                continue;
+            }
+            auto bd = load_binary_data(data.substr(uxref->offset));
+            objs.emplace_back(uxref->generation, std::move(bd.dict), std::move(bd.stream));
+            if(objs.back().dict.find("/ObjStm") != std::string::npos) {
+                objstm = &objs.back();
+            }
+        } else if(auto *cxref = std::get_if<PackedXRef>(&xref)) {
+            objs.push_back(ObjectData{});
+        } else {
+            printf("Skibidi.\n");
+            std::abort();
         }
-        if(xref.obj_generation == free_generation) {
-            continue;
-        }
-        xref.bd = load_binary_data(data.substr(xref.offset));
     }
-    return std::move(xreftable);
+    /*
+    if(objstm) {
+        // Unpack compressed objects.
+        PdfParser pp(objstm->dict);
+
+        for(size_t i=0; i<xreftable.size(); ++i) {
+            const auto &xref = xreftable[i];
+            if(auto *cxref = std::get_if<PackedXRef>(&xref)) {
+                cxref->
+            }
+        }
+    }
+*/
+    return std::move(objs);
 }
 
 void load_file(App &a, const std::filesystem::path &ifile) {
@@ -423,14 +465,14 @@ void save_stream(App &a, const std::filesystem::path &ofile) {
         return;
     }
     const auto &outobj = a.objects[index];
-    if(outobj.bd.stream.empty()) {
+    if(outobj.stream.empty()) {
         printf("Object stream is empty");
         return;
     }
-    if(outobj.bd.dict.find("/FlateDecode") == std::string::npos) {
-        write_file(ofile, outobj.bd.stream);
+    if(outobj.dict.find("/FlateDecode") == std::string::npos) {
+        write_file(ofile, outobj.stream);
     } else {
-        auto inflated = inflate(outobj.bd.stream);
+        auto inflated = inflate(outobj.stream);
         write_file(ofile, inflated);
     }
 }
@@ -451,7 +493,7 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     auto buf = gtk_text_view_get_buffer(a->obj_text);
     assert(index >= 0);
     assert((size_t)index < a->objects.size());
-    const auto &raw_dict = a->objects[index].bd.dict;
+    const auto &raw_dict = a->objects[index].dict;
     std::string cleaned_dict;
     PdfParser pparser(raw_dict);
     auto parseout = pparser.parse();
@@ -469,8 +511,8 @@ void selection_changed_cb(GtkTreeSelection *selection, gpointer data) {
     gtk_text_buffer_set_text(buf, cleaned_dict.c_str(), cleaned_dict.size());
 
     buf = gtk_text_view_get_buffer(a->stream_text);
-    const auto &streamtext = a->objects[index].bd.stream;
-    if(a->objects[index].bd.dict.find("FlateDecode") != std::string::npos) {
+    const auto &streamtext = a->objects[index].stream;
+    if(a->objects[index].dict.find("FlateDecode") != std::string::npos) {
         auto inflated = inflate(streamtext);
         gtk_text_buffer_set_text(buf, inflated.c_str(), inflated.length());
     } else {
