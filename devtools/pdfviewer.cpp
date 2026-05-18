@@ -216,7 +216,7 @@ std::optional<std::vector<XrefEntry>> parse_xref_stream(std::string_view data,
     assert(entry_size > 0);
     assert(data.size() % entry_size == 0);
     const auto num_xrefs = data.size() / entry_size;
-    for(int i = 0; i < num_xrefs; ++i) {
+    for(size_t i = 0; i < num_xrefs; ++i) {
         const char *current = data.data() + i * entry_size;
         auto raw_entry = unpack_entry(current, W);
         switch(raw_entry.f1) {
@@ -250,7 +250,25 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
             return {};
         }
         auto inflated = inflate(obj->stream);
-        std::array<int, 3> W{1, 2, 2}; // FIXME
+        std::array<int, 3> W;
+        bool was_found = false;
+        for(const auto &d : obj->dicts) {
+            const auto f = d.find("W");
+            if(f != d.end()) {
+                const auto &w_entry = f->second;
+                const auto &w_array_index = std::get<PdfNodeArray>(w_entry);
+                const auto &w_array = obj->arrays[w_array_index.i];
+                W[0] = std::get<int64_t>(w_array[0]);
+                W[1] = std::get<int64_t>(w_array[1]);
+                W[2] = std::get<int64_t>(w_array[2]);
+                was_found = true;
+                break;
+            }
+        }
+        if(!was_found) {
+            printf("XRef object is malformed.\n");
+            return {};
+        }
         return parse_xref_stream(inflated, W);
         std::abort();
     }
@@ -301,7 +319,7 @@ std::optional<std::vector<XrefEntry>> parse_xreftable(std::string_view xref) {
 }
 
 std::optional<std::vector<XrefEntry>> parse_pdf(std::string_view data) {
-    if(data.find("%PDF-1.") != 0) {
+    if(data.find("%PDF-") != 0) {
         printf("Not a valid PDF file.\n");
         return {};
     }
