@@ -922,6 +922,7 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     std::optional<int32_t> names_object;
 
     fmt.begin_dict();
+    fmt.add_token_pair("/Type", "/Catalog");
 
     if(docprops.require_embedded_files() || !embedded_files.empty()) {
         ERC(names, create_name_dict());
@@ -939,7 +940,6 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         create_structure_root_dict();
         structure_object = *structure_root_object;
     }
-    fmt.add_token_pair("/Type", "/Catalog");
     fmt.add_token("/Pages");
     fmt.add_object_ref(pages_object);
 
