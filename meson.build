@@ -1,11 +1,8 @@
 project('capypdf', 'cpp', 'c',
   version: '0.20.99',
-  meson_version: '>=1.5.1',
+  meson_version: '>=1.10',
   default_options : ['cpp_std=c++23,c++latest',
-                     # Re-enable once Ubuntu CI updates.
-                     # https://github.com/jpakkane/capypdf/issues/117
-                     #'namingscheme=platform',
-                     ])
+                     'namingscheme=platform'])
 
 version = meson.project_version()
 varr = version.split('.')
