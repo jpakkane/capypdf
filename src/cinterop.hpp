@@ -92,3 +92,5 @@ struct _capyPDF_NumberFormat {};
 struct _capyPDF_Measure {};
 
 struct _capyPDF_Viewport {};
+
+struct _capyPDF_Collection {};

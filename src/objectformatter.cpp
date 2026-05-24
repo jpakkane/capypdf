@@ -164,6 +164,12 @@ void ObjectFormatter::add_pdfstring(const asciistring &str) {
     added_item();
 }
 
+void ObjectFormatter::add_bytestring(const std::string_view str) {
+    auto quoted = pdfstring_quote(str);
+    add_token(quoted);
+    added_item();
+}
+
 void ObjectFormatter::add_utf8_string(const u8string &ustr) {
     check_indent();
     const auto u16repr = utf8_to_pdfutf16be(ustr);

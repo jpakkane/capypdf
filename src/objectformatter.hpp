@@ -78,6 +78,7 @@ public:
     void add_token_with_slash(std::string_view name);
     void add_object_ref(int32_t onum);
     void add_pdfstring(const asciistring &str);
+    void add_bytestring(const std::string_view str);
     void add_utf8_string(const u8string &ustr);
 
     std::string steal();

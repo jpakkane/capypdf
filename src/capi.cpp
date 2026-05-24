@@ -904,6 +904,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_set_collection(CapyPDF_Generator *gen,
+                                                        CapyPDF_Collection *coll) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *g = static_cast<PdfGen *>(gen);
+    auto *c = static_cast<Collection *>(coll);
+
+    return conv_err(g->set_collection(std::move(*c)));
+
+    API_BOUNDARY_END;
+}
+
 CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
@@ -3350,6 +3361,44 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_new(const char *name,
 CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_destroy(CapyPDF_NumberFormat *f) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<NumberFormat *>(f);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+// Collection
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_new(CapyPDF_Collection **out_ptr) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = new Collection{};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_D(CapyPDF_Collection *coll,
+                                                const char *buf,
+                                                int32_t bufsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<Collection *>(coll);
+    auto rc = validate_cstring(buf, bufsize);
+    if(rc) {
+        c->D = std::move(rc.value());
+    }
+    return conv_err(rc);
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_View(CapyPDF_Collection *coll,
+                                                   CapyPDF_Collection_View view) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<Collection *>(coll);
+    c->View = view;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_destroy(CapyPDF_Collection *coll) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<Collection *>(coll);
     RETNOERR;
     API_BOUNDARY_END;
 }

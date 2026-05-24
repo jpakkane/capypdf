@@ -32,7 +32,7 @@ const std::array<const char *, 6> PDF_header_strings = {"%PDF-1.3\n%\xe5\xf6\xc4
                                                         "%PDF-1.7\n%\xe5\xf6\xc4\xd6\n",
                                                         "%PDF-2.0\n%\xe5\xf6\xc4\xd6\n"};
 
-const std::array<const char *, 10> Line_ending_styles = {"/Square",
+const std::array<const char *, 10> line_ending_styles = {"/Square",
                                                          "/Circle",
                                                          "/Diamond",
                                                          "/OpenArrow",
@@ -1001,8 +1001,8 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         if(line->end_styles) {
             fmt.add_token("/LE");
             fmt.begin_array();
-            fmt.add_token(Line_ending_styles.at(line->end_styles->first));
-            fmt.add_token(Line_ending_styles.at(line->end_styles->second));
+            fmt.add_token(line_ending_styles.at(line->end_styles->first));
+            fmt.add_token(line_ending_styles.at(line->end_styles->second));
             fmt.end_array();
         }
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {

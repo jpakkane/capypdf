@@ -150,6 +150,8 @@ const std::array<const char *, 3> blackpt_names{
     "/DEFAULT",
 };
 
+const std::array<const char *, 4> collection_view_names = {"/D", "/T", "/H", "/C"};
+
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
     if(v < 0 || v > 1.0) {
         RETERR(ColorOutOfRange);
@@ -1046,6 +1048,21 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
     if(document_md_object) {
         fmt.add_token("/Metadata");
         fmt.add_object_ref(*document_md_object);
+    }
+
+    if(collection) {
+        const auto &c = *collection;
+        fmt.add_token("/Collection");
+        fmt.begin_dict();
+        // fmt.add_token_pair("/Type", "/Collection");
+        if(!c.D.empty()) {
+            fmt.add_token("/D");
+            fmt.add_bytestring(c.D);
+        }
+        if(c.View) {
+            fmt.add_token_pair("/View", collection_view_names.at(c.View.value()));
+        }
+        fmt.end_dict();
     }
     fmt.end_dict();
     add_object(FullPDFObject{fmt.steal(), {}});
@@ -2185,6 +2202,14 @@ rvoe<NoReturnValue> PdfDocument::validate_format(const RawPixelImage &ri) const 
             RETERR(ImageFormatNotPermitted);
         }
     }
+    RETOK;
+}
+
+rvoe<NoReturnValue> PdfDocument::set_collection(Collection coll) {
+    if(collection) {
+        RETERR(CollectionExists);
+    }
+    collection = std::move(coll);
     RETOK;
 }
 

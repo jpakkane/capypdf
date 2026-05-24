@@ -103,6 +103,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Field state name must not be empty.",
 "Incorrect field type.",
 "The metadata XML must contain a \"pdf:Producer\" entry with the value \"CapyPDF\".",
+"Collection object already exists.",
 };
 
 // clang-format on

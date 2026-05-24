@@ -510,6 +510,7 @@ typedef struct _capyPDF_FormField CapyPDF_FormField;
 typedef struct _capyPDF_NumberFormat CapyPDF_NumberFormat;
 typedef struct _capyPDF_Measure CapyPDF_Measure;
 typedef struct _capyPDF_Viewport CapyPDF_Viewport;
+typedef struct _capyPDF_Collection CapyPDF_Collection;
 
 typedef int32_t CapyPDF_EC;
 
@@ -802,12 +803,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_rolemap_entry(CapyPDF_Generator *ge
                                                            CapyPDF_Structure_Type builtin,
                                                            CapyPDF_RoleId *out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
-CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen)
-    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_set_collection(
+    CapyPDF_Generator *gen, CapyPDF_Collection *coll) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_outline(CapyPDF_Generator *gen,
                                                      const CapyPDF_Outline *outline,
                                                      CapyPDF_OutlineId *out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_generator_destroy(CapyPDF_Generator *gen)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Probably not final API.
@@ -1544,6 +1548,18 @@ CAPYPDF_PUBLIC CapyPDF_EC
 capy_number_format_new(const char *name, int32_t namelen, double C, CapyPDF_NumberFormat **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_number_format_destroy(CapyPDF_NumberFormat *f)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+// Collections
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_new(CapyPDF_Collection **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_D(CapyPDF_Collection *coll,
+                                                const char *buf,
+                                                int32_t bufsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_View(
+    CapyPDF_Collection *coll, CapyPDF_Collection_View view) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_destroy(CapyPDF_Collection *coll)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Error

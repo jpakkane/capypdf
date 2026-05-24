@@ -159,6 +159,8 @@ public:
         return pdoc.add_3d_stream(std::move(stream));
     }
 
+    rvoe<NoReturnValue> set_collection(Collection c) { return pdoc.set_collection(std::move(c)); }
+
 private:
     PdfGen(const char *ofname,
            std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft_,

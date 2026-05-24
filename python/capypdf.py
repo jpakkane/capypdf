@@ -287,6 +287,12 @@ class FormFieldType(Enum):
     CH = 2
     #SIG = 3
 
+class CollectionView(Enum):
+    D=0
+    T=1
+    H=2
+    C=3
+
 class CapyPDFException(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -406,6 +412,7 @@ cfunc_types = (
 ('capy_generator_add_form_field', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_add_rolemap_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, enum_type, ctypes.c_void_p]),
 ('capy_generator_add_3d_stream', [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]),
+('capy_generator_set_collection', [ctypes.c_void_p, ctypes.c_void_p]),
 ('capy_generator_destroy', [ctypes.c_void_p]),
 
 ('capy_page_draw_context_new', [ctypes.c_void_p, ctypes.c_void_p]),
@@ -675,6 +682,12 @@ cfunc_types = (
 ('capy_form_field_set_T', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_add_Opt_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_destroy', [ctypes.c_void_p]),
+
+
+('capy_collection_new', [ctypes.c_void_p]),
+('capy_collection_set_D', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_collection_set_View', [ctypes.c_void_p, enum_type]),
+('capy_collection_destroy', [ctypes.c_void_p]),
 
 )
 
@@ -1363,6 +1376,12 @@ class Generator:
         check_error(libfile.capy_generator_add_3d_stream(self, stream, ctypes.pointer(tdid)))
         return tdid
 
+    def set_collection(self, coll):
+        if not isinstance(coll, Collection):
+            raise CapyPDFException('Argument must be a collection object.')
+        check_error(libfile.capy_generator_set_collection(self,coll))
+
+
 class SoftMask:
     def __init__(self, subtype, tgid):
         if not isinstance(subtype, SoftMaskSubType):
@@ -1375,6 +1394,7 @@ class SoftMask:
 
     def __del__(self):
         check_error(libfile.capy_soft_mask_destroy(self))
+
 
 class TextSequence:
     def __init__(self):
@@ -1490,6 +1510,7 @@ class Text:
     def cmd_gs(self, gsid):
         check_error(libfile.capy_text_cmd_gs(self, gsid))
 
+
 class Color:
     def __init__(self):
         self._as_parameter_ = None
@@ -1524,6 +1545,7 @@ class Color:
 
     def set_lab(self, lab_id, l, a, b):
         check_error(libfile.capy_color_set_lab(self, lab_id, l, a, b))
+
 
 class Transition:
     def __init__(self):
@@ -2119,3 +2141,24 @@ class FormField:
     def add_Opt_entry(self, entry):
         ebytes = entry.encode('UTF-8')
         check_error(libfile.capy_form_field_add_Opt_entry(self, ebytes, len(ebytes)))
+
+class Collection:
+    def __init__(self):
+        o = ctypes.c_void_p()
+        check_error(libfile.capy_collection_new(ctypes.pointer(o)))
+        self._as_parameter_ = o
+
+    def __del__(self):
+        check_error(libfile.capy_collection_destroy(self))
+
+    def set_D(self, text):
+        if isinstance(V, bytes):
+            vbytes = V
+        else:
+            vbytes = V.encode('UTF-8')
+        check_error(libfile.capy_collection_set_D(self, vbytes, len(vbytes)))
+
+    def set_View(self, view):
+        if not isinstance(view, CollectionView):
+            raise CapyPDFException('Argument must be a CollectionView.')
+        check_error(libfile.capy_collection_set_View(self, view.value))

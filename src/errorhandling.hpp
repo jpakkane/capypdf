@@ -101,6 +101,7 @@ enum class ErrorCode : int32_t {
     FieldStateNameMissing,
     IncorrectFieldType,
     ProducerMissingCapy,
+    CollectionExists,
 
     // When you add an error code here, also add the string representation in the .cpp file.
     NumErrors,

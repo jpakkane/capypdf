@@ -419,6 +419,12 @@ struct ImageObjectMetadata {
     }
 };
 
+struct Collection : public _capyPDF_Collection {
+    // Something Schema.
+    std::string D;
+    std::optional<CapyPDF_Collection_View> View;
+};
+
 // Not really the best place for this but it'll do for now.
 rvoe<NoReturnValue>
 serialize_destination(ObjectFormatter &fmt, const Destination &dest, int32_t page_object_number);
@@ -539,6 +545,8 @@ public:
     std::vector<int32_t> get_widget_kids_of(CapyPDF_FormFieldId widget) const;
     std::vector<int32_t> get_field_kids_of(CapyPDF_FormFieldId widget) const;
 
+    rvoe<NoReturnValue> set_collection(Collection coll);
+
 private:
     PdfDocument(const DocumentProperties &d, PdfColorConverter cm);
     rvoe<NoReturnValue> init();
@@ -612,6 +620,9 @@ private:
     std::vector<FunctionInfo> functions;
     std::vector<ShadingInfo> shadings;
     std::vector<RolemapEnty> rolemap;
+
+    std::optional<Collection> collection;
+
     // A form widget can be used on one and only one page.
     std::unordered_map<CapyPDF_AnnotationId, int32_t> annotation_use;
     std::unordered_map<CapyPDF_StructureItemId, StructureUsage> structure_use;
