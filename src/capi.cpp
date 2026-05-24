@@ -3030,6 +3030,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_pdf_name(CapyPDF_EmbeddedFile *efile,
+                                                          const char *pdf_name,
+                                                          int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *eobj = static_cast<EmbeddedFile *>(efile);
+    auto rc = validate_utf8(pdf_name, strsize);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    eobj->pdfname = std::move(rc.value());
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<EmbeddedFile *>(efile);

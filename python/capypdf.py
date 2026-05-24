@@ -661,6 +661,7 @@ cfunc_types = (
 
 ('capy_embedded_file_new', [ctypes.c_char_p, ctypes.c_void_p]),
 ('capy_embedded_file_set_subtype', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
+('capy_embedded_file_set_pdf_name', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_embedded_file_destroy', [ctypes.c_void_p]),
 
 ('capy_font_properties_new', [ctypes.c_void_p]),
@@ -682,7 +683,6 @@ cfunc_types = (
 ('capy_form_field_set_T', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_add_Opt_entry', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_form_field_destroy', [ctypes.c_void_p]),
-
 
 ('capy_collection_new', [ctypes.c_void_p]),
 ('capy_collection_set_D', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
@@ -2061,6 +2061,10 @@ class EmbeddedFile:
     def set_subtype(self, subtype):
         sbytes = subtype.encode('UTF-8')
         check_error(libfile.capy_embedded_file_set_subtype(self, sbytes, len(sbytes)))
+
+    def set_pdf_name(self, pdfname):
+        pbytes = pdfname.encode('UTF-8')
+        check_error(libfile.capy_embedded_file_set_pdf_name(self, pbytes, len(pbytes)))
 
     def __del__(self):
         check_error(libfile.capy_embedded_file_destroy(self))

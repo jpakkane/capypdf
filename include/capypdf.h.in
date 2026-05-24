@@ -1456,6 +1456,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *e
                                                          const char *subtype,
                                                          int32_t strsize)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_pdf_name(CapyPDF_EmbeddedFile *efile,
+                                                          const char *pdf_name,
+                                                          int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_destroy(CapyPDF_EmbeddedFile *efile)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
