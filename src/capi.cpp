@@ -416,7 +416,14 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_document_properties_set_metadata_xml(
     if(!rx) {
         return conv_err(rx.error());
     }
-    dp->metadata_xml = std::move(rx.value());
+    auto &xml = rx.value();
+    // Yes, this can be easily hacked around with e.g. a comment entry.
+    // Think of it more like an honor system.
+    const auto f = xml.sv().find("pdf:Producer>CapyPDF");
+    if(f == std::string_view::npos) {
+        return conv_err(ErrorCode::ProducerMissingCapy);
+    }
+    dp->metadata_xml = std::move(xml);
     RETNOERR;
     API_BOUNDARY_END;
 }
