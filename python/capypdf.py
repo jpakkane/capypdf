@@ -766,6 +766,7 @@ def to_array(ctype, array):
         raise CapyPDFException('Array value argument must be an list or tuple.')
     return (ctype * len(array))(*array), len(array)
 
+
 class DocumentProperties:
     def __init__(self):
         prop = ctypes.c_void_p()
@@ -838,6 +839,7 @@ class DocumentProperties:
         xmlbytes = xmldata.encode('UTF-8')
         check_error(libfile.capy_document_properties_set_metadata_xml(self, xmlbytes, len(xmlbytes)))
 
+
 class PageProperties:
     def __init__(self):
         opt = ctypes.c_void_p()
@@ -854,6 +856,7 @@ class PageProperties:
         if not isinstance(trgroup, TransparencyGroupProperties):
             raise CapyPDFException('Argument must be transparency group proprerty object.')
         check_error(libfile.capy_page_properties_set_transparency_group_properties(self, trgroup))
+
 
 class DrawContextBase:
 
@@ -1096,6 +1099,7 @@ class DrawContext(DrawContextBase):
     def annotate(self, annotation_id):
         check_error(libfile.capy_dc_annotate(self, annotation_id))
 
+
 class ColorPatternDrawContext(DrawContextBase):
 
     def __init__(self, generator, l, b, r, t):
@@ -1104,6 +1108,7 @@ class ColorPatternDrawContext(DrawContextBase):
         check_error(libfile.capy_tiling_pattern_context_new(generator, ctypes.pointer(dcptr), l, b, r, t))
         self._as_parameter_ = dcptr
 
+
 class FormXObjectDrawContext(DrawContextBase):
 
     def __init__(self, generator, l, b, r, t):
@@ -1111,6 +1116,7 @@ class FormXObjectDrawContext(DrawContextBase):
         dcptr = ctypes.c_void_p()
         check_error(libfile.capy_form_xobject_new(generator, l, b, r, t, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
+
 
 class TransparencyGroupProperties():
     def __init__(self):
@@ -1139,6 +1145,7 @@ class TransparencyGroupDrawContext(DrawContextBase):
         check_error(libfile.capy_transparency_group_new(generator, left, bottom, right, top, ctypes.pointer(dcptr)))
         self._as_parameter_ = dcptr
 
+
 class StateContextManager:
     def __init__(self, ctx):
         self.ctx = ctx
@@ -1149,6 +1156,7 @@ class StateContextManager:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.ctx.cmd_Q()
+
 
 class MarkedContextManager:
 
@@ -1163,6 +1171,7 @@ class MarkedContextManager:
             self.dc.cmd_EMC()
         finally:
             self.dc = None # Not very elegant.
+
 
 class Generator:
     def __init__(self, filename, options=None):
@@ -1579,9 +1588,9 @@ class Transition:
     def set_B(self, B):
         check_error(libfile.capy_transition_set_S(self, int(B)))
 
-
     def __del__(self):
         check_error(libfile.capy_transition_destroy(self))
+
 
 class RasterImage:
     def __init__(self, cptr = None):
@@ -1612,6 +1621,7 @@ class RasterImage:
         check_error(libfile.capy_raster_image_has_profile(self, ctypes.pointer(val)))
         return True if val.value != 0 else False
 
+
 class RasterImageBuilder:
     def __init__(self, cptr = None):
         if cptr is None:
@@ -1637,7 +1647,6 @@ class RasterImageBuilder:
         if not isinstance(compression, Compression):
             raise CapyPDFException('Compression argument must be enum value.')
         check_error(libfile.capy_raster_image_builder_set_input_data_compression_format(self, compression.value))
-
 
     def build(self):
         opt = ctypes.c_void_p()
@@ -1706,6 +1715,7 @@ class OptionalContentGroup:
     def __del__(self):
         check_error(libfile.capy_optional_content_group_destroy(self))
 
+
 class Type2Function:
     def __init__(self, domain, c1, c2, n):
         self._as_parameter_ = None
@@ -1715,6 +1725,7 @@ class Type2Function:
 
     def __del__(self):
         check_error(libfile.capy_function_destroy(self))
+
 
 class Type3Function:
     def __init__(self, domain, functions, bounds, encode):
@@ -1730,6 +1741,7 @@ class Type3Function:
 
     def __del__(self):
         check_error(libfile.capy_function_destroy(self))
+
 
 class Type4Function:
     def __init__(self, domain, range_, code):
@@ -1765,6 +1777,7 @@ class Type2Shading:
 
     def __del__(self):
         check_error(libfile.capy_shading_destroy(self))
+
 
 class Type3Shading:
     def __init__(self, cs, coords, funcid):
@@ -1854,6 +1867,7 @@ class Type6Shading:
                         to_array(ctypes.c_void_p, colorptrs)[0]))
         else:
             raise CapyPDFException(f'Bad flag value {flag}')
+
 
 class Annotation:
     def __init__(self, handle):
@@ -1969,6 +1983,7 @@ class StructItemExtraData:
         chars = actual.encode('UTF-8')
         check_error(libfile.capy_struct_item_extra_data_set_actual_text(self, chars, len(chars)))
 
+
 class ImagePdfProperties:
     def __init__(self):
         ed = ctypes.c_void_p()
@@ -1986,6 +2001,7 @@ class ImagePdfProperties:
         if not isinstance(ival, ImageInterpolation):
             raise CapyPDFException('Argument must be image interpolation enum.')
         check_error(libfile.capy_image_lpdf_properties_set_interpolate(self, ival.value))
+
 
 class Destination:
     def __init__(self):
@@ -2011,6 +2027,7 @@ class Destination:
         d = ctypes.c_double(value)
         cptr = ctypes.pointer(d)
         return cptr
+
 
 class Outline:
     def __init__(self):
@@ -2041,6 +2058,7 @@ class Outline:
             raise CapyPDFException('Argument must be a parent id.')
         check_error(libfile.capy_outline_set_parent(self, parent))
 
+
 class ShadingPattern:
     def __init__(self, shid):
         o = ctypes.c_void_p()
@@ -2052,6 +2070,7 @@ class ShadingPattern:
 
     def __del__(self):
         check_error(libfile.capy_shading_pattern_destroy(self))
+
 
 class EmbeddedFile:
     def __init__(self):
@@ -2079,6 +2098,7 @@ class EmbeddedFile:
     def __del__(self):
         check_error(libfile.capy_embedded_file_destroy(self))
 
+
 class FontProperties:
     def __init__(self):
         o = ctypes.c_void_p()
@@ -2094,6 +2114,7 @@ class FontProperties:
 
     def __del__(self):
         check_error(libfile.capy_font_properties_destroy(self))
+
 
 class Halftone:
     def __init__(self):
@@ -2112,6 +2133,7 @@ class Halftone:
     def __del__(self):
         check_error(libfile.capy_halftone_destroy(self))
 
+
 class ThreeDStream:
     def __init__(self, filename, format):
         o = ctypes.c_void_p()
@@ -2121,6 +2143,7 @@ class ThreeDStream:
 
     def __del__(self):
         check_error(libfile.capy_3d_stream_destroy(self))
+
 
 class FormField:
     def __init__(self, fieldtype):
@@ -2155,6 +2178,7 @@ class FormField:
     def add_Opt_entry(self, entry):
         ebytes = entry.encode('UTF-8')
         check_error(libfile.capy_form_field_add_Opt_entry(self, ebytes, len(ebytes)))
+
 
 class Collection:
     def __init__(self):
