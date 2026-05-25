@@ -511,6 +511,8 @@ typedef struct _capyPDF_NumberFormat CapyPDF_NumberFormat;
 typedef struct _capyPDF_Measure CapyPDF_Measure;
 typedef struct _capyPDF_Viewport CapyPDF_Viewport;
 typedef struct _capyPDF_Collection CapyPDF_Collection;
+typedef struct _capyPDF_CollectionSchema CapyPDF_CollectionSchema;
+typedef struct _capyPDF_CollectionField CapyPDF_CollectionField;
 
 typedef int32_t CapyPDF_EC;
 
@@ -1565,9 +1567,35 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_collection_new(CapyPDF_Collection **out_ptr)
 CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_D(CapyPDF_Collection *coll,
                                                 const char *buf,
                                                 int32_t bufsize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
-CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_View(
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_schema(
+    CapyPDF_Collection *coll, CapyPDF_CollectionSchema *schema) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_view(
     CapyPDF_Collection *coll, CapyPDF_Collection_View view) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_collection_destroy(CapyPDF_Collection *coll)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_new(CapyPDF_CollectionSchema **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_add_entry(CapyPDF_CollectionSchema *schema,
+                                                           const char *name,
+                                                           int32_t namelen,
+                                                           CapyPDF_CollectionField *field)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_destroy(CapyPDF_CollectionSchema *coll)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_new(CapyPDF_Collection_Subtype subtype,
+                                                    const char *name,
+                                                    int32_t namelen,
+                                                    CapyPDF_CollectionField **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_O(CapyPDF_CollectionField *coll,
+                                                      int32_t O) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_V(CapyPDF_CollectionField *coll,
+                                                      int32_t V) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_E(CapyPDF_CollectionField *coll,
+                                                      int32_t E) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_destroy(CapyPDF_CollectionField *coll)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
 
 // Error

@@ -688,7 +688,7 @@ cfunc_types = (
 
 ('capy_collection_new', [ctypes.c_void_p]),
 ('capy_collection_set_D', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
-('capy_collection_set_View', [ctypes.c_void_p, enum_type]),
+('capy_collection_set_view', [ctypes.c_void_p, enum_type]),
 ('capy_collection_destroy', [ctypes.c_void_p]),
 
 )
@@ -2196,7 +2196,7 @@ class Collection:
             vbytes = V.encode('UTF-8')
         check_error(libfile.capy_collection_set_D(self, vbytes, len(vbytes)))
 
-    def set_View(self, view):
+    def set_view(self, view):
         if not isinstance(view, CollectionView):
             raise CapyPDFException('Argument must be a CollectionView.')
-        check_error(libfile.capy_collection_set_View(self, view.value))
+        check_error(libfile.capy_collection_set_view(self, view.value))

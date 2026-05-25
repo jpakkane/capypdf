@@ -95,6 +95,11 @@ void ObjectFormatter::add_token(size_t number) {
     added_item();
 }
 
+void ObjectFormatter::add_token(bool value) {
+    check_indent();
+    buf += value ? "true" : "false";
+}
+
 void ObjectFormatter::add_token_with_slash(const char *name) {
     check_indent();
     assert(name[0] != '/');

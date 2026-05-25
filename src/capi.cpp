@@ -3431,7 +3431,17 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_D(CapyPDF_Collection *coll,
     API_BOUNDARY_END;
 }
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_View(CapyPDF_Collection *coll,
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_schema(
+    CapyPDF_Collection *coll, CapyPDF_CollectionSchema *schema) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<Collection *>(coll);
+    auto *s = static_cast<CollectionSchema *>(schema);
+    c->schema = std::move(*s);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_view(CapyPDF_Collection *coll,
                                                    CapyPDF_Collection_View view) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     auto *c = static_cast<Collection *>(coll);
@@ -3443,6 +3453,96 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_collection_set_View(CapyPDF_Collection *coll,
 CAPYPDF_PUBLIC CapyPDF_EC capy_collection_destroy(CapyPDF_Collection *coll) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
     delete static_cast<Collection *>(coll);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_new(CapyPDF_CollectionSchema **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    *out_ptr = new CollectionSchema();
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_add_entry(CapyPDF_CollectionSchema *schema,
+                                                           const char *name,
+                                                           int32_t namelen,
+                                                           CapyPDF_CollectionField *field)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *s = static_cast<CollectionSchema *>(schema);
+    auto *f = static_cast<CollectionField *>(field);
+    auto rc = validate_ascii(name, namelen);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    auto &n = rc.value();
+    if(n.empty() || n.front() == '/') {
+        return conv_err(ErrorCode::SlashStart);
+    }
+    s->entries[n] = std::move(*f);
+    *f = CollectionField{};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_schema_destroy(CapyPDF_CollectionSchema *coll)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<CollectionSchema *>(coll);
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_new(CapyPDF_Collection_Subtype subtype,
+                                                    const char *name,
+                                                    int32_t namelen,
+                                                    CapyPDF_CollectionField **out_ptr)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto rc = validate_utf8(name, namelen);
+    if(!rc) {
+        return conv_err(rc);
+    }
+    *out_ptr = new CollectionField({}, subtype, std::move(rc.value()));
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_O(CapyPDF_CollectionField *coll,
+                                                      int32_t O) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<CollectionField *>(coll);
+    c->O = O;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_V(CapyPDF_CollectionField *coll,
+                                                      int32_t V) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<CollectionField *>(coll);
+    CHECK_BOOLEAN(V);
+    c->V = V;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_set_E(CapyPDF_CollectionField *coll,
+                                                      int32_t E) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *c = static_cast<CollectionField *>(coll);
+    CHECK_BOOLEAN(E);
+    c->E = E;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_destroy(CapyPDF_CollectionField *coll)
+    CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    delete static_cast<CollectionField *>(coll);
     RETNOERR;
     API_BOUNDARY_END;
 }

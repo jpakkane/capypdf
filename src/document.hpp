@@ -419,8 +419,20 @@ struct ImageObjectMetadata {
     }
 };
 
+struct CollectionField : public _capyPDF_CollectionField {
+    CapyPDF_Collection_Subtype subtype;
+    u8string N;
+    std::optional<int32_t> O;
+    std::optional<bool> V;
+    std::optional<bool> E;
+};
+
+struct CollectionSchema : public _capyPDF_CollectionSchema {
+    std::unordered_map<asciistring, CollectionField> entries;
+};
+
 struct Collection : public _capyPDF_Collection {
-    // Something Schema.
+    std::optional<CollectionSchema> schema;
     std::string D;
     std::optional<CapyPDF_Collection_View> View;
 };

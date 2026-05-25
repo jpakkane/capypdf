@@ -150,6 +150,15 @@ const std::array<const char *, 3> blackpt_names{
     "/DEFAULT",
 };
 
+const std::array<const char *, 6> collection_view_subtype_names{
+    "/F",
+    "/Desc",
+    "/ModDate",
+    "/CreationDate",
+    "/Size",
+    "/CompressedSize",
+};
+
 const std::array<const char *, 4> collection_view_names = {"/D", "/T", "/H", "/C"};
 
 template<typename T> rvoe<NoReturnValue> append_floatvalue(std::string &buf, double v) {
@@ -1061,6 +1070,30 @@ rvoe<NoReturnValue> PdfDocument::create_catalog() {
         }
         if(c.View) {
             fmt.add_token_pair("/View", collection_view_names.at(c.View.value()));
+        }
+        if(c.schema) {
+            fmt.add_token("/Schema");
+            fmt.begin_dict();
+            const auto &schema = c.schema.value();
+            for(const auto &[key, value] : schema.entries) {
+                fmt.add_token_with_slash(key.c_str());
+                fmt.begin_dict();
+                fmt.add_token("/Subtype");
+                fmt.add_token(collection_view_subtype_names.at(value.subtype));
+                fmt.add_token("/N");
+                fmt.add_utf8_string(value.N);
+                if(value.O) {
+                    fmt.add_token_pair("/O", value.O.value());
+                }
+                if(value.V) {
+                    fmt.add_token_pair("/V", value.V.value());
+                }
+                if(value.E) {
+                    fmt.add_token_pair("/E", value.E.value());
+                }
+                fmt.end_dict();
+            }
+            fmt.end_dict();
         }
         fmt.end_dict();
     }

@@ -94,3 +94,7 @@ struct _capyPDF_Measure {};
 struct _capyPDF_Viewport {};
 
 struct _capyPDF_Collection {};
+
+struct _capyPDF_CollectionSchema {};
+
+struct _capyPDF_CollectionField {};

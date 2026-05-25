@@ -121,6 +121,8 @@ public:
 
     bool operator==(const asciistring &o) const = default;
 
+    char front() const { return buf.front(); }
+
 private:
     explicit asciistring(std::string_view prevalidated_ascii) : buf(prevalidated_ascii) {}
     std::string buf;
