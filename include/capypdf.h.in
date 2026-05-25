@@ -1450,8 +1450,12 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm)
 
 // Embedded file.
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path, CapyPDF_EmbeddedFile **out_ptr)
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(CapyPDF_EmbeddedFile **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_load_file(
+    CapyPDF_EmbeddedFile *efile, const char *path) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_contents(
+    CapyPDF_EmbeddedFile *efile, const char *data, int32_t datasize) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_subtype(CapyPDF_EmbeddedFile *efile,
                                                          const char *subtype,
                                                          int32_t strsize)

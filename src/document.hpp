@@ -239,7 +239,7 @@ struct OutlineData {
 };
 
 struct EmbeddedFile : public _capyPDF_EmbeddedFile {
-    std::string path;
+    std::vector<std::byte> contents;
     u8string pdfname;
     asciistring subtype; // actually MIME
     u8string description;

@@ -2999,19 +2999,49 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_soft_mask_destroy(CapyPDF_SoftMask *sm) CAPYPDF_N
 
 // Embedded file
 
-CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(const char *path,
-                                                 CapyPDF_EmbeddedFile **out_ptr) CAPYPDF_NOEXCEPT {
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_new(CapyPDF_EmbeddedFile **out_ptr) CAPYPDF_NOEXCEPT {
     API_BOUNDARY_START;
+    auto *eobj = new EmbeddedFile();
+    eobj->pdfname = std::move(u8string::from_cstr("unnamed").value());
+    *out_ptr = eobj;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_load_file(CapyPDF_EmbeddedFile *efile,
+                                                       const char *path) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *eobj = static_cast<EmbeddedFile *>(efile);
     std::filesystem::path fspath(path);
     auto pathless_name = fspath.filename().string();
-    auto rc = validate_utf8(pathless_name.c_str(), pathless_name.size());
+
+    auto urc = validate_utf8(pathless_name.c_str(), pathless_name.size());
+    if(!urc) {
+        return conv_err(urc);
+    }
+    auto rc = load_file_as_bytes(path);
     if(!rc) {
         return conv_err(rc);
     }
-    auto *eobj = new EmbeddedFile();
-    eobj->path = path;
-    eobj->pdfname = std::move(rc.value());
-    *out_ptr = eobj;
+    eobj->contents = std::move(rc.value());
+    eobj->pdfname = std::move(urc.value());
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_contents(CapyPDF_EmbeddedFile *efile,
+                                                          const char *data,
+                                                          int32_t datasize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *eobj = static_cast<EmbeddedFile *>(efile);
+    if(datasize == -1) {
+        datasize = strlen(data);
+    }
+    if(datasize < 0) {
+        return conv_err(ErrorCode::InvalidBufsize);
+    }
+
+    eobj->contents.assign((const std::byte *)data, (const std::byte *)data + datasize);
     RETNOERR;
     API_BOUNDARY_END;
 }

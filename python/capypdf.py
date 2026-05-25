@@ -659,7 +659,9 @@ cfunc_types = (
                                      ctypes.c_double]),
 ('capy_shading_pattern_destroy', [ctypes.c_void_p]),
 
-('capy_embedded_file_new', [ctypes.c_char_p, ctypes.c_void_p]),
+('capy_embedded_file_new', [ctypes.c_void_p]),
+('capy_embedded_file_load_file', [ctypes.c_void_p, ctypes.c_char_p]),
+('capy_embedded_file_set_contents', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_embedded_file_set_subtype', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_embedded_file_set_pdf_name', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32]),
 ('capy_embedded_file_destroy', [ctypes.c_void_p]),
@@ -2052,11 +2054,19 @@ class ShadingPattern:
         check_error(libfile.capy_shading_pattern_destroy(self))
 
 class EmbeddedFile:
-    def __init__(self, path):
+    def __init__(self):
         o = ctypes.c_void_p()
-        fbytes = to_bytepath(path)
-        check_error(libfile.capy_embedded_file_new(fbytes, ctypes.pointer(o)))
+        check_error(libfile.capy_embedded_file_new(ctypes.pointer(o)))
         self._as_parameter_ = o
+
+    def load_file(self, path):
+        fbytes = to_bytepath(path)
+        check_error(libfile.capy_embedded_file_load_file(self, fbytes))
+
+    def set_contents(self, contents):
+        if not isinstance(contents, bytes):
+            raise CapyPDFException('Contents must be raw bytes.')
+        check_error(libfile.capy_embedded_file_set_contents(ctypes.pointer(o), contents, len(contents)))
 
     def set_subtype(self, subtype):
         sbytes = subtype.encode('UTF-8')

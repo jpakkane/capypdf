@@ -2002,19 +2002,19 @@ rvoe<CapyPDF_EmbeddedFileId> PdfDocument::embed_file(EmbeddedFile &ef) {
             RETERR(DuplicateName);
         }
     }
-    ERC(contents, load_file_as_bytes(ef.path));
     int32_t fileobj_id;
     {
         ObjectFormatter fmt;
         fmt.begin_dict();
         fmt.add_token_pair("/Type", "/EmbeddedFile");
-        fmt.add_token_pair("/Length", contents.size());
+        fmt.add_token_pair("/Length", ef.contents.size());
         if(!ef.subtype.empty()) {
             auto quoted = pdfname_quote(ef.subtype.sv());
             fmt.add_token_pair("/Subtype", quoted);
         }
         fmt.end_dict();
-        fileobj_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(contents))});
+        // FIXME: compress the data stream.
+        fileobj_id = add_object(FullPDFObject{fmt.steal(), RawData(std::move(ef.contents))});
     }
 
     {

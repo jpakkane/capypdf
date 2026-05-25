@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2023-2024 Jussi Pakkanen
 
+#include "utils.hpp"
 #include <generator.hpp>
-#include <cmath>
 
 using namespace capypdf::internal;
 
@@ -16,7 +16,7 @@ void file_embed() {
         GenPopper genpop("fembed_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         EmbeddedFile ef;
-        ef.path = "embed.txt";
+        ef.contents = load_file_as_bytes("embed.txt").value();
         ef.pdfname = u8string::from_cstr("embed.txt").value();
         auto efid = gen.embed_file(ef).value();
         auto fileannoid =
@@ -73,7 +73,7 @@ void video_player() {
         GenPopper genpop("mediaplayer_test.pdf", opts);
         PdfGen &gen = *genpop.g;
         EmbeddedFile ef;
-        ef.path = mediafile;
+        ef.contents = load_file_as_bytes(mediafile).value();
         ef.pdfname = u8string::from_cstr(mediafile).value();
         auto efid = gen.embed_file(ef).value();
         {
