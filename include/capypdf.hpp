@@ -760,8 +760,6 @@ public:
     void cmd_W() { CAPY_CPP_CHECK(capy_dc_cmd_W(*this)); }
     void cmd_Wstar() { CAPY_CPP_CHECK(capy_dc_cmd_Wstar(*this)); }
 
-    [[deprecated]] void draw_image(CapyPDF_ImageId iid) { return cmd_Do(iid); }
-
     void set_custom_page_properties(PageProperties const &props) {
         CAPY_CPP_CHECK(capy_dc_set_custom_page_properties(*this, props));
     }
