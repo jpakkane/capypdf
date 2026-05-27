@@ -51,11 +51,6 @@ if get_option('fuzzing')
     executable('cff_fuzzer', 'cff_fuzz.cpp',
     dependencies: capypdf_internal_dep)
 else
-    executable('fontgen',
-      'fontgen.cpp',
-      dependencies: capypdf_internal_dep,
-    )
-
     executable('cfftest',
       'cfftest.cpp',
       dependencies: capypdf_internal_dep,
