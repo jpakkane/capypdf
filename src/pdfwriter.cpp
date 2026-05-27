@@ -16,7 +16,7 @@
 #include <cassert>
 
 #ifdef _WIN32
-#include <io.h>ObjectFormatter &fmt,
+#include <io.h>
 #else
 #include <unistd.h>
 #endif
@@ -986,7 +986,7 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = doc.pages.at(physical_page).page_obj_num;
-            serialize_destination(fmt, linkobj->Dest.value(), page_object_number);
+            ERCV(serialize_destination(fmt, linkobj->Dest.value(), page_object_number));
         }
     } else if(auto line = std::get_if<LineAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/Line");
