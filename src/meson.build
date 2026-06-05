@@ -50,13 +50,4 @@ if get_option('fuzzing')
     dependencies: capypdf_internal_dep)
     executable('cff_fuzzer', 'cff_fuzz.cpp',
     dependencies: capypdf_internal_dep)
-else
-    executable('cfftest',
-      'cfftest.cpp',
-      dependencies: capypdf_internal_dep,
-    )
-
-    executable('fembedtest', 'fembedtest.cpp',
-      dependencies: [capypdf_internal_dep]
-    )
 endif
