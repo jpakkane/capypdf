@@ -1,6 +1,10 @@
+# When linking statically, we have to use the C++ linker
+# to bring in the C++ runtime.
+link_language = get_option('default_library') == 'static' ? 'cpp' : 'c'
+
 test('plainc', executable('ctest', 'ctest.c',
                           dependencies: capypdf_dep,
-                          link_language: 'c'))
+                          link_language: link_language))
 
 test('cppwrapper', executable('cpptest', 'cpptest.cpp', override_options: ['cpp_std=c++20'], dependencies: capypdf_dep))
 
