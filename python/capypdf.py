@@ -668,6 +668,7 @@ cfunc_types = (
 
 ('capy_font_properties_new', [ctypes.c_void_p]),
 ('capy_font_properties_set_subfont', [ctypes.c_void_p, ctypes.c_int32]),
+('capy_font_properties_set_named_instance', [ctypes.c_void_p, ctypes.c_uint32]),
 ('capy_font_properties_set_variation', [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int32, ctypes.c_int32]),
 ('capy_font_properties_destroy', [ctypes.c_void_p]),
 
@@ -2107,6 +2108,9 @@ class FontProperties:
 
     def set_subfont(self, subfont):
         check_error(libfile.capy_font_properties_set_subfont(self, subfont))
+
+    def set_named_instance(self, instance_index):
+        check_error(libfile.capy_font_properties_set_named_instance(self, instance_index))
 
     def set_variation(self, axis, value):
         axisbytes = axis.encode('ascii')

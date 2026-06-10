@@ -131,6 +131,7 @@ rvoe<std::string> build_subset_width_array(FT_Face face, const std::vector<TTGly
         if(glyph_id != 0) {
             auto error = FT_Load_Glyph(face, glyph_id, load_flags);
             if(error != 0) {
+                print_freetype_error(error);
                 RETERR(FreeTypeError);
             }
             horiadvance = face->glyph->metrics.horiAdvance;

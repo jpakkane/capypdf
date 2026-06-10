@@ -307,6 +307,10 @@ public:
         CAPY_CPP_CHECK(capy_font_properties_set_subfont(*this, subfont));
     }
 
+    void set_named_instance(int32_t instance_index) {
+        CAPY_CPP_CHECK(capy_font_properties_set_named_instance(*this, instance_index));
+    }
+
     void set_variation(const char *axis_name, int32_t strsize, int32_t value) {
         CAPY_CPP_CHECK(capy_font_properties_set_variation(*this, axis_name, strsize, value));
     }

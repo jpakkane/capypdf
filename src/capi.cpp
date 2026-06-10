@@ -3135,6 +3135,15 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_subfont(CapyPDF_FontPropertie
     API_BOUNDARY_END;
 }
 
+CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_named_instance(
+    CapyPDF_FontProperties *fprop, uint32_t instance_index) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto *fp = static_cast<FontProperties *>(fprop);
+    fp->instance_index = instance_index;
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
 CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_variation(CapyPDF_FontProperties *fprop,
                                                              const char *axis,
                                                              int32_t axis_size,

@@ -62,4 +62,6 @@ void quote_xml_element_data_unchecked_into(const std::string_view &content, std:
 std::span<std::byte> str2span(const std::string &s);
 std::string_view span2sv(std::span<std::byte> s);
 
+void print_freetype_error(int error_code);
+
 } // namespace capypdf::internal

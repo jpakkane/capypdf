@@ -37,6 +37,7 @@ rvoe<std::unique_ptr<PdfGen>> PdfGen::construct(const char *ofname, const Docume
     FT_Library ft_;
     auto error = FT_Init_FreeType(&ft_);
     if(error) {
+        print_freetype_error(error);
         RETERR(FreeTypeError);
     }
     std::unique_ptr<FT_LibraryRec_, FT_Error (*)(FT_LibraryRec_ *)> ft(ft_, FT_Done_FreeType);
@@ -180,6 +181,7 @@ PdfGen::utf8_text_width(const u8string &txt, CapyPDF_FontId fid, double pointsiz
             const auto index_right = FT_Get_Char_Index(face, codepoint);
             auto ec = FT_Get_Kerning(face, index_left, index_right, FT_KERNING_DEFAULT, &kerning);
             if(ec != 0) {
+                print_freetype_error(ec);
                 RETERR(FreeTypeError);
             }
             if(kerning.x != 0) {

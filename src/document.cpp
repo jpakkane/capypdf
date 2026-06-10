@@ -328,22 +328,44 @@ std::vector<NameProxy> sort_names(const std::vector<EmbeddedFileObject> &names) 
     return result;
 }
 
-rvoe<NoReturnValue> set_variations(FT_Face face, const FontProperties &props) {
+rvoe<NoReturnValue> initialize_multimaster(FT_Face face, const FontProperties &props) {
     FT_MM_Var *mmvar;
-    if(FT_Get_MM_Var(face, &mmvar) != 0) {
+    FT_Error error;
+    error = FT_Get_MM_Var(face, &mmvar);
+    if(error != 0) {
+        print_freetype_error(error);
         RETERR(VariationsNotSupported);
     }
     const auto num_axis = mmvar->num_axis;
 
+    FT_UInt named_instance;
+    if(props.instance_index) {
+        named_instance = *props.instance_index;
+    } else {
+        error = FT_Get_Default_Named_Instance(face, &named_instance);
+        if(error != 0) {
+            print_freetype_error(error);
+            RETERR(FreeTypeError);
+        }
+    }
+
+    error = FT_Set_Named_Instance(face, named_instance);
+    if(error != 0) {
+        print_freetype_error(error);
+        RETERR(FreeTypeError);
+    }
+
     std::vector<FT_Fixed> var_coords(num_axis);
-    if(FT_Get_Var_Design_Coordinates(face, num_axis, var_coords.data()) != 0) {
+    error = FT_Get_Var_Design_Coordinates(face, num_axis, var_coords.data());
+    if(error != 0) {
+        print_freetype_error(error);
         FT_Done_MM_Var(face->glyph->library, mmvar);
-        std::abort();
+        RETERR(FreeTypeError);
     }
 
     for(const auto &[key, value] : props.variations) {
         bool matched = false;
-        char unpacked_tag[5] = {0, 0, 0, 0};
+        char unpacked_tag[5] = {0, 0, 0, 0, 0};
         for(unsigned int i = 0; i < num_axis; ++i) {
             auto &ca = mmvar->axis[i];
             const auto swapped = std::byteswap(int32_t(ca.tag));
@@ -359,15 +381,37 @@ rvoe<NoReturnValue> set_variations(FT_Face face, const FontProperties &props) {
             RETERR(VariationNotFound);
         }
     }
-    FT_Done_MM_Var(face->glyph->library, mmvar);
+    error = FT_Done_MM_Var(face->glyph->library, mmvar);
+    if(error != 0) {
+        print_freetype_error(error);
+        RETERR(FreeTypeError);
+    }
 
-    if(FT_Set_Var_Design_Coordinates(face, num_axis, var_coords.data()) != 0) {
-        std::abort();
+    if(!var_coords.empty()) {
+        error = FT_Set_Var_Design_Coordinates(face, num_axis, var_coords.data());
+        if(error != 0) {
+            print_freetype_error(error);
+            RETERR(FreeTypeError);
+        }
     }
     return NoReturnValue{};
 }
 
 } // namespace
+
+void print_freetype_error(int error_code) {
+    // By default Freetype is compiled without
+    // error strings. Yay!
+    auto *ft_message = FT_Error_String(error_code);
+    if(ft_message) {
+        fprintf(stderr, "Freetype error:\n%s\n", ft_message);
+    } else {
+        fprintf(stderr,
+                "Freetype error. FT error strings not "
+                "available, error code %d.\n",
+                error_code);
+    }
+}
 
 const std::array<const char *, 4> rendering_intent_names{
     "RelativeColorimetric",
@@ -2160,18 +2204,7 @@ PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
                 {}};
     auto error = FT_New_Face(ft, fname, props.subfont, &face);
     if(error) {
-        // By default Freetype is compiled without
-        // error strings. Yay!
-        auto *ft_message = FT_Error_String(error);
-        if(ft) {
-            fprintf(stderr, "Freetype could not open font file %s:\n%s\n", fname, ft_message);
-        } else {
-            fprintf(stderr,
-                    "Freetype failed to open font %s, error code %d (FT error strings not "
-                    "available).",
-                    fname,
-                    error);
-        }
+        print_freetype_error(error);
         RETERR(FreeTypeError);
     }
     ttf.face.reset(face);
@@ -2179,8 +2212,12 @@ PdfDocument::load_font(FT_Library ft, const char *fname, FontProperties props) {
     if(!font_format) {
         RETERR(UnsupportedFormat);
     }
-    if(props.has_variations()) {
-        ERCV(set_variations(face, props));
+    if(FT_HAS_MULTIPLE_MASTERS(face)) {
+        ERCV(initialize_multimaster(face, props));
+    } else {
+        if(props.has_variations()) {
+            RETERR(VariationsNotSupported);
+        }
     }
     ERC(fontdata, load_and_parse_font_file(fname, props));
     assert(std::holds_alternative<TrueTypeFontFile>(fontdata));

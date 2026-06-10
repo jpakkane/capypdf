@@ -657,8 +657,9 @@ struct FontProperties : public _capyPDF_FontProperties {
     // - Other CID metadata at al
 
     std::unordered_map<std::string, uint32_t> variations;
+    std::optional<uint32_t> instance_index;
 
-    bool has_variations() const { return !variations.empty(); }
+    bool has_variations() const { return instance_index || !variations.empty(); }
 };
 
 struct ColorProfiles {
