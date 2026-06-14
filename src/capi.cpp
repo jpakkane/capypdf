@@ -3514,7 +3514,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_collection_field_new(CapyPDF_Collection_Subtype s
     if(!rc) {
         return conv_err(rc);
     }
-    *out_ptr = new CollectionField({}, subtype, std::move(rc.value()));
+    *out_ptr = new CollectionField({}, subtype, std::move(rc.value()), {}, {}, {});
     RETNOERR;
     API_BOUNDARY_END;
 }
