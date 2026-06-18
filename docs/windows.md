@@ -15,21 +15,10 @@ Mostly notes to self, but these may be helpful to others.
 - Windows needs the DLL to be in the path or the same directory as the exe, so either copy the DLL or edit with the absolute path to DLL, i.e:
   `set PATH=C:\path\to\src\;%PATH%`
 
-# Installing CapyPDF using Dependency Management Tools
+## Installing via package managers
 
-If you are using a dependency management tool,
-you can also install CapyPDF using the respective package manager,
-instead of compiling it from source code.
+CapyPDF is available in the following package repositories:
 
-## Conan
-
-You can download and install CapyPDF using the [Conan](https://conan.io/) dependency manager:
-
-```
-conan install -r conancenter --requires="capypdf/[*]" --build=missing
-```
-
-The CapyPDF package in Conan Center is maintained by
-[ConanCenterIndex](https://github.com/conan-io/conan-center-index) community.
-If the version is out of date or the package does not work,
-please create an issue or pull request on the [Conan Center Index repository](https://github.com/conan-io/conan-center-index).
+- **Conan Center**: https://conan.io/center/recipes/capypdf
+  Install with: `conan install -r conancenter --requires="capypdf/[*]" --build=missing`
+  The package is maintained by the [ConanCenterIndex](https://github.com/conan-io/conan-center-index) community. For package issues, open a ticket there.
