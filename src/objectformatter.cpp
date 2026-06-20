@@ -89,7 +89,7 @@ void ObjectFormatter::add_token(double number) {
 
 void ObjectFormatter::add_token(const PdfName &name) { add_token(name.sv()); }
 
-void ObjectFormatter::add_token(size_t number) {
+void ObjectFormatter::add_token(uint64_t number) {
     check_indent();
     std::format_to(app, "{}", number);
     added_item();

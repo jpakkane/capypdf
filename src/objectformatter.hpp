@@ -70,7 +70,7 @@ public:
     void add_token(std::string_view raw_text);
     void add_token(int32_t number);
     void add_token(uint32_t number);
-    void add_token(size_t number);
+    void add_token(uint64_t number);
     void add_token(double number);
     void add_token(bool value);
     void add_token(const PdfName &name);
