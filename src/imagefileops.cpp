@@ -374,7 +374,7 @@ struct TifBuf {
 
 tmsize_t tiffreadfunc(thandle_t h, void *buf, tmsize_t bufsize) {
     TifBuf *tiffdata = (TifBuf *)h;
-    auto num_bytes = std::min(bufsize, tiffdata->bufsize - tiffdata->fptr);
+    auto num_bytes = std::min((int64_t)bufsize, tiffdata->bufsize - tiffdata->fptr);
     assert(num_bytes >= 0);
     memcpy(buf, tiffdata->buf + tiffdata->fptr, num_bytes);
     tiffdata->fptr += num_bytes;
