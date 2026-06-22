@@ -773,7 +773,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_generator_add_icc_profile(CapyPDF_Generator *gen,
     API_BOUNDARY_START;
     auto *g = static_cast<PdfGen *>(gen);
     std::byte *bytebuf = (std::byte *)buf;
-    auto rc = g->add_icc_profile({bytebuf, bufsize}, num_channels);
+    const size_t narrowed = (std::size_t)bufsize; // The joys of 32 bit platforms.
+    auto rc = g->add_icc_profile({bytebuf, narrowed}, num_channels);
     if(rc) {
         *out_ptr = rc.value();
     }
