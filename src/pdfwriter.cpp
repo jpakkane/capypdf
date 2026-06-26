@@ -492,26 +492,36 @@ rvoe<NoReturnValue> PdfWriter::write_main_objstm(const std::vector<ObjectOffset>
 
 rvoe<NoReturnValue>
 PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_offsets,
-                                        uint64_t objstm_offset) {
+                                        uint64_t objstm_offset64) {
     const int32_t info = 1; // Info object is the first printed.
     ObjectFormatter fmt;
     size_t total_number_of_objects =
-        final_offsets.size() + 2; // One for objstm, one fore this object.
-    const size_t entry_size = 1 + 8 + 4;
+        final_offsets.size() + 2; // One for objstm, one for this object.
+    const size_t entry_size = 1 + 4 + 4;
     const int32_t root = total_number_of_objects - 3;
-    const uint64_t this_object_offset =
+    const uint64_t this_object_offset64 =
 #ifdef _MSC_VER
         _ftelli64(ofile);
 #else
         ftell(ofile);
 #endif
+    if(objstm_offset64 > ((uint32_t)-1)) {
+        RETERR(XRefOffsetTooBig);
+    }
+    if(this_object_offset64 > ((uint32_t)-1)) {
+        RETERR(XRefOffsetTooBig);
+    }
+    const uint32_t objstm_offset = (uint32_t)objstm_offset64;
+    const uint32_t this_object_offset = (uint32_t)this_object_offset64;
     auto documentid = create_trailer_id();
     fmt.begin_dict();
     fmt.add_token_pair("/Type", "/XRef");
     fmt.add_token("/W");
     fmt.begin_array();
     fmt.add_token(1);
-    fmt.add_token(8);
+    // Fixme: eventually this should be bumped to 8.
+    // https://github.com/jpakkane/capypdf/issues/126
+    fmt.add_token(4);
     fmt.add_token(4);
     fmt.end_array();
     fmt.add_token_pair("/Size", total_number_of_objects);
@@ -534,18 +544,23 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_o
     for(const auto &i : final_offsets) {
         if(first) {
             swap_and_append_bytes(stream, (uint8_t)0);
-            swap_and_append_bytes(stream, (uint64_t)0);
+            swap_and_append_bytes(stream, (uint32_t)0);
             swap_and_append_bytes(stream, (uint32_t)-1);
             first = false;
         } else {
             if(i.store_compressed) {
                 swap_and_append_bytes(stream, (uint8_t)2);
-                swap_and_append_bytes(stream, (uint64_t)compressed_object_number);
+                swap_and_append_bytes(stream, compressed_object_number);
                 swap_and_append_bytes(stream, (uint32_t)compressed_object_index);
                 ++compressed_object_index;
             } else {
                 swap_and_append_bytes(stream, (uint8_t)1);
-                swap_and_append_bytes(stream, (uint64_t)i.offset);
+                const uint64_t byte_offset64 = (uint64_t)i.offset;
+                if(byte_offset64 >= ((uint32_t)-1)) {
+                    RETERR(XRefOffsetTooBig);
+                }
+                const uint32_t byte_offset32 = (uint32_t)byte_offset64;
+                swap_and_append_bytes(stream, byte_offset32);
                 swap_and_append_bytes(stream, (uint32_t)0);
             }
         }

@@ -104,6 +104,7 @@ const std::array<const char *, (std::size_t)ErrorCode::NumErrors> error_texts{
 "Incorrect field type.",
 "The metadata XML must contain a \"pdf:Producer\" entry with the value \"CapyPDF\".",
 "Collection object already exists.",
+"Output file too big for xref table. Please report this issue in CapyPDF bug tracker.",
 };
 
 // clang-format on
