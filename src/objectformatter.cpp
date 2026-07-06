@@ -81,6 +81,14 @@ void ObjectFormatter::add_token(uint32_t number) {
     added_item();
 }
 
+#ifdef __APPLE__
+void ObjectFormatter::add_token(unsigned long number) {
+    check_indent();
+    std::format_to(app, "{}", number);
+    added_item();
+}
+#endif
+
 void ObjectFormatter::add_token(double number) {
     check_indent();
     std::format_to(app, "{:f}", number);

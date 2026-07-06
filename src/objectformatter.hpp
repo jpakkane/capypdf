@@ -75,6 +75,10 @@ public:
     void add_token(bool value);
     void add_token(const PdfName &name);
 
+#ifdef __APPLE__
+    void add_token(unsigned long number);
+#endif
+
     void add_token_with_slash(const char *name);
     void add_token_with_slash(std::string_view name);
     void add_object_ref(int32_t onum);
