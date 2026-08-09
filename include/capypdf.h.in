@@ -481,6 +481,23 @@ typedef enum {
     CAPY_COLLECTION_SUB_COMPRESSED_SIZE,
 } CapyPDF_Collection_Subtype;
 
+typedef enum {
+    CAPY_RUBBER_STAMP_APPROVED,
+    CAPY_RUBBER_STAMP_EXPERIMENTAL,
+    CAPY_RUBBER_STAMP_NOT_APPROVED,
+    CAPY_RUBBER_STAMP_AS_IS,
+    CAPY_RUBBER_STAMP_EXPIRED,
+    CAPY_RUBBER_STAMP_NOT_FOR_PUBLIC_RELEASE,
+    CAPY_RUBBER_STAMP_CONFIDENTIAL,
+    CAPY_RUBBER_STAMP_FINAL,
+    CAPY_RUBBER_STAMP_SOLD,
+    CAPY_RUBBER_STAMP_DEPARTMENTAL,
+    CAPY_RUBBER_STAMP_FOR_COMMENT,
+    CAPY_RUBBER_STAMP_TOP_SECRET,
+    CAPY_RUBBER_STAMP_DRAFT,
+    CAPY_RUBBER_STAMP_FOR_PUBLIC_RELEASE,
+} CapyPDF_Rubber_Stamp_Type;
+
 // These start with a lower case letter, because all
 // symbol names that start with an underscore + capital letter
 // are reserved for the standard library.
