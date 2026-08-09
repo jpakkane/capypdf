@@ -314,6 +314,12 @@ typedef enum {
     // CAPY_FORM_FIELD_TYPE_SIG,
 } CapyPDF_Form_Field_Type;
 
+typedef enum {
+    CAPY_SIG_NONE = 0,
+    CAPY_SIG_SIGNATURES_EXIST = (1 << 1),
+    CAPY_SIG_APPEND_ONLY = (1 << 2),
+} CapyPDF_Sig_Flags;
+
 // Note that some of these flags share the same bit values.
 // That is what the specification says.
 typedef enum {
