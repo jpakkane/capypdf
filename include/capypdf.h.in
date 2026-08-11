@@ -1366,6 +1366,10 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(CapyPDF_Annotation *anno
                                                         double y1,
                                                         double x2,
                                                         double y2) CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_Contents(CapyPDF_Annotation *annotation,
+                                                       const char *utf8_contents,
+                                                       int32_t strsize)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
     CapyPDF_Annotation *annotation, CapyPDF_Annotation_Flags flags) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(

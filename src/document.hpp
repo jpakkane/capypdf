@@ -258,9 +258,7 @@ struct FileAttachmentAnnotation {
     CapyPDF_EmbeddedFileId fileid;
 };
 
-struct TextAnnotation {
-    u8string content;
-};
+struct TextAnnotation {};
 
 struct Leaders {
     double LL;
@@ -332,6 +330,7 @@ typedef std::variant<TextAnnotation,
 struct Annotation : public _capyPDF_Annotation {
     AnnotationSubType sub;
     std::optional<PdfRectangle> rect;
+    u8string Contents;
     CapyPDF_Annotation_Flags flags{CAPY_ANNOTATION_FLAG_NONE};
 };
 

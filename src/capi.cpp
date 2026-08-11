@@ -2531,7 +2531,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_text_annotation_new(const char *utf8_text,
     if(!u8str) {
         return conv_err(u8str);
     }
-    *out_ptr = new Annotation{{}, TextAnnotation{std::move(u8str.value())}, {}};
+    *out_ptr = new Annotation{{}, TextAnnotation{}, {}, std::move(u8str.value())};
     RETNOERR;
     API_BOUNDARY_END;
 }
@@ -2631,6 +2631,20 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_rectangle(
     API_BOUNDARY_START;
     auto *a = static_cast<Annotation *>(annotation);
     a->rect = PdfRectangle{x1, y1, x2, y2};
+    RETNOERR;
+    API_BOUNDARY_END;
+}
+
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_Contents(CapyPDF_Annotation *annotation,
+                                                       const char *utf8_contents,
+                                                       int32_t strsize) CAPYPDF_NOEXCEPT {
+    API_BOUNDARY_START;
+    auto u8str = validate_utf8(utf8_contents, strsize);
+    if(!u8str) {
+        return conv_err(u8str);
+    }
+    auto *a = static_cast<Annotation *>(annotation);
+    a->Contents = std::move(*u8str);
     RETNOERR;
     API_BOUNDARY_END;
 }

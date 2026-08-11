@@ -977,10 +977,13 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
         fmt.add_token("/P");
         fmt.add_object_ref(loc->second);
     }
+    if(!annotation.a.Contents.empty()) {
+        fmt.add_token("/Contents");
+        fmt.add_token(utf8_to_pdfutf16be(annotation.a.Contents));
+    }
     if(const auto ta = std::get_if<TextAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/Text");
-        fmt.add_token("/Contents");
-        fmt.add_token(utf8_to_pdfutf16be(ta->content));
+        (void)ta;
     } else if(auto faa = std::get_if<FileAttachmentAnnotation>(&annotation.a.sub)) {
         fmt.add_token_pair("/Subtype", "/FileAttachment");
         fmt.add_token("/FS");
