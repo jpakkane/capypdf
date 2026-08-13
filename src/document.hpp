@@ -287,6 +287,10 @@ struct LineAnnotation {
     std::optional<Leaders> leaders;
 };
 
+struct SquareAnnotation {
+    std::optional<PdfRectangle> RD;
+};
+
 struct ClipTimes {
     double starttime;
     double endtime;
@@ -320,6 +324,7 @@ struct ThreeDAnnotation {
 typedef std::variant<TextAnnotation,
                      LinkAnnotation,
                      LineAnnotation,
+                     SquareAnnotation,
                      FileAttachmentAnnotation,
                      ScreenAnnotation,
                      WidgetAnnotation,

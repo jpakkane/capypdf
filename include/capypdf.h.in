@@ -1348,6 +1348,8 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_line_annotation_new(const char *utf8_text,
                                                    double y2,
                                                    CapyPDF_Annotation **out_ptr)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_square_annotation_new(CapyPDF_Annotation **out_ptr)
+    CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_file_attachment_annotation_new(
     CapyPDF_EmbeddedFileId fid, CapyPDF_Annotation **out_ptr) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_widget_annotation_new(CapyPDF_Annotation **out_ptr)
@@ -1370,6 +1372,11 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_Contents(CapyPDF_Annotation *annot
                                                        const char *utf8_contents,
                                                        int32_t strsize)
     CAPYPDF_DEFAULT_FUNCTION_PROPS;
+CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_RD(CapyPDF_Annotation *annotation,
+                                                 double x0,
+                                                 double y0,
+                                                 double x1,
+                                                 double y1) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_flags(
     CapyPDF_Annotation *annotation, CapyPDF_Annotation_Flags flags) CAPYPDF_DEFAULT_FUNCTION_PROPS;
 CAPYPDF_PUBLIC CapyPDF_EC capy_annotation_set_3d_stream(

@@ -1024,6 +1024,11 @@ rvoe<NoReturnValue> PdfWriter::write_annotation(int obj_num, const DelayedAnnota
             fmt.add_token(line_ending_styles.at(line->end_styles->second));
             fmt.end_array();
         }
+    } else if(auto square = std::get_if<SquareAnnotation>(&annotation.a.sub)) {
+        fmt.add_token_pair("/Subtype", "/Square");
+        if(square->RD) {
+            fmt.write_rectangle("RD", *square->RD);
+        }
     } else if(auto sa = std::get_if<ScreenAnnotation>(&annotation.a.sub)) {
         int32_t media_filespec = doc.get(sa->mediafile).filespec_obj;
         if(!sa->times) {
