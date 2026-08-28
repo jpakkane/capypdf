@@ -193,6 +193,8 @@ public:
 
     size_t current_size() const { return o.output.size(); }
 
+    size_t num_entries() const { return o.offsets.size(); }
+
 private:
     DictOutput o;
 };

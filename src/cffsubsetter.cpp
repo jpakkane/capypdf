@@ -741,6 +741,11 @@ void CFFWriter::write_fix(const OffsetPatch &p) {
 rvoe<NoReturnValue> CFFWriter::create_topdict() {
     CFFDictWriter topdict;
 
+    size_t fdarray_index = 99999;
+    size_t fdselect_index = 99999;
+    size_t charsets_index = 99999;
+    size_t charstrings_index = 99999;
+
     if(source.is_cid) {
         ERCV(copy_dict_item(topdict, DictOperator::ROS));
     } else {
@@ -759,7 +764,9 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
     if(source.is_cid) {
         ERCV(copy_dict_item(topdict, DictOperator::CIDFontVersion));
         ERCV(copy_dict_item(topdict, DictOperator::CIDCount));
-        ERCV(copy_dict_item(topdict, DictOperator::FDArray));  // offset needs to be fixed in post.
+        fdarray_index = topdict.num_entries();
+        ERCV(copy_dict_item(topdict, DictOperator::FDArray)); // offset needs to be fixed in post.
+        fdselect_index = topdict.num_entries();
         ERCV(copy_dict_item(topdict, DictOperator::FDSelect)); // offset needs to be fixed in post.
     } else {
         std::vector<int32_t> operand;
@@ -770,10 +777,14 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
         topdict.append_command(operand, DictOperator::CIDCount);
         operand.clear();
         operand.push_back(-1);
+        fdarray_index = topdict.num_entries();
         topdict.append_command(operand, DictOperator::FDArray);
+        fdselect_index = topdict.num_entries();
         topdict.append_command(operand, DictOperator::FDSelect);
     }
+    charsets_index = topdict.num_entries();
     ERCV(copy_dict_item(topdict, DictOperator::Charset)); // offset needs to be fixed in post.
+    charstrings_index = topdict.num_entries();
     ERCV(copy_dict_item(topdict,
                         DictOperator::CharStrings)); // offset needs to be fixed in post.
     // copy_dict_item(topdict, DictOperator::UnderlinePosition);
@@ -782,10 +793,10 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
     auto offsets = append_index(wrapper);
     assert(offsets.size() == 1);
     const auto dict_start = offsets.front();
-    fixups.fdarray.offset = serialization.offsets.at(8) + 1 + dict_start;
-    fixups.fdselect.offset = serialization.offsets.at(9) + 1 + dict_start;
-    fixups.charsets.offset = serialization.offsets.at(10) + 1 + dict_start;
-    fixups.charstrings.offset = serialization.offsets.at(11) + 1 + dict_start;
+    fixups.fdarray.offset = serialization.offsets.at(fdarray_index) + 1 + dict_start;
+    fixups.fdselect.offset = serialization.offsets.at(fdselect_index) + 1 + dict_start;
+    fixups.charsets.offset = serialization.offsets.at(charsets_index) + 1 + dict_start;
+    fixups.charstrings.offset = serialization.offsets.at(charstrings_index) + 1 + dict_start;
 
     /*
     uint32_t sanity_check_be;
