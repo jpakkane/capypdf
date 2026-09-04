@@ -135,12 +135,6 @@ class Annotation : public CapyC<CapyPDF_Annotation> {
 public:
     friend class Generator;
 
-    Annotation() {
-        CapyPDF_Annotation *annot;
-        CAPY_CPP_CHECK(capy_link_annotation_new(&annot));
-        _d.reset(annot);
-    }
-
     void set_uri(const char *u8str, int32_t slen) {
         CAPY_CPP_CHECK(capy_annotation_set_uri(*this, u8str, slen));
     }
@@ -154,6 +148,24 @@ public:
     void set_destination(Destination &dest) {
         CAPY_CPP_CHECK(capy_annotation_set_destination(*this, dest));
     }
+
+    static Annotation new_link_annotation() {
+        CapyPDF_Annotation *annot;
+        CAPY_CPP_CHECK(capy_link_annotation_new(&annot));
+        return Annotation(annot);
+    }
+
+    static Annotation new_text_annotation(const char *u8str, int32_t slen = -1) {
+        CapyPDF_Annotation *annot;
+        CAPY_CPP_CHECK(capy_text_annotation_new(u8str, slen, &annot));
+        return Annotation(annot);
+    }
+    template<ByteSequence T> static Annotation new_text_annotation(const T &text) {
+        return new_text_annotation(text.data(), text.size());
+    }
+
+private:
+    Annotation(CapyPDF_Annotation *annot) { _d.reset(annot); }
 };
 
 class BDCTags : public CapyC<CapyPDF_BDCTags> {
