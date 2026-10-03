@@ -42,7 +42,7 @@ uint32_t compute_codepoint(FT_Face face, const uint32_t glyph_id) {
     auto codepoint = FT_Get_First_Char(face, &agindex);
     while(agindex != 0) {
         if(agindex == glyph_id) {
-            return codepoint;
+            return (uint32_t)codepoint;
         }
         codepoint = FT_Get_Next_Char(face, codepoint, &agindex);
     }
@@ -120,9 +120,11 @@ void do_harfbuzz(PdfDrawContext &ctx, CapyPDF_FontId pdffont) {
                x_offset,
                hb_advance_in_font_units);
         printf("  %40.2f\n",
-               ftface->glyph->advance.x - hb_advance_in_font_units); // / ftface->units_per_EM);
-        const int32_t kerning_delta = int32_t(
-            (ftface->glyph->advance.x - hb_advance_in_font_units) / ftface->units_per_EM * 1000);
+               double(ftface->glyph->advance.x) -
+                   hb_advance_in_font_units); // / ftface->units_per_EM);
+        const int32_t kerning_delta =
+            int32_t((double(ftface->glyph->advance.x) - hb_advance_in_font_units) /
+                    ftface->units_per_EM * 1000);
         if(computed_cp < 128) {
             full_line.append_unicode(computed_cp);
         } else {

@@ -177,7 +177,7 @@ public:
     double get_w() const { return bbox.x2 - bbox.x1; }
     double get_h() const { return bbox.y2 - bbox.y1; }
 
-    int32_t marked_content_depth() const { return cmds.marked_content_depth(); }
+    int32_t marked_content_depth() const { return (int32_t)cmds.marked_content_depth(); }
 
     const std::unordered_set<CapyPDF_AnnotationId> &get_annotation_usage() const {
         return used_annotations;

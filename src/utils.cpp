@@ -122,7 +122,7 @@ rvoe<std::vector<std::byte>> flate_compress(std::string_view data) {
         RETERR(CompressionFailure);
     }
     std::unique_ptr<z_stream, int (*)(z_stream *)> zcloser(&strm, deflateEnd);
-    strm.avail_in = data.size();
+    strm.avail_in = (uInt)data.size();
     strm.next_in = (Bytef *)(data.data()); // Very unsafe.
 
     do {

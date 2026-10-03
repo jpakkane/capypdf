@@ -314,17 +314,17 @@ void print_info(const CFFont &cff) {
 }
 
 std::vector<uint32_t> append_index_to(std::vector<std::byte> &output, const CFFIndex &index) {
-    swap_and_append_bytes<uint16_t>(output, index.size());
+    swap_and_append_bytes<uint16_t>(output, (uint16_t)index.size());
     output.push_back(std::byte{4});
     std::vector<uint32_t> offsets;
     uint32_t offset = 1;
     for(const auto &e : index.entries) {
         swap_and_append_bytes(output, offset);
-        offset += e.size_bytes();
+        offset += (uint32_t)e.size_bytes();
     }
     swap_and_append_bytes(output, offset);
     for(const auto &e : index.entries) {
-        offsets.push_back(output.size());
+        offsets.push_back((uint32_t)output.size());
         append_bytes(output, e);
     }
     return offsets;
@@ -386,7 +386,7 @@ size_t write_private_dict(std::vector<std::byte> &output, const CFFPrivateDict &
     if(pd.subr) {
         // This is always last, so we know the layout.
         CFFDictItem e;
-        e.operand.push_back(w.current_size() + 1 + 4 + 1);
+        e.operand.push_back((int32_t)(w.current_size() + 1 + 4 + 1));
         e.opr = DictOperator::Subrs;
         w.append_command(e);
     }
@@ -538,7 +538,7 @@ rvoe<CFFont> parse_cff_data(DataSource source) {
         if(offset > dataspan.size_bytes()) {
             RETERR(MalformedFontFile);
         }
-        ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), f.char_strings.size()));
+        ERC(fdsstr, unpack_fdselect(dataspan.subspan(offset), (uint32_t)f.char_strings.size()));
         f.fdselect = std::move(fdsstr);
     }
     return f;
@@ -558,7 +558,7 @@ void append_ros_strings(CFFont &f) {
 
 uint8_t CFFont::get_fontdict_id(uint16_t glyph_id) const {
     if(!is_cid) {
-        return glyph_id;
+        return (uint8_t)glyph_id;
     }
     assert(!fdselect.empty());
     for(size_t i = 0; i < fdselect.size(); ++i) {
@@ -579,7 +579,7 @@ rvoe<CFFont> parse_cff_file(const char *fname) {
 }
 
 void CFFDictWriter::append_command(const std::vector<int32_t> &operands, DictOperator op) {
-    o.offsets.push_back(o.output.size());
+    o.offsets.push_back((uint16_t)o.output.size());
     for(const auto opr : operands) {
         o.output.push_back(std::byte{29});
         swap_and_append_bytes(o.output, opr);
@@ -603,9 +603,9 @@ rvoe<NoReturnValue> CFFWriter::create() {
     create_topdict();
     append_index(source.string);
     append_index(source.global_subr);
-    fixups.charsets.value = output.size();
+    fixups.charsets.value = (uint32_t)output.size();
     append_charset();
-    fixups.charstrings.value = output.size();
+    fixups.charstrings.value = (uint32_t)output.size();
     append_charstrings();
     append_fdthings();
     patch_offsets();
@@ -658,7 +658,7 @@ void CFFWriter::append_fdthings() {
             if(source_dict.priv) {
                 privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
                 CFFDictItem e;
-                e.operand.push_back(last_dict_size);
+                e.operand.push_back((int32_t)last_dict_size);
                 e.operand.push_back(-1); // Offset from the beginning of the file, fixed below.
                 e.opr = DictOperator::Private;
                 fdarray_dict_writer.append_command(e);
@@ -677,14 +677,14 @@ void CFFWriter::append_fdthings() {
         CFFDictItem e;
         privatereference_offsets.push_back(fdarray_dict_writer.current_size() + 6);
         // FIXME, add font name here.
-        e.operand.push_back(dict_size);
+        e.operand.push_back((int32_t)dict_size);
         e.operand.push_back(-1);
         e.opr = DictOperator::Private;
         fdarray_dict_writer.append_command(e);
         auto serialization = fdarray_dict_writer.steal();
         fontdicts.emplace_back(std::move(serialization.output));
     }
-    fixups.fdarray.value = output.size();
+    fixups.fdarray.value = (uint32_t)output.size();
     auto fdarray_index_offsets = append_index(fontdicts);
     const auto privatedict_area_start = output.size();
     output.insert(output.end(), privatedict_buffer.begin(), privatedict_buffer.end());
@@ -696,7 +696,7 @@ void CFFWriter::append_fdthings() {
         const auto privatereference_offset = privatereference_offsets[i];
         const auto privatedict_offset = privatedict_offsets[i];
         const auto write_location = fdarray_index_offset + privatereference_offset;
-        const uint32_t offset_value = privatedict_area_start + privatedict_offset;
+        const uint32_t offset_value = (uint32_t)(privatedict_area_start + privatedict_offset);
 
         if(privatereference_offset == (size_t)-1) {
             continue;
@@ -711,7 +711,7 @@ void CFFWriter::append_fdthings() {
     }
 
     // Now fdselect using the 16 bit format 3
-    fixups.fdselect.value = output.size();
+    fixups.fdselect.value = (uint32_t)output.size();
     auto fdrange = build_fdselect3(source, sub);
     assert(fdrange.size() <= 65535);
     output.push_back(std::byte(3));
@@ -751,8 +751,8 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
     } else {
         CFFDictItem ros;
         ros.opr = DictOperator::ROS;
-        ros.operand.push_back(391 + source.string.size() - 2);
-        ros.operand.push_back(391 + source.string.size() - 1);
+        ros.operand.push_back((int32_t)(391 + source.string.size() - 2));
+        ros.operand.push_back((int32_t)(391 + source.string.size() - 1));
         ros.operand.push_back(0);
         topdict.append_command(ros);
     }

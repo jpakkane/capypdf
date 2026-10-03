@@ -3051,7 +3051,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_load_file(CapyPDF_EmbeddedFile *efi
     std::filesystem::path fspath(path);
     auto pathless_name = fspath.filename().string();
 
-    auto urc = validate_utf8(pathless_name.c_str(), pathless_name.size());
+    auto urc = validate_utf8(pathless_name.c_str(), (int32_t)pathless_name.size());
     if(!urc) {
         return conv_err(urc);
     }
@@ -3071,7 +3071,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_embedded_file_set_contents(CapyPDF_EmbeddedFile *
     API_BOUNDARY_START;
     auto *eobj = static_cast<EmbeddedFile *>(efile);
     if(datasize == -1) {
-        datasize = strlen(data);
+        datasize = (int32_t)strlen(data);
     }
     if(datasize < 0) {
         return conv_err(ErrorCode::InvalidBufsize);
@@ -3166,7 +3166,7 @@ CAPYPDF_PUBLIC CapyPDF_EC capy_font_properties_set_subfont(CapyPDF_FontPropertie
         // This is a limitation of Freetype.
         return conv_err(ErrorCode::InvalidSubfont);
     }
-    fp->subfont = subfont;
+    fp->subfont = (uint16_t)subfont;
     RETNOERR;
     API_BOUNDARY_END;
 }

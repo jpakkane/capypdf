@@ -293,7 +293,7 @@ rvoe<NoReturnValue> PdfWriter::write_to_file_impl() {
     ERCV(write_header());
     ERCV(doc.create_catalog());
     ERC(final_offsets, write_objects());
-    compressed_object_number = final_offsets.size();
+    compressed_object_number = (uint32_t)final_offsets.size();
     if(use_xref) {
         const int64_t objstm_offset = ftell(ofile);
         ERCV(write_main_objstm(final_offsets));
@@ -354,7 +354,7 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
         },
 
         [&](const DelayedSubsetFontData &ssfont) -> rvoe<NoReturnValue> {
-            ERCV(write_subset_font_data(i, ssfont));
+            ERCV(write_subset_font_data((int32_t)i, ssfont));
             RETOK;
         },
 
@@ -365,26 +365,29 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
         // which is the same as the font id.
         [&](const DelayedSubsetFontDescriptor &ssfontd) -> rvoe<NoReturnValue> {
             const auto subset_id = ssfontd.fid.id;
-            ERCV(write_subset_font_descriptor(
-                i, doc.fonts.at(ssfontd.fid.id).fontdata, ssfontd.subfont_data_obj, subset_id));
+            ERCV(write_subset_font_descriptor((int32_t)i,
+                                              doc.fonts.at(ssfontd.fid.id).fontdata,
+                                              ssfontd.subfont_data_obj,
+                                              subset_id));
             RETOK;
         },
 
         [&](const DelayedSubsetCMap &sscmap) -> rvoe<NoReturnValue> {
-            ERCV(write_subset_cmap(i, doc.fonts.at(sscmap.fid.id)));
+            ERCV(write_subset_cmap((int32_t)i, doc.fonts.at(sscmap.fid.id)));
             RETOK;
         },
 
         [&](const DelayedSubsetFont &ssfont) -> rvoe<NoReturnValue> {
             const auto subset_id = ssfont.fid.id;
             ERCV(write_subset_font(
-                i, doc.fonts.at(ssfont.fid.id), ssfont.subfont_cmap_obj, subset_id));
+                (int32_t)i, doc.fonts.at(ssfont.fid.id), ssfont.subfont_cmap_obj, subset_id));
             RETOK;
         },
 
         [&](const DelayedCIDDictionary &ciddict) -> rvoe<NoReturnValue> {
             const auto subset_id = ciddict.fid.id;
-            ERCV(write_cid_dict(i, ciddict.fid, ciddict.subfont_descriptor_obj, subset_id));
+            ERCV(
+                write_cid_dict((int32_t)i, ciddict.fid, ciddict.subfont_descriptor_obj, subset_id));
             RETOK;
         },
 
@@ -399,17 +402,17 @@ rvoe<std::vector<ObjectOffset>> PdfWriter::write_objects() {
         },
 
         [&](const DelayedAnnotation &anno) -> rvoe<NoReturnValue> {
-            ERCV(write_annotation(i, anno));
+            ERCV(write_annotation((int32_t)i, anno));
             RETOK;
         },
 
         [&](const DelayedFormField &field) -> rvoe<NoReturnValue> {
-            ERCV(write_form_field(i, field));
+            ERCV(write_form_field((int32_t)i, field));
             RETOK;
         },
 
         [&](const DelayedStructItem &si) -> rvoe<NoReturnValue> {
-            ERCV(write_delayed_structure_item(i, si));
+            ERCV(write_delayed_structure_item((int32_t)i, si));
             RETOK;
         },
     };
@@ -498,7 +501,7 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_o
     size_t total_number_of_objects =
         final_offsets.size() + 2; // One for objstm, one for this object.
     const size_t entry_size = 1 + 4 + 4;
-    const int32_t root = total_number_of_objects - 3;
+    const int32_t root = (int32_t)total_number_of_objects - 3;
     const uint64_t this_object_offset64 =
 #ifdef _MSC_VER
         _ftelli64(ofile);
@@ -592,8 +595,9 @@ PdfWriter::write_cross_reference_stream(const std::vector<ObjectOffset> &final_o
 }
 
 rvoe<NoReturnValue> PdfWriter::write_oldstyle_trailer(int64_t xref_offset) {
-    const int32_t info = 1;                               // Info object is the first printed.
-    const int32_t root = doc.document_objects.size() - 1; // Root object is the last one printed.
+    const int32_t info = 1; // Info object is the first printed.
+    const int32_t root =
+        (int32_t)doc.document_objects.size() - 1; // Root object is the last one printed.
     std::string buf;
     auto documentid = create_trailer_id();
     ObjectFormatter fmt;

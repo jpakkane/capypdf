@@ -559,7 +559,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
         break;
     }
     document_objects.push_back(DelayedPages{});
-    pages_object = document_objects.size() - 1;
+    pages_object = (int32_t)document_objects.size() - 1;
     if(!std::holds_alternative<std::monostate>(docprops.subtype)) {
         if(!output_profile) {
             RETERR(OutputProfileMissing);
@@ -654,7 +654,7 @@ void PdfDocument::add_form_xobject(ObjectFormatter xobj_dict, std::string xobj_s
 
 int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &subnav) {
     assert(!subnav.empty());
-    const int32_t root_obj = document_objects.size();
+    const int32_t root_obj = (int32_t)document_objects.size();
     {
         ObjectFormatter fmt;
         fmt.begin_dict();
@@ -688,12 +688,12 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
             fmt.end_dict();
         }
         fmt.add_token("/Prev");
-        fmt.add_object_ref(root_obj + 1 + subnav.size());
+        fmt.add_object_ref((int32_t)(root_obj + 1 + subnav.size()));
         fmt.end_dict();
 
         add_object(FullPDFObject{fmt.steal(), {}});
     }
-    int32_t first_obj = document_objects.size();
+    int32_t first_obj = (int32_t)document_objects.size();
 
     for(size_t i = 0; i < subnav.size(); ++i) {
         const auto &sn = subnav[i];
@@ -720,7 +720,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
             fmt.end_dict();
         }
         fmt.add_token("/Next");
-        fmt.add_object_ref(first_obj + i + 1);
+        fmt.add_object_ref((int32_t)(first_obj + i + 1));
         if(i > 0) {
             fmt.add_token("/PA");
             fmt.begin_dict();
@@ -732,7 +732,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
             fmt.end_array();
             fmt.end_dict();
             fmt.add_token("/Prev");
-            fmt.add_object_ref(first_obj + i - 1);
+            fmt.add_object_ref((int32_t)(first_obj + i - 1));
         }
         fmt.end_dict();
         add_object(FullPDFObject{fmt.steal(), {}});
@@ -750,7 +750,7 @@ int32_t PdfDocument::create_subnavigation(const std::vector<SubPageNavigation> &
     fmt.end_array();
     fmt.end_dict();
     fmt.add_token("/Prev");
-    fmt.add_object_ref(first_obj + subnav.size() - 1);
+    fmt.add_object_ref((int32_t)(first_obj + subnav.size() - 1));
     fmt.end_dict();
     add_object(FullPDFObject{fmt.steal(), {}});
     return root_obj;
@@ -1473,7 +1473,7 @@ rvoe<SubsetGlyph> PdfDocument::get_subset_glyph(CapyPDF_FontId fid,
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(codepoint, glyph_id));
     SubsetGlyph fss;
     fss.ss.fid = fid;
-    fss.glyph_id = blub.offset;
+    fss.glyph_id = (uint16_t)blub.offset;
     return fss;
 }
 
@@ -1482,7 +1482,7 @@ PdfDocument::get_subset_glyph(CapyPDF_FontId fid, const u8string &text, uint32_t
     ERC(blub, fonts.at(fid.id).subsets.get_glyph_subset(text, glyph_id));
     SubsetGlyph fss;
     fss.ss.fid = fid;
-    fss.glyph_id = blub.offset;
+    fss.glyph_id = (uint16_t)blub.offset;
     return fss;
 }
 
@@ -2194,7 +2194,7 @@ PdfDocument::glyph_advance(CapyPDF_FontId fid, double pointsize, uint32_t codepo
         return {};
     }
     const auto font_unit_advance = face->glyph->metrics.horiAdvance;
-    return (font_unit_advance / 64.0) / 300.0 * 72.0;
+    return (double(font_unit_advance) / 64.0) / 300.0 * 72.0;
 }
 
 rvoe<CapyPDF_FontId>
