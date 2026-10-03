@@ -194,16 +194,16 @@ struct TrueTypeFontFile {
 
     int32_t num_glyphs() const {
         if(in_cff_format()) {
-            return cff->char_strings.size();
+            return (int32_t)cff->char_strings.size();
         } else {
-            return glyphs.size();
+            return (int32_t)glyphs.size();
         }
     }
 
     bool in_cff_format() const { return cff.has_value(); }
 
-    int num_directory_entries() const {
-        int entries = 6;
+    int16_t num_directory_entries() const {
+        int16_t entries = 6;
         if(!cmap.empty()) {
             ++entries;
         }

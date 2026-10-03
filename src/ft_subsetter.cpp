@@ -79,9 +79,9 @@ struct TTOffsetTable {
         //
         // Note that for table 4 the text description has a different definition for
         // entrySelector, i.e. whether it is multiplied by 16 or not.
-        search_range = 16 * pow2;
-        entry_selector = (int)log2(pow2);
-        range_shift = num_tables * 16 - search_range;
+        search_range = (int16_t)(16 * pow2);
+        entry_selector = (int16_t)log2(pow2);
+        range_shift = (int16_t)(num_tables * 16 - search_range);
     }
 };
 
@@ -700,8 +700,8 @@ TTDirEntry
 write_raw_table(std::vector<std::byte> &odata, const char *tag, std::span<const std::byte> bytes) {
     TTDirEntry e;
     e.set_tag(tag);
-    e.offset = odata.size();
-    e.length = bytes.size();
+    e.offset = (uint32_t)odata.size();
+    e.length = (uint32_t)bytes.size();
     e.checksum = 0;
     append_bytes(odata, bytes);
     return e;
@@ -762,21 +762,21 @@ std::vector<std::byte> serialize_font(TrueTypeFontFile &tf,
     }
     loca.push_back((int32_t)(odata.size() - glyphs_start));
     e.set_tag("glyf");
-    e.offset = glyphs_start;
-    e.length = odata.size() - glyphs_start;
+    e.offset = (uint32_t)glyphs_start;
+    e.length = (uint32_t)(odata.size() - glyphs_start);
     directory.push_back(e);
 
     e.set_tag("loca");
-    e.offset = odata.size();
+    e.offset = (uint32_t)odata.size();
     for(auto offset : loca) {
         byte_swap_inplace(offset);
         append_bytes(odata, offset);
     }
-    e.length = odata.size() - e.offset;
+    e.length = (uint32_t)(odata.size() - e.offset);
     directory.push_back(e);
 
     e.set_tag("hmtx");
-    e.offset = odata.size();
+    e.offset = (uint32_t)odata.size();
     for(auto hm : tf.hmtx.longhor) {
         hm.swap_endian();
         append_bytes(odata, hm);
@@ -785,7 +785,7 @@ std::vector<std::byte> serialize_font(TrueTypeFontFile &tf,
         byte_swap_inplace(lsb);
         append_bytes(odata, lsb);
     }
-    e.length = odata.size() - e.offset;
+    e.length = (uint32_t)(odata.size() - e.offset);
     directory.push_back(e);
     assert(directory.size() == (size_t)tf.num_directory_entries());
     std::byte *directory_start = odata.data() + sizeof(TTOffsetTable);
@@ -811,9 +811,9 @@ std::vector<std::byte> gen_cmap(const std::vector<TTGlyphs> &glyphs) {
     TTEncodingSubtable6 glyphencoding;
     glyphencoding.format = 6;
     glyphencoding.language = 0;
-    glyphencoding.length = sizeof(glyphencoding) + sizeof(uint16_t) * glyphs.size();
+    glyphencoding.length = (uint16_t)(sizeof(glyphencoding) + sizeof(uint16_t) * glyphs.size());
     glyphencoding.firstCode = 0;
-    glyphencoding.entryCount = glyphs.size();
+    glyphencoding.entryCount = (uint16_t)glyphs.size();
     std::vector<uint16_t> glyphids;
     glyphids.reserve(glyphs.size());
     for(size_t i = 0; i < glyphs.size(); ++i) {
@@ -964,9 +964,9 @@ generate_truetype_font(const TrueTypeFontFile &source,
     dest.head.checksum_adjustment = 0;
     dest.hhea = source.hhea;
     dest.maxp = source.maxp;
-    dest.maxp.set_num_glyphs(subglyphs.size());
+    dest.maxp.set_num_glyphs((uint16_t)subglyphs.size());
     dest.hmtx = subset_hmtx(source, glyphs);
-    dest.hhea.num_hmetrics = dest.hmtx.longhor.size();
+    dest.hhea.num_hmetrics = (uint16_t)dest.hmtx.longhor.size();
     dest.head.index_to_loc_format = 1;
     dest.cvt = source.cvt;
     dest.fpgm = source.fpgm;
@@ -1094,7 +1094,7 @@ reassign_composite_glyph_numbers(std::span<std::byte> buf,
             fprintf(stderr, "FAILfailFAIL\n");
             std::abort();
         }
-        glyph_index = it->second;
+        glyph_index = (uint16_t)it->second;
         byte_swap_inplace(glyph_index);
         memcpy(buf.data() + header_size + index_offset, &glyph_index, sizeof(glyph_index));
     } while(component_flag & MORE_COMPONENTS);

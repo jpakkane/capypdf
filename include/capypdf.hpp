@@ -248,7 +248,7 @@ public:
         CAPY_CPP_CHECK(capy_document_properties_set_title(*this, title, strsize));
     }
     template<ByteSequence T> void set_title(const T &title) {
-        set_title(title.data(), title.size());
+        set_title(title.data(), (int32_t)title.size());
     }
 
     void set_author(const char *author, int32_t strsize = -1) {
@@ -262,7 +262,7 @@ public:
         CAPY_CPP_CHECK(capy_document_properties_set_creator(*this, creator, strsize));
     }
     template<ByteSequence T> void set_creator(const T &creator) {
-        set_creator(creator.data(), creator.size());
+        set_creator(creator.data(), (int32_t)creator.size());
     }
 
     void set_language(const char *lang, int32_t strsize = -1) {
@@ -418,7 +418,9 @@ public:
     void cmd_Tj(const char *utf8_text, int32_t strsize = -1) {
         CAPY_CPP_CHECK(capy_text_cmd_Tj(*this, utf8_text, strsize));
     }
-    template<ByteSequence T> void cmd_Tj(const T &text) { cmd_Tj(text.data(), text.size()); }
+    template<ByteSequence T> void cmd_Tj(const T &text) {
+        cmd_Tj(text.data(), (int32_t)text.size());
+    }
 
     void cmd_BDC(CapyPDF_StructureItemId sid) {
         CAPY_CPP_CHECK(capy_text_cmd_BDC_builtin(*this, sid));
@@ -798,7 +800,7 @@ public:
     }
     template<ByteSequence T>
     void render_text(const T &buf, CapyPDF_FontId fid, double point_size, double x, double y) {
-        render_text(buf.data(), buf.size(), fid, point_size, x, y);
+        render_text(buf.data(), (int32_t)buf.size(), fid, point_size, x, y);
     }
 
     Text text_new() {
@@ -1152,7 +1154,7 @@ public:
     }
     template<ByteSequence T>
     double text_width(const T &str, CapyPDF_FontId font, double pointsize) {
-        return text_width(str.data(), str.size(), font, pointsize);
+        return text_width(str.data(), (int32_t)str.size(), font, pointsize);
     }
     void write() { CAPY_CPP_CHECK(capy_generator_write(*this)); }
 };

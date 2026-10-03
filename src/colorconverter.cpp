@@ -86,8 +86,8 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const ColorProfiles &d) {
     if(!d.rgb_profile_file.empty()) {
         ERC(rgb, load_file_as_bytes(d.rgb_profile_file));
         conv.rgb_profile_data = std::move(rgb);
-        cmsHPROFILE h =
-            cmsOpenProfileFromMem(conv.rgb_profile_data.data(), conv.rgb_profile_data.size());
+        cmsHPROFILE h = cmsOpenProfileFromMem(conv.rgb_profile_data.data(),
+                                              (cmsUInt32Number)conv.rgb_profile_data.size());
         if(!h) {
             RETERR(InvalidICCProfile);
         }
@@ -102,8 +102,8 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const ColorProfiles &d) {
     if(!d.gray_profile_file.empty()) {
         ERC(gray, load_file_as_bytes(d.gray_profile_file));
         conv.gray_profile_data = std::move(gray);
-        auto h =
-            cmsOpenProfileFromMem(conv.gray_profile_data.data(), conv.gray_profile_data.size());
+        auto h = cmsOpenProfileFromMem(conv.gray_profile_data.data(),
+                                       (cmsUInt32Number)conv.gray_profile_data.size());
         if(!h) {
             RETERR(InvalidICCProfile);
         }
@@ -120,8 +120,8 @@ rvoe<PdfColorConverter> PdfColorConverter::construct(const ColorProfiles &d) {
     if(!d.cmyk_profile_file.empty()) {
         ERC(cmyk, load_file_as_bytes(d.cmyk_profile_file));
         conv.cmyk_profile_data = std::move(cmyk);
-        auto h =
-            cmsOpenProfileFromMem(conv.cmyk_profile_data.data(), conv.cmyk_profile_data.size());
+        auto h = cmsOpenProfileFromMem(conv.cmyk_profile_data.data(),
+                                       (cmsUInt32Number)conv.cmyk_profile_data.size());
         if(!h) {
             RETERR(InvalidICCProfile);
         }
@@ -246,7 +246,8 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     if(ri.icc_profile.empty()) {
         input_profile = profile_for(ri.md.cs);
     } else {
-        input_profile = cmsOpenProfileFromMem(ri.icc_profile.data(), ri.icc_profile.size());
+        input_profile =
+            cmsOpenProfileFromMem(ri.icc_profile.data(), (cmsUInt32Number)ri.icc_profile.size());
         if(!input_profile) {
             RETERR(InvalidICCProfile);
         }
@@ -272,7 +273,8 @@ rvoe<RawPixelImage> PdfColorConverter::convert_image_to(RawPixelImage ri,
     }
     converted.pixels =
         std::vector<std::byte>(num_pixels * num_bytes_for(output_format), std::byte{0});
-    cmsDoTransform(transform, ri.pixels.data(), converted.pixels.data(), num_pixels);
+    cmsDoTransform(
+        transform, ri.pixels.data(), converted.pixels.data(), (cmsUInt32Number)num_pixels);
     cmsDeleteTransform(transform);
     converted.md.cs = (CapyPDF_Image_Colorspace)output_format;
     converted.icc_profile.clear();
@@ -290,7 +292,7 @@ std::span<std::byte> PdfColorConverter::get_cmyk() {
 }
 
 rvoe<int> PdfColorConverter::get_num_channels(std::span<std::byte> icc_data) const {
-    cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), icc_data.size());
+    cmsHPROFILE h = cmsOpenProfileFromMem(icc_data.data(), (cmsUInt32Number)icc_data.size());
     if(!h) {
         RETERR(InvalidICCProfile);
     }
