@@ -92,6 +92,10 @@ struct CFFIndex {
 struct CFFDictItem {
     std::vector<int32_t> operand;
     DictOperator opr; // "operator" is a reserved word
+    // The operands exactly as they were encoded in the source font. Real numbers
+    // can not be represented in `operand`, so items read from a font are written
+    // back from these bytes. Empty for items created from scratch.
+    std::vector<std::byte> raw_operands;
 };
 
 struct CFFDict {
@@ -187,7 +191,7 @@ struct Fixups {
 class CFFDictWriter {
 public:
     void append_command(const std::vector<int32_t> &operands, DictOperator op);
-    void append_command(const CFFDictItem &e) { append_command(e.operand, e.opr); };
+    void append_command(const CFFDictItem &e);
 
     DictOutput steal() { return std::move(o); }
 

@@ -159,10 +159,12 @@ rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan_orig) {
     CFFDict dict;
     size_t offset = 0;
     std::vector<int32_t> operands;
+    size_t operands_start = 0;
     // span.at() is not available yet. Change back to span once it is.
     auto dataspan = span2sv(dataspan_orig);
     while(offset < dataspan.size()) {
         // Read operand
+        const size_t item_start = offset;
         const int32_t b0 = (uint8_t)dataspan.at(offset++);
         if(b0 <= 21) {
             // Is an operator.
@@ -171,8 +173,12 @@ rvoe<CFFDict> unpack_dictionary(std::span<std::byte> dataspan_orig) {
                 const int32_t b1 = (uint8_t)dataspan.at(offset++);
                 unpacked_operator = b0 << 8 | b1;
             }
-            dict.entries.emplace_back(std::move(operands), (DictOperator)unpacked_operator);
+            std::vector<std::byte> raw(dataspan_orig.begin() + operands_start,
+                                       dataspan_orig.begin() + item_start);
+            dict.entries.emplace_back(
+                std::move(operands), (DictOperator)unpacked_operator, std::move(raw));
             operands.clear();
+            operands_start = offset;
         } else if((b0 >= 28 && b0 <= 30) || (b0 >= 32 && b0 <= 254)) {
             // Is an operand.
             int32_t unpacked_operand;
@@ -578,6 +584,19 @@ rvoe<CFFont> parse_cff_file(const char *fname) {
     return parse_cff_data(std::move(source));
 }
 
+void CFFDictWriter::append_command(const CFFDictItem &e) {
+    if(e.raw_operands.empty()) {
+        append_command(e.operand, e.opr);
+        return;
+    }
+    o.offsets.push_back((uint16_t)o.output.size());
+    o.output.insert(o.output.end(), e.raw_operands.begin(), e.raw_operands.end());
+    if((uint16_t)e.opr > 0xFF) {
+        o.output.push_back(std::byte{0xc});
+    }
+    o.output.push_back(std::byte((uint16_t)e.opr & 0xFF));
+}
+
 void CFFDictWriter::append_command(const std::vector<int32_t> &operands, DictOperator op) {
     o.offsets.push_back((uint16_t)o.output.size());
     for(const auto opr : operands) {
@@ -761,6 +780,9 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
     copy_dict_item_if_exists(topdict, DictOperator::FamilyName);
     copy_dict_item_if_exists(topdict, DictOperator::Weight);
     copy_dict_item_if_exists(topdict, DictOperator::FontBBox);
+    // Without this a font whose glyphs are not defined in units of 1/1000 em
+    // (such as one with 2048 units per em) is rendered at the wrong size.
+    copy_dict_item_if_exists(topdict, DictOperator::FontMatrix);
     if(source.is_cid) {
         ERCV(copy_dict_item(topdict, DictOperator::CIDFontVersion));
         ERCV(copy_dict_item(topdict, DictOperator::CIDCount));
@@ -827,7 +849,8 @@ rvoe<NoReturnValue> CFFWriter::copy_dict_item(CFFDictWriter &w, DictOperator op)
 void CFFWriter::copy_dict_item_if_exists(CFFDictWriter &w, DictOperator op) {
     auto *e = find_command(source, op);
     if(e) {
-        w.append_command(e->operand, e->opr);
+        // Copied as is, as it may contain real numbers.
+        w.append_command(*e);
     }
 }
 
