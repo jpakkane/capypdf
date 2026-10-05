@@ -760,6 +760,7 @@ rvoe<NoReturnValue> CFFWriter::create_topdict() {
     copy_dict_item_if_exists(topdict, DictOperator::FullName);
     copy_dict_item_if_exists(topdict, DictOperator::FamilyName);
     copy_dict_item_if_exists(topdict, DictOperator::Weight);
+    copy_dict_item_if_exists(topdict, DictOperator::FontMatrix);
     copy_dict_item_if_exists(topdict, DictOperator::FontBBox);
     if(source.is_cid) {
         ERCV(copy_dict_item(topdict, DictOperator::CIDFontVersion));
