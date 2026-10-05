@@ -752,7 +752,6 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_data(int32_t object_num,
         fmt.add_token_pair("/Length", compressed_bytes.size());
         fmt.add_token_pair("/Length1", subset_font.size());
         fmt.add_token_pair("/Filter", "/FlateDecode");
-        fmt.add_token_pair("/Subtype", "/OpenType");
         fmt.end_dict();
         ERCV(write_finished_object(object_num, fmt.steal(), compressed_bytes));
     }
@@ -784,7 +783,9 @@ rvoe<NoReturnValue> PdfWriter::write_subset_font_descriptor(int32_t object_num,
     fmt.add_token_pair("/CapHeight", (int)face->bbox.yMax); // Copying what Cairo does.
     fmt.add_token_pair("/StemV", 80);                       // Cairo always sets these to 80.
     fmt.add_token_pair("/StemH", 80);
-    fmt.add_token("/FontFile3");
+    // TrueType font programs go in a FontFile2 stream. FontFile3 with
+    // the OpenType subtype is meant for OpenType font programs.
+    fmt.add_token(font.fontdata.in_cff_format() ? "/FontFile3" : "/FontFile2");
     fmt.add_object_ref(font_data_obj);
     fmt.end_dict();
     return write_finished_object(object_num, fmt.steal(), {});
