@@ -32,6 +32,16 @@ directly.
 - Parsing any vector data, eg SVG
 - Data conversions in general (apart from colorspaces)
 
+## Usage examples
+
+The simplest way to see how the library is meant to be used is to take
+a look at [the unit tests](test/capypdftests.py). Each test is written
+to also be a readable example on how to generate a specific type of
+document.
+
+A low res image of all tests that generate output can be found in the
+[test outputs directory](testoutput).
+
 ## API stability guarantees
 
 Until 1.0 there is no guarantee of any kind. Anything can be changed.
