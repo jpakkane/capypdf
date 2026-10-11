@@ -600,7 +600,7 @@ rvoe<NoReturnValue> CFFWriter::create() {
     output.assign((std::byte *)header, (std::byte *)header + 4);
     append_index(source.name);
 
-    create_topdict();
+    ERCV(create_topdict());
     append_index(source.string);
     append_index(source.global_subr);
     fixups.charsets.value = (uint32_t)output.size();

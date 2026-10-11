@@ -1001,7 +1001,7 @@ rvoe<std::vector<std::byte>> generate_cff_font(const TrueTypeFontFile &source,
         }
     }
     CFFWriter w(source_data, converted);
-    w.create();
+    ERCV(w.create());
     return w.steal();
 }
 

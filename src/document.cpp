@@ -536,7 +536,7 @@ rvoe<NoReturnValue> PdfDocument::init() {
     // PDF uses 1-based indexing so add a dummy thing in this vector
     // to make PDF and vector indices are the same.
     document_objects.emplace_back(DummyIndexZero{});
-    generate_info_object();
+    ERCV(generate_info_object());
     switch(docprops.output_colorspace) {
     case CAPY_DEVICE_CS_RGB:
         if(!cm.get_rgb().empty()) {
@@ -1183,7 +1183,7 @@ rvoe<int32_t> PdfDocument::create_outlines() {
                 RETERR(InvalidPageNumber);
             }
             const auto page_object_number = pages.at(physical_page).page_obj_num;
-            serialize_destination(fmt, dest, page_object_number);
+            ERCV(serialize_destination(fmt, dest, page_object_number));
         }
         if(siblings.size() > 1) {
             auto loc = std::find(siblings.begin(), siblings.end(), cur_id);
