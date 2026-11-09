@@ -1086,10 +1086,9 @@ class TestPDFCreation(unittest.TestCase):
         gold_y = 0.55
         gold_k = 0.08
         function_code = f'''{{
-  dup
-  {gold_c} mul exch
-  {gold_m} exch dup
-  {gold_y} mul exch
+  dup {gold_c} mul exch
+  dup {gold_m} mul exch
+  dup {gold_y} mul exch
   {gold_k} mul
 }}
 '''
