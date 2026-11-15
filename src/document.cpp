@@ -1154,7 +1154,7 @@ void PdfDocument::create_output_intent() {
     const char *gts =
         std::holds_alternative<CapyPDF_PDFX_Type>(docprops.subtype) ? "/GTS_PDFX" : "/GTS_PDFA1";
     fmt.begin_dict();
-    fmt.add_token_pair("/Type", "OutputIntent");
+    fmt.add_token_pair("/Type", "/OutputIntent");
     fmt.add_token_pair("/S", gts);
     fmt.add_token("/OutputConditionIdentifier");
     fmt.add_token(utf8_to_pdfutf16be(docprops.intent_condition_identifier));
