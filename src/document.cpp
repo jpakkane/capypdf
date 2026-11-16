@@ -1689,7 +1689,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
         fmt.add_token_pair("/OP", *state.OP ? "true" : "false");
     }
     if(state.op) {
-        fmt.add_token_pair("/op2", *state.op ? "true" : "false");
+        fmt.add_token_pair("/op", *state.op ? "true" : "false");
     }
     if(state.OPM) {
         fmt.add_token_pair("/OPM", *state.OPM);
@@ -1732,7 +1732,7 @@ rvoe<CapyPDF_GraphicsStateId> PdfDocument::add_graphics_state(const GraphicsStat
         fmt.add_token_pair("/ca", state.ca->v());
     }
     if(state.AIS) {
-        fmt.add_token_pair("/AIS {}", *state.AIS ? "true" : "false");
+        fmt.add_token_pair("/AIS", *state.AIS ? "true" : "false");
     }
     if(state.TK) {
         fmt.add_token_pair("/TK", *state.TK ? "true" : "false");
